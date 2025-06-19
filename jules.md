@@ -19,11 +19,12 @@ This file contains specific notes, conventions, and information Jules needs to r
 6.  **Testing**: Write unit tests for the client library.
 7.  **Example Projects**: Create example console and worker projects to demonstrate usage.
 
-## Key Decisions & Progress (as of YYYY-MM-DD HH:MM:SS (Placeholder)):
-- Successfully implemented P0, P1, and numerous P2 models from `01-core-models-actual.md`. This includes core entities, request/response wrappers, and helper DTOs/enums for features like Tasks, Folders, Spaces, Goals, Custom Fields, Time Tracking, Webhooks, v3 Docs, and v3 Chat.
+## Key Decisions & Progress
+- (YYYY-MM-DD HH:MM:SS (Placeholder)): Successfully implemented P0, P1, and numerous P2 models from `01-core-models-actual.md`. This includes core entities, request/response wrappers, and helper DTOs/enums for features like Tasks, Folders, Spaces, Goals, Custom Fields, Time Tracking, Webhooks, v3 Docs, and v3 Chat.
 - Folder Structure: Models are organized under `src/ClickUp.Api.Client.Models/` into `Common/`, `Entities/`, `RequestModels/`, and `ResponseModels/`, further categorized by feature (e.g., `Entities/Tasks`, `RequestModels/Goals`).
 - Logging: User prompts are logged in `docs/prompts.md`. This file (`jules.md`) tracks project notes and context.
 - Next Steps (Post Model Implementation): The overall project plan involves developing abstractions, service implementations for API endpoints, HTTP client helpers, and a global exception handling system.
+- (YYYY-MM-DD HH:MM:SS UTC - Note: Dynamic timestamp failed): Completed the extensive model creation phase (Steps 3-22 of the plan of 2024-06-20). All listed P0, P1, P2, and relevant P3 models from `docs/plans/01-core-models-actual.md` have been implemented, including request/response DTOs and specific helper types for various API features like Attachments, Checklists, Comments, Custom Fields, Task Relationships, Folders, Guest Management, Lists, Member/Roles, Shared Hierarchy, Space Tags, Task Templates, Legacy Time Tracking, Time Entry Tags, User Management, Views, Workspace Plan/Seats, User Groups, and initial V3 API models (Audit Logs, Privacy/Access). The `User.cs` entity was also created/updated as part of this process.
 
 ## Important Files & Directories:
 - OpenAPI Spec: `docs/OpenApiSpec/ClickUp-6-17-25.json`
@@ -38,16 +39,7 @@ This file contains specific notes, conventions, and information Jules needs to r
 - Example Projects (future): `examples/`
 
 ## Current Task Context (from last user prompt):
-Continue implementing C# models for the ClickUp API client library.
-This involves:
-- Using the OpenAPI definition: `/docs/OpenApiSpec/ClickUp-6-17-25.json`
-- Following the conceptual plan: `docs/plans/01-core-models-conceptual.md`
-- Tracking progress in: `docs/plans/01-core-models-actual.md`
-- Immediate next steps: Creating models such as UserGroup, SharingOptions, Role, CustomRole, Guest, and View. Following these, specific Request/Response models will be implemented.
-- Grouping models into folders based on purpose and endpoint type.
-- Saving prompts to `/docs/prompts.md`.
-- Keeping track of repository/project information in `jules.md`.
+The primary task of creating all planned C# models for the ClickUp API client library, as outlined in `docs/plans/01-core-models-actual.md` and guided by `docs/plans/01-core-models-conceptual.md`, is now complete. This involved implementing entities, request/response DTOs, and helper types, and organizing them into the `src/ClickUp.Api.Client.Models/` directory structure.
 
 ## Current Focus
-
-Continuing with the model creation plan, focusing on grouping models into appropriate folders.
+Model creation phase is complete. Awaiting next steps which, according to the original high-level plan, would involve developing abstractions, service implementations, HTTP client helpers, etc.
