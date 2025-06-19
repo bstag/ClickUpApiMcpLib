@@ -8,6 +8,17 @@ This file contains specific notes, conventions, and information Jules needs to r
 - Conceptual Plan: `docs/plans/01-core-models-conceptual.md` (guides naming, C# type mapping, etc.).
 - Implementation Tracking: `docs/plans/01-core-models-actual.md` (tracks specific schemas and their completion status).
 
+## Development Process
+
+1.  **Model Creation**: Implement C# models based on the OpenAPI specification.
+    *   Group models into folders based on their purpose and the base endpoint type they are for.
+2.  **Service Implementation**: Create services to interact with the API endpoints.
+3.  **Interface Definitions**: Define abstractions for models and services.
+4.  **Helper Utilities**: Develop any necessary helper functions.
+5.  **Exception Handling**: Implement a global exception handling system.
+6.  **Testing**: Write unit tests for the client library.
+7.  **Example Projects**: Create example console and worker projects to demonstrate usage.
+
 ## Key Decisions & Progress (as of YYYY-MM-DD HH:MM:SS (Placeholder)):
 - Successfully implemented P0, P1, and numerous P2 models from `01-core-models-actual.md`. This includes core entities, request/response wrappers, and helper DTOs/enums for features like Tasks, Folders, Spaces, Goals, Custom Fields, Time Tracking, Webhooks, v3 Docs, and v3 Chat.
 - Folder Structure: Models are organized under `src/ClickUp.Api.Client.Models/` into `Common/`, `Entities/`, `RequestModels/`, and `ResponseModels/`, further categorized by feature (e.g., `Entities/Tasks`, `RequestModels/Goals`).
@@ -37,4 +48,6 @@ This involves:
 - Saving prompts to `/docs/prompts.md`.
 - Keeping track of repository/project information in `jules.md`.
 
-[end of jules.md]
+## Current Focus
+
+Continuing with the model creation plan, focusing on grouping models into appropriate folders.
