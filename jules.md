@@ -1,4 +1,4 @@
-# Jules' Knowledge Base
+# Jules's Knowledge Base
 
 This file contains specific notes, conventions, and information Jules needs to remember about this repository and the ongoing tasks.
 
