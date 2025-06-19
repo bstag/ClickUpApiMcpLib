@@ -1,4 +1,4 @@
-# Phase 2, Step 9: Design Global Exception System (Conceptual)
+# Phase 1, Step 5: Design Global Exception System (Conceptual)
 
 This document outlines the conceptual design for a global exception system for the ClickUp .NET client library. A well-defined exception hierarchy makes it easier for consumers of the library to catch and handle API errors programmatically.
 

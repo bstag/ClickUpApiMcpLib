@@ -1,4 +1,4 @@
-# Phase 2, Step 5: Define Core Models (Conceptual)
+# Phase 1, Step 1: Define Core Models (Conceptual)
 
 This document outlines the conceptual approach for translating OpenAPI schemas from the ClickUp API (as defined in `/docs/OpenApiSpec/ClickUp-6-17-25.json`) into C# models for the .NET client library.
 

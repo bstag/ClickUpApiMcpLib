@@ -1,4 +1,4 @@
-# Phase 2, Step 7: Plan Service Implementations (Conceptual)
+# Phase 1, Step 3: Plan Service Implementations (Conceptual)
 
 This document outlines the conceptual approach for implementing the C# service classes that will realize the interfaces defined in `docs/plans/06-abstractions-interfaces-conceptual.md`. These classes will reside in the `Client` project and contain the logic for making HTTP requests to the ClickUp API, handling responses, and deserializing them into the defined models.
 

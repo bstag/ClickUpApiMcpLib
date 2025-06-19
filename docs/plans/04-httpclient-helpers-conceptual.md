@@ -1,4 +1,4 @@
-# Phase 2, Step 8: Design HttpClient Configuration and Helpers (Conceptual)
+# Phase 1, Step 4: Design HttpClient Configuration and Helpers (Conceptual)
 
 This document outlines the conceptual approach for configuring and managing `HttpClient` instances, along with helper utilities for JSON processing and other common tasks supporting the service implementations. These components are crucial for a robust and maintainable API client library.
 
