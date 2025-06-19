@@ -50,6 +50,19 @@ You came up with a plan in docs/plans/01-core-models-conceptual.md you suggest w
 Save and append prompts you get from me with the date and time in /docs/prompts.md. Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
 </issue>
 
+---
+Date: 2023-10-27T10:00:00Z
+
+<issue>
+OpenJson definition /docs/OpenApiSpec/ClickUp-6-17-25.json. This file is a OpenApi JSON document it details out the ClickUp Api including all the calls and objects that are used. The website reference for the api is also here https://developer.clickup.com/reference/.
+
+  You came up with a plan in docs/plans/02-abstractions-interfaces-conceptual.md you suggest we move to abstractions  of the APi. Can you start building out the  abstractions based on this information. Line them out one by one in the docs/plans/02-abstractions-interfaces-actual.md document as you do them with check boxes so we can keep track of the progress.
+
+
+  Save all prompts you get from me with the date and time in /docs/prompts.md.
+  Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
+</issue>
+
 
 ## Thu Jun 19 17:40:19 UTC 2025
 
