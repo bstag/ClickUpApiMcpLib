@@ -83,39 +83,52 @@ This list includes schemas identified from components.schemas (which are general
 ## Request/Response Specific Models (Often Wrappers or Inline Definitions):
 These might be refactored into the core entities above or generated as specific request/response classes.
 
-* [ ] CreateTaskAttachmentresponse (P2) - Response for creating a task attachment.
-* [ ] GetAccessTokenresponse (P3) - Response for getting OAuth access token.
-* [ ] CreateChecklistrequest (P2) - Request to create a checklist.
-* [ ] CreateChecklistresponse (P2) - Response for creating a checklist.
-* [ ] EditChecklistrequest (P2) - Request to edit a checklist.
-* [ ] CreateChecklistItemrequest (P2) - Request to create a checklist item.
-* [ ] CreateChecklistItemresponse (P2) - Response for creating a checklist item.
-* [ ] EditChecklistItemrequest (P2) - Request to edit a checklist item.
-* [ ] EditChecklistItemresponse (P2) - Response for editing a checklist item.
-* [ ] GetTaskCommentsresponse (P2) - Wrapper for a list of comments.
-* [ ] CreateTaskCommentrequest (P2) - Request to create a task comment.
-* [ ] CreateTaskCommentresponse (P2) - Response for creating a task comment.
-* [ ] GetChatViewCommentsresponse (P2) - Wrapper for chat view comments.
-* [ ] CreateChatViewCommentrequest (P2) - Request for creating chat view comment.
-* [ ] CreateChatViewCommentresponse (P2) - Response for creating chat view comment.
-* [ ] GetListCommentsresponse (P2) - Wrapper for list comments.
-* [ ] CreateListCommentrequest (P2) - Request to create a list comment.
-* [ ] CreateListCommentresponse (P2) - Response for creating list comment.
-* [ ] UpdateCommentrequest (P2) - Request to update a comment.
-* [ ] GetAccessibleCustomFieldsresponse (P2) - Wrapper for list of custom fields.
+* [x] CreateTaskAttachmentresponse (P2) - Response for creating a task attachment.
+* [x] GetAccessTokenresponse (P3) - Response for getting OAuth access token.
+* [x] CreateChecklistrequest (P2) - Request to create a checklist.
+* [x] CreateChecklistresponse (P2) - Response for creating a checklist.
+* [x] EditChecklistrequest (P2) - Request to edit a checklist.
+* [x] CreateChecklistItemrequest (P2) - Request to create a checklist item.
+* [x] CreateChecklistItemresponse (P2) - Response for creating a checklist item.
+* [x] EditChecklistItemrequest (P2) - Request to edit a checklist item.
+* [x] EditChecklistItemresponse (P2) - Response for editing a checklist item.
+* [x] GetTaskCommentsresponse (P2) - Wrapper for a list of comments.
+* [x] CreateTaskCommentrequest (P2) - Request to create a task comment.
+* [x] CreateTaskCommentresponse (P2) - Response for creating a task comment.
+* [x] GetChatViewCommentsresponse (P2) - Wrapper for chat view comments.
+* [x] CreateChatViewCommentrequest (P2) - Request for creating chat view comment.
+* [x] CreateChatViewCommentresponse (P2) - Response for creating chat view comment.
+* [x] GetListCommentsresponse (P2) - Wrapper for list comments.
+* [x] CreateListCommentrequest (P2) - Request to create a list comment.
+* [x] CreateListCommentresponse (P2) - Response for creating list comment.
+* [x] UpdateCommentrequest (P2) - Request to update a comment.
+* [x] GetAccessibleCustomFieldsresponse (P2) - Wrapper for list of custom fields.
 * [x] TypeConfig (P2) - Configuration for a custom field type (inline in Field. Implemented in `Entities/CustomFields/TypeConfig.cs`).
 * [x] Option (P2) - Option for dropdown/label custom fields (inline in TypeConfig. Implemented in `Entities/CustomFields/Option.cs`).
 * [x] Tracking (P2) - Progress tracking configuration for custom fields (inline in TypeConfig. Implemented in `Entities/CustomFields/Tracking.cs`).
-* [ ] SetCustomFieldValuerequest (P2) - Polymorphic request for setting custom field values.
-* [ ] AddDependencyrequest (P2) - Request to add a task dependency.
-* [ ] AddTaskLinkresponse (P2) - Response for adding a task link.
-* [~] LinkedTask (P2) - Represents a linked task. (Basic placeholder defined within Entities/Tasks/Task.cs; needs full implementation and separate file.)
-* [ ] GetFoldersresponse (P2) - Wrapper for list of folders.
-* [ ] CreateFolderrequest (P2) - Request to create a folder.
-* [ ] CreateFolderresponse (P2) - Response for creating a folder.
-* [ ] GetFolderresponse (P2) - Response for getting a folder.
-* [ ] UpdateFolderrequest (P2) - Request to update a folder.
-* [ ] UpdateFolderresponse (P2) - Response for updating a folder.
+* [x] SetCustomFieldValuerequest (P2) - Polymorphic request for setting custom field values. (Implemented as various specific request models like `TextLikeCustomFieldValueRequest`, `DateCustomFieldValueRequest`, etc. in `RequestModels/CustomFields/Values/`)
+    * [x] TextLikeCustomFieldValueRequest
+    * [x] DateCustomFieldValueRequest
+    * [x] NumberCustomFieldValueRequest
+    * [x] TaskRelationshipActionValue
+    * [x] PeopleRelationshipActionValue
+    * [x] TaskRelationshipCustomFieldValueRequest
+    * [x] PeopleCustomFieldValueRequest
+    * [x] ManualProgressValue
+    * [x] ManualProgressCustomFieldValueRequest
+    * [x] LabelCustomFieldValueRequest
+    * [x] LatLong
+    * [x] LocationValue
+    * [x] LocationCustomFieldValueRequest
+* [x] AddDependencyrequest (P2) - Request to add a task dependency.
+* [x] AddTaskLinkresponse (P2) - Response for adding a task link.
+* [x] LinkedTask (P2) - Represents a linked task. (Implemented in `Entities/Tasks/LinkedTask.cs`)
+* [x] GetFoldersresponse (P2) - Wrapper for list of folders.
+* [x] CreateFolderrequest (P2) - Request to create a folder.
+* [x] CreateFolderresponse (P2) - Response for creating a folder. (Note: Typically returns the created Folder entity directly)
+* [x] GetFolderresponse (P2) - Response for getting a folder. (Note: Typically returns the Folder entity directly)
+* [x] UpdateFolderrequest (P2) - Request to update a folder.
+* [x] UpdateFolderresponse (P2) - Response for updating a folder. (Note: Typically returns the updated Folder entity directly)
 * [x] GetGoalsresponse (P2) - Wrapper for goals and goal folders. (Implemented in `ResponseModels/Goals/GetGoalsResponse.cs`)
 * [x] CreateGoalrequest (P1) - Request to create a goal. (Implemented in `RequestModels/Goals/CreateGoalRequest.cs`)
 * [x] CreateGoalresponse (P1) - Response for creating a goal. (Implemented in `ResponseModels/Goals/CreateGoalResponse.cs`)
@@ -127,34 +140,34 @@ These might be refactored into the core entities above or generated as specific 
 * [x] LastAction (P2) - Details of the last action on a key result. (Implemented in `Entities/Goals/LastAction.cs`)
 * [x] EditKeyResultrequest (P1) - Request to edit a key result. (Implemented in `RequestModels/Goals/EditKeyResultRequest.cs`)
 * [x] EditKeyResultresponse (P1) - Response for editing a key result. (Implemented in `ResponseModels/Goals/EditKeyResultResponse.cs`)
-* [ ] InviteGuestToWorkspacerequest (P2) - Request to invite a guest.
-* [ ] InviteGuestToWorkspaceresponse (P2) - Response for inviting a guest.
-* [ ] EditGuestOnWorkspacerequest (P2) - Request to edit a guest.
-* [ ] EditGuestOnWorkspaceresponse (P2) - Response for editing a guest.
-* [ ] RemoveGuestFromWorkspaceresponse (P3)
-* [ ] AddGuestToTaskrequest (P2)
-* [ ] AddGuestToTaskresponse (P2)
-* [ ] Shared1 (P2) - Structure for items shared with a guest.
-* [ ] RemoveGuestFromTaskresponse (P3)
-* [ ] AddGuestToListrequest (P2)
-* [ ] AddGuestToListresponse (P2)
-* [ ] RemoveGuestFromListresponse (P3)
-* [ ] AddGuestToFolderrequest (P2)
-* [ ] AddGuestToFolderresponse (P2)
-* [ ] RemoveGuestFromFolderresponse (P3)
-* [ ] GetListsresponse (P2) - Wrapper for lists.
-* [ ] CreateListrequest (P1) - Request to create a list.
-* [ ] CreateListresponse (P1) - Response for creating a list.
-* [ ] GetFolderlessListsresponse (P2) - Wrapper for folderless lists.
-* [ ] CreateFolderlessListrequest (P1) - Request to create a folderless list.
-* [ ] CreateFolderlessListresponse (P1) - Response for creating a folderless list.
-* [ ] UpdateListrequest (P1) - Request to update a list.
-* [ ] UpdateListresponse (P1) - Response for updating a list.
-* [ ] GetTaskMembersresponse (P2) - Wrapper for task members.
-* [ ] ProfileInfo (P2) - User profile info within Member.
-* [ ] GetListMembersresponse (P2) - Wrapper for list members.
-* [ ] GetCustomRolesresponse (P2) - Wrapper for custom roles.
-* [ ] SharedHierarchyresponse (P2) - Wrapper for shared hierarchy.
+* [x] InviteGuestToWorkspacerequest (P2) - Request to invite a guest.
+* [x] InviteGuestToWorkspaceresponse (P2) - Response for inviting a guest. (Includes `InviteGuestToWorkspaceResponseUser`, `InvitedByUserInfo`, `InviteGuestToWorkspaceResponseTeamMember`, `InviteGuestToWorkspaceResponseTeam`)
+* [x] EditGuestOnWorkspacerequest (P2) - Request to edit a guest.
+* [x] EditGuestOnWorkspaceresponse (P2) - Response for editing a guest. (Includes `GuestSharingDetails`, `EditGuestOnWorkspaceResponseGuest`)
+* [x] RemoveGuestFromWorkspaceresponse (P3)
+* [x] AddGuestToTaskrequest (P2)
+* [x] AddGuestToTaskresponse (P2) (Includes `AddGuestToTaskResponseGuest`)
+* [x] Shared1 (P2) - Structure for items shared with a guest. (Covered by `GuestSharingDetails` and its variants)
+* [x] RemoveGuestFromTaskresponse (P3)
+* [x] AddGuestToListrequest (P2)
+* [x] AddGuestToListresponse (P2) (Includes `GuestListSharingDetails`, `AddGuestToListResponseGuest`)
+* [x] RemoveGuestFromListresponse (P3)
+* [x] AddGuestToFolderrequest (P2)
+* [x] AddGuestToFolderresponse (P2) (Includes `GuestFolderSharingDetails`, `AddGuestToFolderResponseGuest`)
+* [x] RemoveGuestFromFolderresponse (P3)
+* [x] GetListsresponse (P2) - Wrapper for lists.
+* [x] CreateListrequest (P1) - Request to create a list.
+* [x] CreateListresponse (P1) - Response for creating a list. (Note: Typically returns the created List entity directly)
+* [x] GetFolderlessListsresponse (P2) - Wrapper for folderless lists.
+* [x] CreateFolderlessListrequest (P1) - Request to create a folderless list. (Similar to CreateListrequest)
+* [x] CreateFolderlessListresponse (P1) - Response for creating a folderless list. (Note: Typically returns the created List entity directly)
+* [x] UpdateListrequest (P1) - Request to update a list.
+* [x] UpdateListresponse (P1) - Response for updating a list. (Note: Typically returns the updated List entity directly)
+* [x] GetTaskMembersresponse (P2) - Wrapper for task members.
+* [x] ProfileInfo (P2) - User profile info. (Implemented in `Entities/Users/ProfileInfo.cs`)
+* [x] GetListMembersresponse (P2) - Wrapper for list members.
+* [x] GetCustomRolesresponse (P2) - Wrapper for custom roles.
+* [x] SharedHierarchyresponse (P2) - Wrapper for shared hierarchy. (Includes `SharedHierarchyListItem`, `SharedHierarchyFolderItem`, `SharedHierarchyDetails`)
 * [x] GetSpacesresponse (P1) - Wrapper for spaces. (Implemented in `ResponseModels/Spaces/GetSpacesResponse.cs`)
 * [x] Features (P2) - Space features configuration. (Implemented in `Entities/Spaces/Features.cs`)
 * [x] CreateSpacerequest (P1) - Request to create a space. (Implemented in `RequestModels/Spaces/CreateSpaceRequest.cs`)
@@ -162,10 +175,10 @@ These might be refactored into the core entities above or generated as specific 
 * [x] GetSpaceresponse (P1) - Response for getting a space. (Implemented in `ResponseModels/Spaces/GetSpaceResponse.cs`)
 * [x] UpdateSpacerequest (P1) - Request to update a space. (Implemented in `RequestModels/Spaces/UpdateSpaceRequest.cs`)
 * [x] UpdateSpaceresponse (P1) - Response for updating a space. (Implemented in `ResponseModels/Spaces/UpdateSpaceResponse.cs`)
-* [ ] GetSpaceTagsresponse (P2) - Wrapper for space tags.
-* [ ] CreateSpaceTagrequest (P2) - Request to create a space tag.
-* [ ] EditSpaceTagrequest (P2) - Request to edit a space tag.
-* [ ] EditSpaceTagresponse (P2) - Response for editing a space tag.
+* [x] GetSpaceTagsresponse (P2) - Wrapper for space tags.
+* [x] CreateSpaceTagrequest (P2) - Request to create a space tag.
+* [x] EditSpaceTagrequest (P2) - Request to edit a space tag. (Includes `EditSpaceTagInfo`)
+* [x] EditSpaceTagresponse (P2) - Response for editing a space tag.
 * [ ] DeleteSpaceTagrequest (P3)
 * [x] GetTasksresponse (P1) - Wrapper for tasks. (Implemented in `ResponseModels/Tasks/GetTasksResponse.cs`)
 * [x] CreateTaskrequest (P1) - Request to create a task. (Implemented in `RequestModels/Tasks/CreateTaskRequest.cs`; uses CustomTaskFieldToSet from CustomTaskFieldModels.cs)
@@ -175,59 +188,59 @@ These might be refactored into the core entities above or generated as specific 
 * [x] UpdateTaskresponse (P1) - Response for updating a task. (Implemented in `ResponseModels/Tasks/UpdateTaskResponse.cs`)
 * [x] CustomTaskFieldModels (P2) - Contains CustomTaskFieldToSet and CustomTaskFieldValueOptions for task requests. (Implemented in `RequestModels/Tasks/CustomTaskFieldModels.cs`)
 * [ ] GetFilteredTeamTasksresponse (P2) - Wrapper for filtered tasks.
-* [ ] GetTaskTemplatesresponse (P3) - Wrapper for task templates.
-* [ ] CreateTaskFromTemplaterequest (P3) - Request to create task from template.
-* [ ] Gettrackedtimeresponse (P2) - Wrapper for legacy tracked time.
-* [ ] Tracktimerequest (P2) - Request for legacy track time.
-* [ ] Edittimetrackedrequest (P2) - Request to edit legacy tracked time.
+* [x] GetTaskTemplatesresponse (P3) - Wrapper for task templates.
+* [x] CreateTaskFromTemplaterequest (P3) - Request to create task from template.
+* [x] Gettrackedtimeresponse (P2) - Wrapper for legacy tracked time. (Includes `LegacyTimeTrackingInterval`, `LegacyTrackedTimeEntry`)
+* [x] Tracktimerequest (P2) - Request for legacy track time.
+* [x] Edittimetrackedrequest (P2) - Request to edit legacy tracked time. (Similar to TrackTimeRequest)
 * [x] Gettimeentrieswithinadaterangeresponse (P1) - Wrapper for time entries. (Implemented in `ResponseModels/TimeTracking/GetTimeEntriesResponse.cs`)
 * [x] Createatimeentryrequest (P1) - Request to create a time entry. (Implemented in `RequestModels/TimeTracking/CreateTimeEntryRequest.cs`)
 * [x] Createatimeentryresponse (P1) - Response for creating a time entry. (Implemented in `ResponseModels/TimeTracking/CreateTimeEntryResponse.cs`)
 * [x] Getsingulartimeentryresponse (P1) - Response for getting a single time entry. (Implemented in `ResponseModels/TimeTracking/GetSingleTimeEntryResponse.cs`)
 * [x] UpdateatimeEntryrequest (P1) - Request to update a time entry. (Implemented in `RequestModels/TimeTracking/UpdateTimeEntryRequest.cs`)
 * [ ] Getrunningtimeentryresponse (P2) - Response for currently running time entry.
-* [ ] StopatimeEntryresponse (P2) - Response for stopping a time entry.
-* [ ] Removetagsfromtimeentriesrequest (P3) - Request to remove tags from time entries.
-* [ ] Getalltagsfromtimeentriesresponse (P2) - Wrapper for all time entry tags.
-* [ ] Addtagsfromtimeentriesrequest (P2) - Request to add tags to time entries.
-* [ ] Changetagnamesfromtimeentriesrequest (P2) - Request to change tag names for time entries.
+* [x] StopatimeEntryresponse (P2) - Response for stopping a time entry. (Typically returns the stopped TimeEntry)
+* [x] Removetagsfromtimeentriesrequest (P3) - Request to remove tags from time entries.
+* [x] Getalltagsfromtimeentriesresponse (P2) - Wrapper for all time entry tags. (Includes `TimeEntryTagDetails`)
+* [x] Addtagsfromtimeentriesrequest (P2) - Request to add tags to time entries. (Similar to RemoveTagsFromTimeEntriesRequest)
+* [x] Changetagnamesfromtimeentriesrequest (P2) - Request to change tag names for time entries.
 * [x] StartatimeEntryrequest (P1) - Request to start a time entry. (Implemented in `RequestModels/TimeTracking/StartTimeEntryRequest.cs`)
 * [x] StartatimeEntryresponse (P1) - Response for starting a time entry. (Implemented in `ResponseModels/TimeTracking/StartTimeEntryResponse.cs`)
 * [x] TimeTrackingTagDefinition (P2) - Defines a tag for time tracking requests. (Implemented in `RequestModels/TimeTracking/TimeTrackingTagDefinition.cs`)
-* [ ] InviteUserToWorkspacerequest (P2) - Request to invite a user to workspace.
-* [ ] InviteUserToWorkspaceresponse (P2) - Response for inviting user.
-* [ ] GetUserresponse (P2) - Response for getting user details.
-* [ ] EditUserOnWorkspacerequest (P2) - Request to edit user on workspace.
-* [ ] EditUserOnWorkspaceresponse (P2) - Response for editing user.
-* [ ] RemoveUserFromWorkspaceresponse (P3)
-* [ ] GetTeamViewsresponse (P2) - Wrapper for Workspace/Team views.
-* [ ] CreateTeamViewrequest (P2) - Request to create Workspace/Team view.
-* [ ] CreateTeamViewresponse (P2) - Response for creating Workspace/Team view.
-* [ ] GetSpaceViewsresponse (P2) - Wrapper for Space views.
-* [ ] CreateSpaceViewrequest (P2) - Request to create Space view.
-* [ ] CreateSpaceViewresponse (P2) - Response for creating Space view.
-* [ ] GetFolderViewsresponse (P2) - Wrapper for Folder views.
-* [ ] CreateFolderViewrequest (P2) - Request to create Folder view.
-* [ ] CreateFolderViewresponse (P2) - Response for creating Folder view.
-* [ ] GetListViewsresponse (P2) - Wrapper for List views.
-* [ ] CreateListViewrequest (P2) - Request to create List view.
-* [ ] CreateListViewresponse (P2) - Response for creating List view.
-* [ ] GetViewresponse (P2) - Response for getting a single view.
-* [ ] UpdateViewrequest (P2) - Request to update a view.
-* [ ] UpdateViewresponse (P2) - Response for updating a view.
-* [ ] GetViewTasksresponse (P2) - Wrapper for tasks within a view.
+* [x] InviteUserToWorkspacerequest (P2) - Request to invite a user to workspace.
+* [x] InviteUserToWorkspaceresponse (P2) - Response for inviting user.
+* [x] GetUserresponse (P2) - Response for getting user details. (Includes `GetUserResponseMember`)
+* [x] EditUserOnWorkspacerequest (P2) - Request to edit user on workspace.
+* [x] EditUserOnWorkspaceresponse (P2) - Response for editing user.
+* [x] RemoveUserFromWorkspaceresponse (P3)
+* [x] GetTeamViewsresponse (P2) - Wrapper for Workspace/Team views.
+* [x] CreateTeamViewrequest (P2) - Request to create Workspace/Team view. (Likely uses View entity as base)
+* [x] CreateTeamViewresponse (P2) - Response for creating Workspace/Team view.
+* [x] GetSpaceViewsresponse (P2) - Wrapper for Space views.
+* [x] CreateSpaceViewrequest (P2) - Request to create Space view. (Likely uses View entity as base)
+* [x] CreateSpaceViewresponse (P2) - Response for creating Space view.
+* [x] GetFolderViewsresponse (P2) - Wrapper for Folder views.
+* [x] CreateFolderViewrequest (P2) - Request to create Folder view. (Likely uses View entity as base)
+* [x] CreateFolderViewresponse (P2) - Response for creating Folder view.
+* [x] GetListViewsresponse (P2) - Wrapper for List views.
+* [x] CreateListViewrequest (P2) - Request to create List view. (Likely uses View entity as base)
+* [x] CreateListViewresponse (P2) - Response for creating List view.
+* [x] GetViewresponse (P2) - Response for getting a single view.
+* [x] UpdateViewrequest (P2) - Request to update a view. (Likely uses View entity as base)
+* [x] UpdateViewresponse (P2) - Response for updating a view.
+* [x] GetViewTasksresponse (P2) - Wrapper for tasks within a view.
 * [x] GetWebhooksresponse (P1) - Wrapper for webhooks. (Implemented in `ResponseModels/Webhooks/GetWebhooksResponse.cs`)
 * [x] CreateWebhookrequest (P1) - Request to create a webhook. (Implemented in `RequestModels/Webhooks/CreateWebhookRequest.cs`)
 * [x] CreateWebhookresponse (P1) - Response for creating a webhook. (Implemented in `ResponseModels/Webhooks/CreateWebhookResponse.cs`)
 * [x] UpdateWebhookrequest (P1) - Request to update a webhook. (Implemented in `RequestModels/Webhooks/UpdateWebhookRequest.cs`)
 * [x] UpdateWebhookresponse (P1) - Response for updating a webhook. (Implemented in `ResponseModels/Webhooks/UpdateWebhookResponse.cs`)
-* [ ] GetWorkspaceseatsresponse (P3) - Response for workspace seat info.
-* [ ] GetWorkspaceplanresponse (P3) - Response for workspace plan info.
-* [ ] CreateTeamrequest (P2) - Request to create a User Group (note: "Team" is used for User Group here).
-* [ ] CreateTeamresponse (P2) - Response for creating a User Group.
-* [ ] UpdateTeamrequest (P2) - Request to update a User Group.
-* [ ] UpdateTeamresponse (P2) - Response for updating a User Group.
-* [ ] GetTeamsresponse (P2) - Wrapper for User Groups (note: "Teams" is used for User Group here).
+* [x] GetWorkspaceseatsresponse (P3) - Response for workspace seat info. (Includes `WorkspaceMemberSeatsInfo`, `WorkspaceGuestSeatsInfo`)
+* [x] GetWorkspaceplanresponse (P3) - Response for workspace plan info.
+* [x] CreateTeamrequest (P2) - Request to create a User Group. (Implemented as `CreateUserGroupRequest`)
+* [x] CreateTeamresponse (P2) - Response for creating a User Group. (Returns `UserGroup` entity)
+* [x] UpdateTeamrequest (P2) - Request to update a User Group. (Implemented as `UpdateUserGroupRequest`, includes `UserGroupMembersUpdate`)
+* [x] UpdateTeamresponse (P2) - Response for updating a User Group. (Returns `UserGroup` entity)
+* [x] GetTeamsresponse (P2) - Wrapper for User Groups. (Implemented as `GetUserGroupsResponse`)
 * [x] searchDocs (P2) - Response for searching docs. (Implemented in `ResponseModels/Docs/SearchDocsResponse.cs`)
 * [x] createDoc (P1) - Request & Response for creating a doc. (Request in `RequestModels/Docs/CreateDocRequest.cs`, Response in `ResponseModels/Docs/CreateDocResponse.cs`)
 * [x] getDoc (P1) - Response for getting a doc. (Implemented in `ResponseModels/Docs/GetDocResponse.cs`)
@@ -236,8 +249,8 @@ These might be refactored into the core entities above or generated as specific 
 * [x] createPage (P1) - Request & Response for creating a page in a doc. (Request in `RequestModels/Docs/CreatePageRequest.cs`, Response in `ResponseModels/Docs/CreatePageResponse.cs`)
 * [x] getPage (P1) - Response for getting a page in a doc. (Implemented in `ResponseModels/Docs/GetPageResponse.cs`)
 * [x] editPage (P1) - Request for editing a page in a doc. (Implemented in `RequestModels/Docs/EditPageRequest.cs`)
-* [ ] CreateWorkspaceAuditLog (P3) (from /v3/workspaces/{workspace_id}/auditlogs POST) - request and response structure not fully detailed.
-* [ ] UpdatePrivacyAndAccess (P2) (from /v3/workspaces/{workspace_id}/{object_type}/{object_id}/acls PATCH) - request and response structure not fully detailed.
+* [x] CreateWorkspaceAuditLog (P3) - Request for audit logs. (Implemented as `CreateWorkspaceAuditLogRequest`, includes `AuditLogFilter`, `AuditLogPagination`)
+* [x] UpdatePrivacyAndAccess (P2) - Request for updating ACLs. (Implemented as `UpdatePrivacyAndAccessRequest`, includes `AccessControlEntry`)
 
 ## Schemas from components.schemas (v3 Chat API specific - these are well-defined):
 * [x] ChatPaginatedResponse (P2) - Generic paginated response structure for Chat. (Implemented for ChatChannel in `ResponseModels/Chat/ChatChannelPaginatedResponse.cs`)
@@ -248,10 +261,10 @@ These might be refactored into the core entities above or generated as specific 
 * [x] ChatDefaultViewDTO (P2) - DTO for default view of a chat room. (Implemented in `Entities/Chat/ChatDefaultViewDTO.cs`)
 * [x] ChatSubcategoryType (P2) - Enum for chat subcategory types. (Implemented in `Entities/Chat/Enums/ChatSubcategoryType.cs`)
 * [x] ChatLastReadAtData (P2) - Data for last read timestamp and unread counts. (Implemented in `Entities/Chat/ChatLastReadAtData.cs`)
-* [ ] ChatCommentVersionVector (P3)
-* [ ] ChatCommentVector (P3)
+* [x] ChatCommentVersionVector (P3)
+* [x] ChatCommentVector (P3)
 * [x] ChatChannelLinks (P2) - Links related to a chat channel. (Implemented in `Entities/Chat/ChatChannelLinks.cs`)
-* [ ] ChatPublicApiErrorResponse (P3) - General error response.
+* [x] ChatPublicApiErrorResponse (P3) - General error response.
 * [x] ChatCreateChatChannel (P2) - Request for creating a chat channel. (Implemented in `RequestModels/Chat/ChatCreateChatChannelRequest.cs`)
 * [x] ChatUpdateChatChannel (P2) - Request for updating a chat channel. (Implemented in `RequestModels/Chat/ChatUpdateChatChannelRequest.cs`)
 * [x] ChatChannelLocation (P2) - Location of a chat channel (folder, list, space). (Implemented in `Entities/Chat/ChatChannelLocation.cs`)

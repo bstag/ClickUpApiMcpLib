@@ -3,52 +3,31 @@ using System.Text.Json.Serialization;
 namespace ClickUp.Api.Client.Models.ResponseModels.Attachments;
 
 /// <summary>
-/// Represents the response for creating a task attachment.
-/// Based on the inline schema `CreateTaskAttachmentresponse` from POST /v2/task/{task_id}/attachment.
+/// Represents the response model for creating a task attachment.
 /// </summary>
-public record CreateTaskAttachmentResponse
-{
-    [JsonPropertyName("id")]
-    public string Id { get; init; }
+public record class CreateTaskAttachmentResponse
+(
+    [property: JsonPropertyName("id")]
+    string Id,
 
-    [JsonPropertyName("version")]
-    public string Version { get; init; }
+    [property: JsonPropertyName("version")]
+    string Version,
 
-    /// <summary>
-    /// Unix timestamp of the attachment date.
-    /// </summary>
-    [JsonPropertyName("date")]
-    public long Date { get; init; }
+    [property: JsonPropertyName("date")]
+    long Date,
 
-    [JsonPropertyName("title")]
-    public string Title { get; init; }
+    [property: JsonPropertyName("title")]
+    string Title,
 
-    [JsonPropertyName("extension")]
-    public string Extension { get; init; }
+    [property: JsonPropertyName("extension")]
+    string Extension,
 
-    [JsonPropertyName("thumbnail_small")]
-    public string? ThumbnailSmall { get; init; }
+    [property: JsonPropertyName("thumbnail_small")]
+    string ThumbnailSmall,
 
-    [JsonPropertyName("thumbnail_large")]
-    public string? ThumbnailLarge { get; init; }
+    [property: JsonPropertyName("thumbnail_large")]
+    string ThumbnailLarge,
 
-    [JsonPropertyName("url")]
-    public string Url { get; init; }
-
-    // The provided schema in the prompt doesn't list 'url_w_redirect' or 'email_data',
-    // but sometimes attachment responses include these.
-    // For now, sticking to the explicitly mentioned fields.
-    // If the full schema has more, they can be added.
-    // Example from a similar GET attachment might have:
-    // "url_w_redirect": "string",
-    // "email_data": "string",
-    // "orientation": null, // or object
-    // "source": "string",
-    // "is_folder": false,
-    // "size": 0, // integer
-    // "type": 0, // integer
-    // "hidden_by": null, // or object
-    // "parent_id": "string",
-    // "user": { "id": 0, ... }
-    // The CreateTaskAttachmentresponse is usually simpler than a full Attachment object.
-}
+    [property: JsonPropertyName("url")]
+    string Url
+);
