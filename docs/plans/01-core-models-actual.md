@@ -10,34 +10,47 @@ This list includes schemas identified from components.schemas (which are general
 ## Foundational & Core Entities:
 * [x] User (P0) - Represents a ClickUp user. (Seen inline, e.g., /v2/user response, and expected in components.schemas)
 * [x] Workspace / Team (P0) - Represents a ClickUp Workspace. (Seen as Team inline, e.g., /v2/team response, and expected in components.schemas. Consider naming ClickUpWorkspace in C#)
-* [x] Space (P0) - Organizational unit within a Workspace. (Seen inline, e.g., in Task model, and expected in components.schemas)
-* [~] Folder (P0) - Organizational unit within a Space. (Seen inline, e.g., in Task model, and expected in components.schemas)
-    * Needs `Archived` property (bool?).
-    * Needs `Statuses` property (`List<Status>?`) for when `OverrideStatuses` is true.
-* [~] List (P0) - Organizational unit containing tasks. (Seen inline, e.g., in Task model, and expected in components.schemas)
-    * `Folder` property should be nullable (`Folder? Folder { get; init; }`) to support folderless lists.
-    * `Priority` property should use a new, simpler `ListPriorityInfo` record instead of the current `Priority` record (which is for Tasks). A `ListPriorityInfo.cs` needs to be created.
-* [~] Task (P0) - The core unit of work. (Seen inline, e.g., AddTaskLinkresponse, and expected as a detailed model in components.schemas)
-    * `Checklists` property needs to become `List<Checklist>?` (requires `Checklist.cs` - P1).
-    * `Tags` property needs to become `List<Tag>?` (requires `Tag.cs` - P1).
-    * `CustomFields` is a placeholder; will require `List<CustomFieldValue>` and related models (P1).
-    * `Dependencies` is a placeholder; will require `List<Dependency>?` and `Dependency.cs`.
-    * Consider adding `MarkdownDescription` property.
+* [x] Space (P0) - Organizational unit within a Workspace. (Implemented in `Entities/Spaces/Space.cs`, includes Features and simplified MemberSummary, DefaultListSettings)
+* [x] Folder (P0) - Organizational unit within a Space. (Seen inline, e.g., in Task model, and expected in components.schemas)
+    * `Archived` property (bool) added.
+    * `Statuses` property (`List<Status>?`) added (for when `OverrideStatuses` is true).
+* [x] List (P0) - Organizational unit containing tasks. (Seen inline, e.g., in Task model, and expected in components.schemas)
+    * `Folder` property is nullable (`Folder? Folder { get; init; }`) to support folderless lists.
+    * `Priority` property now uses `ListPriorityInfo?` (new model `ListPriorityInfo.cs` created).
+* [x] Task (P0) - The core unit of work. (Seen inline, e.g., AddTaskLinkresponse, and expected as a detailed model in components.schemas. Made more comprehensive; includes simplified List/Folder/Space refs and placeholders for UserGroup, TaskLink, SharingOptions defined within Task.cs)
+    * `Checklists` property is now `List<Checklist>?` (model `Checklist.cs` implemented in `Entities/Checklists/` - P1).
+    * `Tags` property is now `List<Tag>?` (model `Tag.cs` implemented in `Entities/Tags/` - P1).
+    * `CustomFields` property is now `List<CustomFieldValue>?` (new model `CustomFieldValue.cs` created - P1).
+    * `Dependencies` property is now `List<Dependency>?` (new model `Dependency.cs` created).
+    * `MarkdownDescription` property (string?) added.
 * [x] Status (P0) - Task status (e.g., "Open", "In Progress"). (Seen inline in Task model, and expected in components.schemas)
-* [x] Priority (P0) - Task priority. (Seen inline in Task model, and expected in components.schemas)
+* [x] Priority (P0) - Task priority. (Seen inline in Task model, and expected in components.schemas) - This is for Task specific priority. List priority is handled by `ListPriorityInfo`.
 * [x] Comment (P1) - Comments on tasks, etc. (Seen inline, e.g., GetTaskCommentsresponse, and expected in components.schemas)
-* [x] CustomFieldDefinition / Field (P1) - Definition of a Custom Field. (Seen as Field inline, and expected in components.schemas)
-* [ ] CustomFieldValue (P1) - Value of a Custom Field on a task. (May be part of Task or separate, structure seen in SetCustomFieldValuerequest)
-* [x] Tag (P1) - Task tags. (Seen inline in Task model, and expected in components.schemas)
-* [x] Checklist (P1) - Checklist on a task. (Seen inline, e.g., CreateChecklistresponse, and expected in components.schemas)
-* [x] ChecklistItem (P1) - Item within a checklist. (Seen inline, e.g., Item in Checklist1, and expected in components.schemas)
-* [x] Attachment (P1) - File attachments. (Seen as CreateTaskAttachmentresponse and likely in components.schemas)
-* [ ] Member (P1) - User's membership in various entities. (Seen inline in Team, Goal2, etc., and expected in components.schemas)
-* [x] Goal (P1) - Goal entity. (Seen inline as Goal, Goal2, Goal3, and expected in components.schemas)
-* [x] KeyResult (P1) - Key Result for a Goal. (Seen inline as KeyResult, KeyResult1, and expected in components.schemas)
-* [x] Webhook (P1) - Webhook definition. (Seen in GetWebhooksresponse, and expected in components.schemas)
-* [ ] Doc (P1) - Document entity (v3). (Expected based on v3 paths like /v3/workspaces/{workspaceId}/docs)
-* [ ] Page (P1) - Page within a Doc (v3). (Expected based on v3 paths like /v3/workspaces/{workspaceId}/docs/{docId}/pages)
+* [x] CustomFieldDefinition / Field (P1) - Definition of a Custom Field. (Seen as Field inline, and expected in components.schemas. Implemented in `Entities/CustomFields/Field.cs`)
+* [x] CustomFieldValue (P1) - Value of a Custom Field on a task. (Implemented in `CustomFieldValue.cs`)
+* [x] Tag (P1) - Task tags. (Seen inline in Task model, and expected in components.schemas. Implemented in `Entities/Tags/Tag.cs`)
+* [x] Checklist (P1) - Checklist on a task. (Seen inline, e.g., CreateChecklistresponse, and expected in components.schemas. Implemented in `Entities/Checklists/Checklist.cs`)
+* [x] ChecklistItem (P1) - Item within a checklist. (Seen inline, e.g., Item in Checklist1, and expected in components.schemas. Implemented in `Entities/Checklists/ChecklistItem.cs`)
+* [x] Attachment (P1) - File attachments. (Seen as CreateTaskAttachmentresponse and likely in components.schemas. Implemented in `Entities/Attachments/Attachment.cs`)
+* [x] Member (P1) - User's membership in various entities. (Implemented in `Member.cs`)
+* [x] Goal (P1) - Goal entity. (Seen inline as Goal, Goal2, Goal3, and expected in components.schemas. Implemented in `Entities/Goals/Goal.cs`)
+* [x] KeyResult (P1) - Key Result for a Goal. (Seen inline as KeyResult, KeyResult1, and expected in components.schemas. Implemented in `Entities/Goals/KeyResult.cs`)
+* [x] Webhook (P1) - Webhook definition. (Seen in GetWebhooksresponse, and expected in components.schemas. Implemented in `Entities/Webhooks/Webhook.cs`)
+* [x] Doc (P1) - Document entity (v3). (Implemented in `Doc.cs`)
+* [x] Page (P1) - Page within a Doc (v3). (Implemented in `Page.cs`)
+* [x] Dependency (P0) - Represents a task dependency. (Implicitly created as part of Task, implemented in `Dependency.cs`)
+* [x] ListPriorityInfo (P0) - Represents a list's priority. (Implicitly created as part of List, implemented in `ListPriorityInfo.cs`)
+* [x] WebhookHealth (P2) - Health status of a Webhook. (Implemented in `Entities/Webhooks/WebhookHealth.cs`)
+* [x] GoalFolder (P2) - Represents a folder for Goals. (Implemented in `Entities/Goals/GoalFolder.cs`)
+* [~] UserGroup (P2) - Represents a user group. (Basic placeholder defined within Entities/Tasks/Task.cs; needs full implementation and separate file.)
+* [~] SharingOptions (P2) - Represents sharing options for a task. (Basic placeholder defined within Entities/Tasks/Task.cs; needs full implementation and separate file.)
+* [x] MemberSummary (P2) - Simplified member info for Space. (Defined within `Entities/Spaces/Space.cs`)
+* [x] DefaultListSettings (P2) - Default settings for lists in a Space. (Defined within `Entities/Spaces/Space.cs`)
+* [x] TimeEntry (P2) - Time tracking entry. (Implemented in `Entities/TimeTracking/TimeEntry.cs`)
+* [x] TaskLocation (P2) - Task location details for time entries. (Implemented in `Entities/TimeTracking/TaskLocation.cs`)
+* [x] TaskTag (P2) - Tag details for time entries. (Implemented in `Entities/TimeTracking/TaskTag.cs`; similar to Common.Tag)
+* [x] DocPageListingItem (P2) - Represents an item in a doc's page hierarchy. (Implemented in `Entities/Docs/DocPageListingItem.cs`)
+* [x] PageDefaults (P2) - Default settings for pages in a Doc. (Implemented in `Entities/Docs/PageDefaults.cs`)
 * [ ] ChatChannel (P2) - Chat channel (v3). (Expected from #/components/schemas/ChatChannel)
 * [ ] ChatMessage (P2) - Message in a chat channel (v3). (Expected from #/components/schemas/ChatMessage)
 * [ ] ChatReaction (P2) - Reaction to a chat message (v3). (Expected from #/components/schemas/ChatReaction)
@@ -45,7 +58,6 @@ This list includes schemas identified from components.schemas (which are general
 * [ ] CustomRole (P2) - Custom user role. (Seen as CustomRole2 inline, and expected in components.schemas)
 * [ ] Guest (P2) - Guest user details. (Seen inline, e.g., EditGuestOnWorkspaceresponse, and expected in components.schemas)
 * [ ] View (P2) - View definition for tasks, etc. (Seen in GetTeamViewsresponse, and expected in components.schemas)
-* [ ] TimeEntry (P2) - Time tracking entry. (Seen as Datum, Datum1, Datum2, Data2, Data3 in various time tracking responses)
 
 ## Request/Response Specific Models (Often Wrappers or Inline Definitions):
 These might be refactored into the core entities above or generated as specific request/response classes.
@@ -70,30 +82,30 @@ These might be refactored into the core entities above or generated as specific 
 * [ ] CreateListCommentresponse (P2) - Response for creating list comment.
 * [ ] UpdateCommentrequest (P2) - Request to update a comment.
 * [ ] GetAccessibleCustomFieldsresponse (P2) - Wrapper for list of custom fields.
-* [x] TypeConfig (P2) - Configuration for a custom field type (inline in Field).
-* [x] Option (P2) - Option for dropdown/label custom fields (inline in TypeConfig).
-* [x] Tracking (P2) - Progress tracking configuration for custom fields (inline in TypeConfig).
+* [x] TypeConfig (P2) - Configuration for a custom field type (inline in Field. Implemented in `Entities/CustomFields/TypeConfig.cs`).
+* [x] Option (P2) - Option for dropdown/label custom fields (inline in TypeConfig. Implemented in `Entities/CustomFields/Option.cs`).
+* [x] Tracking (P2) - Progress tracking configuration for custom fields (inline in TypeConfig. Implemented in `Entities/CustomFields/Tracking.cs`).
 * [ ] SetCustomFieldValuerequest (P2) - Polymorphic request for setting custom field values.
 * [ ] AddDependencyrequest (P2) - Request to add a task dependency.
 * [ ] AddTaskLinkresponse (P2) - Response for adding a task link.
-* [ ] LinkedTask (P2) - Represents a linked task.
+* [~] LinkedTask (P2) - Represents a linked task. (Basic placeholder defined within Entities/Tasks/Task.cs; needs full implementation and separate file.)
 * [ ] GetFoldersresponse (P2) - Wrapper for list of folders.
 * [ ] CreateFolderrequest (P2) - Request to create a folder.
 * [ ] CreateFolderresponse (P2) - Response for creating a folder.
 * [ ] GetFolderresponse (P2) - Response for getting a folder.
 * [ ] UpdateFolderrequest (P2) - Request to update a folder.
 * [ ] UpdateFolderresponse (P2) - Response for updating a folder.
-* [ ] GetGoalsresponse (P2) - Wrapper for goals and goal folders.
-* [ ] CreateGoalrequest (P1) - Request to create a goal.
-* [ ] CreateGoalresponse (P1) - Response for creating a goal.
-* [ ] GetGoalresponse (P1) - Response for getting a goal.
-* [ ] UpdateGoalrequest (P1) - Request to update a goal.
-* [ ] UpdateGoalresponse (P1) - Response for updating a goal.
-* [ ] CreateKeyResultrequest (P1) - Request to create a key result.
-* [ ] CreateKeyResultresponse (P1) - Response for creating a key result.
-* [x] LastAction (P2) - Details of the last action on a key result.
-* [ ] EditKeyResultrequest (P1) - Request to edit a key result.
-* [ ] EditKeyResultresponse (P1) - Response for editing a key result.
+* [x] GetGoalsresponse (P2) - Wrapper for goals and goal folders. (Implemented in `ResponseModels/Goals/GetGoalsResponse.cs`)
+* [x] CreateGoalrequest (P1) - Request to create a goal. (Implemented in `RequestModels/Goals/CreateGoalRequest.cs`)
+* [x] CreateGoalresponse (P1) - Response for creating a goal. (Implemented in `ResponseModels/Goals/CreateGoalResponse.cs`)
+* [x] GetGoalresponse (P1) - Response for getting a goal. (Implemented in `ResponseModels/Goals/GetGoalResponse.cs`)
+* [x] UpdateGoalrequest (P1) - Request to update a goal. (Implemented in `RequestModels/Goals/UpdateGoalRequest.cs`)
+* [x] UpdateGoalresponse (P1) - Response for updating a goal. (Implemented in `ResponseModels/Goals/UpdateGoalResponse.cs`)
+* [x] CreateKeyResultrequest (P1) - Request to create a key result. (Implemented in `RequestModels/Goals/CreateKeyResultRequest.cs`)
+* [x] CreateKeyResultresponse (P1) - Response for creating a key result. (Implemented in `ResponseModels/Goals/CreateKeyResultResponse.cs`)
+* [x] LastAction (P2) - Details of the last action on a key result. (Implemented in `Entities/Goals/LastAction.cs`)
+* [x] EditKeyResultrequest (P1) - Request to edit a key result. (Implemented in `RequestModels/Goals/EditKeyResultRequest.cs`)
+* [x] EditKeyResultresponse (P1) - Response for editing a key result. (Implemented in `ResponseModels/Goals/EditKeyResultResponse.cs`)
 * [ ] InviteGuestToWorkspacerequest (P2) - Request to invite a guest.
 * [ ] InviteGuestToWorkspaceresponse (P2) - Response for inviting a guest.
 * [ ] EditGuestOnWorkspacerequest (P2) - Request to edit a guest.
@@ -122,45 +134,45 @@ These might be refactored into the core entities above or generated as specific 
 * [ ] GetListMembersresponse (P2) - Wrapper for list members.
 * [ ] GetCustomRolesresponse (P2) - Wrapper for custom roles.
 * [ ] SharedHierarchyresponse (P2) - Wrapper for shared hierarchy.
-* [ ] GetSpacesresponse (P1) - Wrapper for spaces.
-* [ ] Features (P2) - Space features configuration (various versions like Features1, Features4).
-* [ ] CreateSpacerequest (P1) - Request to create a space.
-* [ ] CreateSpaceresponse (P1) - Response for creating a space.
-* [ ] GetSpaceresponse (P1) - Response for getting a space.
-* [ ] UpdateSpacerequest (P1) - Request to update a space.
-* [ ] UpdateSpaceresponse (P1) - Response for updating a space.
+* [x] GetSpacesresponse (P1) - Wrapper for spaces. (Implemented in `ResponseModels/Spaces/GetSpacesResponse.cs`)
+* [x] Features (P2) - Space features configuration. (Implemented in `Entities/Spaces/Features.cs`)
+* [x] CreateSpacerequest (P1) - Request to create a space. (Implemented in `RequestModels/Spaces/CreateSpaceRequest.cs`)
+* [x] CreateSpaceresponse (P1) - Response for creating a space. (Implemented in `ResponseModels/Spaces/CreateSpaceResponse.cs`)
+* [x] GetSpaceresponse (P1) - Response for getting a space. (Implemented in `ResponseModels/Spaces/GetSpaceResponse.cs`)
+* [x] UpdateSpacerequest (P1) - Request to update a space. (Implemented in `RequestModels/Spaces/UpdateSpaceRequest.cs`)
+* [x] UpdateSpaceresponse (P1) - Response for updating a space. (Implemented in `ResponseModels/Spaces/UpdateSpaceResponse.cs`)
 * [ ] GetSpaceTagsresponse (P2) - Wrapper for space tags.
 * [ ] CreateSpaceTagrequest (P2) - Request to create a space tag.
 * [ ] EditSpaceTagrequest (P2) - Request to edit a space tag.
 * [ ] EditSpaceTagresponse (P2) - Response for editing a space tag.
 * [ ] DeleteSpaceTagrequest (P3)
-* [ ] GetTasksresponse (P1) - Wrapper for tasks (important for full Task structure).
-* [ ] CreateTaskrequest (P1) - Request to create a task.
-* [ ] CreateTaskresponse.yaml (P1) - Response for creating a task (likely full Task model).
-* [ ] GetTaskresponse (P1) - Response for getting a task (full Task model).
-* [ ] UpdateTaskrequest (P1) - Request to update a task.
-* [ ] UpdateTaskresponse (P1) - Response for updating a task (full Task model).
+* [x] GetTasksresponse (P1) - Wrapper for tasks. (Implemented in `ResponseModels/Tasks/GetTasksResponse.cs`)
+* [x] CreateTaskrequest (P1) - Request to create a task. (Implemented in `RequestModels/Tasks/CreateTaskRequest.cs`; uses CustomTaskFieldToSet from CustomTaskFieldModels.cs)
+* [x] CreateTaskresponse (P1) - Response for creating a task. (Implemented in `ResponseModels/Tasks/CreateTaskResponse.cs`)
+* [x] GetTaskresponse (P1) - Response for getting a task. (Implemented in `ResponseModels/Tasks/GetTaskResponse.cs`)
+* [x] UpdateTaskrequest (P1) - Request to update a task. (Implemented in `RequestModels/Tasks/UpdateTaskRequest.cs`; uses CustomTaskFieldToSet from CustomTaskFieldModels.cs)
+* [x] UpdateTaskresponse (P1) - Response for updating a task. (Implemented in `ResponseModels/Tasks/UpdateTaskResponse.cs`)
+* [x] CustomTaskFieldModels (P2) - Contains CustomTaskFieldToSet and CustomTaskFieldValueOptions for task requests. (Implemented in `RequestModels/Tasks/CustomTaskFieldModels.cs`)
 * [ ] GetFilteredTeamTasksresponse (P2) - Wrapper for filtered tasks.
 * [ ] GetTaskTemplatesresponse (P3) - Wrapper for task templates.
 * [ ] CreateTaskFromTemplaterequest (P3) - Request to create task from template.
 * [ ] Gettrackedtimeresponse (P2) - Wrapper for legacy tracked time.
 * [ ] Tracktimerequest (P2) - Request for legacy track time.
 * [ ] Edittimetrackedrequest (P2) - Request to edit legacy tracked time.
-* [ ] Gettimeentrieswithinadaterangeresponse (P1) - Wrapper for time entries.
-* [ ] Createatimeentryrequest (P1) - Request to create a time entry.
-* [ ] Createatimeentryresponse (P1) - Response for creating a time entry.
-* [ ] Getsingulartimeentryresponse (P1) - Response for getting a single time entry.
-* [ ] TaskLocation (P2) - Task location details for time entries.
-* [ ] TaskTag (P2) - Tag details for time entries.
-* [ ] UpdateatimeEntryrequest (P1) - Request to update a time entry.
+* [x] Gettimeentrieswithinadaterangeresponse (P1) - Wrapper for time entries. (Implemented in `ResponseModels/TimeTracking/GetTimeEntriesResponse.cs`)
+* [x] Createatimeentryrequest (P1) - Request to create a time entry. (Implemented in `RequestModels/TimeTracking/CreateTimeEntryRequest.cs`)
+* [x] Createatimeentryresponse (P1) - Response for creating a time entry. (Implemented in `ResponseModels/TimeTracking/CreateTimeEntryResponse.cs`)
+* [x] Getsingulartimeentryresponse (P1) - Response for getting a single time entry. (Implemented in `ResponseModels/TimeTracking/GetSingleTimeEntryResponse.cs`)
+* [x] UpdateatimeEntryrequest (P1) - Request to update a time entry. (Implemented in `RequestModels/TimeTracking/UpdateTimeEntryRequest.cs`)
 * [ ] Getrunningtimeentryresponse (P2) - Response for currently running time entry.
 * [ ] StopatimeEntryresponse (P2) - Response for stopping a time entry.
 * [ ] Removetagsfromtimeentriesrequest (P3) - Request to remove tags from time entries.
 * [ ] Getalltagsfromtimeentriesresponse (P2) - Wrapper for all time entry tags.
 * [ ] Addtagsfromtimeentriesrequest (P2) - Request to add tags to time entries.
 * [ ] Changetagnamesfromtimeentriesrequest (P2) - Request to change tag names for time entries.
-* [ ] StartatimeEntryrequest (P1) - Request to start a time entry.
-* [ ] StartatimeEntryresponse (P1) - Response for starting a time entry.
+* [x] StartatimeEntryrequest (P1) - Request to start a time entry. (Implemented in `RequestModels/TimeTracking/StartTimeEntryRequest.cs`)
+* [x] StartatimeEntryresponse (P1) - Response for starting a time entry. (Implemented in `ResponseModels/TimeTracking/StartTimeEntryResponse.cs`)
+* [x] TimeTrackingTagDefinition (P2) - Defines a tag for time tracking requests. (Implemented in `RequestModels/TimeTracking/TimeTrackingTagDefinition.cs`)
 * [ ] InviteUserToWorkspacerequest (P2) - Request to invite a user to workspace.
 * [ ] InviteUserToWorkspaceresponse (P2) - Response for inviting user.
 * [ ] GetUserresponse (P2) - Response for getting user details.
@@ -183,11 +195,11 @@ These might be refactored into the core entities above or generated as specific 
 * [ ] UpdateViewrequest (P2) - Request to update a view.
 * [ ] UpdateViewresponse (P2) - Response for updating a view.
 * [ ] GetViewTasksresponse (P2) - Wrapper for tasks within a view.
-* [ ] GetWebhooksresponse (P1) - Wrapper for webhooks.
-* [ ] CreateWebhookrequest (P1) - Request to create a webhook.
-* [ ] CreateWebhookresponse (P1) - Response for creating a webhook.
-* [ ] UpdateWebhookrequest (P1) - Request to update a webhook.
-* [ ] UpdateWebhookresponse (P1) - Response for updating a webhook.
+* [x] GetWebhooksresponse (P1) - Wrapper for webhooks. (Implemented in `ResponseModels/Webhooks/GetWebhooksResponse.cs`)
+* [x] CreateWebhookrequest (P1) - Request to create a webhook. (Implemented in `RequestModels/Webhooks/CreateWebhookRequest.cs`)
+* [x] CreateWebhookresponse (P1) - Response for creating a webhook. (Implemented in `ResponseModels/Webhooks/CreateWebhookResponse.cs`)
+* [x] UpdateWebhookrequest (P1) - Request to update a webhook. (Implemented in `RequestModels/Webhooks/UpdateWebhookRequest.cs`)
+* [x] UpdateWebhookresponse (P1) - Response for updating a webhook. (Implemented in `ResponseModels/Webhooks/UpdateWebhookResponse.cs`)
 * [ ] GetWorkspaceseatsresponse (P3) - Response for workspace seat info.
 * [ ] GetWorkspaceplanresponse (P3) - Response for workspace plan info.
 * [ ] CreateTeamrequest (P2) - Request to create a User Group (note: "Team" is used for User Group here).
@@ -195,53 +207,53 @@ These might be refactored into the core entities above or generated as specific 
 * [ ] UpdateTeamrequest (P2) - Request to update a User Group.
 * [ ] UpdateTeamresponse (P2) - Response for updating a User Group.
 * [ ] GetTeamsresponse (P2) - Wrapper for User Groups (note: "Teams" is used for User Group here).
-* [ ] searchDocs (P2) (from /v3/workspaces/{workspaceId}/docs GET)
-* [ ] createDoc (P1) (from /v3/workspaces/{workspaceId}/docs POST)
-* [ ] getDoc (P1) (from /v3/workspaces/{workspaceId}/docs/{docId} GET)
-* [ ] getDocPageListing (P2) (from /v3/workspaces/{workspaceId}/docs/{docId}/pageListing GET)
-* [ ] getDocPages (P1) (from /v3/workspaces/{workspaceId}/docs/{docId}/pages GET)
-* [ ] createPage (P1) (from /v3/workspaces/{workspaceId}/docs/{docId}/pages POST)
-* [ ] getPage (P1) (from /v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId} GET)
-* [ ] editPage (P1) (from /v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId} PUT)
+* [x] searchDocs (P2) - Response for searching docs. (Implemented in `ResponseModels/Docs/SearchDocsResponse.cs`)
+* [x] createDoc (P1) - Request & Response for creating a doc. (Request in `RequestModels/Docs/CreateDocRequest.cs`, Response in `ResponseModels/Docs/CreateDocResponse.cs`)
+* [x] getDoc (P1) - Response for getting a doc. (Implemented in `ResponseModels/Docs/GetDocResponse.cs`)
+* [x] getDocPageListing (P2) - Response for listing doc pages. (Implemented in `ResponseModels/Docs/GetDocPageListingResponse.cs`)
+* [x] getDocPages (P1) - Response for getting all pages in a doc. (Implemented in `ResponseModels/Docs/GetDocPagesResponse.cs`)
+* [x] createPage (P1) - Request & Response for creating a page in a doc. (Request in `RequestModels/Docs/CreatePageRequest.cs`, Response in `ResponseModels/Docs/CreatePageResponse.cs`)
+* [x] getPage (P1) - Response for getting a page in a doc. (Implemented in `ResponseModels/Docs/GetPageResponse.cs`)
+* [x] editPage (P1) - Request for editing a page in a doc. (Implemented in `RequestModels/Docs/EditPageRequest.cs`)
 * [ ] CreateWorkspaceAuditLog (P3) (from /v3/workspaces/{workspace_id}/auditlogs POST) - request and response structure not fully detailed.
 * [ ] UpdatePrivacyAndAccess (P2) (from /v3/workspaces/{workspace_id}/{object_type}/{object_id}/acls PATCH) - request and response structure not fully detailed.
 
 ## Schemas from components.schemas (v3 Chat API specific - these are well-defined):
-* [ ] ChatPaginatedResponse (P2)
-* [ ] ChatChannel (P2)
-* [ ] ChatRoomType (P2) - Enum
-* [ ] ChatRoomVisibility (P2) - Enum
-* [ ] ChatRoomParentDTO (P2)
-* [ ] ChatDefaultViewDTO (P2)
-* [ ] ChatSubcategoryType (P2) - Enum
-* [ ] ChatLastReadAtData (P2)
+* [x] ChatPaginatedResponse (P2) - Generic paginated response structure for Chat. (Implemented for ChatChannel in `ResponseModels/Chat/ChatChannelPaginatedResponse.cs`)
+* [x] ChatChannel (P2) - Chat channel (v3). (Implemented in `Entities/Chat/ChatChannel.cs`)
+* [x] ChatRoomType (P2) - Enum for chat room types. (Implemented in `Entities/Chat/Enums/ChatRoomType.cs`)
+* [x] ChatRoomVisibility (P2) - Enum for chat room visibility. (Implemented in `Entities/Chat/Enums/ChatRoomVisibility.cs`)
+* [x] ChatRoomParentDTO (P2) - DTO for parent of a chat room. (Implemented in `Entities/Chat/ChatRoomParentDTO.cs`)
+* [x] ChatDefaultViewDTO (P2) - DTO for default view of a chat room. (Implemented in `Entities/Chat/ChatDefaultViewDTO.cs`)
+* [x] ChatSubcategoryType (P2) - Enum for chat subcategory types. (Implemented in `Entities/Chat/Enums/ChatSubcategoryType.cs`)
+* [x] ChatLastReadAtData (P2) - Data for last read timestamp and unread counts. (Implemented in `Entities/Chat/ChatLastReadAtData.cs`)
 * [ ] ChatCommentVersionVector (P3)
 * [ ] ChatCommentVector (P3)
-* [ ] ChatChannelLinks (P2)
+* [x] ChatChannelLinks (P2) - Links related to a chat channel. (Implemented in `Entities/Chat/ChatChannelLinks.cs`)
 * [ ] ChatPublicApiErrorResponse (P3) - General error response.
-* [ ] ChatCreateChatChannel (P2) - Request for creating a chat channel.
-* [ ] ChatUpdateChatChannel (P2) - Request for updating a chat channel.
-* [ ] ChatChannelLocation (P2)
-* [ ] ChatSimpleUser (P2) - Simplified user model for chat contexts.
-* [ ] ChatCreateDirectMessageChatChannel (P2) - Request for creating DMs.
-* [ ] ChatCreateLocationChatChannel (P2) - Request for creating location-based channels.
-* [ ] ChatMessage (P2) - Core chat message model.
-* [ ] ChatPostData (P2) - Data for a "post" type chat message.
-* [ ] ChatPostSubtype (P2)
-* [ ] CommentChatMessageLinks2 (P2) - Links within a chat message.
-* [ ] CommentCreateChatMessage (P2) - Request for creating a chat message.
-* [ ] ChatReaction (P2) - Chat message reaction model.
-* [ ] CommentChatPostDataCreate (P2)
-* [ ] CommentChatPostSubtypeCreate (P2)
-* [ ] CommentCreateChatMessageResponse (P2)
-* [ ] CommentPatchChatMessage (P2) - Request for patching a chat message.
-* [ ] CommentChatPostDataPatch (P2)
-* [ ] CommentChatPostSubtypePatch (P2)
-* [ ] CommentPatchChatMessageResponse (P2)
-* [ ] ReplyMessage (P2) - Reply to a chat message.
-* [ ] CommentReplyMessageLinks2 (P2)
-* [ ] CommentCreateReplyMessageResponse (P2)
-* [ ] CommentSimpleUser (P2) - Another simple user representation.
+* [x] ChatCreateChatChannel (P2) - Request for creating a chat channel. (Implemented in `RequestModels/Chat/ChatCreateChatChannelRequest.cs`)
+* [x] ChatUpdateChatChannel (P2) - Request for updating a chat channel. (Implemented in `RequestModels/Chat/ChatUpdateChatChannelRequest.cs`)
+* [x] ChatChannelLocation (P2) - Location of a chat channel (folder, list, space). (Implemented in `Entities/Chat/ChatChannelLocation.cs`)
+* [x] ChatSimpleUser (P2) - Simplified user model for chat contexts. (Implemented in `Entities/Chat/ChatSimpleUser.cs`)
+* [x] ChatCreateDirectMessageChatChannel (P2) - Request for creating DMs. (Implemented in `RequestModels/Chat/ChatCreateDirectMessageChatChannelRequest.cs`)
+* [x] ChatCreateLocationChatChannel (P2) - Request for creating location-based channels. (Implemented in `RequestModels/Chat/ChatCreateLocationChatChannelRequest.cs`)
+* [x] ChatMessage (P2) - Core chat message model. (Implemented in `Entities/Chat/ChatMessage.cs`)
+* [x] ChatPostData (P2) - Data for a "post" type chat message. (Implemented in `Entities/Chat/ChatPostData.cs`)
+* [x] ChatPostSubtype (P2) - Subtype of a chat post. (Implemented in `Entities/Chat/ChatPostSubtype.cs`)
+* [x] CommentChatMessageLinks2 (P2) - Links within a chat message. (Implemented in `Entities/Chat/CommentChatMessageLinks2.cs`)
+* [x] CommentCreateChatMessage (P2) - Request for creating a chat message. (Implemented in `RequestModels/Chat/CommentCreateChatMessageRequest.cs`)
+* [x] ChatReaction (P2) - Chat message reaction model. (Implemented in `Entities/Chat/ChatReaction.cs`)
+* [x] CommentChatPostDataCreate (P2) - Data for creating chat post. (Implemented in `RequestModels/Chat/CommentChatPostDataCreate.cs`)
+* [x] CommentChatPostSubtypeCreate (P2) - Subtype for creating chat post. (Implemented in `RequestModels/Chat/CommentChatPostSubtypeCreate.cs`)
+* [x] CommentCreateChatMessageResponse (P2) - Response for creating chat message. (Implemented in `ResponseModels/Chat/CommentCreateChatMessageResponse.cs`)
+* [x] CommentPatchChatMessage (P2) - Request for patching a chat message. (Implemented in `RequestModels/Chat/CommentPatchChatMessageRequest.cs`)
+* [x] CommentChatPostDataPatch (P2) - Data for patching chat post. (Implemented in `RequestModels/Chat/CommentChatPostDataPatch.cs`)
+* [x] CommentChatPostSubtypePatch (P2) - Subtype for patching chat post. (Implemented in `RequestModels/Chat/CommentChatPostSubtypePatch.cs`)
+* [x] CommentPatchChatMessageResponse (P2) - Response for patching chat message. (Implemented in `ResponseModels/Chat/CommentPatchChatMessageResponse.cs`)
+* [x] ReplyMessage (P2) - Reply to a chat message. (Implemented in `Entities/Chat/ReplyMessage.cs`)
+* [x] CommentReplyMessageLinks2 (P2) - Links for a reply message. (Implemented in `Entities/Chat/CommentReplyMessageLinks2.cs`)
+* [x] CommentCreateReplyMessageResponse (P2) - Response for creating a reply. (Implemented in `ResponseModels/Chat/CommentCreateReplyMessageResponse.cs`)
+* [x] CommentSimpleUser (P2) - Another simple user representation. (Implemented in `Entities/Chat/CommentSimpleUser.cs`; similar to ChatSimpleUser)
 
 This list will be populated with checkboxes as models are implemented in src/ClickUp.Api.Client.Models/.
 
