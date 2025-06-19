@@ -27,10 +27,10 @@ Review /docs/OpenApiSpec/ClickUp-6-17-25.json. This file is a OpenApi JSON docum
   <issue>
 The user requested to continue with the model creation plan for the ClickUp API client library.
 This involves:
-- Using the OpenAPI definition: /docs/OpenApiSpec/ClickUp-6-17-25.json
-- Following the conceptual plan: docs/plans/01-core-models-conceptual.md
-- Implementing models listed in: docs/plans/01-core-models-actual.md
-- Grouping models into folders based on purpose and endpoint type.
-- Saving prompts to /docs/prompts.md.
-- Keeping track of repository/project information in jules.md.
+ Using the OpenAPI definition: /docs/OpenApiSpec/ClickUp-6-17-25.json
+ Following the conceptual plan: docs/plans/01-core-models-conceptual.md
+ Implementing models listed in: docs/plans/01-core-models-actual.md
+ Grouping models into folders based on purpose and endpoint type.
+ Saving prompts to /docs/prompts.md.
+ Keeping track of repository/project information in jules.md.
   </issue>
