@@ -8,25 +8,34 @@ Identified Schemas and Prioritization (Based on OpenAPI Spec Review)
 This list includes schemas identified from components.schemas (which are generally preferred) and inline schemas from request/response bodies. The priority for implementation is marked (P0 > P1 > P2 > P3).
 
 ## Foundational & Core Entities:
-* [ ] User (P0) - Represents a ClickUp user. (Seen inline, e.g., /v2/user response, and expected in components.schemas)
-* [ ] Workspace / Team (P0) - Represents a ClickUp Workspace. (Seen as Team inline, e.g., /v2/team response, and expected in components.schemas. Consider naming ClickUpWorkspace in C#)
-* [ ] Space (P0) - Organizational unit within a Workspace. (Seen inline, e.g., in Task model, and expected in components.schemas)
-* [ ] Folder (P0) - Organizational unit within a Space. (Seen inline, e.g., in Task model, and expected in components.schemas)
-* [ ] List (P0) - Organizational unit containing tasks. (Seen inline, e.g., in Task model, and expected in components.schemas)
-* [ ] Task (P0) - The core unit of work. (Seen inline, e.g., AddTaskLinkresponse, and expected as a detailed model in components.schemas)
-* [ ] Status (P0) - Task status (e.g., "Open", "In Progress"). (Seen inline in Task model, and expected in components.schemas)
-* [ ] Priority (P0) - Task priority. (Seen inline in Task model, and expected in components.schemas)
-* [ ] Comment (P1) - Comments on tasks, etc. (Seen inline, e.g., GetTaskCommentsresponse, and expected in components.schemas)
-* [ ] CustomFieldDefinition / Field (P1) - Definition of a Custom Field. (Seen as Field inline, and expected in components.schemas)
+* [x] User (P0) - Represents a ClickUp user. (Seen inline, e.g., /v2/user response, and expected in components.schemas)
+* [x] Workspace / Team (P0) - Represents a ClickUp Workspace. (Seen as Team inline, e.g., /v2/team response, and expected in components.schemas. Consider naming ClickUpWorkspace in C#)
+* [x] Space (P0) - Organizational unit within a Workspace. (Seen inline, e.g., in Task model, and expected in components.schemas)
+* [~] Folder (P0) - Organizational unit within a Space. (Seen inline, e.g., in Task model, and expected in components.schemas)
+    * Needs `Archived` property (bool?).
+    * Needs `Statuses` property (`List<Status>?`) for when `OverrideStatuses` is true.
+* [~] List (P0) - Organizational unit containing tasks. (Seen inline, e.g., in Task model, and expected in components.schemas)
+    * `Folder` property should be nullable (`Folder? Folder { get; init; }`) to support folderless lists.
+    * `Priority` property should use a new, simpler `ListPriorityInfo` record instead of the current `Priority` record (which is for Tasks). A `ListPriorityInfo.cs` needs to be created.
+* [~] Task (P0) - The core unit of work. (Seen inline, e.g., AddTaskLinkresponse, and expected as a detailed model in components.schemas)
+    * `Checklists` property needs to become `List<Checklist>?` (requires `Checklist.cs` - P1).
+    * `Tags` property needs to become `List<Tag>?` (requires `Tag.cs` - P1).
+    * `CustomFields` is a placeholder; will require `List<CustomFieldValue>` and related models (P1).
+    * `Dependencies` is a placeholder; will require `List<Dependency>?` and `Dependency.cs`.
+    * Consider adding `MarkdownDescription` property.
+* [x] Status (P0) - Task status (e.g., "Open", "In Progress"). (Seen inline in Task model, and expected in components.schemas)
+* [x] Priority (P0) - Task priority. (Seen inline in Task model, and expected in components.schemas)
+* [x] Comment (P1) - Comments on tasks, etc. (Seen inline, e.g., GetTaskCommentsresponse, and expected in components.schemas)
+* [x] CustomFieldDefinition / Field (P1) - Definition of a Custom Field. (Seen as Field inline, and expected in components.schemas)
 * [ ] CustomFieldValue (P1) - Value of a Custom Field on a task. (May be part of Task or separate, structure seen in SetCustomFieldValuerequest)
-* [ ] Tag (P1) - Task tags. (Seen inline in Task model, and expected in components.schemas)
-* [ ] Checklist (P1) - Checklist on a task. (Seen inline, e.g., CreateChecklistresponse, and expected in components.schemas)
-* [ ] ChecklistItem (P1) - Item within a checklist. (Seen inline, e.g., Item in Checklist1, and expected in components.schemas)
-* [ ] Attachment (P1) - File attachments. (Seen as CreateTaskAttachmentresponse and likely in components.schemas)
+* [x] Tag (P1) - Task tags. (Seen inline in Task model, and expected in components.schemas)
+* [x] Checklist (P1) - Checklist on a task. (Seen inline, e.g., CreateChecklistresponse, and expected in components.schemas)
+* [x] ChecklistItem (P1) - Item within a checklist. (Seen inline, e.g., Item in Checklist1, and expected in components.schemas)
+* [x] Attachment (P1) - File attachments. (Seen as CreateTaskAttachmentresponse and likely in components.schemas)
 * [ ] Member (P1) - User's membership in various entities. (Seen inline in Team, Goal2, etc., and expected in components.schemas)
-* [ ] Goal (P1) - Goal entity. (Seen inline as Goal, Goal2, Goal3, and expected in components.schemas)
-* [ ] KeyResult (P1) - Key Result for a Goal. (Seen inline as KeyResult, KeyResult1, and expected in components.schemas)
-* [ ] Webhook (P1) - Webhook definition. (Seen in GetWebhooksresponse, and expected in components.schemas)
+* [x] Goal (P1) - Goal entity. (Seen inline as Goal, Goal2, Goal3, and expected in components.schemas)
+* [x] KeyResult (P1) - Key Result for a Goal. (Seen inline as KeyResult, KeyResult1, and expected in components.schemas)
+* [x] Webhook (P1) - Webhook definition. (Seen in GetWebhooksresponse, and expected in components.schemas)
 * [ ] Doc (P1) - Document entity (v3). (Expected based on v3 paths like /v3/workspaces/{workspaceId}/docs)
 * [ ] Page (P1) - Page within a Doc (v3). (Expected based on v3 paths like /v3/workspaces/{workspaceId}/docs/{docId}/pages)
 * [ ] ChatChannel (P2) - Chat channel (v3). (Expected from #/components/schemas/ChatChannel)
@@ -61,9 +70,9 @@ These might be refactored into the core entities above or generated as specific 
 * [ ] CreateListCommentresponse (P2) - Response for creating list comment.
 * [ ] UpdateCommentrequest (P2) - Request to update a comment.
 * [ ] GetAccessibleCustomFieldsresponse (P2) - Wrapper for list of custom fields.
-* [ ] TypeConfig (P2) - Configuration for a custom field type (inline in Field).
-* [ ] Option (P2) - Option for dropdown/label custom fields (inline in TypeConfig).
-* [ ] Tracking (P2) - Progress tracking configuration for custom fields (inline in TypeConfig).
+* [x] TypeConfig (P2) - Configuration for a custom field type (inline in Field).
+* [x] Option (P2) - Option for dropdown/label custom fields (inline in TypeConfig).
+* [x] Tracking (P2) - Progress tracking configuration for custom fields (inline in TypeConfig).
 * [ ] SetCustomFieldValuerequest (P2) - Polymorphic request for setting custom field values.
 * [ ] AddDependencyrequest (P2) - Request to add a task dependency.
 * [ ] AddTaskLinkresponse (P2) - Response for adding a task link.
@@ -82,7 +91,7 @@ These might be refactored into the core entities above or generated as specific 
 * [ ] UpdateGoalresponse (P1) - Response for updating a goal.
 * [ ] CreateKeyResultrequest (P1) - Request to create a key result.
 * [ ] CreateKeyResultresponse (P1) - Response for creating a key result.
-* [ ] LastAction (P2) - Details of the last action on a key result.
+* [x] LastAction (P2) - Details of the last action on a key result.
 * [ ] EditKeyResultrequest (P1) - Request to edit a key result.
 * [ ] EditKeyResultresponse (P1) - Response for editing a key result.
 * [ ] InviteGuestToWorkspacerequest (P2) - Request to invite a guest.

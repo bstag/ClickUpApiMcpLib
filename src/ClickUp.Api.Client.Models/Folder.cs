@@ -14,5 +14,7 @@ public record Folder
     public bool Hidden { get; init; }
     public Space Space { get; init; } = null!; // Parent Space, assuming Space model is defined
     public string? TaskCount { get; init; }
+    public bool? Archived { get; init; }
+    public List<Status>? Statuses { get; init; } // Task statuses for this folder, if OverrideStatuses is true
     public List<ClickUpList>? Lists { get; init; } // Assuming ClickUpList model will be defined
 }
