@@ -34,3 +34,8 @@ This involves:
  Saving prompts to /docs/prompts.md.
  Keeping track of repository/project information in jules.md.
   </issue>
+
+- **Prompt from user (Thu Jun 19 15:00:06 UTC 2025):**
+  <issue>
+Append the last user prompt (the one that initiated this model creation task) to `docs/prompts.md`. Make sure to include the current date and time.
+  </issue>

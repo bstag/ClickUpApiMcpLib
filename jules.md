@@ -27,12 +27,14 @@ This file contains specific notes, conventions, and information Jules needs to r
 - Example Projects (future): `examples/`
 
 ## Current Task Context (from last user prompt):
-The user requested to continue with the model creation plan for the ClickUp API client library.
+Continue implementing C# models for the ClickUp API client library.
 This involves:
-- Using the OpenAPI definition: /docs/OpenApiSpec/ClickUp-6-17-25.json
-- Following the conceptual plan: docs/plans/01-core-models-conceptual.md
-- Implementing models listed in: docs/plans/01-core-models-actual.md
+- Using the OpenAPI definition: `/docs/OpenApiSpec/ClickUp-6-17-25.json`
+- Following the conceptual plan: `docs/plans/01-core-models-conceptual.md`
+- Tracking progress in: `docs/plans/01-core-models-actual.md`
+- Immediate next steps: Creating models such as UserGroup, SharingOptions, Role, CustomRole, Guest, and View. Following these, specific Request/Response models will be implemented.
 - Grouping models into folders based on purpose and endpoint type.
-- Saving prompts to /docs/prompts.md.
-- Keeping track of repository/project information in jules.md.
-The previous content under "Project Goals", "Key Files", "Project Description", and "Current Task" has been integrated or superseded by the new "Project Overview & Goals" and "Key Decisions & Progress" sections.
+- Saving prompts to `/docs/prompts.md`.
+- Keeping track of repository/project information in `jules.md`.
+
+[end of jules.md]
