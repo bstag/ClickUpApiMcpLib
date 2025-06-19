@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ClickUp.Api.Client.Models\ClickUp.Api.Client.Models.csproj" />
+  </ItemGroup>
+
 </Project>

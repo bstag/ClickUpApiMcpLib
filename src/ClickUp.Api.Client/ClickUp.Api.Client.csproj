@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClickUp.Api.Client.Abstractions\ClickUp.Api.Client.Abstractions.csproj" />
+    <ProjectReference Include="..\ClickUp.Api.Client.Models\ClickUp.Api.Client.Models.csproj" />
+  </ItemGroup>
+
 </Project>
