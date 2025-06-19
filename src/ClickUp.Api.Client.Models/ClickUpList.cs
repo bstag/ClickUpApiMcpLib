@@ -12,14 +12,14 @@ public record ClickUpList
     public int OrderIndex { get; init; }
     public string? Content { get; init; }
     public ListStatusInfo? Status { get; init; } // List's own color/status display
-    public Priority? Priority { get; init; } // Assuming Priority model for list's priority
+    public ListPriorityInfo? Priority { get; init; } // Using ListPriorityInfo for list's own priority display
     public User? Assignee { get; init; } // Assuming User model
     public string? TaskCount { get; init; }
     public string? DueDate { get; init; } // Consider DateTime, but string from spec for now
     public bool? DueDateTime { get; init; }
     public string? StartDate { get; init; } // Consider DateTime
     public bool? StartDateTime { get; init; }
-    public Folder Folder { get; init; } = null!; // Parent Folder, assuming Folder model
+    public Folder? Folder { get; init; } // Parent Folder, can be null for folderless lists
     public Space Space { get; init; } = null!; // Parent Space, assuming Space model
     public bool Archived { get; init; }
     public bool OverrideStatuses { get; init; }
