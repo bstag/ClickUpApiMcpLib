@@ -22,3 +22,16 @@ Review /docs/OpenApiSpec/ClickUp-6-17-25.json. This file is a OpenApi JSON docum
 
   Save all prompts you get from me with the date and time in /docs/prompts.md. Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
   </issue>
+
+- **Prompt from user (YYYY-MM-DD HH:MM:SS (Placeholder)):**
+  <issue>
+[Initial Issue Prompt Summary - Date: YYYY-MM-DD HH:MM:SS (Placeholder)]
+The user requested to continue with the model creation plan for the ClickUp API client library.
+This involves:
+- Using the OpenAPI definition: /docs/OpenApiSpec/ClickUp-6-17-25.json
+- Following the conceptual plan: docs/plans/01-core-models-conceptual.md
+- Implementing models listed in: docs/plans/01-core-models-actual.md
+- Grouping models into folders based on purpose and endpoint type.
+- Saving prompts to /docs/prompts.md.
+- Keeping track of repository/project information in jules.md.
+  </issue>
