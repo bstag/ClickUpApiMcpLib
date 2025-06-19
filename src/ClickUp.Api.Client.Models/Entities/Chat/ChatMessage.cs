@@ -1,53 +1,136 @@
+using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using System.Collections.Generic; // For List
+using ClickUp.Api.Client.Models.Common; // For User
 
-namespace ClickUp.Api.Client.Models.Entities.Chat
+namespace ClickUp.Api.Client.Models.Entities.Chat;
+
+/// <summary>
+/// Represents a Chat Message in ClickUp.
+/// Corresponds to #/components/schemas/ChatMessage
+/// </summary>
+public record ChatMessage
 {
-    // Enum for Message Type, if applicable and distinct from PostType
-    // [JsonConverter(typeof(JsonStringEnumConverter))]
-    // public enum ChatMessageType { MESSAGE, POST }
+    [JsonPropertyName("id")]
+    public string Id { get; init; }
 
-    public record ChatMessage
-    (
-        [property: JsonPropertyName("id")] string Id,
-        [property: JsonPropertyName("assignee")] ChatSimpleUser? Assignee, // User who is assigned this message (if it's a task-like message)
-        [property: JsonPropertyName("assigned_by")] ChatSimpleUser? AssignedBy, // User who assigned it
-        [property: JsonPropertyName("content")] string? Content, // Actual message content (text, markdown, or JSON for block kit)
-        [property: JsonPropertyName("content_format")] string? ContentFormat, // e.g., "text/plain", "text/md", "application/json+clickup_block_kit"
-        [property: JsonPropertyName("date")] long Date, // Timestamp of message creation
-        [property: JsonPropertyName("date_assigned")] long? DateAssigned, // Timestamp
-        [property: JsonPropertyName("date_resolved")] long? DateResolved, // Timestamp
-        [property: JsonPropertyName("date_updated")] long? DateUpdated, // Timestamp of last update
-        [property: JsonPropertyName("group_assignee")] List<ChatSimpleUser>? GroupAssignee, // List of users if assigned to a group
-        [property: JsonPropertyName("parent_channel")] ChatSimpleChannelInfo? ParentChannel, // Simplified info about the parent channel
-        [property: JsonPropertyName("parent_message")] ChatSimpleMessageInfo? ParentMessage, // Simplified info if this is a reply
-        [property: JsonPropertyName("post_data")] ChatPostData? PostData, // If type is "post"
-        [property: JsonPropertyName("resolved")] bool? Resolved,
-        [property: JsonPropertyName("resolved_by")] ChatSimpleUser? ResolvedBy,
-        [property: JsonPropertyName("triaged_action")] string? TriagedAction, // e.g., "task_created"
-        [property: JsonPropertyName("triaged_object_id")] string? TriagedObjectId, // ID of the object created via triage (e.g., task ID)
-        [property: JsonPropertyName("triaged_object_type")] string? TriagedObjectType, // e.g., "task"
-        [property: JsonPropertyName("type")] string Type, // "message", "post", etc. Could be an enum if values are fixed.
-        [property: JsonPropertyName("user")] ChatSimpleUser User, // The user who sent the message. Changed from user_id to be object.
-        [property: JsonPropertyName("links")] CommentChatMessageLinks2? Links,
-        [property: JsonPropertyName("replies_count")] int? RepliesCount,
-        [property: JsonPropertyName("reactions")] List<ChatReaction>? Reactions, // List of reactions on the message
-        [property: JsonPropertyName("followers")] List<ChatSimpleUser>? Followers, // Users following this message/post
-        [property: JsonPropertyName("workspace_id")] string WorkspaceId
-    );
+    /// <summary>
+    /// Type of the message.
+    /// </summary>
+    /// <example>"comment"</example>
+    /// <example>"system"</example>
+    /// <example>"post"</example>
+    [JsonPropertyName("type")]
+    public string Type { get; init; }
 
-    // Simplified Channel Info for parent_channel reference
-    public record ChatSimpleChannelInfo
-    (
-        [property: JsonPropertyName("id")] string Id,
-        [property: JsonPropertyName("name")] string? Name
-    );
+    [JsonPropertyName("user")]
+    public User User { get; init; } // From Common.User
 
-    // Simplified Message Info for parent_message reference
-    public record ChatSimpleMessageInfo
-    (
-        [property: JsonPropertyName("id")] string Id,
-        [property: JsonPropertyName("user_id")] string UserId,
-        [property: JsonPropertyName("date")] long Date
-    );
+    [JsonPropertyName("date")]
+    public long Date { get; init; } // Unix timestamp
+
+    [JsonPropertyName("text_content")]
+    public string? TextContent { get; init; }
+
+    [JsonPropertyName("group_id")]
+    public string GroupId { get; init; }
+
+    [JsonPropertyName("team_id")]
+    public string TeamId { get; init; }
+
+    [JsonPropertyName("channel_id")]
+    public string ChannelId { get; init; }
+
+    [JsonPropertyName("deleted")]
+    public bool Deleted { get; init; }
+
+    [JsonPropertyName("edited")]
+    public bool Edited { get; init; }
+
+    [JsonPropertyName("edited_at")]
+    public long? EditedAt { get; init; } // Nullable Unix timestamp
+
+    [JsonPropertyName("data")]
+    public ChatPostData? Data { get; init; } // Corresponds to ChatPostData schema
+
+    /// <summary>
+    /// Reactions to the message. The schema defines this as an array of "Reaction_object".
+    /// "Reaction_object" is defined as {"type": "object"}, so using List<object>.
+    /// A more specific Reaction model could be used if defined elsewhere or becomes clear.
+    /// Using ChatReaction model found in the same directory.
+    /// </summary>
+    [JsonPropertyName("reactions")]
+    public List<ChatReaction>? Reactions { get; init; }
+
+    [JsonPropertyName("is_first_message_in_thread")]
+    public bool? IsFirstMessageInThread { get; init; }
+
+    [JsonPropertyName("thread_comment_ids")]
+    public List<string>? ThreadCommentIds { get; init; }
+
+    [JsonPropertyName("thread_count")]
+    public int? ThreadCount { get; init; }
+
+    [JsonPropertyName("parent_id")]
+    public string? ParentId { get; init; }
+
+    [JsonPropertyName("links")]
+    public CommentChatMessageLinks2? Links { get; init; } // Corresponds to CommentChatMessageLinks2
+
+    [JsonPropertyName("is_hidden")]
+    public bool? IsHidden { get; init; }
+
+    [JsonPropertyName("pinned")]
+    public bool? Pinned { get; init; }
+
+    [JsonPropertyName("pinned_at")]
+    public long? PinnedAt { get; init; } // Nullable Unix timestamp
+
+    [JsonPropertyName("pinned_by")]
+    public User? PinnedBy { get; init; } // From Common.User
+
+    [JsonPropertyName("system_event_type")]
+    public string? SystemEventType { get; init; }
+
+    /// <summary>
+    /// Data associated with a system event. Structure varies.
+    /// </summary>
+    [JsonPropertyName("system_event_data")]
+    public object? SystemEventData { get; init; }
+
+    [JsonPropertyName("mentioned_user_ids")]
+    public List<string>? MentionedUserIds { get; init; }
+
+    [JsonPropertyName("mentioned_team_role_ids")]
+    public List<string>? MentionedTeamRoleIds { get; init; }
+
+    /// <summary>
+    /// Additional properties for the message. Structure varies.
+    /// </summary>
+    [JsonPropertyName("message_props")]
+    public object? MessageProps { get; init; }
+
+    [JsonPropertyName("is_reply")]
+    public bool? IsReply { get; init; }
+
+    [JsonPropertyName("is_direct")]
+    public bool? IsDirect { get; init; }
+
+    [JsonPropertyName("is_muted")]
+    public bool? IsMuted { get; init; }
+
+    [JsonPropertyName("is_ai_generated")]
+    public bool? IsAiGenerated { get; init; }
+
+    [JsonPropertyName("ai_model_version")]
+    public string? AiModelVersion { get; init; }
+
+    [JsonPropertyName("ai_model_type")]
+    public string? AiModelType { get; init; }
+
+    [JsonPropertyName("is_read_only")]
+    public bool? IsReadOnly { get; init; }
+
+    [JsonPropertyName("is_urgent")]
+    public bool? IsUrgent { get; init; }
 }

@@ -1,31 +1,117 @@
+using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Entities.Chat.Enums; // For enums
-using System.Collections.Generic; // For List
+using ClickUp.Api.Client.Models.Entities.Chat.Enums; // Updated namespace
+using ClickUp.Api.Client.Models.Common; // For User if it's there
 
-namespace ClickUp.Api.Client.Models.Entities.Chat
+namespace ClickUp.Api.Client.Models.Entities.Chat;
+
+/// <summary>
+/// Represents a Chat Channel in ClickUp, inheriting from ChatRoom.
+/// </summary>
+public record ChatChannel
 {
-    public record ChatChannel
-    (
-        [property: JsonPropertyName("id")] string Id,
-        [property: JsonPropertyName("name")] string? Name, // Nullable for DMs, typically has a name for channels
-        [property: JsonPropertyName("description")] string? Description,
-        [property: JsonPropertyName("topic")] string? Topic,
-        [property: JsonPropertyName("type")] ChatRoomType Type,
-        [property: JsonPropertyName("visibility")] ChatRoomVisibility? Visibility, // Nullable, might not apply to DMs
-        [property: JsonPropertyName("parent")] ChatRoomParentDTO? Parent,
-        [property: JsonPropertyName("creator")] ChatSimpleUser? Creator, // Or full User from Common
-        [property: JsonPropertyName("created_at")] long? CreatedAt, // Timestamp
-        [property: JsonPropertyName("workspace_id")] string WorkspaceId,
-        [property: JsonPropertyName("archived")] bool? Archived,
-        [property: JsonPropertyName("latest_comment_at")] long? LatestCommentAt, // Timestamp
-        [property: JsonPropertyName("is_canonical_channel")] bool? IsCanonicalChannel,
-        [property: JsonPropertyName("is_hidden")] bool? IsHidden,
-        [property: JsonPropertyName("default_view")] ChatDefaultViewDTO? DefaultView,
-        [property: JsonPropertyName("channel_type")] ChatSubcategoryType? ChannelType, // Using the enum, assuming string representation from API
-        [property: JsonPropertyName("counts")] ChatLastReadAtData? Counts, // Represents unread counts etc.
-        [property: JsonPropertyName("chat_room_category")] string? ChatRoomCategory, // e.g., "WELCOME_CHANNEL", could be an enum
-        [property: JsonPropertyName("links")] ChatChannelLinks? Links,
-        [property: JsonPropertyName("members")] List<ChatSimpleUser>? Members, // List of members in the channel
-        [property: JsonPropertyName("last_message")] object? LastMessage // Could be a simplified ChatMessage summary
-    );
+    // Properties from ChatChannel schema
+    [JsonPropertyName("id")]
+    public string Id { get; init; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; init; }
+
+    [JsonPropertyName("unread_count")]
+    public int UnreadCount { get; init; }
+
+    [JsonPropertyName("last_message_at")]
+    public long LastMessageAt { get; init; } // Unix timestamp
+
+    [JsonPropertyName("last_read_at_data")]
+    public ChatLastReadAtData? LastReadAtData { get; init; }
+
+    [JsonPropertyName("team_id")]
+    public string TeamId { get; init; }
+
+    [JsonPropertyName("room_parent")]
+    public ChatRoomParentDTO? RoomParent { get; init; }
+
+    [JsonPropertyName("default_view")]
+    public ChatDefaultViewDTO? DefaultView { get; init; }
+
+    [JsonPropertyName("creator")]
+    public User? Creator { get; init; } // Assuming User model from Common
+
+    [JsonPropertyName("created_at")]
+    public long CreatedAt { get; init; } // Unix timestamp
+
+    [JsonPropertyName("updated_at")]
+    public long UpdatedAt { get; init; } // Unix timestamp
+
+    [JsonPropertyName("archived_at")]
+    public long? ArchivedAt { get; init; } // Nullable Unix timestamp
+
+    [JsonPropertyName("members")]
+    public List<User>? Members { get; init; } // Assuming User model from Common
+
+    [JsonPropertyName("guests")]
+    public List<User>? Guests { get; init; } // Assuming User model from Common
+
+    [JsonPropertyName("links")]
+    public ChatChannelLinks? Links { get; init; }
+
+    [JsonPropertyName("is_private")]
+    public bool IsPrivate { get; init; }
+
+    [JsonPropertyName("is_favorite")]
+    public bool IsFavorite { get; init; }
+
+    [JsonPropertyName("is_muted")]
+    public bool IsMuted { get; init; }
+
+    [JsonPropertyName("is_hidden")]
+    public bool IsHidden { get; init; }
+
+    [JsonPropertyName("is_direct")]
+    public bool IsDirect { get; init; }
+
+    [JsonPropertyName("last_message_id")]
+    public string? LastMessageId { get; init; }
+
+    [JsonPropertyName("last_reaction_id")]
+    public string? LastReactionId { get; init; }
+
+    [JsonPropertyName("is_read_only")]
+    public bool IsReadOnly { get; init; }
+
+    [JsonPropertyName("is_system")]
+    public bool IsSystem { get; init; }
+
+    [JsonPropertyName("custom_role_ids")]
+    public List<string>? CustomRoleIds { get; init; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; init; }
+
+    [JsonPropertyName("group_id")]
+    public string? GroupId { get; init; }
+
+    [JsonPropertyName("is_group_channel")]
+    public bool IsGroupChannel { get; init; }
+
+    // Properties from ChatRoom schema (base type)
+    [JsonPropertyName("type")]
+    public ChatRoomType Type { get; init; }
+
+    [JsonPropertyName("visibility")]
+    public ChatRoomVisibility Visibility { get; init; }
+
+    [JsonPropertyName("subcategory_type")]
+    public ChatSubcategoryType? SubcategoryType { get; init; } // Nullable enum
+
+    [JsonPropertyName("is_ai_enabled")]
+    public bool IsAiEnabled { get; init; }
+
+    [JsonPropertyName("ai_model_version")]
+    public string? AiModelVersion { get; init; }
+
+    [JsonPropertyName("ai_model_type")]
+    public string? AiModelType { get; init; }
 }

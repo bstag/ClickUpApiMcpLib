@@ -1,20 +1,40 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ClickUp.Api.Client.Models.Entities.Chat
+namespace ClickUp.Api.Client.Models.Entities.Chat;
+
+/// <summary>
+/// Represents the last read data for a chat channel.
+/// Corresponds to #/components/schemas/ChatChannel_last_read_at_data
+/// </summary>
+public record ChatLastReadAtData
 {
-    public record ChatLastReadAtData
-    (
-        [property: JsonPropertyName("parent_id")] string ParentId, // ID of the parent context (e.g., channel ID)
-        [property: JsonPropertyName("parent_type")] int ParentType, // Type of the parent context
-        [property: JsonPropertyName("root_parent_id")] string? RootParentId, // Root parent ID (e.g., workspace ID)
-        [property: JsonPropertyName("root_parent_type")] int? RootParentType, // Type of the root parent
-        [property: JsonPropertyName("date")] long? Date, // Timestamp of last read
-        [property: JsonPropertyName("version")] int? Version, // Version of the read state
-        [property: JsonPropertyName("has_unread")] bool? HasUnread,
-        [property: JsonPropertyName("num_unread")] int? NumUnread, // Number of unread messages
-        [property: JsonPropertyName("latest_comment_at")] long? LatestCommentAt, // Timestamp of the latest comment
-        [property: JsonPropertyName("badge_count")] int? BadgeCount, // Count for badging purposes
-        [property: JsonPropertyName("thread_count")] int? ThreadCount, // Number of threads (if applicable)
-        [property: JsonPropertyName("mention_count")] int? MentionCount // Number of mentions
-    );
+    [JsonPropertyName("last_read_at")]
+    public long LastReadAt { get; init; } // Unix timestamp
+
+    [JsonPropertyName("last_read_message_id")]
+    public string? LastReadMessageId { get; init; }
+
+    [JsonPropertyName("last_seen_message_id")]
+    public string? LastSeenMessageId { get; init; }
+
+    /// <summary>
+    /// A dictionary representing the comment version vector.
+    /// Keys are typically user IDs or similar identifiers, values are version numbers.
+    /// </summary>
+    [JsonPropertyName("comment_version_vector")]
+    public Dictionary<string, int>? CommentVersionVector { get; init; }
+
+    /// <summary>
+    /// A dictionary representing the comment vector.
+    /// Keys are typically user IDs or similar identifiers, values are counts or versions.
+    /// </summary>
+    [JsonPropertyName("comment_vector")]
+    public Dictionary<string, int>? CommentVector { get; init; }
+
+    [JsonPropertyName("unread_count")]
+    public int? UnreadCount { get; init; }
+
+    [JsonPropertyName("mentioned_count")]
+    public int? MentionedCount { get; init; }
 }
