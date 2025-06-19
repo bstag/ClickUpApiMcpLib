@@ -42,8 +42,8 @@ This list includes schemas identified from components.schemas (which are general
 * [x] ListPriorityInfo (P0) - Represents a list's priority. (Implicitly created as part of List, implemented in `ListPriorityInfo.cs`)
 * [x] WebhookHealth (P2) - Health status of a Webhook. (Implemented in `Entities/Webhooks/WebhookHealth.cs`)
 * [x] GoalFolder (P2) - Represents a folder for Goals. (Implemented in `Entities/Goals/GoalFolder.cs`)
-* [~] UserGroup (P2) - Represents a user group. (Basic placeholder defined within Entities/Tasks/Task.cs; needs full implementation and separate file.)
-* [~] SharingOptions (P2) - Represents sharing options for a task. (Basic placeholder defined within Entities/Tasks/Task.cs; needs full implementation and separate file.)
+* [x] UserGroup (P2) - Represents a user group. (Implemented in `Entities/UserGroups/UserGroup.cs`, includes `UserGroupAvatar.cs`)
+* [x] SharingOptions (P2) - Represents common sharing options for various entities. (Implemented in `Common/SharingOptions.cs`)
 * [x] MemberSummary (P2) - Simplified member info for Space. (Defined within `Entities/Spaces/Space.cs`)
 * [x] DefaultListSettings (P2) - Default settings for lists in a Space. (Defined within `Entities/Spaces/Space.cs`)
 * [x] TimeEntry (P2) - Time tracking entry. (Implemented in `Entities/TimeTracking/TimeEntry.cs`)
@@ -54,9 +54,9 @@ This list includes schemas identified from components.schemas (which are general
 * [ ] ChatChannel (P2) - Chat channel (v3). (Expected from #/components/schemas/ChatChannel)
 * [ ] ChatMessage (P2) - Message in a chat channel (v3). (Expected from #/components/schemas/ChatMessage)
 * [ ] ChatReaction (P2) - Reaction to a chat message (v3). (Expected from #/components/schemas/ChatReaction)
-* [ ] Role (P2) - User role. (Seen inline in InviteGuestToWorkspaceresponse within Team1.roles)
-* [ ] CustomRole (P2) - Custom user role. (Seen as CustomRole2 inline, and expected in components.schemas)
-* [ ] Guest (P2) - Guest user details. (Seen inline, e.g., EditGuestOnWorkspaceresponse, and expected in components.schemas)
+* [x] Role (P2) - User role. (Seen inline in InviteGuestToWorkspaceresponse within Team1.roles. Implemented in `Entities/Users/Role.cs`)
+* [x] CustomRole (P2) - Custom user role. (Seen as CustomRole2 inline, and expected in components.schemas. Implemented in `Entities/Users/CustomRole.cs`)
+* [x] Guest (P2) - Guest user details. (Implemented in `Entities/Users/Guest.cs`, includes `GuestUserInfo.cs`, `InvitedByUserInfo.cs`, and `GuestSharingDetails.cs`)
 * [ ] View (P2) - View definition for tasks, etc. (Seen in GetTeamViewsresponse, and expected in components.schemas)
 
 ## Request/Response Specific Models (Often Wrappers or Inline Definitions):
