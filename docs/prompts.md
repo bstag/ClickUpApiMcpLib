@@ -1,3 +1,10 @@
-## 2025-06-17 First Jules Run
+- **Prompt from user (2025-06-19T12:06:22Z):**
+  <issue>
+  OpenJson definition /docs/OpenApiSpec/ClickUp-6-17-25.json. This file is a OpenApi JSON document it details out the ClickUp Api including all the calls and objects that are used. The website reference for the api is also here https://developer.clickup.com/reference/.
 
-Review /docs/OpenApiSpec/ClickUp-6-17-25.json. This file is a OpenApi JSON document it details out the ClickUp Api including all the calls and objects that are used. The website reference is also here https://developer.clickup.com/reference/. Please review all the documentation and break down how we would implement this Api which includes interfaces, models, services, helpers, global exception system in the current .net 9 projects structure which includes a client, models, abstraction and test  project. The solution also includes what will be come two example projects in the /examples folder that are a .net core console and worker.  Put all the things you learn in the /docs/plans folder. Break down the phases and steps you believe we need to do to accomplish this. Save all prompts you get from me with the date and time in /docs/prompts.md.
+  You came up with a plan in docs/plans/01-core-models-conceptual.md you suggest we start with the models of the APi. Can you start building out the request and response models based on this information. Line them out one by one in the docs/plans/01-core-models-actual.md document as you do them with check boxes so we can keep track of the progress.
+
+
+  Save all prompts you get from me with the date and time in /docs/prompts.md.
+  Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
+  </issue>
