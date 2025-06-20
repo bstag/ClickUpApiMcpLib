@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Template DTO (or TaskTemplate) is here
+using ClickUp.Api.Client.Models.ResponseModels.Templates; // For GetTaskTemplatesResponse
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -21,9 +21,9 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="page">The page number to retrieve (0-indexed). This is a required parameter by the ClickUp API for this endpoint.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An enumerable of <see cref="Template"/> objects available in the Workspace for the specified page.</returns>
-        /// <remarks>The ClickUp API returns templates in a {"templates": []} structure. This method should ideally return a wrapper response object or handle pagination if more details like total pages are needed.</remarks>
-        Task<IEnumerable<Template>> GetTaskTemplatesAsync(
+        /// <returns>A <see cref="GetTaskTemplatesResponse"/> object which contains a list of task templates available in the Workspace for the specified page.</returns>
+        /// <remarks>The ClickUp API returns templates in a {"templates": []} structure within the response object.</remarks>
+        Task<GetTaskTemplatesResponse> GetTaskTemplatesAsync(
             string workspaceId,
             int page,
             CancellationToken cancellationToken = default);

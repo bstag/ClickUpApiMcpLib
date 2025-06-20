@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming CustomField DTO is here
+using ClickUp.Api.Client.Models.Entities.CustomFields; // Assuming CustomField DTO is here
 using ClickUp.Api.Client.Models.RequestModels.CustomFields; // Assuming Request DTOs are here
 
 namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
@@ -25,8 +25,8 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// </summary>
         /// <param name="listId">The ID of the List.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="CustomField"/> objects accessible from the List.</returns>
-        Task<IEnumerable<CustomField>> GetAccessibleCustomFieldsAsync(
+        /// <returns>A list of <see cref="Field"/> objects accessible from the List.</returns>
+        Task<IEnumerable<Field>> GetAccessibleCustomFieldsAsync(
             string listId,
             CancellationToken cancellationToken = default);
 
@@ -41,8 +41,8 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// </summary>
         /// <param name="folderId">The ID of the Folder.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="CustomField"/> objects for the Folder.</returns>
-        Task<IEnumerable<CustomField>> GetFolderCustomFieldsAsync(
+        /// <returns>A list of <see cref="Field"/> objects for the Folder.</returns>
+        Task<IEnumerable<Field>> GetFolderCustomFieldsAsync(
             string folderId,
             CancellationToken cancellationToken = default);
 
@@ -51,8 +51,8 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// </summary>
         /// <param name="spaceId">The ID of the Space.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="CustomField"/> objects for the Space.</returns>
-        Task<IEnumerable<CustomField>> GetSpaceCustomFieldsAsync(
+        /// <returns>A list of <see cref="Field"/> objects for the Space.</returns>
+        Task<IEnumerable<Field>> GetSpaceCustomFieldsAsync(
             string spaceId,
             CancellationToken cancellationToken = default);
 
@@ -61,8 +61,8 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="CustomField"/> objects for the Workspace.</returns>
-        Task<IEnumerable<CustomField>> GetWorkspaceCustomFieldsAsync(
+        /// <returns>A list of <see cref="Field"/> objects for the Workspace.</returns>
+        Task<IEnumerable<Field>> GetWorkspaceCustomFieldsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
 

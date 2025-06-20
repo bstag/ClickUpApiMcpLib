@@ -1,13 +1,15 @@
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Entities.Tags;
 
 namespace ClickUp.Api.Client.Models.RequestModels.Spaces;
 
-/// <summary>
-/// Represents the request model for creating a space tag.
-/// </summary>
-public record class CreateSpaceTagRequest
+public record CreateSpaceTagRequest
 (
-    [property: JsonPropertyName("tag")]
-    Tag Tag
+    [property: JsonPropertyName("name")]
+    string Name,
+
+    [property: JsonPropertyName("tag_fg")]
+    string TagFg,
+
+    [property: JsonPropertyName("tag_bg")]
+    string TagBg
 );

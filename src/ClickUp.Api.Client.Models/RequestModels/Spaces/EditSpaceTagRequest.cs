@@ -2,11 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.RequestModels.Spaces;
 
-/// <summary>
-/// Represents the request model for editing a space tag.
-/// </summary>
-public record class EditSpaceTagRequest
+public record EditSpaceTagRequest
 (
-    [property: JsonPropertyName("tag")]
-    EditSpaceTagInfo Tag
+    [property: JsonPropertyName("name")]
+    string Name,
+
+    [property: JsonPropertyName("tag_fg")]
+    string TagFg,
+
+    [property: JsonPropertyName("tag_bg")]
+    string TagBg
 );
