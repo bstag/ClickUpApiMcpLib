@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Models;
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.RequestModels.Lists;
 using ClickUp.Api.Client.Models.ResponseModels.Lists; // Assuming GetListsResponse exists

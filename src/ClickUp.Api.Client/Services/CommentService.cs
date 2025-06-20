@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Comments;
 using ClickUp.Api.Client.Models.RequestModels.Comments;
 using ClickUp.Api.Client.Models.ResponseModels.Comments; // For CreateCommentResponse and potential GetCommentsResponse
 

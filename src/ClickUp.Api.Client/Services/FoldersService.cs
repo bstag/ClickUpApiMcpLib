@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Folders;
 using ClickUp.Api.Client.Models.RequestModels.Folders;
 using ClickUp.Api.Client.Models.ResponseModels.Folders; // Assuming GetFoldersResponse exists
 

@@ -7,7 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities; // CuTask DTO
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Tasks; // CuTask DTO
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
 
@@ -123,7 +124,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Models.Entities.Task?> CreateTaskAsync(
+        public async Task<CuTask?> CreateTaskAsync(
             string listId,
             CreateTaskRequest createTaskRequest,
             bool? customTaskIds = null,
@@ -136,11 +137,11 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.PostAsync<CreateTaskRequest, Models.Entities.Task>(endpoint, createTaskRequest, cancellationToken);
+            return await _apiConnection.PostAsync<CreateTaskRequest, CuTask>(endpoint, createTaskRequest, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<Models.Entities.Task?> GetTaskAsync(
+        public async Task<CuTask?> GetTaskAsync(
             string taskId,
             bool? customTaskIds = null,
             string? teamId = null,
@@ -156,11 +157,11 @@ namespace ClickUp.Api.Client.Services
             if (includeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = includeMarkdownDescription.Value.ToString().ToLower();
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<Models.Entities.Task>(endpoint, cancellationToken);
+            return await _apiConnection.GetAsync<CuTask>(endpoint, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<Models.Entities.Task?> UpdateTaskAsync(
+        public async Task<CuTask?> UpdateTaskAsync(
             string taskId,
             UpdateTaskRequest updateTaskRequest,
             bool? customTaskIds = null,
@@ -173,7 +174,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.PutAsync<UpdateTaskRequest, Models.Entities.Task>(endpoint, updateTaskRequest, cancellationToken);
+            return await _apiConnection.PutAsync<UpdateTaskRequest, CuTask>(endpoint, updateTaskRequest, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -281,7 +282,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Models.Entities.Task?> MergeTasksAsync(
+        public async Task<CuTask?> MergeTasksAsync(
             string targetTaskId, // This is task_id in POST /v2/task/{task_id}/merge
             MergeTasksRequest mergeTasksRequest, // This contains the actual target_task_id in its body
             bool? bodyCustomTaskIds = null,
@@ -366,7 +367,7 @@ namespace ClickUp.Api.Client.Services
             // The actual payload for this specific ClickUp endpoint is { "target_task_id": "string" }
             var payload = new { target_task_id = targetTaskId };
 
-            return await _apiConnection.PostAsync<object, Models.Entities.Task>(endpoint, payload, cancellationToken);
+            return await _apiConnection.PostAsync<object, CuTask>(endpoint, payload, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -403,7 +404,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Models.Entities.Task?> CreateTaskFromTemplateAsync(
+        public async Task<CuTask?> CreateTaskFromTemplateAsync(
             string listId,
             string templateId,
             CreateTaskFromTemplateRequest createTaskFromTemplateRequest,
@@ -421,7 +422,7 @@ namespace ClickUp.Api.Client.Services
             // However, the `createTaskFromTemplateRequest` DTO is the main payload.
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.PostAsync<CreateTaskFromTemplateRequest, Models.Entities.Task>(endpoint, createTaskFromTemplateRequest, cancellationToken);
+            return await _apiConnection.PostAsync<CreateTaskFromTemplateRequest, CuTask>(endpoint, createTaskFromTemplateRequest, cancellationToken);
         }
 
         /// <inheritdoc />

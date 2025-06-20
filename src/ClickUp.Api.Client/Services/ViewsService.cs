@@ -7,7 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities; // View, CuTask DTOs
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Views; // View, CuTask DTOs
 using ClickUp.Api.Client.Models.RequestModels.Views;
 using ClickUp.Api.Client.Models.ResponseModels.Views; // GetViewTasksResponse and potential GetViewsResponse, GetViewResponse
 

@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.RequestModels.TaskRelationships; // Assuming request DTOs like AddDependencyRequest might exist
-using ClickUp.Api.Client.Models.ResponseModels; // For potential wrapper DTOs
+using ClickUp.Api.Client.Models.Entities.Tasks;
+using ClickUp.Api.Client.Models.RequestModels.TaskRelationships;
+using ClickUp.Api.Client.Models.RequestModels.Tasks; // Assuming request DTOs like AddDependencyRequest might exist
+using ClickUp.Api.Client.Models.ResponseModels;
+using ClickUp.Api.Client.Models.ResponseModels.Tasks; // For potential wrapper DTOs
 
 namespace ClickUp.Api.Client.Services
 {
@@ -118,7 +121,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Models.Entities.Task?> AddTaskLinkAsync(
+        public async Task<CuTask?> AddTaskLinkAsync(
             string taskId,
             string linksToTaskId,
             bool? customTaskIds = null,
@@ -134,11 +137,11 @@ namespace ClickUp.Api.Client.Services
             // Add CuTask Link API is POST and returns the task.
             // It does not take a request body. So we send an empty object.
             var response = await _apiConnection.PostAsync<object, GetTaskResponse>(endpoint, new { }, cancellationToken);
-            return response?.Task;
+            return response?.CuTask;
         }
 
         /// <inheritdoc />
-        public async Task<Models.Entities.Task?> DeleteTaskLinkAsync(
+        public async Task<CuTask?> DeleteTaskLinkAsync(
             string taskId,
             string linksToTaskId,
             bool? customTaskIds = null,
@@ -209,7 +212,7 @@ namespace ClickUp.Api.Client.Services
             // then use it here.
 
             var response = await _apiConnection.DeleteAsync<GetTaskResponse>(endpoint, cancellationToken); // Assuming this new method
-            return response?.Task;
+            return response?.CuTask;
         }
     }
 }

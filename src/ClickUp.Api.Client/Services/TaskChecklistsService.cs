@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.RequestModels.TaskChecklists;
+using ClickUp.Api.Client.Models.Entities.Checklists;
+using ClickUp.Api.Client.Models.RequestModels;
+using ClickUp.Api.Client.Models.RequestModels.Checklists;
 using ClickUp.Api.Client.Models.ResponseModels; // For potential wrapper DTOs
 
 namespace ClickUp.Api.Client.Services
