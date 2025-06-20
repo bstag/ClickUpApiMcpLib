@@ -4,9 +4,8 @@ This file contains specific notes, conventions, and information Jules needs to r
 
 ## Project Overview & Goals
 - Objective: Develop a professional-grade .NET client library for the ClickUp API, incorporating best practices for design, resilience, developer experience, and AI integration.
-- Current Phase: Finalizing Core Contracts (Refining Service Interfaces) and Updating Documentation.
-- Master Plan: `docs/plans/geminiPlan.md` (provides comprehensive architectural guidance).
-- Consolidated Operational Plan: `docs/plans/NEW_OVERALL_PLAN.md` (this is the plan currently being executed).
+- Master Conceptual Plan: `docs/plans/geminiPlan.md` (provides comprehensive architectural guidance).
+- Operational Guidance: Derived from the latest user instructions, which supersede any previous specific operational plan documents.
 - OpenAPI Spec: `docs/OpenApiSpec/ClickUp-6-17-25.json`.
 
 ## Current Project State:
@@ -16,13 +15,11 @@ This file contains specific notes, conventions, and information Jules needs to r
 - **`ClickUp.Net.Abstractions`:** This path appears to be deprecated or non-existent. The focus is on `ClickUp.Api.Client.Abstractions`.
 
 ## Current Task:
-- Following the consolidated plan approved by the user.
-- Current Step: "Refine Service Interfaces in `ClickUp.Api.Client.Abstractions`" (after this initial documentation update step is complete).
+Review existing plans (especially `docs/plans/geminiPlan.md`), the OpenAPI spec (`docs/OpenApiSpec/ClickUp-6-17-25.json`), and the current codebase to identify missing components and necessary refinements. Following this review, build and test the project. Subsequently, refine service interfaces and implement any missing parts, guided by the user's latest instructions.
 
 ## Key Files & Directories:
 - OpenAPI Spec: `docs/OpenApiSpec/ClickUp-6-17-25.json`
 - Master Conceptual Plan: `docs/plans/geminiPlan.md`
-- Current Operational Plan: `docs/plans/NEW_OVERALL_PLAN.md` (contains the detailed plan Jules is following)
 - Model Implementation Tracking: `docs/plans/01-core-models-actual.md`
 - Interface Implementation Tracking: `docs/plans/02-abstractions-interfaces-actual.md`
 - This file (Project Notes): `jules.md`
@@ -32,6 +29,13 @@ This file contains specific notes, conventions, and information Jules needs to r
 - Client Implementation: `src/ClickUp.Api.Client/`
 - Tests: `src/ClickUp.Api.Client.Tests/`
 - Examples: `examples/`
+- .NET install script: `/utilities/dotnet-install.sh`
+
+## Build and Test Commands:
+- Install .NET 9: `/utilities/dotnet-install.sh --channel 9.0` (run from the repository root)
+- Build: `dotnet build src/ClickUp.Api.sln --nologo` (run from the repository root, or `dotnet build ClickUp.Api.sln --nologo` from the `src` folder)
+- Test: `dotnet test src/ClickUp.Api.sln` (run from the repository root, or `dotnet test` from the `src` folder)
+
 
 ## Notes on `geminiPlan.md`:
 The `geminiPlan.md` is the primary source for architectural principles, including:
@@ -45,4 +49,4 @@ The `geminiPlan.md` is the primary source for architectural principles, includin
 - Webhook helpers.
 - DocFX for documentation.
 - AI integration (Semantic Kernel, MCP).
-The new consolidated plan aims to implement these aspects systematically.
+The current tasks aim to implement these aspects systematically, guided by user prompts.

@@ -72,6 +72,4 @@ namespace ClickUp.Api.Client.Models.Entities.Tasks
     public record TaskLink([property: JsonPropertyName("task_id")] string TaskId, [property: JsonPropertyName("link_id")] string LinkId);
     // Placeholder for SharingOptions
     public record SharingOptions([property: JsonPropertyName("public")] bool? Public, [property: JsonPropertyName("public_share_expires_on")] string? PublicShareExpiresOn, [property: JsonPropertyName("public_link")] string? PublicLink);
-    // Assuming Priority is defined in Common, similar to Status. If not, a placeholder would be needed.
-    // public record Priority([property: JsonPropertyName("priority")] string PriorityValue, [property: JsonPropertyName("color")] string? Color);
 }
