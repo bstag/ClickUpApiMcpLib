@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Comment DTO is here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Comments; // Assuming Comment DTO is here
 using ClickUp.Api.Client.Models.RequestModels.Comments; // Assuming Request DTOs are here
 using ClickUp.Api.Client.Models.ResponseModels.Comments; // Assuming Response DTOs are here
 

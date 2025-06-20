@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Goal and KeyResult DTOs are here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Goals; // Assuming Goal and KeyResult DTOs are here
 using ClickUp.Api.Client.Models.RequestModels.Goals; // Assuming Request DTOs are here
 using ClickUp.Api.Client.Models.ResponseModels.Goals; // For GetGoalsResponse
 

@@ -4,7 +4,7 @@ using FluentAssertions;
 using ClickUp.Api.Client.Services;
 using ClickUp.Api.Client.Abstractions.Http; // For IApiConnection
 using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.RequestModels.Authorization;
+using ClickUp.Api.Client.Models.RequestModels;
 using ClickUp.Api.Client.Models.ResponseModels.Authorization;
 using ClickUp.Api.Client.Models.ResponseModels; // For GetAuthorizedWorkspacesResponse if it's there
 using System.Threading.Tasks;

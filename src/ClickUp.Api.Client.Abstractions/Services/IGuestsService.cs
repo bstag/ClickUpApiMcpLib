@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Guest, TeamMember DTOs are here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Users; // Assuming Guest, TeamMember DTOs are here
 using ClickUp.Api.Client.Models.RequestModels.Guests; // Assuming Request DTOs are here
 
 namespace ClickUp.Api.Client.Abstractions.Services

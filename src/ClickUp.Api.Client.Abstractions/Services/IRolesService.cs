@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming CustomRole DTO is here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Users; // Assuming CustomRole DTO is here
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {

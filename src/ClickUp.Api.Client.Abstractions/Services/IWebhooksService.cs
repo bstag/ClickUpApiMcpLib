@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Webhook DTO is here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Webhooks; // Assuming Webhook DTO is here
 using ClickUp.Api.Client.Models.RequestModels.Webhooks; // Assuming Request DTOs are here
 
 namespace ClickUp.Api.Client.Abstractions.Services

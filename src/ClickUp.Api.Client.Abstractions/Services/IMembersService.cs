@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities; // Assuming Member DTO is here
 
 namespace ClickUp.Api.Client.Abstractions.Services

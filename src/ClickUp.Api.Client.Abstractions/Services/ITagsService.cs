@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Tag DTO is here
-using ClickUp.Api.Client.Models.RequestModels.Tags; // Assuming Request DTOs are here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Tags; // Assuming Tag DTO is here
+using ClickUp.Api.Client.Models.RequestModels; // Assuming Request DTOs are here
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {

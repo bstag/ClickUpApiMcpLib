@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming TimeEntry, TimeEntryHistory, TimeEntryTag are here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.TimeTracking; // Assuming TimeEntry, TimeEntryHistory, TimeEntryTag are here
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking; // Assuming Request DTOs are here
 
 namespace ClickUp.Api.Client.Abstractions.Services

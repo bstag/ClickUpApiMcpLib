@@ -10,7 +10,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // For User and Workspace DTOs
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Users; // For User and Workspace DTOs
 using ClickUp.Api.Client.Models.ResponseModels.Authorization;
 
 // Corrected namespace

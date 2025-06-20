@@ -2,7 +2,8 @@
 using System.IO; // Required for Stream
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Attachment DTO is here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Attachments; // Assuming Attachment DTO is here
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {

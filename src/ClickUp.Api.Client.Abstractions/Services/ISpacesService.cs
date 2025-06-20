@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Space DTO is here
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Spaces; // Assuming Space DTO is here
 using ClickUp.Api.Client.Models.RequestModels.Spaces; // Assuming Request DTOs are here
 
 namespace ClickUp.Api.Client.Abstractions.Services

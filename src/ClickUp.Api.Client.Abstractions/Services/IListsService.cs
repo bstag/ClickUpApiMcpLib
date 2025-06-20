@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models;
 using ClickUp.Api.Client.Models.Entities; // Assuming ClickUpList DTO is here
 using ClickUp.Api.Client.Models.RequestModels.Lists; // Assuming Request DTOs are here
 
