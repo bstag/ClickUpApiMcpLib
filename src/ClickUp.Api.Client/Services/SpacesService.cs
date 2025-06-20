@@ -51,7 +51,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Space>?> GetSpacesAsync(
+        public async Task<IEnumerable<Space>> GetSpacesAsync(
             string workspaceId,
             bool? archived = null,
             CancellationToken cancellationToken = default)
@@ -62,39 +62,51 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetSpacesResponse>(endpoint, cancellationToken); // API returns {"spaces": [...]}
-            return response?.Spaces;
+            return response?.Spaces ?? Enumerable.Empty<Space>();
         }
 
         /// <inheritdoc />
-        public async Task<Space?> CreateSpaceAsync(
+        public async Task<Space> CreateSpaceAsync(
             string workspaceId,
             CreateSpaceRequest createSpaceRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/space";
-            // API returns the created space directly
-            return await _apiConnection.PostAsync<CreateSpaceRequest, Space>(endpoint, createSpaceRequest, cancellationToken);
+            var space = await _apiConnection.PostAsync<CreateSpaceRequest, Space>(endpoint, createSpaceRequest, cancellationToken);
+            if (space == null)
+            {
+                throw new InvalidOperationException($"Failed to create space in workspace {workspaceId} or API returned an unexpected null response.");
+            }
+            return space;
         }
 
         /// <inheritdoc />
-        public async Task<Space?> GetSpaceAsync(
+        public async Task<Space> GetSpaceAsync(
             string spaceId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}";
-            // API returns the space directly
-            return await _apiConnection.GetAsync<Space>(endpoint, cancellationToken);
+            var space = await _apiConnection.GetAsync<Space>(endpoint, cancellationToken);
+            if (space == null)
+            {
+                throw new InvalidOperationException($"Failed to get space {spaceId} or API returned an unexpected null response.");
+            }
+            return space;
         }
 
         /// <inheritdoc />
-        public async Task<Space?> UpdateSpaceAsync(
+        public async Task<Space> UpdateSpaceAsync(
             string spaceId,
             UpdateSpaceRequest updateSpaceRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}";
-            // API returns the updated space directly
-            return await _apiConnection.PutAsync<UpdateSpaceRequest, Space>(endpoint, updateSpaceRequest, cancellationToken);
+            var space = await _apiConnection.PutAsync<UpdateSpaceRequest, Space>(endpoint, updateSpaceRequest, cancellationToken);
+            if (space == null)
+            {
+                throw new InvalidOperationException($"Failed to update space {spaceId} or API returned an unexpected null response.");
+            }
+            return space;
         }
 
         /// <inheritdoc />

@@ -57,7 +57,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<TimeEntry>?> GetTimeEntriesAsync(
+        public async Task<IEnumerable<TimeEntry>> GetTimeEntriesAsync(
             string workspaceId,
             GetTimeEntriesRequest request, // This request DTO should contain all query parameters
             CancellationToken cancellationToken = default)
@@ -82,13 +82,12 @@ namespace ClickUp.Api.Client.Services
 
             endpoint += BuildQueryString(queryParams);
 
-            // The API returns { "data": [...] } for time entries
             var response = await _apiConnection.GetAsync<GetTimeEntriesResponse>(endpoint, cancellationToken);
-            return response?.Data;
+            return response?.Data ?? Enumerable.Empty<TimeEntry>();
         }
 
         /// <inheritdoc />
-        public async Task<TimeEntry?> CreateTimeEntryAsync(
+        public async Task<TimeEntry> CreateTimeEntryAsync(
             string workspaceId,
             CreateTimeEntryRequest createTimeEntryRequest,
             bool? customTaskIds = null, // These are query params for Create
@@ -101,12 +100,16 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamIdForCustomTaskIds)) queryParams["team_id"] = teamIdForCustomTaskIds;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.PostAsync<CreateTimeEntryRequest, GetTimeEntryResponse>(endpoint, createTimeEntryRequest, cancellationToken);
-            return response?.Data;
+            var responseWrapper = await _apiConnection.PostAsync<CreateTimeEntryRequest, GetTimeEntryResponse>(endpoint, createTimeEntryRequest, cancellationToken);
+            if (responseWrapper?.Data == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty data response when creating time entry in workspace {workspaceId}.");
+            }
+            return responseWrapper.Data;
         }
 
         /// <inheritdoc />
-        public async Task<TimeEntry?> GetTimeEntryAsync(
+        public async Task<TimeEntry> GetTimeEntryAsync(
             string workspaceId,
             string timerId, // This is the time entry ID
             bool? includeTaskTags = null,
@@ -124,12 +127,16 @@ namespace ClickUp.Api.Client.Services
             // Add other include params if API supports them
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetTimeEntryResponse>(endpoint, cancellationToken);
-            return response?.Data;
+            var responseWrapper = await _apiConnection.GetAsync<GetTimeEntryResponse>(endpoint, cancellationToken);
+            if (responseWrapper?.Data == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty data response when getting time entry {timerId} in workspace {workspaceId}.");
+            }
+            return responseWrapper.Data;
         }
 
         /// <inheritdoc />
-        public async Task<TimeEntry?> UpdateTimeEntryAsync(
+        public async Task<TimeEntry> UpdateTimeEntryAsync(
             string workspaceId,
             string timerId,
             UpdateTimeEntryRequest updateTimeEntryRequest,
@@ -143,8 +150,12 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamIdForCustomTaskIds)) queryParams["team_id"] = teamIdForCustomTaskIds;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.PutAsync<UpdateTimeEntryRequest, GetTimeEntryResponse>(endpoint, updateTimeEntryRequest, cancellationToken);
-            return response?.Data;
+            var responseWrapper = await _apiConnection.PutAsync<UpdateTimeEntryRequest, GetTimeEntryResponse>(endpoint, updateTimeEntryRequest, cancellationToken);
+            if (responseWrapper?.Data == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty data response when updating time entry {timerId} in workspace {workspaceId}.");
+            }
+            return responseWrapper.Data;
         }
 
         /// <inheritdoc />
@@ -158,19 +169,19 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<TimeEntryHistory>?> GetTimeEntryHistoryAsync(
+        public async Task<IEnumerable<TimeEntryHistory>> GetTimeEntryHistoryAsync(
             string workspaceId,
             string timerId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/{timerId}/history";
-            // Assuming API returns { "data": [...] } or similar wrapper
             var response = await _apiConnection.GetAsync<GetTimeEntryHistoryResponse>(endpoint, cancellationToken);
-            return response?.History; // Assuming GetTimeEntryHistoryResponse has an 'History' or 'Data' property
+            // Assuming GetTimeEntryHistoryResponse has a 'History' or 'Data' property that is IEnumerable<TimeEntryHistory>
+            return response?.History ?? Enumerable.Empty<TimeEntryHistory>();
         }
 
         /// <inheritdoc />
-        public async Task<TimeEntry?> GetRunningTimeEntryAsync(
+        public async Task<TimeEntry> GetRunningTimeEntryAsync(
             string workspaceId,
             string? assigneeUserId = null, // This is a query param: assignee_user_id
             CancellationToken cancellationToken = default)
@@ -181,12 +192,20 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(assigneeUserId)) queryParams["assignee_user_id"] = assigneeUserId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetTimeEntryResponse>(endpoint, cancellationToken); // API returns {"data": ...} (or null if no timer)
-            return response?.Data;
+            var responseWrapper = await _apiConnection.GetAsync<GetTimeEntryResponse>(endpoint, cancellationToken); // API returns {"data": ...} (or null if no timer)
+            // A running timer might legitimately not exist, returning null.
+            // The interface contract Task<TimeEntry> implies it should always exist or error.
+            // This might need discussion: should it be Task<TimeEntry?> or handle null as an exception?
+            // For now, adhering strictly to making it non-nullable if interface is non-nullable.
+            if (responseWrapper?.Data == null)
+            {
+                 throw new InvalidOperationException($"No running time entry found or API returned null/empty data for workspace {workspaceId} and assignee {assigneeUserId ?? "any"}.");
+            }
+            return responseWrapper.Data;
         }
 
         /// <inheritdoc />
-        public async Task<TimeEntry?> StartTimeEntryAsync(
+        public async Task<TimeEntry> StartTimeEntryAsync(
             string workspaceId,
             StartTimeEntryRequest startTimeEntryRequest,
             bool? customTaskIds = null, // Query params for Start
@@ -200,30 +219,40 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamIdForCustomTaskIds)) queryParams["team_id"] = teamIdForCustomTaskIds;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.PostAsync<StartTimeEntryRequest, GetTimeEntryResponse>(endpoint, startTimeEntryRequest, cancellationToken);
-            return response?.Data;
+            var responseWrapper = await _apiConnection.PostAsync<StartTimeEntryRequest, GetTimeEntryResponse>(endpoint, startTimeEntryRequest, cancellationToken);
+            if (responseWrapper?.Data == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty data response when starting time entry in workspace {workspaceId}.");
+            }
+            return responseWrapper.Data;
         }
 
         /// <inheritdoc />
-        public async Task<TimeEntry?> StopTimeEntryAsync(
+        public async Task<TimeEntry> StopTimeEntryAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
             // Endpoint for stopping timer: POST /team/{team_id}/time_entries/stop
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/stop";
             // This endpoint usually doesn't require a request body.
-            var response = await _apiConnection.PostAsync<object, GetTimeEntryResponse>(endpoint, new object(), cancellationToken);
-            return response?.Data;
+            var responseWrapper = await _apiConnection.PostAsync<object, GetTimeEntryResponse>(endpoint, new object(), cancellationToken);
+            if (responseWrapper?.Data == null)
+            {
+                // If stopping a timer that wasn't running, API might return error or specific response.
+                // Assuming for now that a successful stop returns the stopped entry.
+                throw new InvalidOperationException($"API connection returned null or empty data response when stopping time entry in workspace {workspaceId}.");
+            }
+            return responseWrapper.Data;
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<TaskTag>?> GetAllTimeEntryTagsAsync(
+        public async Task<IEnumerable<TaskTag>> GetAllTimeEntryTagsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/tags";
             var response = await _apiConnection.GetAsync<GetAllTimeEntryTagsResponse>(endpoint, cancellationToken);
-            return response?.Data;
+            return response?.Data ?? Enumerable.Empty<TaskTag>();
         }
 
         /// <inheritdoc />

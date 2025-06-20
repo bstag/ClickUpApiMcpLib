@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Common;
-using ClickUp.Api.Client.Models.Entities; // Assuming Member DTO is here
+using ClickUp.Api.Client.Models.ResponseModels.Members;
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -23,8 +23,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="taskId">The ID of the task.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="Member"/> objects associated with the task.</returns>
-        Task<IEnumerable<Member>> GetTaskMembersAsync(
+        /// <returns>A list of <see cref="ClickUp.Api.Client.Models.ResponseModels.Members.Member"/> objects associated with the task.</returns>
+        Task<IEnumerable<ClickUp.Api.Client.Models.ResponseModels.Members.Member>> GetTaskMembersAsync(
             string taskId,
             CancellationToken cancellationToken = default);
 
@@ -33,8 +33,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="listId">The ID of the List.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="Member"/> objects associated with the List.</returns>
-        Task<IEnumerable<Member>> GetListMembersAsync(
+        /// <returns>A list of <see cref="ClickUp.Api.Client.Models.ResponseModels.Members.Member"/> objects associated with the List.</returns>
+        Task<IEnumerable<ClickUp.Api.Client.Models.ResponseModels.Members.Member>> GetListMembersAsync(
             string listId,
             CancellationToken cancellationToken = default);
     }

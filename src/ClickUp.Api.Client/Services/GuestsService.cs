@@ -51,46 +51,57 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<TeamMember?> InviteGuestToWorkspaceAsync(
+        public async Task<InviteGuestToWorkspaceResponse> InviteGuestToWorkspaceAsync(
             string workspaceId,
             InviteGuestToWorkspaceRequest inviteGuestRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/guest"; // team_id is workspaceId
-            // API returns {"team": {"members": [{"user": ..., "invited_by": ...}]}} structure or similar.
-            // Assuming TeamMember is the DTO for the relevant part of this response.
-            // Or a more specific InviteGuestResponse might wrap this.
-            // For now, let's assume a wrapper that gives us the TeamMember.
-            var response = await _apiConnection.PostAsync<InviteGuestToWorkspaceRequest, InviteGuestResponse>(endpoint, inviteGuestRequest, cancellationToken);
-            return response?.InvitedMember; // Assuming InviteGuestResponse has an InvitedMember property of type TeamMember.
+            var response = await _apiConnection.PostAsync<InviteGuestToWorkspaceRequest, InviteGuestToWorkspaceResponse>(endpoint, inviteGuestRequest, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when inviting guest to workspace {workspaceId}.");
+            }
+            // Assuming InviteGuestToWorkspaceResponse directly models the {"team": {...}} structure.
+            // If response.Team is null or response.Team.Members is what's needed, further checks might be required here
+            // depending on the exact structure of InviteGuestToWorkspaceResponse and what the caller expects.
+            // For now, returning the whole response as per interface.
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<Guest?> GetGuestAsync(
+        public async Task<GetGuestResponse> GetGuestAsync(
             string workspaceId,
             string guestId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/guest/{guestId}";
-            // API for Get Guest on Team might return { "guest": {...} } or just the guest object.
-            // Based on other similar GETs, let's assume it returns the Guest object directly or wrapped.
-            // The original note stated "API returns an empty object for this", which is odd.
-            // Assuming it returns the Guest DTO, possibly wrapped.
             var response = await _apiConnection.GetAsync<GetGuestResponse>(endpoint, cancellationToken);
-            return response?.Guest;
+            if (response == null) // The interface expects GetGuestResponse, which wraps Guest.
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting guest {guestId} for workspace {workspaceId}.");
+            }
+            if (response.Guest == null) // Additional check if GetGuestResponse can exist with a null Guest
+            {
+                 throw new InvalidOperationException($"API response for guest {guestId} did not contain guest data.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<Guest?> EditGuestOnWorkspaceAsync(
+        public async Task<Guest> EditGuestOnWorkspaceAsync(
             string workspaceId,
             string guestId,
-            UpdateGuestRequest updateGuestRequest,
+            EditGuestOnWorkspaceRequest updateGuestRequest, // Changed from UpdateGuestRequest
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/guest/{guestId}";
-            // API returns {"guest": {...}}
-            var response = await _apiConnection.PutAsync<UpdateGuestRequest, GetGuestResponse>(endpoint, updateGuestRequest, cancellationToken);
-            return response?.Guest;
+            var responseWrapper = await _apiConnection.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(endpoint, updateGuestRequest, cancellationToken);
+            if (responseWrapper?.Guest == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Guest object when editing guest {guestId} for workspace {workspaceId}.");
+            }
+            return responseWrapper.Guest;
         }
 
         /// <inheritdoc />
@@ -105,7 +116,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Guest?> AddGuestToTaskAsync(
+        public async Task<Guest> AddGuestToTaskAsync(
             string taskId,
             string guestId,
             AddGuestToItemRequest addGuestToItemRequest,
@@ -121,13 +132,16 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            // API returns {"guest": {...}, "shared": {...}}
-            var response = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
-            return response?.Guest; // Assuming GetGuestResponse contains the Guest and their shared items
+            var responseWrapper = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
+            if (responseWrapper?.Guest == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Guest object when adding guest {guestId} to task {taskId}.");
+            }
+            return responseWrapper.Guest;
         }
 
         /// <inheritdoc />
-        public async Task<Guest?> RemoveGuestFromTaskAsync(
+        public async Task<Guest> RemoveGuestFromTaskAsync(
             string taskId,
             string guestId,
             bool? includeShared = null,
@@ -142,14 +156,19 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            // API returns {"guest": {...}, "shared": {...}} or just confirms.
-            // Using DeleteAsync<TResponse> as it might return the guest object.
-            var response = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
-            return response?.Guest;
+            var responseWrapper = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
+            if (responseWrapper?.Guest == null)
+            {
+                // Note: DELETE operations might return empty or just a success status.
+                // If API guarantees to return the Guest object on successful removal, this exception is fine.
+                // Otherwise, if an empty success is possible, the interface might need to be Task or Task<bool>.
+                throw new InvalidOperationException($"API connection returned null or empty Guest object when removing guest {guestId} from task {taskId}.");
+            }
+            return responseWrapper.Guest;
         }
 
         /// <inheritdoc />
-        public async Task<Guest?> AddGuestToListAsync(
+        public async Task<Guest> AddGuestToListAsync(
             string listId,
             string guestId,
             AddGuestToItemRequest addGuestToItemRequest,
@@ -161,12 +180,16 @@ namespace ClickUp.Api.Client.Services
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
-            return response?.Guest;
+            var responseWrapper = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
+            if (responseWrapper?.Guest == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Guest object when adding guest {guestId} to list {listId}.");
+            }
+            return responseWrapper.Guest;
         }
 
         /// <inheritdoc />
-        public async Task<Guest?> RemoveGuestFromListAsync(
+        public async Task<Guest> RemoveGuestFromListAsync(
             string listId,
             string guestId,
             bool? includeShared = null,
@@ -177,12 +200,16 @@ namespace ClickUp.Api.Client.Services
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
-            return response?.Guest;
+            var responseWrapper = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
+            if (responseWrapper?.Guest == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Guest object when removing guest {guestId} from list {listId}.");
+            }
+            return responseWrapper.Guest;
         }
 
         /// <inheritdoc />
-        public async Task<Guest?> AddGuestToFolderAsync(
+        public async Task<Guest> AddGuestToFolderAsync(
             string folderId,
             string guestId,
             AddGuestToItemRequest addGuestToItemRequest,
@@ -194,12 +221,16 @@ namespace ClickUp.Api.Client.Services
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
-            return response?.Guest;
+            var responseWrapper = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
+            if (responseWrapper?.Guest == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Guest object when adding guest {guestId} to folder {folderId}.");
+            }
+            return responseWrapper.Guest;
         }
 
         /// <inheritdoc />
-        public async Task<Guest?> RemoveGuestFromFolderAsync(
+        public async Task<Guest> RemoveGuestFromFolderAsync(
             string folderId,
             string guestId,
             bool? includeShared = null,
@@ -210,8 +241,12 @@ namespace ClickUp.Api.Client.Services
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
-            return response?.Guest;
+            var responseWrapper = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
+            if (responseWrapper?.Guest == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Guest object when removing guest {guestId} from folder {folderId}.");
+            }
+            return responseWrapper.Guest;
         }
     }
 }

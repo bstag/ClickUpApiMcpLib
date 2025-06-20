@@ -28,25 +28,33 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<WorkspaceSeats?> GetWorkspaceSeatsAsync(
+        public async Task<GetWorkspaceSeatsResponse> GetWorkspaceSeatsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
             // Endpoint: GET /api/v2/team/{team_id}/seats
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/seats";
-            // Assuming WorkspaceSeats is the direct response DTO
-            return await _apiConnection.GetAsync<WorkspaceSeats>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetWorkspaceSeatsResponse>(endpoint, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting workspace seats for workspace {workspaceId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<WorkspacePlan?> GetWorkspacePlanAsync(
+        public async Task<GetWorkspacePlanResponse> GetWorkspacePlanAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
             // Endpoint: GET /api/v2/team/{team_id}/plan
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/plan";
-            // Assuming WorkspacePlan is the direct response DTO
-            return await _apiConnection.GetAsync<WorkspacePlan>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetWorkspacePlanResponse>(endpoint, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting workspace plan for workspace {workspaceId}.");
+            }
+            return response;
         }
     }
 }

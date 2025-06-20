@@ -65,8 +65,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, references tasks by their custom task IDs.</param>
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="Task"/> (usually the source task with relationship info).</returns>
-        Task<Task> AddTaskLinkAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="ClickUp.Api.Client.Models.Entities.Tasks.CuTask"/> (usually the source task with relationship info).</returns>
+        Task<ClickUp.Api.Client.Models.Entities.Tasks.CuTask?> AddTaskLinkAsync(
             string taskId,
             string linksToTaskId,
             bool? customTaskIds = null,
@@ -81,8 +81,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, references tasks by their custom task IDs.</param>
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="Task"/>.</returns>
-        Task<Task> DeleteTaskLinkAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="ClickUp.Api.Client.Models.Entities.Tasks.CuTask"/>.</returns>
+        Task<ClickUp.Api.Client.Models.Entities.Tasks.CuTask?> DeleteTaskLinkAsync(
             string taskId,
             string linksToTaskId,
             bool? customTaskIds = null,

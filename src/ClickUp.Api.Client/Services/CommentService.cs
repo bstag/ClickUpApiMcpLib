@@ -51,7 +51,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Comment>?> GetTaskCommentsAsync(
+        public async Task<IEnumerable<Comment>> GetTaskCommentsAsync(
             string taskId,
             bool? customTaskIds = null,
             string? teamId = null,
@@ -67,12 +67,12 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken); // Assuming API returns {"comments": [...]}
-            return response?.Comments;
+            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken);
+            return response?.Comments ?? Enumerable.Empty<Comment>();
         }
 
         /// <inheritdoc />
-        public async Task<CreateCommentResponse?> CreateTaskCommentAsync(
+        public async Task<CreateCommentResponse> CreateTaskCommentAsync(
             string taskId,
             CreateCommentRequest createCommentRequest,
             bool? customTaskIds = null,
@@ -85,11 +85,16 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
+            var response = await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response for creating task comment on task {taskId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Comment>?> GetChatViewCommentsAsync(
+        public async Task<IEnumerable<Comment>> GetChatViewCommentsAsync(
             string viewId,
             long? start = null,
             string? startId = null,
@@ -101,22 +106,27 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken); // Assuming API returns {"comments": [...]}
-            return response?.Comments;
+            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken);
+            return response?.Comments ?? Enumerable.Empty<Comment>();
         }
 
         /// <inheritdoc />
-        public async Task<CreateCommentResponse?> CreateChatViewCommentAsync(
+        public async Task<CreateCommentResponse> CreateChatViewCommentAsync(
             string viewId,
             CreateCommentRequest createCommentRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"view/{viewId}/comment";
-            return await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
+            var response = await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response for creating chat view comment on view {viewId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Comment>?> GetListCommentsAsync(
+        public async Task<IEnumerable<Comment>> GetListCommentsAsync(
             string listId,
             long? start = null,
             string? startId = null,
@@ -128,28 +138,38 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken); // Assuming API returns {"comments": [...]}
-            return response?.Comments;
+            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken);
+            return response?.Comments ?? Enumerable.Empty<Comment>();
         }
 
         /// <inheritdoc />
-        public async Task<CreateCommentResponse?> CreateListCommentAsync(
+        public async Task<CreateCommentResponse> CreateListCommentAsync(
             string listId,
             CreateCommentRequest createCommentRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"list/{listId}/comment";
-            return await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
+            var response = await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response for creating list comment on list {listId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async System.Threading.Tasks.Task UpdateCommentAsync(
+        public async Task<Comment> UpdateCommentAsync(
             string commentId,
             UpdateCommentRequest updateCommentRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"comment/{commentId}";
-            await _apiConnection.PutAsync(endpoint, updateCommentRequest, cancellationToken); // Assuming UpdateComment returns no significant body or just status
+            var comment = await _apiConnection.PutAsync<UpdateCommentRequest, Comment>(endpoint, updateCommentRequest, cancellationToken);
+            if (comment == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response for updating comment {commentId}.");
+            }
+            return comment;
         }
 
         /// <inheritdoc />
@@ -162,7 +182,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Comment>?> GetThreadedCommentsAsync( // API is GET /comment/{comment_id} (Get Comment) which includes replies.
+        public async Task<IEnumerable<Comment>> GetThreadedCommentsAsync( // API is GET /comment/{comment_id} (Get Comment) which includes replies.
                                                                            // Or if specific endpoint for replies exists, use that.
                                                                            // The provided API ref was GET /comment/{comment_id}/reply, this is not standard.
                                                                            // Let's assume GET /comment/{comment_id} and we extract replies from the Comment DTO.
@@ -178,18 +198,22 @@ namespace ClickUp.Api.Client.Services
                                                          // Standard GET /comment/{comment_id} would return the comment itself, which might contain replies.
                                                          // If this specific endpoint exists and returns a list of comments:
             var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken); // Assuming {"comments": [...]}
-            return response?.Comments;
+            return response?.Comments ?? Enumerable.Empty<Comment>();
         }
 
         /// <inheritdoc />
-        public async System.Threading.Tasks.Task CreateThreadedCommentAsync( // POST /v2/comment/{comment_id}/reply
+        public async Task<CreateCommentResponse> CreateThreadedCommentAsync( // POST /v2/comment/{comment_id}/reply
             string commentId,
             CreateCommentRequest createCommentRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"comment/{commentId}/reply";
-            // API doc says "200 with empty object". So PostAsync without TResponse.
-            await _apiConnection.PostAsync(endpoint, createCommentRequest, cancellationToken);
+            var response = await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response for creating threaded comment on comment {commentId}.");
+            }
+            return response;
         }
     }
 }

@@ -63,7 +63,7 @@ namespace ClickUp.Api.Client.Services
 
         #region Channels
         /// <inheritdoc />
-        public async Task<GetChatChannelsResponse?> GetChatChannelsAsync(
+        public async Task<ChatChannelPaginatedResponse> GetChatChannelsAsync(
             string workspaceId,
             string? descriptionFormat = null,
             string? cursor = null,
@@ -91,45 +91,61 @@ namespace ClickUp.Api.Client.Services
             }
             if (queryString == "?") queryString = string.Empty;
 
-            return await _apiConnection.GetAsync<GetChatChannelsResponse>($"{endpoint}{queryString}", cancellationToken);
+            var result = await _apiConnection.GetAsync<ChatChannelPaginatedResponse>($"{endpoint}{queryString}", cancellationToken);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Failed to get chat channels for workspace {workspaceId} or API returned an unexpected null response.");
+            }
+            return result;
         }
 
         /// <inheritdoc />
-        public async Task<ChatChannel?> CreateChatChannelAsync(
+        public async Task<ChatChannel> CreateChatChannelAsync(
             string workspaceId,
-            CreateChatChannelRequest createChannelRequest,
+            ChatCreateChatChannelRequest createChannelRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels";
-            // Assuming API returns {"data": {...channel...}}
-            var response = await _apiConnection.PostAsync<CreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createChannelRequest, cancellationToken);
-            return response?.Data;
+            var response = await _apiConnection.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createChannelRequest, cancellationToken);
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to create chat channel in workspace {workspaceId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
-        public async Task<ChatChannel?> CreateLocationChatChannelAsync(
+        public async Task<ChatChannel> CreateLocationChatChannelAsync(
             string workspaceId,
-            CreateLocationChatChannelRequest createLocationChannelRequest,
+            ChatCreateLocationChatChannelRequest createLocationChannelRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels/location"; // Example, actual endpoint might vary
-            var response = await _apiConnection.PostAsync<CreateLocationChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createLocationChannelRequest, cancellationToken);
-            return response?.Data;
+            var response = await _apiConnection.PostAsync<ChatCreateLocationChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createLocationChannelRequest, cancellationToken);
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to create location chat channel in workspace {workspaceId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
-        public async Task<ChatChannel?> CreateDirectMessageChatChannelAsync(
+        public async Task<ChatChannel> CreateDirectMessageChatChannelAsync(
             string workspaceId,
-            CreateDirectMessageChatChannelRequest createDirectMessageChannelRequest,
+            ChatCreateDirectMessageChatChannelRequest createDirectMessageChannelRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels/dm"; // Example, actual endpoint might vary
-            var response = await _apiConnection.PostAsync<CreateDirectMessageChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createDirectMessageChannelRequest, cancellationToken);
-            return response?.Data;
+            var response = await _apiConnection.PostAsync<ChatCreateDirectMessageChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createDirectMessageChannelRequest, cancellationToken);
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to create direct message chat channel in workspace {workspaceId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
-        public async Task<ChatChannel?> GetChatChannelAsync(
+        public async Task<ChatChannel> GetChatChannelAsync(
             string workspaceId,
             string channelId,
             string? descriptionFormat = null,
@@ -141,19 +157,27 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<ClickUpV3DataResponse<ChatChannel>>(endpoint, cancellationToken);
-            return response?.Data;
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to get chat channel {channelId} in workspace {workspaceId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
-        public async Task<ChatChannel?> UpdateChatChannelAsync(
+        public async Task<ChatChannel> UpdateChatChannelAsync(
             string workspaceId,
             string channelId,
-            UpdateChatChannelRequest updateChannelRequest,
+            ChatUpdateChatChannelRequest updateChannelRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels/{channelId}";
-            var response = await _apiConnection.PutAsync<UpdateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, updateChannelRequest, cancellationToken);
-            return response?.Data;
+            var response = await _apiConnection.PutAsync<ChatUpdateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, updateChannelRequest, cancellationToken);
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to update chat channel {channelId} in workspace {workspaceId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
@@ -167,7 +191,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetChatUsersResponse?> GetChatChannelFollowersAsync(
+        public async Task<GetChatUsersResponse> GetChatChannelFollowersAsync(
             string workspaceId,
             string channelId,
             string? cursor = null,
@@ -180,11 +204,16 @@ namespace ClickUp.Api.Client.Services
             if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
+            var result = await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Failed to get followers for chat channel {channelId} or API returned an unexpected null response.");
+            }
+            return result;
         }
 
         /// <inheritdoc />
-        public async Task<GetChatUsersResponse?> GetChatChannelMembersAsync(
+        public async Task<GetChatUsersResponse> GetChatChannelMembersAsync(
             string workspaceId,
             string channelId,
             string? cursor = null,
@@ -197,13 +226,18 @@ namespace ClickUp.Api.Client.Services
             if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
+            var result = await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Failed to get members for chat channel {channelId} or API returned an unexpected null response.");
+            }
+            return result;
         }
         #endregion
 
         #region Messages
         /// <inheritdoc />
-        public async Task<GetChatMessagesResponse?> GetChatMessagesAsync(
+        public async Task<GetChatMessagesResponse> GetChatMessagesAsync(
             string workspaceId,
             string channelId,
             string? cursor = null,
@@ -218,34 +252,47 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(contentFormat)) queryParams["content_format"] = contentFormat;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetChatMessagesResponse>(endpoint, cancellationToken);
+            var result = await _apiConnection.GetAsync<GetChatMessagesResponse>(endpoint, cancellationToken);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Failed to get messages for chat channel {channelId} or API returned an unexpected null response.");
+            }
+            return result;
         }
 
         /// <inheritdoc />
-        public async Task<ChatMessage?> CreateChatMessageAsync(
+        public async Task<ChatMessage> CreateChatMessageAsync(
             string workspaceId,
             string channelId,
-            CreateChatMessageRequest createMessageRequest,
+            CommentCreateChatMessageRequest createMessageRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels/{channelId}/messages";
-            var response = await _apiConnection.PostAsync<CreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(endpoint, createMessageRequest, cancellationToken);
-            return response?.Data;
+            var response = await _apiConnection.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(endpoint, createMessageRequest, cancellationToken);
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to create chat message in channel {channelId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
-        public async Task<ChatMessage?> UpdateChatMessageAsync(
+        public async Task<ChatMessage> UpdateChatMessageAsync(
             string workspaceId,
             string messageId, // This should be channelId/messageId or just messageId if globally unique
-            UpdateChatMessageRequest updateMessageRequest,
+            CommentPatchChatMessageRequest updateMessageRequest,
             CancellationToken cancellationToken = default)
         {
             // Assuming messageId is globally unique or endpoint structure is different, e.g., /v3/workspaces/{workspaceId}/messages/{messageId}
             // For now, following a common pattern if messageId is unique under workspace.
             // The API spec shows PATCH /v3/chat/messages/{message_id} - so not workspace specific in path
             var endpoint = $"/v3/chat/messages/{messageId}"; // Corrected based on typical message update paths
-            var response = await _apiConnection.PutAsync<UpdateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(endpoint, updateMessageRequest, cancellationToken); // Using PUT as per typical full updates, though API says PATCH
-            return response?.Data;
+            var response = await _apiConnection.PutAsync<CommentPatchChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(endpoint, updateMessageRequest, cancellationToken); // Using PUT as per typical full updates, though API says PATCH
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to update chat message {messageId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
@@ -260,20 +307,24 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<ChatMessage?> CreateReplyMessageAsync(
+        public async Task<ChatMessage> CreateReplyMessageAsync(
             string workspaceId, // workspaceId might not be needed if messageId is globally unique
             string messageId,   // This is the parent_message_id
-            CreateChatMessageRequest createReplyRequest,
+            CommentCreateChatMessageRequest createReplyRequest,
             CancellationToken cancellationToken = default)
         {
             // API spec shows POST /v3/chat/messages/{parent_message_id}/messages
             var endpoint = $"/v3/chat/messages/{messageId}/messages";
-            var response = await _apiConnection.PostAsync<CreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(endpoint, createReplyRequest, cancellationToken);
-            return response?.Data;
+            var response = await _apiConnection.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(endpoint, createReplyRequest, cancellationToken);
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to create reply to message {messageId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
-        public async Task<GetChatMessagesResponse?> GetChatMessageRepliesAsync(
+        public async Task<GetChatMessagesResponse> GetChatMessageRepliesAsync(
             string workspaceId, // workspaceId might not be needed if messageId is globally unique
             string messageId,   // This is the parent_message_id
             string? cursor = null,
@@ -289,13 +340,18 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(contentFormat)) queryParams["content_format"] = contentFormat;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetChatMessagesResponse>(endpoint, cancellationToken);
+            var result = await _apiConnection.GetAsync<GetChatMessagesResponse>(endpoint, cancellationToken);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Failed to get replies for message {messageId} or API returned an unexpected null response.");
+            }
+            return result;
         }
         #endregion
 
         #region Reactions & Tagged Users
         /// <inheritdoc />
-        public async Task<GetChatReactionsResponse?> GetChatMessageReactionsAsync(
+        public async Task<GetChatReactionsResponse> GetChatMessageReactionsAsync(
             string workspaceId, // workspaceId might not be needed if messageId is globally unique
             string messageId,
             string? cursor = null,
@@ -309,11 +365,16 @@ namespace ClickUp.Api.Client.Services
             if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetChatReactionsResponse>(endpoint, cancellationToken);
+            var result = await _apiConnection.GetAsync<GetChatReactionsResponse>(endpoint, cancellationToken);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Failed to get reactions for message {messageId} or API returned an unexpected null response.");
+            }
+            return result;
         }
 
         /// <inheritdoc />
-        public async Task<ChatReaction?> CreateChatReactionAsync(
+        public async Task<ChatReaction> CreateChatReactionAsync(
             string workspaceId, // workspaceId might not be needed if messageId is globally unique
             string messageId,
             CreateChatReactionRequest createReactionRequest,
@@ -322,7 +383,11 @@ namespace ClickUp.Api.Client.Services
             // API spec shows POST /v3/chat/messages/{message_id}/reactions
             var endpoint = $"/v3/chat/messages/{messageId}/reactions";
             var response = await _apiConnection.PostAsync<CreateChatReactionRequest, ClickUpV3DataResponse<ChatReaction>>(endpoint, createReactionRequest, cancellationToken);
-            return response?.Data;
+            if (response?.Data == null)
+            {
+                throw new InvalidOperationException($"Failed to create reaction for message {messageId} or API returned an unexpected null data response.");
+            }
+            return response.Data;
         }
 
         /// <inheritdoc />
@@ -339,7 +404,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetChatUsersResponse?> GetChatMessageTaggedUsersAsync(
+        public async Task<GetChatUsersResponse> GetChatMessageTaggedUsersAsync(
             string workspaceId, // workspaceId might not be needed if messageId is globally unique
             string messageId,
             string? cursor = null,
@@ -353,7 +418,12 @@ namespace ClickUp.Api.Client.Services
             if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
+            var result = await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Failed to get tagged users for message {messageId} or API returned an unexpected null response.");
+            }
+            return result;
         }
         #endregion
 

@@ -51,7 +51,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<ClickUpList>?> GetListsInFolderAsync(
+        public async Task<IEnumerable<ClickUpList>> GetListsInFolderAsync(
             string folderId,
             bool? archived = null,
             CancellationToken cancellationToken = default)
@@ -62,22 +62,26 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken); // API returns {"lists": [...]}
-            return response?.Lists;
+            return response?.Lists ?? Enumerable.Empty<ClickUpList>();
         }
 
         /// <inheritdoc />
-        public async Task<ClickUpList?> CreateListInFolderAsync(
+        public async Task<ClickUpList> CreateListInFolderAsync(
             string folderId,
             CreateListRequest createListRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"folder/{folderId}/list";
-            // API returns the created list directly
-            return await _apiConnection.PostAsync<CreateListRequest, ClickUpList>(endpoint, createListRequest, cancellationToken);
+            var list = await _apiConnection.PostAsync<CreateListRequest, ClickUpList>(endpoint, createListRequest, cancellationToken);
+            if (list == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when creating list in folder {folderId}.");
+            }
+            return list;
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<ClickUpList>?> GetFolderlessListsAsync(
+        public async Task<IEnumerable<ClickUpList>> GetFolderlessListsAsync(
             string spaceId,
             bool? archived = null,
             CancellationToken cancellationToken = default)
@@ -88,39 +92,51 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken); // API returns {"lists": [...]}
-            return response?.Lists;
+            return response?.Lists ?? Enumerable.Empty<ClickUpList>();
         }
 
         /// <inheritdoc />
-        public async Task<ClickUpList?> CreateFolderlessListAsync(
+        public async Task<ClickUpList> CreateFolderlessListAsync(
             string spaceId,
             CreateListRequest createListRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/list";
-            // API returns the created list directly
-            return await _apiConnection.PostAsync<CreateListRequest, ClickUpList>(endpoint, createListRequest, cancellationToken);
+            var list = await _apiConnection.PostAsync<CreateListRequest, ClickUpList>(endpoint, createListRequest, cancellationToken);
+            if (list == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when creating folderless list in space {spaceId}.");
+            }
+            return list;
         }
 
         /// <inheritdoc />
-        public async Task<ClickUpList?> GetListAsync(
+        public async Task<ClickUpList> GetListAsync(
             string listId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"list/{listId}";
-            // API returns the list directly
-            return await _apiConnection.GetAsync<ClickUpList>(endpoint, cancellationToken);
+            var list = await _apiConnection.GetAsync<ClickUpList>(endpoint, cancellationToken);
+            if (list == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting list {listId}.");
+            }
+            return list;
         }
 
         /// <inheritdoc />
-        public async Task<ClickUpList?> UpdateListAsync(
+        public async Task<ClickUpList> UpdateListAsync(
             string listId,
             UpdateListRequest updateListRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"list/{listId}";
-            // API returns the updated list directly
-            return await _apiConnection.PutAsync<UpdateListRequest, ClickUpList>(endpoint, updateListRequest, cancellationToken);
+            var list = await _apiConnection.PutAsync<UpdateListRequest, ClickUpList>(endpoint, updateListRequest, cancellationToken);
+            if (list == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when updating list {listId}.");
+            }
+            return list;
         }
 
         /// <inheritdoc />
@@ -154,25 +170,35 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<ClickUpList?> CreateListFromTemplateInFolderAsync(
+        public async Task<ClickUpList> CreateListFromTemplateInFolderAsync(
             string folderId,
             string templateId,
             CreateListFromTemplateRequest createListFromTemplateRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"folder/{folderId}/listTemplate/{templateId}"; // Corrected from list_template to listTemplate
-            return await _apiConnection.PostAsync<CreateListFromTemplateRequest, ClickUpList>(endpoint, createListFromTemplateRequest, cancellationToken);
+            var list = await _apiConnection.PostAsync<CreateListFromTemplateRequest, ClickUpList>(endpoint, createListFromTemplateRequest, cancellationToken);
+            if (list == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when creating list from template {templateId} in folder {folderId}.");
+            }
+            return list;
         }
 
         /// <inheritdoc />
-        public async Task<ClickUpList?> CreateListFromTemplateInSpaceAsync(
+        public async Task<ClickUpList> CreateListFromTemplateInSpaceAsync(
             string spaceId,
             string templateId,
             CreateListFromTemplateRequest createListFromTemplateRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/listTemplate/{templateId}"; // Corrected from list_template to listTemplate
-            return await _apiConnection.PostAsync<CreateListFromTemplateRequest, ClickUpList>(endpoint, createListFromTemplateRequest, cancellationToken);
+            var list = await _apiConnection.PostAsync<CreateListFromTemplateRequest, ClickUpList>(endpoint, createListFromTemplateRequest, cancellationToken);
+            if (list == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when creating list from template {templateId} in space {spaceId}.");
+            }
+            return list;
         }
 
         /// <inheritdoc />

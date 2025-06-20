@@ -5,9 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Webhooks; // Added for Webhook and WebhookHealth
 using ClickUp.Api.Client.Models.RequestModels.Webhooks;
 using ClickUp.Api.Client.Models.ResponseModels.Webhooks; // Assuming GetWebhooksResponse, CreateWebhookResponse, UpdateWebhookResponse
+using System.Linq; // For Enumerable.Empty
 
 namespace ClickUp.Api.Client.Services
 {
@@ -30,41 +31,43 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Webhook>?> GetWebhooksAsync(
+        public async Task<IEnumerable<Webhook>> GetWebhooksAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/webhook";
             var response = await _apiConnection.GetAsync<GetWebhooksResponse>(endpoint, cancellationToken); // API returns {"webhooks": [...]}
-            return response?.Webhooks;
+            return response?.Webhooks ?? Enumerable.Empty<Webhook>();
         }
 
         /// <inheritdoc />
-        public async Task<Webhook?> CreateWebhookAsync(
+        public async Task<Webhook> CreateWebhookAsync(
             string workspaceId,
             CreateWebhookRequest createWebhookRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/webhook";
-            // API returns {"id": "...", "webhook": {...}}
-            var response = await _apiConnection.PostAsync<CreateWebhookRequest, CreateWebhookResponse>(endpoint, createWebhookRequest, cancellationToken);
-            // The interface expects Webhook, so we return response.Webhook (assuming CreateWebhookResponse has Id and Webhook properties)
-            // If the response directly IS the webhook with its ID, then PostAsync<..., Webhook> would be used.
-            // The typical ClickUp response includes the "webhook" object and its "id" at the top level of the response.
-            // So, CreateWebhookResponse should model this structure.
-            return response?.Webhook;
+            var responseWrapper = await _apiConnection.PostAsync<CreateWebhookRequest, CreateWebhookResponse>(endpoint, createWebhookRequest, cancellationToken);
+            if (responseWrapper?.Webhook == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty webhook data when creating webhook in workspace {workspaceId}.");
+            }
+            return responseWrapper.Webhook;
         }
 
         /// <inheritdoc />
-        public async Task<Webhook?> UpdateWebhookAsync(
+        public async Task<Webhook> UpdateWebhookAsync(
             string webhookId, // This is the webhook_id from the path, not workspaceId
             UpdateWebhookRequest updateWebhookRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"webhook/{webhookId}";
-            // API returns {"id": "...", "webhook": {...}}
-            var response = await _apiConnection.PutAsync<UpdateWebhookRequest, UpdateWebhookResponse>(endpoint, updateWebhookRequest, cancellationToken);
-            return response?.Webhook;
+            var responseWrapper = await _apiConnection.PutAsync<UpdateWebhookRequest, UpdateWebhookResponse>(endpoint, updateWebhookRequest, cancellationToken);
+            if (responseWrapper?.Webhook == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty webhook data when updating webhook {webhookId}.");
+            }
+            return responseWrapper.Webhook;
         }
 
         /// <inheritdoc />

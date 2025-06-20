@@ -50,7 +50,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Attachment?> CreateTaskAttachmentAsync(
+        public async Task<Attachment> CreateTaskAttachmentAsync(
             string taskId,
             Stream fileStream,
             string fileName,
@@ -109,7 +109,15 @@ namespace ClickUp.Api.Client.Services
             // If the API strictly requires a separate 'filename' field even with file upload, it would be:
             // multipartContent.Add(new StringContent(fileName), "\"filename\""); // Quotes might be needed for form field names by some servers
 
-            return await _apiConnection.PostMultipartAsync<Attachment>(endpoint, multipartContent, cancellationToken);
+            var attachment = await _apiConnection.PostMultipartAsync<Attachment>(endpoint, multipartContent, cancellationToken);
+            if (attachment == null)
+            {
+                // This case should ideally not happen if the API successfully creates an attachment and returns it.
+                // If it can happen (e.g. API returns 204 No Content on success sometimes), the interface IAttachmentsService might need to be Task<Attachment?>
+                // For now, adhering to the non-null interface contract.
+                throw new InvalidOperationException($"Failed to create attachment or API returned an unexpected null response for task {taskId}.");
+            }
+            return attachment;
         }
     }
 }

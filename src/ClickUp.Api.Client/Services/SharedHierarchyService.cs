@@ -4,8 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.ResponseModels; // As per interface for SharedHierarchy
-using ClickUp.Api.Client.Models.ResponseModels.Shared; // Assuming SharedHierarchy DTO is here or in a more specific namespace
+// using ClickUp.Api.Client.Models.ResponseModels; // No longer needed directly here
+using ClickUp.Api.Client.Models.ResponseModels.Sharing;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -27,13 +27,13 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<SharedHierarchy?> GetSharedHierarchyAsync(
+        public async Task<SharedHierarchyResponse> GetSharedHierarchyAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/shared"; // team_id is workspaceId
-            // This API directly returns the SharedHierarchy object, not nested under a "shared" key usually.
-            return await _apiConnection.GetAsync<SharedHierarchy>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<SharedHierarchyResponse>(endpoint, cancellationToken);
+            return response ?? throw new InvalidOperationException("API returned null response for SharedHierarchy.");
         }
     }
 }

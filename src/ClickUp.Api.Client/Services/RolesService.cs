@@ -49,7 +49,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<CustomRole>?> GetCustomRolesAsync(
+        public async Task<IEnumerable<CustomRole>> GetCustomRolesAsync(
             string workspaceId,
             bool? includeMembers = null,
             CancellationToken cancellationToken = default)
@@ -59,9 +59,9 @@ namespace ClickUp.Api.Client.Services
             if (includeMembers.HasValue) queryParams["include_members"] = includeMembers.Value.ToString().ToLower();
             endpoint += BuildQueryString(queryParams);
 
-            // API returns { "custom_roles": [...] }
+            // API returns { "roles": [...] } in GetCustomRolesResponse
             var response = await _apiConnection.GetAsync<GetCustomRolesResponse>(endpoint, cancellationToken);
-            return response?.CustomRoles;
+            return response?.Roles ?? Enumerable.Empty<CustomRole>();
         }
     }
 }

@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Tags;
-using ClickUp.Api.Client.Models.RequestModels;
-using ClickUp.Api.Client.Models.ResponseModels; // Assuming GetTagsResponse and EditTagResponse exist
+using ClickUp.Api.Client.Models.RequestModels.Tags; // For ModifyTagRequest
+using ClickUp.Api.Client.Models.ResponseModels.Tags; // Assuming GetTagsResponse exists
+using System.Linq; // For Enumerable.Empty
 
 namespace ClickUp.Api.Client.Services
 {
@@ -51,46 +51,51 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Tag>?> GetSpaceTagsAsync(
+        public async Task<IEnumerable<Tag>> GetSpaceTagsAsync(
             string spaceId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/tag";
             var response = await _apiConnection.GetAsync<GetTagsResponse>(endpoint, cancellationToken); // API returns {"tags": [...]}
-            return response?.Tags;
+            return response?.Tags ?? Enumerable.Empty<Tag>();
         }
 
         /// <inheritdoc />
         public async System.Threading.Tasks.Task CreateSpaceTagAsync(
             string spaceId,
-            CreateTagRequest createTagRequest,
+            ModifyTagRequest modifyTagRequest, // Changed from CreateTagRequest
             CancellationToken cancellationToken = default)
         {
-            // Note: The API POST /v2/space/{space_id}/tag expects the tag name directly in the path for creation,
-            // along with the body. This is unusual. The CreateTagRequest usually contains the name.
-            // Let's assume the endpoint is just /space/{space_id}/tag and the body contains the name and other details.
-            // If the tag name MUST be in the path, this interface/method is slightly misaligned with that specific API design.
-            // Standard REST would be POST to /space/{space_id}/tag with tag details in body.
-            // ClickUp documentation for "Create Space Tag": POST /space/{space_id}/tag with JSON body for tag.
-            // It returns the created tag object, but the interface is void.
             var endpoint = $"space/{spaceId}/tag";
-            await _apiConnection.PostAsync<CreateTagRequest, Tag>(endpoint, createTagRequest, cancellationToken);
-            // Interface is void, so we don't return the result from PostAsync<TRequest, TResponse>
+            // Interface is void. The API might return the created tag, but we discard it.
+            // If API requires specific response handling (even if just for success/fail), this might need adjustment.
+            // Using the PostAsync overload that doesn't expect a specific typed response body.
+            await _apiConnection.PostAsync(endpoint, modifyTagRequest, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<Tag?> EditSpaceTagAsync(
+        public async Task<Tag> EditSpaceTagAsync(
             string spaceId,
             string tagName, // This tagName is for identifying the tag to edit, part of the path
-            UpdateTagRequest updateTagRequest, // This contains the new tag details
+            ModifyTagRequest modifyTagRequest, // Changed from UpdateTagRequest, this contains the new tag details
             CancellationToken cancellationToken = default)
         {
             // Ensure tagName is URL encoded if it can contain special characters
             var encodedTagName = Uri.EscapeDataString(tagName);
             var endpoint = $"space/{spaceId}/tag/{encodedTagName}";
-            // API returns {"tag": {...}}
-            var response = await _apiConnection.PutAsync<UpdateTagRequest, EditTagResponse>(endpoint, updateTagRequest, cancellationToken);
-            return response?.Tag;
+            // Assuming API returns the updated Tag directly or a wrapper containing the tag.
+            // The interface expects Tag, so we aim for _apiConnection.PutAsync<ModifyTagRequest, Tag>
+            // The API example for "Edit Space Tag" shows response: {"tag": {"name": "Updated Tag", ...}}
+            // This implies a wrapper. Let's assume GetTagResponse or similar that has a Tag property.
+            // If EditTagResponse was intended for this, it should wrap a Tag.
+            // For now, to match interface, let's assume direct Tag response or a simple wrapper.
+            // Let's assume the API returns the Tag object directly for simplicity matching the interface.
+            var tag = await _apiConnection.PutAsync<ModifyTagRequest, Tag>(endpoint, modifyTagRequest, cancellationToken);
+            if (tag == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when editing tag '{tagName}' in space {spaceId}.");
+            }
+            return tag;
         }
 
         /// <inheritdoc />
