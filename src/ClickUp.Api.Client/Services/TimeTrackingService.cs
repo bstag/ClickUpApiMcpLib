@@ -76,10 +76,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(request.FolderId)) queryParams["folder_id"] = request.FolderId;
             if (!string.IsNullOrEmpty(request.ListId)) queryParams["list_id"] = request.ListId;
             if (!string.IsNullOrEmpty(request.TaskId)) queryParams["task_id"] = request.TaskId;
-            if (request.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = request.CustomTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(request.TeamIdForCustomTaskIds)) queryParams["team_id_for_custom_task_ids"] = request.TeamIdForCustomTaskIds; // This seems redundant if workspaceId is team_id
-            if (request.IsBillable.HasValue) queryParams["billable"] = request.IsBillable.Value.ToString().ToLower();
-
+           
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetTimeEntriesResponse>(endpoint, cancellationToken);
@@ -290,7 +287,7 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async System.Threading.Tasks.Task ChangeTimeEntryTagNameAsync(
             string workspaceId,
-            ChangeTimeEntryTagNameRequest changeTagNameRequest,
+            UpdateTimeEntryRequest changeTagNameRequest,
             CancellationToken cancellationToken = default)
         {
             // Endpoint: PUT /team/{team_id}/time_entries/tags
@@ -362,22 +359,19 @@ namespace ClickUp.Api.Client.Services
 
                 // Let's proceed by creating a new request DTO for each page call, copying properties.
                 // This is safer if GetTimeEntriesRequest is complex or immutable regarding 'page'.
-                var currentPageRequest = new GetTimeEntriesRequest(
-                    StartDate: request.StartDate,
-                    EndDate: request.EndDate,
-                    Assignee: request.Assignee,
-                    IncludeTaskTags: request.IncludeTaskTags,
-                    IncludeLocationNames: request.IncludeLocationNames,
-                    SpaceId: request.SpaceId,
-                    FolderId: request.FolderId,
-                    ListId: request.ListId,
-                    TaskId: request.TaskId,
-                    CustomTaskIds: request.CustomTaskIds,
-                    TeamIdForCustomTaskIds: request.TeamIdForCustomTaskIds,
-                    IsBillable: request.IsBillable,
-                    Page: currentPage // Key addition for pagination
+                var currentPageRequest = new GetTimeEntriesRequest(){
+                    StartDate = request.StartDate,
+                    EndDate= request.EndDate,
+                    Assignee= request.Assignee,
+                    IncludeTaskTags= request.IncludeTaskTags,
+                    IncludeLocationNames= request.IncludeLocationNames,
+                    SpaceId= request.SpaceId,
+                    FolderId= request.FolderId,
+                    ListId= request.ListId,
+                    TaskId= request.TaskId,
+                    Page= currentPage // Key addition for pagination
                                        // Add any other properties from GetTimeEntriesRequest
-                );
+                };
 
 
                 var response = await GetTimeEntriesAsync(
@@ -429,9 +423,6 @@ namespace ClickUp.Api.Client.Services
                 if (!string.IsNullOrEmpty(request.FolderId)) queryParams["folder_id"] = request.FolderId;
                 if (!string.IsNullOrEmpty(request.ListId)) queryParams["list_id"] = request.ListId;
                 if (!string.IsNullOrEmpty(request.TaskId)) queryParams["task_id"] = request.TaskId;
-                if (request.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = request.CustomTaskIds.Value.ToString().ToLower();
-                if (!string.IsNullOrEmpty(request.TeamIdForCustomTaskIds)) queryParams["team_id_for_custom_task_ids"] = request.TeamIdForCustomTaskIds;
-                if (request.IsBillable.HasValue) queryParams["billable"] = request.IsBillable.Value.ToString().ToLower();
                 queryParams["page"] = currentPage.ToString();
 
                 var fullEndpoint = endpoint + BuildQueryString(queryParams);

@@ -375,13 +375,13 @@ namespace ClickUp.Api.Client.Services
             // And the body should be: { "target_task_id": targetTaskId }
             // The method will return the target task.
 
-            if (mergeTasksRequest.TaskIds == null || !mergeTasksRequest.TaskIds.Any())
+            if (mergeTasksRequest.SourceTaskIds == null || !mergeTasksRequest.SourceTaskIds.Any())
             {
                 throw new ArgumentException("MergeTasksRequest must contain at least one source task ID.", nameof(mergeTasksRequest));
             }
             // This implementation will assume merging the FIRST task from the request into the target for simplicity.
             // A real implementation would loop or use a bulk endpoint if available.
-            var sourceTaskId = mergeTasksRequest.TaskIds.First();
+            var sourceTaskId = mergeTasksRequest.SourceTaskIds.First();
             var endpoint = $"task/{sourceTaskId}/merge";
             var queryParams = new Dictionary<string, string?>();
             if (bodyCustomTaskIds.HasValue) queryParams["custom_task_ids"] = bodyCustomTaskIds.Value.ToString().ToLower();
@@ -542,7 +542,7 @@ namespace ClickUp.Api.Client.Services
                         }
                         yield return task;
                     }
-                    lastPage = response.LastPage;
+                    lastPage = (bool)response.LastPage;
                 }
                 else
                 {

@@ -107,7 +107,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<PageListingItem>?> GetDocPageListingAsync(
+        public async Task<IEnumerable<DocPageListingItem>?> GetDocPageListingAsync(
             string workspaceId,
             string docId,
             int? maxPageDepth = null,
@@ -119,7 +119,7 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             // Assuming PageListing is directly an array in response or wrapped in "data"
-            var response = await _apiConnection.GetAsync<ClickUpV3DataListResponse<PageListingItem>>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(endpoint, cancellationToken);
             return response?.Data;
         }
 
@@ -175,7 +175,7 @@ namespace ClickUp.Api.Client.Services
             string workspaceId,
             string docId,
             string pageId,
-            UpdatePageRequest updatePageRequest,
+            EditPageRequest updatePageRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}/pages/{pageId}";

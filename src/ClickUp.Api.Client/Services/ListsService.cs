@@ -62,7 +62,13 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken); // API returns {"lists": [...]}
-            return response?.Lists ?? Enumerable.Empty<ClickUpList>();
+            return response?.Lists?.Select(list => new ClickUpList
+            {
+                Id = list.Id,
+                Name = list.Name,
+                Folder = list.Folder,
+                Priority = list.Priority
+            }) ?? Enumerable.Empty<ClickUpList>();
         }
 
         /// <inheritdoc />
@@ -92,7 +98,13 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken); // API returns {"lists": [...]}
-            return response?.Lists ?? Enumerable.Empty<ClickUpList>();
+            return response?.Lists?.Select(list => new ClickUpList
+            {
+                Id = list.Id,
+                Name = list.Name,
+                Folder = list.Folder,
+                Priority = list.Priority
+            }) ?? Enumerable.Empty<ClickUpList>();
         }
 
         /// <inheritdoc />

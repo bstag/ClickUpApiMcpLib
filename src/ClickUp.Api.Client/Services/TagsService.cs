@@ -10,7 +10,8 @@ using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Tags;
 using ClickUp.Api.Client.Models.RequestModels.Tags; // For ModifyTagRequest
 using ClickUp.Api.Client.Models.ResponseModels; // Assuming GetTagsResponse exists
-using System.Linq; // For Enumerable.Empty
+using System.Linq;
+using ClickUp.Api.Client.Models.ResponseModels.Spaces; // For Enumerable.Empty
 
 namespace ClickUp.Api.Client.Services
 {
@@ -56,7 +57,7 @@ namespace ClickUp.Api.Client.Services
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/tag";
-            var response = await _apiConnection.GetAsync<GetTagsResponse>(endpoint, cancellationToken); // API returns {"tags": [...]}
+            var response = await _apiConnection.GetAsync<GetSpaceTagsResponse>(endpoint, cancellationToken); // API returns {"tags": [...]}
             return response?.Tags ?? Enumerable.Empty<Tag>();
         }
 

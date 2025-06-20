@@ -130,7 +130,7 @@ namespace ClickUp.Api.Client.Services
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"goal/{goalId}/key_result";
-            var responseWrapper = await _apiConnection.PostAsync<CreateKeyResultRequest, GetKeyResultResponse>(endpoint, createKeyResultRequest, cancellationToken);
+            var responseWrapper = await _apiConnection.PostAsync<CreateKeyResultRequest, CreateKeyResultResponse>(endpoint, createKeyResultRequest, cancellationToken);
             if (responseWrapper?.KeyResult == null)
             {
                 throw new InvalidOperationException($"API connection returned null or empty key result response when creating key result for goal {goalId}.");
@@ -145,7 +145,7 @@ namespace ClickUp.Api.Client.Services
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"key_result/{keyResultId}";
-            var responseWrapper = await _apiConnection.PutAsync<EditKeyResultRequest, GetKeyResultResponse>(endpoint, editKeyResultRequest, cancellationToken);
+            var responseWrapper = await _apiConnection.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(endpoint, editKeyResultRequest, cancellationToken);
             if (responseWrapper?.KeyResult == null)
             {
                 throw new InvalidOperationException($"API connection returned null or empty key result response when editing key result {keyResultId}.");

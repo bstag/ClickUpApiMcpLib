@@ -67,7 +67,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetTaskCommentsResponse>(endpoint, cancellationToken);
             return response?.Comments ?? Enumerable.Empty<Comment>();
         }
 
@@ -106,7 +106,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken);
             return response?.Comments ?? Enumerable.Empty<Comment>();
         }
 
@@ -138,7 +138,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken);
             return response?.Comments ?? Enumerable.Empty<Comment>();
         }
 
@@ -197,7 +197,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"comment/{commentId}/reply"; // This endpoint is hypothetical based on original comments.
                                                          // Standard GET /comment/{comment_id} would return the comment itself, which might contain replies.
                                                          // If this specific endpoint exists and returns a list of comments:
-            var response = await _apiConnection.GetAsync<GetCommentsResponse>(endpoint, cancellationToken); // Assuming {"comments": [...]}
+            var response = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken); // Assuming {"comments": [...]}
             return response?.Comments ?? Enumerable.Empty<Comment>();
         }
 
