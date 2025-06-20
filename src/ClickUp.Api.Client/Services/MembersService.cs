@@ -28,23 +28,23 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Member>?> GetTaskMembersAsync(
+        public async Task<IEnumerable<Member>> GetTaskMembersAsync(
             string taskId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"task/{taskId}/member";
             var response = await _apiConnection.GetAsync<GetMembersResponse>(endpoint, cancellationToken); // API returns {"members": [...]}
-            return response?.Members;
+            return response?.Members ?? Enumerable.Empty<Member>();
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Member>?> GetListMembersAsync(
+        public async Task<IEnumerable<Member>> GetListMembersAsync(
             string listId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"list/{listId}/member";
             var response = await _apiConnection.GetAsync<GetMembersResponse>(endpoint, cancellationToken); // API returns {"members": [...]}
-            return response?.Members;
+            return response?.Members ?? Enumerable.Empty<Member>();
         }
     }
 }

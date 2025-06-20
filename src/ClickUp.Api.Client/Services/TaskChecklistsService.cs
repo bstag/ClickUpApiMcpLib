@@ -7,11 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Checklists;
-using ClickUp.Api.Client.Models.RequestModels;
 using ClickUp.Api.Client.Models.RequestModels.Checklists;
-using ClickUp.Api.Client.Models.ResponseModels; // For potential wrapper DTOs
+using ClickUp.Api.Client.Models.ResponseModels.Checklists; // For specific response DTOs
+using System.Linq; // For Enumerable.Empty (though not used in this specific refactor but good practice)
 
 namespace ClickUp.Api.Client.Services
 {
@@ -52,7 +51,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Checklist?> CreateChecklistAsync(
+        public async Task<CreateChecklistResponse> CreateChecklistAsync(
             string taskId,
             CreateChecklistRequest createChecklistRequest,
             bool? customTaskIds = null,
@@ -65,21 +64,22 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            // API returns {"checklist": {...}}
-            var response = await _apiConnection.PostAsync<CreateChecklistRequest, GetChecklistResponse>(endpoint, createChecklistRequest, cancellationToken);
-            return response?.Checklist;
+            var response = await _apiConnection.PostAsync<CreateChecklistRequest, CreateChecklistResponse>(endpoint, createChecklistRequest, cancellationToken);
+            if (response?.Checklist == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Checklist data when creating checklist for task {taskId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<Checklist?> EditChecklistAsync(
+        public async System.Threading.Tasks.Task EditChecklistAsync(
             string checklistId,
-            UpdateChecklistRequest updateChecklistRequest,
+            EditChecklistRequest editChecklistRequest, // Changed from UpdateChecklistRequest
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"checklist/{checklistId}";
-            // API returns {"checklist": {...}}
-            var response = await _apiConnection.PutAsync<UpdateChecklistRequest, GetChecklistResponse>(endpoint, updateChecklistRequest, cancellationToken);
-            return response?.Checklist;
+            await _apiConnection.PutAsync(endpoint, editChecklistRequest, cancellationToken); // Interface returns void
         }
 
         /// <inheritdoc />
@@ -92,28 +92,34 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Checklist?> CreateChecklistItemAsync(
+        public async Task<CreateChecklistItemResponse> CreateChecklistItemAsync(
             string checklistId,
             CreateChecklistItemRequest createChecklistItemRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"checklist/{checklistId}/checklist_item";
-            // API returns {"checklist": {...}} containing the PARENT checklist
-            var response = await _apiConnection.PostAsync<CreateChecklistItemRequest, GetChecklistResponse>(endpoint, createChecklistItemRequest, cancellationToken);
-            return response?.Checklist;
+            var response = await _apiConnection.PostAsync<CreateChecklistItemRequest, CreateChecklistItemResponse>(endpoint, createChecklistItemRequest, cancellationToken);
+            if (response?.Checklist == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Checklist data when creating checklist item for checklist {checklistId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<Checklist?> EditChecklistItemAsync(
+        public async Task<EditChecklistItemResponse> EditChecklistItemAsync(
             string checklistId,
             string checklistItemId,
-            UpdateChecklistItemRequest updateChecklistItemRequest,
+            EditChecklistItemRequest editChecklistItemRequest, // Changed from UpdateChecklistItemRequest
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"checklist/{checklistId}/checklist_item/{checklistItemId}";
-            // API returns {"checklist": {...}} containing the PARENT checklist
-            var response = await _apiConnection.PutAsync<UpdateChecklistItemRequest, GetChecklistResponse>(endpoint, updateChecklistItemRequest, cancellationToken);
-            return response?.Checklist;
+            var response = await _apiConnection.PutAsync<EditChecklistItemRequest, EditChecklistItemResponse>(endpoint, editChecklistItemRequest, cancellationToken);
+            if (response?.Checklist == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty Checklist data when editing checklist item {checklistItemId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />

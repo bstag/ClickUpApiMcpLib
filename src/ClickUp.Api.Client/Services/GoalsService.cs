@@ -52,7 +52,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetGoalsResponse?> GetGoalsAsync(
+        public async Task<GetGoalsResponse> GetGoalsAsync(
             string workspaceId,
             bool? includeCompleted = null,
             CancellationToken cancellationToken = default)
@@ -62,42 +62,56 @@ namespace ClickUp.Api.Client.Services
             if (includeCompleted.HasValue) queryParams["include_completed"] = includeCompleted.Value.ToString().ToLower();
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetGoalsResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetGoalsResponse>(endpoint, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting goals for workspace {workspaceId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<Goal?> CreateGoalAsync(
+        public async Task<Goal> CreateGoalAsync(
             string workspaceId,
             CreateGoalRequest createGoalRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/goal";
-            // API returns {"goal": {...}}
-            var response = await _apiConnection.PostAsync<CreateGoalRequest, GetGoalResponse>(endpoint, createGoalRequest, cancellationToken);
-            return response?.Goal;
+            var responseWrapper = await _apiConnection.PostAsync<CreateGoalRequest, GetGoalResponse>(endpoint, createGoalRequest, cancellationToken);
+            if (responseWrapper?.Goal == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty goal response when creating goal in workspace {workspaceId}.");
+            }
+            return responseWrapper.Goal;
         }
 
         /// <inheritdoc />
-        public async Task<Goal?> GetGoalAsync(
+        public async Task<Goal> GetGoalAsync(
             string goalId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"goal/{goalId}";
-            // API returns {"goal": {...}}
-            var response = await _apiConnection.GetAsync<GetGoalResponse>(endpoint, cancellationToken);
-            return response?.Goal;
+            var responseWrapper = await _apiConnection.GetAsync<GetGoalResponse>(endpoint, cancellationToken);
+            if (responseWrapper?.Goal == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty goal response when getting goal {goalId}.");
+            }
+            return responseWrapper.Goal;
         }
 
         /// <inheritdoc />
-        public async Task<Goal?> UpdateGoalAsync(
+        public async Task<Goal> UpdateGoalAsync(
             string goalId,
             UpdateGoalRequest updateGoalRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"goal/{goalId}";
-            // API returns {"goal": {...}}
-            var response = await _apiConnection.PutAsync<UpdateGoalRequest, GetGoalResponse>(endpoint, updateGoalRequest, cancellationToken);
-            return response?.Goal;
+            var responseWrapper = await _apiConnection.PutAsync<UpdateGoalRequest, GetGoalResponse>(endpoint, updateGoalRequest, cancellationToken);
+            if (responseWrapper?.Goal == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty goal response when updating goal {goalId}.");
+            }
+            return responseWrapper.Goal;
         }
 
         /// <inheritdoc />
@@ -110,27 +124,33 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<KeyResult?> CreateKeyResultAsync(
+        public async Task<KeyResult> CreateKeyResultAsync(
             string goalId,
             CreateKeyResultRequest createKeyResultRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"goal/{goalId}/key_result";
-            // API returns {"key_result": {...}}
-            var response = await _apiConnection.PostAsync<CreateKeyResultRequest, GetKeyResultResponse>(endpoint, createKeyResultRequest, cancellationToken);
-            return response?.KeyResult;
+            var responseWrapper = await _apiConnection.PostAsync<CreateKeyResultRequest, GetKeyResultResponse>(endpoint, createKeyResultRequest, cancellationToken);
+            if (responseWrapper?.KeyResult == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty key result response when creating key result for goal {goalId}.");
+            }
+            return responseWrapper.KeyResult;
         }
 
         /// <inheritdoc />
-        public async Task<KeyResult?> EditKeyResultAsync(
+        public async Task<KeyResult> EditKeyResultAsync(
             string keyResultId,
-            UpdateKeyResultRequest updateKeyResultRequest,
+            EditKeyResultRequest editKeyResultRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"key_result/{keyResultId}";
-            // API returns {"key_result": {...}}
-            var response = await _apiConnection.PutAsync<UpdateKeyResultRequest, GetKeyResultResponse>(endpoint, updateKeyResultRequest, cancellationToken);
-            return response?.KeyResult;
+            var responseWrapper = await _apiConnection.PutAsync<EditKeyResultRequest, GetKeyResultResponse>(endpoint, editKeyResultRequest, cancellationToken);
+            if (responseWrapper?.KeyResult == null)
+            {
+                throw new InvalidOperationException($"API connection returned null or empty key result response when editing key result {keyResultId}.");
+            }
+            return responseWrapper.KeyResult;
         }
 
         /// <inheritdoc />

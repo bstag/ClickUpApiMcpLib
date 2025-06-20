@@ -59,7 +59,7 @@ namespace ClickUp.Api.Client.Services
 
 
         /// <inheritdoc />
-        public async Task<GetTasksResponse?> GetTasksAsync(
+        public async Task<GetTasksResponse> GetTasksAsync(
             string listId,
             bool? archived = null,
             bool? includeMarkdownDescription = null,
@@ -119,12 +119,16 @@ namespace ClickUp.Api.Client.Services
             }
             if (queryString == "?") queryString = string.Empty;
 
-
-            return await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+            var response = await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting tasks for list {listId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<CuTask?> CreateTaskAsync(
+        public async Task<CuTask> CreateTaskAsync(
             string listId,
             CreateTaskRequest createTaskRequest,
             bool? customTaskIds = null,
@@ -137,11 +141,16 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.PostAsync<CreateTaskRequest, CuTask>(endpoint, createTaskRequest, cancellationToken);
+            var task = await _apiConnection.PostAsync<CreateTaskRequest, CuTask>(endpoint, createTaskRequest, cancellationToken);
+            if (task == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when creating task in list {listId}.");
+            }
+            return task;
         }
 
         /// <inheritdoc />
-        public async Task<CuTask?> GetTaskAsync(
+        public async Task<CuTask> GetTaskAsync(
             string taskId,
             bool? customTaskIds = null,
             string? teamId = null,
@@ -157,11 +166,16 @@ namespace ClickUp.Api.Client.Services
             if (includeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = includeMarkdownDescription.Value.ToString().ToLower();
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<CuTask>(endpoint, cancellationToken);
+            var task = await _apiConnection.GetAsync<CuTask>(endpoint, cancellationToken);
+            if (task == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting task {taskId}.");
+            }
+            return task;
         }
 
         /// <inheritdoc />
-        public async Task<CuTask?> UpdateTaskAsync(
+        public async Task<CuTask> UpdateTaskAsync(
             string taskId,
             UpdateTaskRequest updateTaskRequest,
             bool? customTaskIds = null,
@@ -174,7 +188,12 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.PutAsync<UpdateTaskRequest, CuTask>(endpoint, updateTaskRequest, cancellationToken);
+            var task = await _apiConnection.PutAsync<UpdateTaskRequest, CuTask>(endpoint, updateTaskRequest, cancellationToken);
+            if (task == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when updating task {taskId}.");
+            }
+            return task;
         }
 
         /// <inheritdoc />
@@ -194,7 +213,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetTasksResponse?> GetFilteredTeamTasksAsync(
+        public async Task<GetTasksResponse> GetFilteredTeamTasksAsync(
             string workspaceId,
             int? page = null,
             string? orderBy = null,
@@ -251,7 +270,12 @@ namespace ClickUp.Api.Client.Services
             }
             if (queryString == "?") queryString = string.Empty;
 
-            return await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+            var response = await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting filtered team tasks for workspace {workspaceId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
@@ -282,7 +306,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<CuTask?> MergeTasksAsync(
+        public async Task<CuTask> MergeTasksAsync(
             string targetTaskId, // This is task_id in POST /v2/task/{task_id}/merge
             MergeTasksRequest mergeTasksRequest, // This contains the actual target_task_id in its body
             bool? bodyCustomTaskIds = null,
@@ -367,11 +391,16 @@ namespace ClickUp.Api.Client.Services
             // The actual payload for this specific ClickUp endpoint is { "target_task_id": "string" }
             var payload = new { target_task_id = targetTaskId };
 
-            return await _apiConnection.PostAsync<object, CuTask>(endpoint, payload, cancellationToken);
+            var task = await _apiConnection.PostAsync<object, CuTask>(endpoint, payload, cancellationToken);
+            if (task == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when merging tasks into target task {targetTaskId}.");
+            }
+            return task;
         }
 
         /// <inheritdoc />
-        public async Task<TaskTimeInStatusResponse?> GetTaskTimeInStatusAsync(
+        public async Task<TaskTimeInStatusResponse> GetTaskTimeInStatusAsync(
             string taskId,
             bool? customTaskIds = null,
             string? teamId = null,
@@ -383,11 +412,16 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<TaskTimeInStatusResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<TaskTimeInStatusResponse>(endpoint, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting task time in status for task {taskId}.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<GetBulkTasksTimeInStatusResponse?> GetBulkTasksTimeInStatusAsync(
+        public async Task<GetBulkTasksTimeInStatusResponse> GetBulkTasksTimeInStatusAsync(
             IEnumerable<string> taskIds,
             bool? customTaskIds = null,
             string? teamId = null,
@@ -400,11 +434,16 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetBulkTasksTimeInStatusResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetBulkTasksTimeInStatusResponse>(endpoint, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting bulk tasks time in status.");
+            }
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<CuTask?> CreateTaskFromTemplateAsync(
+        public async Task<CuTask> CreateTaskFromTemplateAsync(
             string listId,
             string templateId,
             CreateTaskFromTemplateRequest createTaskFromTemplateRequest,
@@ -422,11 +461,16 @@ namespace ClickUp.Api.Client.Services
             // However, the `createTaskFromTemplateRequest` DTO is the main payload.
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.PostAsync<CreateTaskFromTemplateRequest, CuTask>(endpoint, createTaskFromTemplateRequest, cancellationToken);
+            var task = await _apiConnection.PostAsync<CreateTaskFromTemplateRequest, CuTask>(endpoint, createTaskFromTemplateRequest, cancellationToken);
+            if (task == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when creating task from template {templateId} in list {listId}.");
+            }
+            return task;
         }
 
         /// <inheritdoc />
-        public async IAsyncEnumerable<Models.Entities.Task> GetTasksAsyncEnumerableAsync(
+        public async IAsyncEnumerable<Models.Entities.Tasks.CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
             bool? archived = null,
             bool? includeMarkdownDescription = null,

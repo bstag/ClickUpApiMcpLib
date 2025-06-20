@@ -7,8 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.ResponseModels.Templates; // Assuming GetTemplatesResponse exists
+using ClickUp.Api.Client.Models.Entities.Templates; // For TaskTemplate if it were used directly
+using ClickUp.Api.Client.Models.ResponseModels.Templates;
+using System.Linq; // For Enumerable.Empty, though not directly used here but good for consistency
 
 namespace ClickUp.Api.Client.Services
 {
@@ -49,7 +50,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Template>?> GetTaskTemplatesAsync(
+        public async Task<GetTaskTemplatesResponse> GetTaskTemplatesAsync(
             string workspaceId,
             int page,
             CancellationToken cancellationToken = default)
@@ -61,9 +62,13 @@ namespace ClickUp.Api.Client.Services
             };
             endpoint += BuildQueryString(queryParams);
 
-            // API returns { "templates": [...] }
-            var response = await _apiConnection.GetAsync<GetTemplatesResponse>(endpoint, cancellationToken);
-            return response?.Templates;
+            var response = await _apiConnection.GetAsync<GetTaskTemplatesResponse>(endpoint, cancellationToken);
+            if (response == null)
+            {
+                throw new InvalidOperationException($"API connection returned null response when getting task templates for workspace {workspaceId}.");
+            }
+            // The GetTaskTemplatesResponse contains the List<TaskTemplate> as "Templates"
+            return response;
         }
     }
 }

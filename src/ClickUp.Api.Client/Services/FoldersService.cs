@@ -51,7 +51,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Folder>?> GetFoldersAsync(
+        public async Task<IEnumerable<Folder>> GetFoldersAsync(
             string spaceId,
             bool? archived = null,
             CancellationToken cancellationToken = default)
@@ -62,39 +62,51 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetFoldersResponse>(endpoint, cancellationToken); // API returns {"folders": [...]}
-            return response?.Folders;
+            return response?.Folders ?? Enumerable.Empty<Folder>();
         }
 
         /// <inheritdoc />
-        public async Task<Folder?> CreateFolderAsync(
+        public async Task<Folder> CreateFolderAsync(
             string spaceId,
             CreateFolderRequest createFolderRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/folder";
-            // API returns the created folder directly
-            return await _apiConnection.PostAsync<CreateFolderRequest, Folder>(endpoint, createFolderRequest, cancellationToken);
+            var folder = await _apiConnection.PostAsync<CreateFolderRequest, Folder>(endpoint, createFolderRequest, cancellationToken);
+            if (folder == null)
+            {
+                throw new InvalidOperationException($"Failed to create folder in space {spaceId} or API returned an unexpected null response.");
+            }
+            return folder;
         }
 
         /// <inheritdoc />
-        public async Task<Folder?> GetFolderAsync(
+        public async Task<Folder> GetFolderAsync(
             string folderId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"folder/{folderId}";
-            // API returns the folder directly
-            return await _apiConnection.GetAsync<Folder>(endpoint, cancellationToken);
+            var folder = await _apiConnection.GetAsync<Folder>(endpoint, cancellationToken);
+            if (folder == null)
+            {
+                throw new InvalidOperationException($"Failed to get folder {folderId} or API returned an unexpected null response.");
+            }
+            return folder;
         }
 
         /// <inheritdoc />
-        public async Task<Folder?> UpdateFolderAsync(
+        public async Task<Folder> UpdateFolderAsync(
             string folderId,
             UpdateFolderRequest updateFolderRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"folder/{folderId}";
-            // API returns the updated folder directly
-            return await _apiConnection.PutAsync<UpdateFolderRequest, Folder>(endpoint, updateFolderRequest, cancellationToken);
+            var folder = await _apiConnection.PutAsync<UpdateFolderRequest, Folder>(endpoint, updateFolderRequest, cancellationToken);
+            if (folder == null)
+            {
+                throw new InvalidOperationException($"Failed to update folder {folderId} or API returned an unexpected null response.");
+            }
+            return folder;
         }
 
         /// <inheritdoc />
@@ -107,16 +119,19 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Folder?> CreateFolderFromTemplateAsync(
+        public async Task<Folder> CreateFolderFromTemplateAsync(
             string spaceId,
             string templateId,
             CreateFolderFromTemplateRequest createFolderFromTemplateRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/folderTemplate/{templateId}"; // Corrected endpoint
-            // API likely returns the created folder directly, or an object with its ID.
-            // Assuming it returns the full Folder DTO.
-            return await _apiConnection.PostAsync<CreateFolderFromTemplateRequest, Folder>(endpoint, createFolderFromTemplateRequest, cancellationToken);
+            var folder = await _apiConnection.PostAsync<CreateFolderFromTemplateRequest, Folder>(endpoint, createFolderFromTemplateRequest, cancellationToken);
+            if (folder == null)
+            {
+                throw new InvalidOperationException($"Failed to create folder from template {templateId} in space {spaceId} or API returned an unexpected null response.");
+            }
+            return folder;
         }
     }
 }
