@@ -1,25 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.Entities; // Assuming Template DTO (or TaskTemplate) is here
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
-    // Represents the Templates operations in the ClickUp API, focusing on retrieving Task Templates.
-    // Based on endpoints like:
-    // - GET /v2/team/{team_id}/taskTemplate
-
+    /// <summary>
+    /// Represents the Templates operations in the ClickUp API, focusing on retrieving Task Templates.
+    /// </summary>
+    /// <remarks>
+    /// Based on endpoints like:
+    /// - GET /v2/team/{team_id}/taskTemplate
+    /// </remarks>
     public interface ITemplatesService
     {
         /// <summary>
         /// Retrieves the task templates available in a specific Workspace.
         /// </summary>
-        /// <param name="workspaceId">The ID of the Workspace (team_id).</param>
-        /// <param name="page">The page number to retrieve. API is 0-indexed. This is a required parameter in the ClickUp API for this endpoint.</param>
-        /// <returns>A list of task templates available in the Workspace.</returns>
-        Task<IEnumerable<object>> GetTaskTemplatesAsync(double workspaceId, int page);
-        // Note: Return type should be IEnumerable<TaskTemplateDto>. The response example { "templates": [] } suggests it's a list.
-        // The 'page' parameter is marked as required in the OpenAPI spec for this endpoint.
+        /// <param name="workspaceId">The ID of the Workspace (Team).</param>
+        /// <param name="page">The page number to retrieve (0-indexed). This is a required parameter by the ClickUp API for this endpoint.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>An enumerable of <see cref="Template"/> objects available in the Workspace for the specified page.</returns>
+        /// <remarks>The ClickUp API returns templates in a {"templates": []} structure. This method should ideally return a wrapper response object or handle pagination if more details like total pages are needed.</remarks>
+        Task<IEnumerable<Template>> GetTaskTemplatesAsync(
+            string workspaceId,
+            int page,
+            CancellationToken cancellationToken = default);
     }
 }

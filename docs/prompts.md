@@ -50,6 +50,16 @@ You came up with a plan in docs/plans/01-core-models-conceptual.md you suggest w
 Save and append prompts you get from me with the date and time in /docs/prompts.md. Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
 </issue>
 
+## YYYY-MM-DDTHH:mm:ssZ
+
+<issue>
+OpenJson definition /docs/OpenApiSpec/ClickUp-6-17-25.json. This file is a OpenApi JSON document it details out the ClickUp Api including all the calls and objects that are used. The website reference for the api is also here https://developer.clickup.com/reference/.
+
+You came up with a plans in docs/plans/ please review them and this file docs/plans/geminiPlan.md from there please review the existing code base and how the project is separated and put together so far. Can you remake the existing plans making sure to include the stuff in the new general api plan. Including all the things that can help. This is a review and an adaption to a more complete over all plan to implement this ClickUp API SDK in a better and more complete manner this is a planning and documentation task only.
+
+Save all prompts you get from me with the date and time in /docs/prompts.md. Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
+</issue>
+
 ## 2024-05-14 10:00:00
 
 <issue>

@@ -1,37 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO; // Required for Stream
+using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.Entities; // Assuming Attachment DTO is here
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
-    // Represents the Attachments operations in the ClickUp API
-    // Based on endpoints like:
-    // - POST /v2/task/{task_id}/attachment
-    // (Assuming there might be GET, DELETE operations for attachments as well, though not explicitly listed in the immediate previous context,
-    // a full-fledged service would typically include them if they exist in the full API spec)
+    /// <summary>
+    /// Represents the Attachments operations in the ClickUp API.
+    /// </summary>
+    /// <remarks>
+    /// Based on endpoints like:
+    /// - POST /v2/task/{task_id}/attachment
+    /// (Full API spec might include GET, DELETE operations for attachments as well)
+    /// </remarks>
     public interface IAttachmentsService
     {
         /// <summary>
         /// Uploads a file to a task as an attachment.
         /// </summary>
         /// <param name="taskId">The ID of the task to attach the file to.</param>
-        /// <param name="attachmentContent">The content of the file to upload. This would typically be a stream or byte array and filename.</param>
+        /// <param name="fileStream">The stream containing the file content.</param>
+        /// <param name="fileName">The name of the file.</param>
         /// <param name="customTaskIds">Optional. If true, references task by custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID, required if customTaskIds is true.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains details of the created attachment.</returns>
-        Task<object> CreateTaskAttachmentAsync(string taskId, object attachmentContent, bool? customTaskIds = null, double? teamId = null);
-        // Note: 'object attachmentContent' should be a more specific type representing the file to be uploaded (e.g., Stream, byte[], or a custom DTO).
-        // Note: The return type 'object' should be replaced with a specific DTO (e.g., TaskAttachmentDto) representing the attachment details from the API response.
+        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains details of the created <see cref="Attachment"/>.</returns>
+        Task<Attachment> CreateTaskAttachmentAsync(
+            string taskId,
+            Stream fileStream,
+            string fileName,
+            bool? customTaskIds = null,
+            string? teamId = null,
+            CancellationToken cancellationToken = default);
 
         // Placeholder for GetTaskAttachmentsAsync if the API supports it
         // /// <summary>
         // /// Gets all attachments for a specific task.
         // /// </summary>
         // /// <param name="taskId">The ID of the task.</param>
+        // /// <param name="cancellationToken">Cancellation token.</param>
         // /// <returns>A list of attachments for the task.</returns>
-        // Task<IEnumerable<object>> GetTaskAttachmentsAsync(string taskId);
+        // Task<IEnumerable<Attachment>> GetTaskAttachmentsAsync(string taskId, CancellationToken cancellationToken = default);
 
         // Placeholder for DeleteTaskAttachmentAsync if the API supports it
         // /// <summary>
@@ -39,7 +49,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         // /// </summary>
         // /// <param name="taskId">The ID of the task.</param>
         // /// <param name="attachmentId">The ID of the attachment to delete.</param>
+        // /// <param name="cancellationToken">Cancellation token.</param>
         // /// <returns>An awaitable task representing the asynchronous operation.</returns>
-        // Task DeleteTaskAttachmentAsync(string taskId, string attachmentId);
+        // System.Threading.Tasks.Task DeleteTaskAttachmentAsync(string taskId, string attachmentId, CancellationToken cancellationToken = default);
     }
 }
