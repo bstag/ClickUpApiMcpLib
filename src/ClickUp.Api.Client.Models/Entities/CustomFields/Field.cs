@@ -12,6 +12,6 @@ namespace ClickUp.Api.Client.Models.Entities.CustomFields
         [property: JsonPropertyName("date_created")] string? DateCreated, // Assuming string, could be DateTimeOffset
         [property: JsonPropertyName("hide_from_guests")] bool? HideFromGuests,
         [property: JsonPropertyName("required")] bool? Required,
-        [property: JsonPropertyName("creator")] User? Creator // User who created the custom field
+        [property: JsonPropertyName("creator")] ComUser? Creator // User who created the custom field
     );
 }

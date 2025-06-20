@@ -7,7 +7,7 @@ using ClickUp.Api.Client.Models.Entities; // Assuming Template DTO (or TaskTempl
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Represents the Templates operations in the ClickUp API, focusing on retrieving Task Templates.
+    /// Represents the Templates operations in the ClickUp API, focusing on retrieving CuTask Templates.
     /// </summary>
     /// <remarks>
     /// Based on endpoints like:

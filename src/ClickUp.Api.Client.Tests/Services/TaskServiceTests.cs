@@ -3,7 +3,7 @@ using Moq;
 using FluentAssertions;
 using ClickUp.Api.Client.Services;
 using ClickUp.Api.Client.Abstractions.Http; // For IApiConnection
-using ClickUp.Api.Client.Models.Entities; // For Task DTO (fully qualified if needed)
+using ClickUp.Api.Client.Models.Entities; // For CuTask DTO (fully qualified if needed)
 using ClickUp.Api.Client.Models.RequestModels.Tasks; // For CreateTaskRequest etc.
 using ClickUp.Api.Client.Models.ResponseModels.Tasks; // For GetTasksResponse etc.
 using System.Threading.Tasks;
@@ -30,7 +30,7 @@ namespace ClickUp.Api.Client.Tests.Services
         {
             // Arrange
             var taskId = "test-task-id";
-            var expectedTask = new Models.Entities.Task(taskId, null, "Test Task", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var expectedTask = new Models.Entities.Task(taskId, null, "Test CuTask", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
             _mockApiConnection.Setup(c => c.GetAsync<Models.Entities.Task>(
                 $"task/{taskId}", // Basic endpoint, no query params in this simple test
@@ -54,7 +54,7 @@ namespace ClickUp.Api.Client.Tests.Services
             // Arrange
             var taskId = "test-task-id-opts";
             var teamIdForQuery = "test-team-id";
-            var expectedTask = new Models.Entities.Task(taskId, null, "Test Task With Options", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var expectedTask = new Models.Entities.Task(taskId, null, "Test CuTask With Options", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
             // Expected endpoint with all params true/set
             var expectedEndpoint = $"task/{taskId}?custom_task_ids=true&team_id={teamIdForQuery}&include_subtasks=true&include_markdown_description=true";
@@ -104,8 +104,8 @@ namespace ClickUp.Api.Client.Tests.Services
         {
             // Arrange
             var listId = "test-list-id";
-            var requestDto = new CreateTaskRequest("New Test Task");
-            var expectedCreatedTask = new Models.Entities.Task("new-task-id", null, "New Test Task", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var requestDto = new CreateTaskRequest("New Test CuTask");
+            var expectedCreatedTask = new Models.Entities.Task("new-task-id", null, "New Test CuTask", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
             _mockApiConnection.Setup(c => c.PostAsync<CreateTaskRequest, Models.Entities.Task>(
                 $"list/{listId}/task", // Basic endpoint, no query params in this simple test
@@ -131,8 +131,8 @@ namespace ClickUp.Api.Client.Tests.Services
             // Arrange
             var listId = "test-list-id-opts";
             var teamIdForQuery = "test-team-id";
-            var requestDto = new CreateTaskRequest("New Test Task QParams");
-            var expectedCreatedTask = new Models.Entities.Task("new-task-id-qparams", null, "New Test Task QParams", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var requestDto = new CreateTaskRequest("New Test CuTask QParams");
+            var expectedCreatedTask = new Models.Entities.Task("new-task-id-qparams", null, "New Test CuTask QParams", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
             var expectedEndpoint = $"list/{listId}/task?custom_task_ids=true&team_id={teamIdForQuery}";
 
@@ -160,8 +160,8 @@ namespace ClickUp.Api.Client.Tests.Services
         {
             // Arrange
             var taskId = "task-to-update";
-            var requestDto = new UpdateTaskRequest { Name = "Updated Task Name" }; // Assuming UpdateTaskRequest has a Name property
-            var expectedUpdatedTask = new Models.Entities.Task(taskId, null, "Updated Task Name", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var requestDto = new UpdateTaskRequest { Name = "Updated CuTask Name" }; // Assuming UpdateTaskRequest has a Name property
+            var expectedUpdatedTask = new Models.Entities.Task(taskId, null, "Updated CuTask Name", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
             _mockApiConnection.Setup(c => c.PutAsync<UpdateTaskRequest, Models.Entities.Task>(
                 $"task/{taskId}", // Basic endpoint
@@ -187,8 +187,8 @@ namespace ClickUp.Api.Client.Tests.Services
             // Arrange
             var taskId = "task-to-update-opts";
             var teamIdForQuery = "test-team-id";
-            var requestDto = new UpdateTaskRequest { Name = "Updated Task Name Opts" };
-            var expectedUpdatedTask = new Models.Entities.Task(taskId, null, "Updated Task Name Opts", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var requestDto = new UpdateTaskRequest { Name = "Updated CuTask Name Opts" };
+            var expectedUpdatedTask = new Models.Entities.Task(taskId, null, "Updated CuTask Name Opts", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
             var expectedEndpoint = $"task/{taskId}?custom_task_ids=true&team_id={teamIdForQuery}";
 
             _mockApiConnection.Setup(c => c.PutAsync<UpdateTaskRequest, Models.Entities.Task>(
@@ -255,9 +255,9 @@ namespace ClickUp.Api.Client.Tests.Services
         {
             // Arrange
             var listId = "list-id-for-enumerable";
-            var task1 = new Models.Entities.Task("task1", null, "Task 1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-            var task2 = new Models.Entities.Task("task2", null, "Task 2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-            var task3 = new Models.Entities.Task("task3", null, "Task 3", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var task1 = new Models.Entities.Task("task1", null, "CuTask 1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var task2 = new Models.Entities.Task("task2", null, "CuTask 2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var task3 = new Models.Entities.Task("task3", null, "CuTask 3", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
             var page0Response = new GetTasksResponse(new List<Models.Entities.Task> { task1, task2 }, LastPage: false);
             var page1Response = new GetTasksResponse(new List<Models.Entities.Task> { task3 }, LastPage: true);
@@ -313,7 +313,7 @@ namespace ClickUp.Api.Client.Tests.Services
         {
             // Arrange
             var listId = "cancellable-list-id";
-            var task1 = new Models.Entities.Task("task1_cancel", null, "Task 1 Cancel", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var task1 = new Models.Entities.Task("task1_cancel", null, "CuTask 1 Cancel", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
             var page0Response = new GetTasksResponse(new List<Models.Entities.Task> { task1 }, LastPage: false); // More pages available
 
             _mockApiConnection.Setup(c => c.GetAsync<GetTasksResponse>(It.Is<string>(s => s.Contains($"list/{listId}/task") && s.Contains("page=0")), It.IsAny<CancellationToken>()))

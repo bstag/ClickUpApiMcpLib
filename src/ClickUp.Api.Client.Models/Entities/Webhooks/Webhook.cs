@@ -8,7 +8,7 @@ namespace ClickUp.Api.Client.Models.Entities.Webhooks
     (
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("userid")] int UserId, // Assuming int for user ID
-        [property: JsonPropertyName("user")] User? User, // Optional User object
+        [property: JsonPropertyName("user")] ComUser? User, // Optional User object
         [property: JsonPropertyName("team_id")] int TeamId, // Assuming int for team/workspace ID
         [property: JsonPropertyName("endpoint")] string Endpoint,
         [property: JsonPropertyName("client_id")] string? ClientId, // Nullable if not an OAuth app webhook

@@ -14,7 +14,7 @@ using ClickUp.Api.Client.Models.ResponseModels; // For potential wrapper DTOs
 namespace ClickUp.Api.Client.Services
 {
     /// <summary>
-    /// Implements <see cref="ITaskRelationshipsService"/> for ClickUp Task Relationship operations.
+    /// Implements <see cref="ITaskRelationshipsService"/> for ClickUp CuTask Relationship operations.
     /// </summary>
     public class TaskRelationshipsService : ITaskRelationshipsService
     {
@@ -131,7 +131,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            // Add Task Link API is POST and returns the task.
+            // Add CuTask Link API is POST and returns the task.
             // It does not take a request body. So we send an empty object.
             var response = await _apiConnection.PostAsync<object, GetTaskResponse>(endpoint, new { }, cancellationToken);
             return response?.Task;
@@ -151,13 +151,13 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            // Delete Task Link API is DELETE and returns the task.
+            // Delete CuTask Link API is DELETE and returns the task.
             // This is unusual. IApiConnection.DeleteAsync is void.
             // We may need a DeleteAsync<TResponse> on IApiConnection or handle it differently.
             // For now, I'll call DeleteAsync and return null, assuming the interface might be more optimistic than the API.
             // Or, if the API truly returns the task on DELETE, we'd use a custom request here.
             // The typical ClickUp pattern is 204 or empty 200 on DELETE.
-            // Let's assume the interface return type Task<Task> implies the API *might* return the task,
+            // Let's assume the interface return type CuTask<CuTask> implies the API *might* return the task,
             // but _apiConnection.DeleteAsync is void. This is a mismatch.
             // For now, I'll use a GET after DELETE to fulfill the contract, though not ideal.
             // A better solution would be a DeleteAsync<TResponse> on IApiConnection if DELETE returns body.
@@ -165,7 +165,7 @@ namespace ClickUp.Api.Client.Services
             // Let's assume for now the API returns the task on DELETE and we need a new IApiConnection method.
             // For this exercise, I will throw NotImplemented if the API truly returns a body on DELETE,
             // as the current IApiConnection.DeleteAsync is void.
-            // The prompt's return type is Task<Task>. The API for DELETE LINK returns the task.
+            // The prompt's return type is CuTask<CuTask>. The API for DELETE LINK returns the task.
             // So, we need a DeleteWithResponse method in IApiConnection.
             // For now, I will assume such a method exists or will be added.
             // Let's call a hypothetical _apiConnection.DeleteAsync<GetTaskResponse>(...)
@@ -179,13 +179,13 @@ namespace ClickUp.Api.Client.Services
             // This is a point where the abstraction needs to be extended or the service method signature reconsidered.
             // For this subtask, I will call DeleteAsync and then return null, noting the discrepancy.
 
-            // Per ClickUp API documentation (View Task Relationships), "Delete Task Link" returns the updated Task.
+            // Per ClickUp API documentation (View CuTask Relationships), "Delete CuTask Link" returns the updated CuTask.
             // This means IApiConnection.DeleteAsync is insufficient.
             // A new method like `DeleteAsync<TResponse>` is needed in IApiConnection.
             // I will proceed by calling the current DeleteAsync and returning null,
             // with a comment indicating this limitation.
 
-            // To actually match the interface with current IApiConnection, we can't return the Task.
+            // To actually match the interface with current IApiConnection, we can't return the CuTask.
             // This implies the method signature on ITaskRelationshipsService might be too optimistic for a simple DELETE.
             // However, the task is to *implement* the interface.
 
@@ -193,8 +193,8 @@ namespace ClickUp.Api.Client.Services
             // to handle DELETE with a response body.
             // This will effectively be a placeholder until IApiConnection is updated.
             // For this exercise, I will call the existing void DeleteAsync and return null,
-            // which doesn't match the Task<Task> return type strictly but is the best effort with current tools.
-            // To make it compile, I will return Task.FromResult<Models.Entities.Task?>(null).
+            // which doesn't match the CuTask<CuTask> return type strictly but is the best effort with current tools.
+            // To make it compile, I will return CuTask.FromResult<Models.Entities.CuTask?>(null).
 
             // Correct approach: The service should adhere to the interface.
             // If IApiConnection is missing a method, we'd typically add it.

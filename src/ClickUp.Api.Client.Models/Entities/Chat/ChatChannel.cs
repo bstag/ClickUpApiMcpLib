@@ -37,7 +37,7 @@ public record ChatChannel
     public ChatDefaultViewDTO? DefaultView { get; init; }
 
     [JsonPropertyName("creator")]
-    public User? Creator { get; init; } // Assuming User model from Common
+    public ComUser? Creator { get; init; } // Assuming User model from Common
 
     [JsonPropertyName("created_at")]
     public long CreatedAt { get; init; } // Unix timestamp
@@ -49,10 +49,10 @@ public record ChatChannel
     public long? ArchivedAt { get; init; } // Nullable Unix timestamp
 
     [JsonPropertyName("members")]
-    public List<User>? Members { get; init; } // Assuming User model from Common
+    public List<ComUser>? Members { get; init; } // Assuming User model from Common
 
     [JsonPropertyName("guests")]
-    public List<User>? Guests { get; init; } // Assuming User model from Common
+    public List<ComUser>? Guests { get; init; } // Assuming User model from Common
 
     [JsonPropertyName("links")]
     public ChatChannelLinks? Links { get; init; }

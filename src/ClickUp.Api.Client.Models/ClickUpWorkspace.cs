@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ClickUp.Api.Client.Models.Entities.Users;
 
 namespace ClickUp.Api.Client.Models;
 

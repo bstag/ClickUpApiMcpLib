@@ -4,7 +4,7 @@ using ClickUp.Api.Client.Models.Common; // For User
 
 namespace ClickUp.Api.Client.Models.Entities.TimeTracking
 {
-    // Simplified Task Reference for Time Entries
+    // Simplified CuTask Reference for Time Entries
     public record TimeEntryTaskReference
     (
         [property: JsonPropertyName("id")] string Id,
@@ -19,7 +19,7 @@ namespace ClickUp.Api.Client.Models.Entities.TimeTracking
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("task")] TimeEntryTaskReference? Task, // Simplified task object
         [property: JsonPropertyName("wid")] string Wid, // Workspace ID
-        [property: JsonPropertyName("user")] User User, // Full User object from Common
+        [property: JsonPropertyName("user")] ComUser User, // Full User object from Common
         [property: JsonPropertyName("billable")] bool Billable,
         [property: JsonPropertyName("start")] string Start, // Timestamp string (ISO 8601 or Unix ms string)
         [property: JsonPropertyName("end")] string? End, // Timestamp string, null if timer is running

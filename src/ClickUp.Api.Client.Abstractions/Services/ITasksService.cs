@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Task DTO is here
+using ClickUp.Api.Client.Models.Entities; // Assuming CuTask DTO is here
 using ClickUp.Api.Client.Models.RequestModels.Tasks; // Assuming Request DTOs are here
 using ClickUp.Api.Client.Models.ResponseModels.Tasks; // Assuming Response DTOs are here
 
@@ -164,7 +164,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="dateUpdatedGreaterThan">Optional. Filter by date updated greater than (Unix time ms).</param>
         /// <param name="dateUpdatedLessThan">Optional. Filter by date updated less than (Unix time ms).</param>
         /// <param name="customFields">Optional. Filter by custom fields (JSON string).</param>
-        /// <param name="customTaskIds">Optional. Export tasks with Custom Task IDs.</param>
+        /// <param name="customTaskIds">Optional. Export tasks with Custom CuTask IDs.</param>
         /// <param name="teamIdForCustomTaskIds">Optional. Team ID, required if custom_task_ids is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetTasksResponse"/> object containing a list of tasks and pagination details.</returns>
@@ -210,12 +210,12 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
         // Note: The original ClickUp API POST /v2/task/{task_id}/merge takes the target in the body.
         // This method signature might need adjustment if it's for merging task_id INTO target_task_id.
-        // The prompt said "MergeTasksAsync: Request MergeTasksRequest, response Task".
+        // The prompt said "MergeTasksAsync: Request MergeTasksRequest, response CuTask".
         // Let's assume for now it means merge ONE task (taskId) into another (targetTaskId).
         // If it's for merging MULTIPLE tasks, the signature and DTO would be different (e.g. MergeTasksRequest DTO in body).
         // Given the current method name and params, it seems like merging one specific task into another specific task.
         // The API doc for "Merge Tasks" (POST /v2/task/{task_id}/merge) implies task_id is the source, and target is in body { "target_task_id": "string" }
-        // This is different from "Merge Task Into" (POST /v2/task/{task_id}/merge_into/{target_task_id})
+        // This is different from "Merge CuTask Into" (POST /v2/task/{task_id}/merge_into/{target_task_id})
         // The prompt's "MergeTasksRequest" suggests a DTO. I will adjust this method to take a DTO.
 
         /// <summary>

@@ -25,6 +25,6 @@ namespace ClickUp.Api.Client.Models.Entities.Attachments
         [property: JsonPropertyName("email_text_content")] string? EmailTextContent, // If from email attachment
         [property: JsonPropertyName("email_html_content_id")] string? EmailHtmlContentId, // If from email attachment
         [property: JsonPropertyName("email_attachments_count")] int? EmailAttachmentsCount, // If from email attachment
-        [property: JsonPropertyName("user")] Common.User? User // User who uploaded, assuming User model exists in Common
+        [property: JsonPropertyName("user")] Common.ComUser? User // User who uploaded, assuming User model exists in Common
     );
 }

@@ -17,7 +17,7 @@ public record ViewColumns
     // Example from GetView response:
     // "columns": {
     //   "fields": [
-    //     { "id": "name", "field": "name", "title": "Task name", "type": "string", "width": 300, "orderindex": 0, "hidden": false },
+    //     { "id": "name", "field": "name", "title": "CuTask name", "type": "string", "width": 300, "orderindex": 0, "hidden": false },
     //     { "id": "assignees", "field": "assignees", "title": "Assignees", "type": "user", "width": 100, "orderindex": 1, "hidden": false },
     //     // ... other column field objects ...
     //   ]

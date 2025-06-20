@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.Common
 {
-    public record User
+    public record ComUser
     (
         [property: JsonPropertyName("id")] int Id,
         [property: JsonPropertyName("username")] string Username,

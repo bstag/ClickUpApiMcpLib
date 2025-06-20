@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming View and Task DTOs are here
+using ClickUp.Api.Client.Models.Entities; // Assuming View and CuTask DTOs are here
 using ClickUp.Api.Client.Models.RequestModels.Views; // Assuming Request DTOs are here
 using ClickUp.Api.Client.Models.ResponseModels.Views; // Assuming GetViewTasksResponse is here
 

@@ -14,7 +14,7 @@ using ClickUp.Api.Client.Models.ResponseModels; // For potential wrapper DTOs
 namespace ClickUp.Api.Client.Services
 {
     /// <summary>
-    /// Implements <see cref="ITaskChecklistsService"/> for ClickUp Task Checklist operations.
+    /// Implements <see cref="ITaskChecklistsService"/> for ClickUp CuTask Checklist operations.
     /// </summary>
     public class TaskChecklistsService : ITaskChecklistsService
     {

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace ClickUp.Api.Client.Models.Common;
 
 /// <summary>
-/// Represents the sharing options for an entity (e.g., Task, List, View).
+/// Represents the sharing options for an entity (e.g., CuTask, List, View).
 /// </summary>
 public record SharingOptions
 {

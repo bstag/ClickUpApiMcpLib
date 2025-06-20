@@ -31,7 +31,7 @@ namespace ClickUp.Api.Client.Tests.Services
             // For now, just creating an instance is enough as BeEquivalentTo will check structure.
             // If SharedHierarchy contains lists of tasks, lists, folders, those would be initialized here.
             var hierarchy = (SharedHierarchy)Activator.CreateInstance(typeof(SharedHierarchy), nonPublic: true)!;
-            // Example: typeof(SharedHierarchy).GetProperty("Tasks")?.SetValue(hierarchy, new List<Models.Entities.Task>());
+            // Example: typeof(SharedHierarchy).GetProperty("Tasks")?.SetValue(hierarchy, new List<Models.Entities.CuTask>());
             return hierarchy;
         }
 

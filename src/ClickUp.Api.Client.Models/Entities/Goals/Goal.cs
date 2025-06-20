@@ -10,8 +10,8 @@ namespace ClickUp.Api.Client.Models.Entities.Goals
         [property: JsonPropertyName("pretty_id")] string? PrettyId,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("team_id")] string TeamId, // Assuming string, could be int
-        [property: JsonPropertyName("creator")] User? CreatorUser, // Changed from "Creator" to avoid conflict
-        [property: JsonPropertyName("owner")] User? OwnerUser, // Changed from "Owner" to avoid conflict
+        [property: JsonPropertyName("creator")] ComUser? CreatorUser, // Changed from "Creator" to avoid conflict
+        [property: JsonPropertyName("owner")] ComUser? OwnerUser, // Changed from "Owner" to avoid conflict
         [property: JsonPropertyName("color")] string? Color,
         [property: JsonPropertyName("date_created")] string? DateCreated, // Assuming string, could be DateTimeOffset
         [property: JsonPropertyName("start_date")] string? StartDate, // Assuming string, could be DateTimeOffset
@@ -25,7 +25,7 @@ namespace ClickUp.Api.Client.Models.Entities.Goals
         [property: JsonPropertyName("last_update")] string? LastUpdate, // Assuming string, could be DateTimeOffset
         [property: JsonPropertyName("folder_id")] string? FolderId, // Nullable if not in a folder
         [property: JsonPropertyName("pinned")] bool Pinned,
-        [property: JsonPropertyName("owners")] List<User>? Owners,
+        [property: JsonPropertyName("owners")] List<ComUser>? Owners,
         [property: JsonPropertyName("key_result_count")] int KeyResultCount,
         [property: JsonPropertyName("members")] List<Member>? Members,
         [property: JsonPropertyName("group_members")] List<Member>? GroupMembers, // Assuming Member type

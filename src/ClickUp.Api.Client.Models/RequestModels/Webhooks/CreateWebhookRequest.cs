@@ -10,7 +10,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.Webhooks
         [property: JsonPropertyName("space_id")] int? SpaceId, // Scope to a specific Space
         [property: JsonPropertyName("folder_id")] int? FolderId, // Scope to a specific Folder (Project)
         [property: JsonPropertyName("list_id")] int? ListId, // Scope to a specific List
-        [property: JsonPropertyName("task_id")] string? TaskId, // Scope to a specific Task
+        [property: JsonPropertyName("task_id")] string? TaskId, // Scope to a specific CuTask
         [property: JsonPropertyName("team_id")] int? TeamId // Workspace ID, often required if not inferred from token or context
     );
 }

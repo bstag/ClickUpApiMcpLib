@@ -8,7 +8,7 @@ using ClickUp.Api.Client.Models.RequestModels.TaskChecklists; // Assuming Reques
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Represents the Task Checklists operations in the ClickUp API.
+    /// Represents the CuTask Checklists operations in the ClickUp API.
     /// </summary>
     /// <remarks>
     /// Based on endpoints like:

@@ -43,7 +43,7 @@ namespace ClickUp.Api.Client.Tests.Services
                 return (GetTaskResponse)constructor.Invoke(new object[] { task });
             }
             var instance = (GetTaskResponse)Activator.CreateInstance(responseType, nonPublic: true)!;
-            responseType.GetProperty("Task")?.SetValue(instance, task); // Assuming GetTaskResponse has a "Task" property
+            responseType.GetProperty("CuTask")?.SetValue(instance, task); // Assuming GetTaskResponse has a "CuTask" property
             return instance;
         }
 
@@ -77,7 +77,7 @@ namespace ClickUp.Api.Client.Tests.Services
             // Arrange
             var taskId = "task-id-link-from";
             var linksToTaskId = "task-id-link-to";
-            var expectedTask = CreateSampleTask(taskId, "Task with link");
+            var expectedTask = CreateSampleTask(taskId, "CuTask with link");
             var expectedResponse = CreateSampleGetTaskResponse(expectedTask);
 
             _mockApiConnection.Setup(c => c.PostAsync<object, GetTaskResponse>(
@@ -100,7 +100,7 @@ namespace ClickUp.Api.Client.Tests.Services
             // Arrange
             var taskId = "task-id-link-from";
             var linksToTaskId = "task-id-link-to";
-            var expectedTask = CreateSampleTask(taskId, "Task after link deletion");
+            var expectedTask = CreateSampleTask(taskId, "CuTask after link deletion");
             var expectedResponse = CreateSampleGetTaskResponse(expectedTask);
 
             _mockApiConnection.Setup(c => c.DeleteAsync<GetTaskResponse>( // Using DeleteAsync<TResponse>

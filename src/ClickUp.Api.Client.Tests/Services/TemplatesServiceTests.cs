@@ -55,7 +55,7 @@ namespace ClickUp.Api.Client.Tests.Services
             // Arrange
             var workspaceId = "ws-id";
             var page = 0;
-            var expectedTemplates = new List<Template> { CreateSampleTemplate("template-1", "My Task Template") };
+            var expectedTemplates = new List<Template> { CreateSampleTemplate("template-1", "My CuTask Template") };
             var expectedResponse = CreateSampleGetTemplatesResponse(expectedTemplates);
 
             _mockApiConnection.Setup(c => c.GetAsync<GetTemplatesResponse>(

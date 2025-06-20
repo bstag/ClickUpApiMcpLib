@@ -3,7 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection; // For GetRequiredService
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
-// Ensure correct using for Task DTO, assuming it's in Entities:
+// Ensure correct using for CuTask DTO, assuming it's in Entities:
 using ClickUpTask = ClickUp.Api.Client.Models.Entities.Task;
 using System.Threading.Tasks;
 using System;
@@ -47,38 +47,38 @@ namespace ClickUp.Api.Client.Tests.Integration
         public async Task CreateGetAndDeleteTask_ShouldSucceed()
         {
             // Arrange
-            var taskName = $"My Integration Test Task - {Guid.NewGuid()}";
+            var taskName = $"My Integration Test CuTask - {Guid.NewGuid()}";
             var createTaskRequest = new CreateTaskRequest(Name: taskName);
             ClickUpTask? createdTask = null;
 
             try
             {
-                // 1. Create Task
+                // 1. Create CuTask
                 Console.WriteLine($"Attempting to create task '{taskName}' in list '{_testListId}'...");
                 createdTask = await _tasksService.CreateTaskAsync(_testListId, createTaskRequest, cancellationToken: CancellationToken.None);
 
                 createdTask.Should().NotBeNull();
                 createdTask!.Name.Should().Be(taskName);
                 createdTask.Id.Should().NotBeNullOrEmpty();
-                Console.WriteLine($"Created Task ID: {createdTask.Id}, Name: {createdTask.Name}");
+                Console.WriteLine($"Created CuTask ID: {createdTask.Id}, Name: {createdTask.Name}");
 
-                // 2. Get Task
+                // 2. Get CuTask
                 Console.WriteLine($"Attempting to fetch task ID: {createdTask.Id}...");
                 var fetchedTask = await _tasksService.GetTaskAsync(createdTask.Id!, cancellationToken: CancellationToken.None);
                 fetchedTask.Should().NotBeNull();
                 fetchedTask!.Id.Should().Be(createdTask.Id);
                 fetchedTask.Name.Should().Be(taskName);
-                Console.WriteLine($"Fetched Task ID: {fetchedTask.Id}, Name: {fetchedTask.Name}");
+                Console.WriteLine($"Fetched CuTask ID: {fetchedTask.Id}, Name: {fetchedTask.Name}");
 
             }
             finally
             {
-                // 3. Delete Task (Cleanup)
+                // 3. Delete CuTask (Cleanup)
                 if (createdTask?.Id != null)
                 {
                     Console.WriteLine($"Attempting to delete task ID: {createdTask.Id}...");
                     await _tasksService.DeleteTaskAsync(createdTask.Id!, cancellationToken: CancellationToken.None);
-                    Console.WriteLine($"Deleted Task ID: {createdTask.Id}");
+                    Console.WriteLine($"Deleted CuTask ID: {createdTask.Id}");
 
                     // Optional: Verify Deletion by trying to get it again
                     // try
@@ -88,7 +88,7 @@ namespace ClickUp.Api.Client.Tests.Integration
                     // }
                     // catch (ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException)
                     // {
-                    //     Console.WriteLine($"Task {createdTask.Id} confirmed deleted (NotFoundException).");
+                    //     Console.WriteLine($"CuTask {createdTask.Id} confirmed deleted (NotFoundException).");
                     // }
                 }
             }

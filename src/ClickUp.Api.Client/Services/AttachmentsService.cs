@@ -8,7 +8,8 @@ using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
 using System.Collections.Generic; // For Dictionary
-using System.Linq; // For Linq Any
+using System.Linq;
+using ClickUp.Api.Client.Models.Entities.Attachments; // For Linq Any
 
 namespace ClickUp.Api.Client.Services
 {

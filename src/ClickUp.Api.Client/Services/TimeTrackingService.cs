@@ -383,8 +383,8 @@ namespace ClickUp.Api.Client.Services
                 // FOR THIS SUBTASK: I will write it as if the original GetTimeEntriesAsync *can* provide pagination info.
                 // This might mean it internally calls _apiConnection and gets the wrapper, then the enumerable calls *that*.
                 // The simplest is if GetTimeEntriesAsync itself returned the wrapper.
-                // The interface ITimeTrackingService.GetTimeEntriesAsync returns Task<IEnumerable<TimeEntry>>.
-                // This is the problem. It *should* return Task<GetTimeEntriesResponse> for this to work cleanly.
+                // The interface ITimeTrackingService.GetTimeEntriesAsync returns CuTask<IEnumerable<TimeEntry>>.
+                // This is the problem. It *should* return CuTask<GetTimeEntriesResponse> for this to work cleanly.
 
                 // Given the current interface for GetTimeEntriesAsync, we cannot get "LastPage".
                 // This IAsyncEnumerable method cannot be implemented correctly without changing the paged GetTimeEntriesAsync.

@@ -36,8 +36,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         // User Group (Teams within a Workspace) methods would go here if they were part of this service, e.g.:
-        // Task<IEnumerable<UserGroup>> GetUserGroupsAsync(string workspaceId, CancellationToken cancellationToken = default);
-        // Task<UserGroup> CreateUserGroupAsync(string workspaceId, CreateUserGroupRequest request, CancellationToken cancellationToken = default);
+        // CuTask<IEnumerable<UserGroup>> GetUserGroupsAsync(string workspaceId, CancellationToken cancellationToken = default);
+        // CuTask<UserGroup> CreateUserGroupAsync(string workspaceId, CreateUserGroupRequest request, CancellationToken cancellationToken = default);
         // etc.
     }
 }

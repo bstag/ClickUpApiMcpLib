@@ -66,7 +66,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="guestId">The ID of the guest to remove.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
-        /// <remarks>Original note mentioned API returns a 'team' object. Returning Task for simplicity unless team DTO is essential for client.</remarks>
+        /// <remarks>Original note mentioned API returns a 'team' object. Returning CuTask for simplicity unless team DTO is essential for client.</remarks>
         System.Threading.Tasks.Task RemoveGuestFromWorkspaceAsync(
             string workspaceId,
             string guestId,

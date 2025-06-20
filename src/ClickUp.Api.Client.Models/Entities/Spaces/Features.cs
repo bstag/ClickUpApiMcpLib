@@ -77,7 +77,7 @@ namespace ClickUp.Api.Client.Models.Entities.Spaces
         [property: JsonPropertyName("enabled")] bool Enabled
     );
 
-    // Sub-record for Custom Task IDs feature configuration
+    // Sub-record for Custom CuTask IDs feature configuration
     public record CustomTaskIdsFeature
     (
         [property: JsonPropertyName("enabled")] bool Enabled

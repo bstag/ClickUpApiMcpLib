@@ -13,7 +13,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.TimeTracking
         [property: JsonPropertyName("duration")] int Duration, // Duration in milliseconds (must be positive)
         [property: JsonPropertyName("billable")] bool? Billable,
         [property: JsonPropertyName("assignee")] int? Assignee, // User ID of the person who this time entry is for
-        [property: JsonPropertyName("tid")] string? TaskId, // Task ID to associate with this time entry
+        [property: JsonPropertyName("tid")] string? TaskId, // CuTask ID to associate with this time entry
         [property: JsonPropertyName("wid")] string? WorkspaceId // Workspace ID, sometimes required if not inferred from auth/task
     );
 }

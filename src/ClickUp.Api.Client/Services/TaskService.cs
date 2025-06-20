@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities; // Task DTO
+using ClickUp.Api.Client.Models.Entities; // CuTask DTO
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
 
@@ -264,7 +264,7 @@ namespace ClickUp.Api.Client.Services
             // This overload seems to map to POST /v2/task/{task_id}/merge_into/{target_task_id}
             // Or it's an alternative way to call POST /v2/task/{task_id}/merge if target is in path
             // Assuming it's the merge_into variant for now as it's simpler.
-            // The ClickUp API doc for "Merge Task Into" is POST /task/{task_id}/merge_into/{target_task_id}
+            // The ClickUp API doc for "Merge CuTask Into" is POST /task/{task_id}/merge_into/{target_task_id}
             // This does not take a body.
             var endpoint = $"task/{taskId}/merge_into/{targetTaskId}";
             var queryParams = new Dictionary<string, string?>();
@@ -310,16 +310,16 @@ namespace ClickUp.Api.Client.Services
             // So endpoint is /task/{targetTaskId}/merge
             // Body is mergeTasksRequest (which should contain the *actual* target task id)
             // This is confusing. The prompt for ITasksService was:
-            // MergeTasksAsync: Request MergeTasksRequest, response Task.
+            // MergeTasksAsync: Request MergeTasksRequest, response CuTask.
             // Parameters: string targetTaskId, MergeTasksRequest mergeTasksRequest
             // This implies `targetTaskId` is the task all sources from `mergeTasksRequest` are merged INTO.
             // If so, the API endpoint POST /v2/task/{task_id}/merge is problematic because task_id in path is source.
             // Let's assume the intent is that `targetTaskId` is the destination, and `mergeTasksRequest.TaskIds` are sources.
             // This doesn't map directly to a single ClickUp v2 endpoint easily.
             // ClickUp's "Merge Tasks" endpoint is POST /v2/task/{task_id}/merge where {task_id} is the source, and body contains target.
-            // ClickUp's "Merge Task Into" endpoint is POST /v2/task/{task_id}/merge_into/{target_task_id}
+            // ClickUp's "Merge CuTask Into" endpoint is POST /v2/task/{task_id}/merge_into/{target_task_id}
             //
-            // Given the interface: Task<Task> MergeTasksAsync(string targetTaskId, MergeTasksRequest mergeTasksRequest, ...)
+            // Given the interface: CuTask<CuTask> MergeTasksAsync(string targetTaskId, MergeTasksRequest mergeTasksRequest, ...)
             // The most logical mapping is that `targetTaskId` is the task where other tasks (specified in `mergeTasksRequest.TaskIds`) are merged INTO.
             // This would require multiple calls to POST /task/{source_task_id}/merge_into/{target_task_id} or similar.
             // Or, if there's a bulk merge endpoint, that would be it.

@@ -18,7 +18,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.Tasks
         [property: JsonPropertyName("priority")] int? Priority, // Priority level
         [property: JsonPropertyName("due_date")] long? DueDate, // Unix timestamp in milliseconds
         [property: JsonPropertyName("due_date_time")] bool? DueDateTime,
-        [property: JsonPropertyName("parent")] string? Parent, // Task ID of the parent task to move to
+        [property: JsonPropertyName("parent")] string? Parent, // CuTask ID of the parent task to move to
         [property: JsonPropertyName("time_estimate")] int? TimeEstimate, // Milliseconds
         [property: JsonPropertyName("start_date")] long? StartDate, // Unix timestamp in milliseconds
         [property: JsonPropertyName("start_date_time")] bool? StartDateTime,

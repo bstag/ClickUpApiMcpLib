@@ -154,7 +154,7 @@ namespace ClickUp.Api.Client.Tests.Services
             var encodedTagName = Uri.EscapeDataString(tagName);
             var expectedEndpoint = $"task/{taskId}/tag/{encodedTagName}";
 
-            _mockApiConnection.Setup(c => c.PostAsync<object>( // Service method returns Task (void), PostAsync<TRequest>
+            _mockApiConnection.Setup(c => c.PostAsync<object>( // Service method returns CuTask (void), PostAsync<TRequest>
                 expectedEndpoint,
                 It.IsAny<object>(), // Service sends new object() {}
                 It.IsAny<CancellationToken>()))

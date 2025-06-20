@@ -21,8 +21,8 @@ namespace ClickUp.Api.Client.Models.RequestModels.Tasks
         [property: JsonPropertyName("start_date")] long? StartDate, // Unix timestamp in milliseconds
         [property: JsonPropertyName("start_date_time")] bool? StartDateTime, // If false, start_date is treated as an all-day task
         [property: JsonPropertyName("notify_all")] bool? NotifyAll,
-        [property: JsonPropertyName("parent")] string? Parent, // Task ID of the parent task
-        [property: JsonPropertyName("links_to")] string? LinksTo, // Task ID to link to
+        [property: JsonPropertyName("parent")] string? Parent, // CuTask ID of the parent task
+        [property: JsonPropertyName("links_to")] string? LinksTo, // CuTask ID to link to
         [property: JsonPropertyName("check_required_custom_fields")] bool? CheckRequiredCustomFields,
         [property: JsonPropertyName("custom_fields")] List<CustomTaskFieldToSet>? CustomFields,
         [property: JsonPropertyName("custom_item_id")] long? CustomItemId, // For use with an external system's ID, requires `custom_task_ids` Space feature

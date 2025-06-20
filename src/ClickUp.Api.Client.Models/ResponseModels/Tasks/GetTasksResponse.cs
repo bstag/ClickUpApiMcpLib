@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Entities.Tasks; // For Task entity
+using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask entity
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Tasks
 {

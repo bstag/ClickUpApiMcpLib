@@ -24,7 +24,7 @@ public record ChatMessage
     public string Type { get; init; }
 
     [JsonPropertyName("user")]
-    public User User { get; init; } // From Common.User
+    public ComUser User { get; init; } // From Common.User
 
     [JsonPropertyName("date")]
     public long Date { get; init; } // Unix timestamp
@@ -87,7 +87,7 @@ public record ChatMessage
     public long? PinnedAt { get; init; } // Nullable Unix timestamp
 
     [JsonPropertyName("pinned_by")]
-    public User? PinnedBy { get; init; } // From Common.User
+    public ComUser? PinnedBy { get; init; } // From Common.User
 
     [JsonPropertyName("system_event_type")]
     public string? SystemEventType { get; init; }

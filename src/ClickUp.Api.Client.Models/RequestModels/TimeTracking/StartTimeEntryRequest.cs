@@ -9,7 +9,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.TimeTracking
     (
         [property: JsonPropertyName("description")] string? Description,
         [property: JsonPropertyName("tags")] List<TimeTrackingTagDefinition>? Tags,
-        [property: JsonPropertyName("tid")] string? TaskId, // Task ID to associate with this timer. Can be null.
+        [property: JsonPropertyName("tid")] string? TaskId, // CuTask ID to associate with this timer. Can be null.
         [property: JsonPropertyName("billable")] bool? Billable,
         [property: JsonPropertyName("wid")] string? WorkspaceId, // Workspace ID. Often inferred from token, but can be specified.
         [property: JsonPropertyName("pid")] int? ProjectId_Legacy, // Legacy project ID, if applicable. Use `tid` for tasks.

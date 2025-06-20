@@ -41,7 +41,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         // /// <param name="taskId">The ID of the task.</param>
         // /// <param name="cancellationToken">Cancellation token.</param>
         // /// <returns>A list of attachments for the task.</returns>
-        // Task<IEnumerable<Attachment>> GetTaskAttachmentsAsync(string taskId, CancellationToken cancellationToken = default);
+        // CuTask<IEnumerable<Attachment>> GetTaskAttachmentsAsync(string taskId, CancellationToken cancellationToken = default);
 
         // Placeholder for DeleteTaskAttachmentAsync if the API supports it
         // /// <summary>
@@ -51,6 +51,6 @@ namespace ClickUp.Api.Client.Abstractions.Services
         // /// <param name="attachmentId">The ID of the attachment to delete.</param>
         // /// <param name="cancellationToken">Cancellation token.</param>
         // /// <returns>An awaitable task representing the asynchronous operation.</returns>
-        // System.Threading.Tasks.Task DeleteTaskAttachmentAsync(string taskId, string attachmentId, CancellationToken cancellationToken = default);
+        // System.Threading.Tasks.CuTask DeleteTaskAttachmentAsync(string taskId, string attachmentId, CancellationToken cancellationToken = default);
     }
 }

@@ -59,7 +59,7 @@ namespace ClickUp.Api.Client.Tests.Services
         }
 
         // Note: ICustomFieldsService.GetAccessibleCustomFieldsAsync takes listId.
-        // The prompt mentioned testing for Task, but the interface method is specific to List.
+        // The prompt mentioned testing for CuTask, but the interface method is specific to List.
         // If there was a GetTaskCustomFieldsAsync, a similar test would be added for it.
         // For now, I will test GetFolderCustomFieldsAsync as another example of a 'Get * Collection' method.
 
@@ -97,7 +97,7 @@ namespace ClickUp.Api.Client.Tests.Services
             var requestDto = new SetCustomFieldValueRequest("some value"); // Assuming simple constructor
             var expectedEndpoint = $"task/{taskId}/field/{fieldId}";
 
-            _mockApiConnection.Setup(c => c.PostAsync<SetCustomFieldValueRequest>( // Service method returns Task (void)
+            _mockApiConnection.Setup(c => c.PostAsync<SetCustomFieldValueRequest>( // Service method returns CuTask (void)
                 expectedEndpoint,
                 requestDto,
                 It.IsAny<CancellationToken>()))

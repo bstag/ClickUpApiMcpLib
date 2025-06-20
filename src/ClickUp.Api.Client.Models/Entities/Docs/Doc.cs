@@ -8,6 +8,6 @@ namespace ClickUp.Api.Client.Models.Entities.Docs
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("workspace_id")] string WorkspaceId,
-        [property: JsonPropertyName("creator")] User? Creator // Assuming Creator can be nullable
+        [property: JsonPropertyName("creator")] ComUser? Creator // Assuming Creator can be nullable
     );
 }

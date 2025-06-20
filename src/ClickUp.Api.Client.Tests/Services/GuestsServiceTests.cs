@@ -130,7 +130,7 @@ namespace ClickUp.Api.Client.Tests.Services
             var taskId = "test-task-id";
             var guestId = "guest-to-add-to-task";
             var requestDto = new AddGuestToItemRequest("read"); // Example permission
-            var sampleGuest = CreateSampleGuest(guestId, "Guest Added To Task");
+            var sampleGuest = CreateSampleGuest(guestId, "Guest Added To CuTask");
             var expectedResponse = CreateSampleGetGuestResponse(sampleGuest);
 
             var expectedEndpointPrefix = $"task/{taskId}/guest/{guestId}";

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models; // Assuming Member is in ClickUp.Api.Client.Models
+using ClickUp.Api.Client.Models;
+using ClickUp.Api.Client.Models.Common; // Assuming Member is in ClickUp.Api.Client.Models
 
 namespace ClickUp.Api.Client.Models.Entities.UserGroups;
 

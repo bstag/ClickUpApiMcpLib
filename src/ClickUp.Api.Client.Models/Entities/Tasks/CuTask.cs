@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Common; // For User, Status, Priority, Tag, Checklist
+using ClickUp.Api.Client.Models.Common;
+using ClickUp.Api.Client.Models.Entities.Checklists; // For User, Status, Priority, Tag, Checklist
 using ClickUp.Api.Client.Models.Entities.CustomFields; // For CustomFieldValue (if it's in this namespace)
                                                        // If CustomFieldValue is in Entities, then using ClickUp.Api.Client.Models.Entities; is fine.
 using ClickUp.Api.Client.Models.Entities.Lists;   // For List (simplified)
 using ClickUp.Api.Client.Models.Entities.Folders; // For Folder (simplified)
-using ClickUp.Api.Client.Models.Entities.Spaces;  // For Space (simplified)
+using ClickUp.Api.Client.Models.Entities.Spaces;
+using ClickUp.Api.Client.Models.Entities.Tags; // For Space (simplified)
 
 
 // Assuming CustomFieldValue is in ClickUp.Api.Client.Models.Entities namespace based on previous steps
@@ -14,14 +16,14 @@ using ClickUp.Api.Client.Models.Entities.Spaces;  // For Space (simplified)
 
 namespace ClickUp.Api.Client.Models.Entities.Tasks
 {
-    // Simplified references for List, Folder, Space within a Task to avoid circular dependencies or overly complex objects.
+    // Simplified references for List, Folder, Space within a CuTask to avoid circular dependencies or overly complex objects.
     // These should contain minimal info like ID and Name. The full entities are defined elsewhere.
     public record TaskListReference([property: JsonPropertyName("id")] string Id, [property: JsonPropertyName("name")] string? Name, [property: JsonPropertyName("access")] bool? Access);
     public record TaskFolderReference([property: JsonPropertyName("id")] string Id, [property: JsonPropertyName("name")] string? Name, [property: JsonPropertyName("access")] bool? Access);
     public record TaskSpaceReference([property: JsonPropertyName("id")] string Id);
 
 
-    public record Task
+    public record CuTask
     (
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("custom_id")] string? CustomId,
@@ -36,14 +38,14 @@ namespace ClickUp.Api.Client.Models.Entities.Tasks
         [property: JsonPropertyName("date_updated")] string? DateUpdated, // Timestamp as string
         [property: JsonPropertyName("date_closed")] string? DateClosed, // Timestamp as string
         [property: JsonPropertyName("archived")] bool? Archived,
-        [property: JsonPropertyName("creator")] User? Creator,
-        [property: JsonPropertyName("assignees")] List<User>? Assignees,
+        [property: JsonPropertyName("creator")] ComUser? Creator,
+        [property: JsonPropertyName("assignees")] List<ComUser>? Assignees,
         [property: JsonPropertyName("group_assignees")] List<UserGroup>? GroupAssignees, // Requires UserGroup record
-        [property: JsonPropertyName("watchers")] List<User>? Watchers,
+        [property: JsonPropertyName("watchers")] List<ComUser>? Watchers,
         [property: JsonPropertyName("checklists")] List<Checklist>? Checklists,
         [property: JsonPropertyName("tags")] List<Tag>? Tags,
         [property: JsonPropertyName("parent")] string? Parent, // ID of parent task
-        [property: JsonPropertyName("priority")] Priority? Priority, // Task's priority object
+        [property: JsonPropertyName("priority")] Priority? Priority, // CuTask's priority object
         [property: JsonPropertyName("due_date")] string? DueDate, // Timestamp as string
         [property: JsonPropertyName("start_date")] string? StartDate, // Timestamp as string
         [property: JsonPropertyName("points")] double? Points, // Estimate points

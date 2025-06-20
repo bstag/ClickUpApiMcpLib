@@ -9,5 +9,5 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Tasks;
 public record class AddTaskLinkResponse
 (
     [property: JsonPropertyName("task")]
-    Task Task
+    CuTask Task
 );

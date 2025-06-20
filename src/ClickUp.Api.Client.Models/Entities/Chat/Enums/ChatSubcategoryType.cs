@@ -26,7 +26,7 @@ public enum ChatSubcategoryType
     FormComments,
 
     /// <summary>
-    /// Task comments subcategory type.
+    /// CuTask comments subcategory type.
     /// </summary>
     [EnumMember(Value = "task_comments")]
     TaskComments,

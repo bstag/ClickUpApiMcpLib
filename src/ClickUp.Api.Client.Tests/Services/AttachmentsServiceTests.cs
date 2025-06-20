@@ -10,6 +10,7 @@ using System.IO; // For MemoryStream
 using System.Net.Http; // For MultipartFormDataContent
 using System;
 using System.Linq;
+using ClickUp.Api.Client.Models.Entities.Attachments;
 
 namespace ClickUp.Api.Client.Tests.Services
 {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // Assuming Task DTO is here
+using ClickUp.Api.Client.Models.Entities; // Assuming CuTask DTO is here
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Represents the Task Relationships operations in the ClickUp API, such as dependencies and links.
+    /// Represents the CuTask Relationships operations in the ClickUp API, such as dependencies and links.
     /// </summary>
     /// <remarks>
     /// Based on endpoints like:

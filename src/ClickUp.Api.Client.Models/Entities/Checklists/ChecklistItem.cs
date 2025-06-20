@@ -9,7 +9,7 @@ namespace ClickUp.Api.Client.Models.Entities.Checklists
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("orderindex")] int OrderIndex,
-        [property: JsonPropertyName("assignee")] User? Assignee,
+        [property: JsonPropertyName("assignee")] ComUser? Assignee,
         [property: JsonPropertyName("resolved")] bool Resolved,
         [property: JsonPropertyName("parent")] string? Parent, // Nullable if it's a top-level item
         [property: JsonPropertyName("date_created")] string? DateCreated, // Assuming string, OpenAPI spec might specify DateTimeOffset

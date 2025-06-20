@@ -14,7 +14,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.TimeTracking
                                                                     // If "add" or "remove", 'tags' contains the tags to add/remove.
         [property: JsonPropertyName("start")] long? Start, // Unix timestamp in milliseconds for the start of the entry
         [property: JsonPropertyName("end")] long? End,     // Unix timestamp in milliseconds for the end of the entry
-        [property: JsonPropertyName("tid")] string? TaskId, // Task ID to associate/re-associate with this time entry
+        [property: JsonPropertyName("tid")] string? TaskId, // CuTask ID to associate/re-associate with this time entry
         [property: JsonPropertyName("billable")] bool? Billable,
         [property: JsonPropertyName("duration")] int? Duration, // Duration in milliseconds. API might recalculate if start/end change.
         [property: JsonPropertyName("assignee")] int? Assignee, // User ID. To change the user this time entry is for.
