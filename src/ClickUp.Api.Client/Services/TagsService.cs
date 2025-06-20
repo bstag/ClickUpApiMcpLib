@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Tags;
 using ClickUp.Api.Client.Models.RequestModels;
 using ClickUp.Api.Client.Models.ResponseModels; // Assuming GetTagsResponse and EditTagResponse exist
 

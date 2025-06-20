@@ -1,18 +1,24 @@
-using Xunit;
-using Moq;
-using FluentAssertions;
-using ClickUp.Api.Client.Services;
 using ClickUp.Api.Client.Abstractions.Http; // For IApiConnection
+using ClickUp.Api.Client.Models;
 using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.RequestModels;
-using ClickUp.Api.Client.Models.ResponseModels.Authorization;
-using ClickUp.Api.Client.Models.ResponseModels; // For GetAuthorizedWorkspacesResponse if it's there
-using System.Threading.Tasks;
-using System.Threading;
-using System.Collections.Generic;
-using System;
-using System.Linq;
 using ClickUp.Api.Client.Models.Entities.Users;
+using ClickUp.Api.Client.Models.RequestModels;
+using ClickUp.Api.Client.Models.RequestModels.Authorization;
+using ClickUp.Api.Client.Models.ResponseModels; // For GetAuthorizedWorkspacesResponse if it's there
+using ClickUp.Api.Client.Models.ResponseModels.Authorization;
+using ClickUp.Api.Client.Services;
+
+using FluentAssertions;
+
+using Moq;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Xunit;
 
 namespace ClickUp.Api.Client.Tests.Services
 {
@@ -36,10 +42,10 @@ namespace ClickUp.Api.Client.Tests.Services
             return user;
         }
 
-        private Workspace CreateSampleWorkspace(string id, string name)
+        private ClickUpWorkspace CreateSampleWorkspace(string id, string name)
         {
-            var ws = (Workspace)Activator.CreateInstance(typeof(Workspace), nonPublic: true)!;
-            var props = typeof(Workspace).GetProperties();
+            var ws = (ClickUpWorkspace)Activator.CreateInstance(typeof(ClickUpWorkspace), nonPublic: true)!;
+            var props = typeof(ClickUpWorkspace).GetProperties();
             props.FirstOrDefault(p => p.Name == "Id")?.SetValue(ws, id);
             props.FirstOrDefault(p => p.Name == "Name")?.SetValue(ws, name);
             return ws;
@@ -60,11 +66,11 @@ namespace ClickUp.Api.Client.Tests.Services
             return instance;
         }
 
-        private GetAuthorizedWorkspacesResponse CreateSampleGetAuthorizedWorkspacesResponse(List<Workspace> workspaces)
+        private GetAuthorizedWorkspacesResponse CreateSampleGetAuthorizedWorkspacesResponse(List<ClickUpWorkspace> workspaces)
         {
              var responseType = typeof(GetAuthorizedWorkspacesResponse);
             var constructor = responseType.GetConstructors().FirstOrDefault(c =>
-                c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(List<Workspace>));
+                c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(List<ClickUpWorkspace>));
             if (constructor != null)
             {
                 return (GetAuthorizedWorkspacesResponse)constructor.Invoke(new object[] { workspaces });
@@ -123,7 +129,7 @@ namespace ClickUp.Api.Client.Tests.Services
         public async Task GetAuthorizedWorkspacesAsync_WhenWorkspacesExist_ReturnsWorkspaces()
         {
             // Arrange
-            var sampleWorkspaces = new List<Workspace> { CreateSampleWorkspace("ws1", "Workspace 1") };
+            var sampleWorkspaces = new List<ClickUpWorkspace> { CreateSampleWorkspace("ws1", "Workspace 1") };
             var expectedResponse = CreateSampleGetAuthorizedWorkspacesResponse(sampleWorkspaces);
 
             _mockApiConnection.Setup(c => c.GetAsync<GetAuthorizedWorkspacesResponse>(
