@@ -1,12 +1,16 @@
 using System.Text.Json.Serialization;
+using ClickUp.Api.Client.Models.RequestModels.CustomFields;
 
 namespace ClickUp.Api.Client.Models.RequestModels.CustomFields.Values;
 
-/// <summary>
-/// Represents the request model for setting a people custom field value.
-/// </summary>
-public record class PeopleCustomFieldValueRequest
-(
-    [property: JsonPropertyName("value")]
-    PeopleRelationshipActionValue Value
-);
+public class PeopleCustomFieldValueRequest : SetCustomFieldValueRequest
+{
+    [JsonPropertyName("value")]
+    public PeopleRelationshipActionValue Value { get; set; } // Assuming PeopleRelationshipActionValue is a defined type
+
+    public PeopleCustomFieldValueRequest(PeopleRelationshipActionValue value)
+    {
+        Value = value;
+    }
+    public PeopleCustomFieldValueRequest() { /* Value will be initialized by deserializer or needs default if used directly */ }
+}

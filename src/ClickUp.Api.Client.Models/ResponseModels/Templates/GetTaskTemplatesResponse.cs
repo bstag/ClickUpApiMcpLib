@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ClickUp.Api.Client.Models.Entities.Templates;
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Templates;
 
@@ -9,5 +10,5 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Templates;
 public record class GetTaskTemplatesResponse
 (
     [property: JsonPropertyName("templates")]
-    List<string> Templates // Assuming template details might be more complex later, but string for now as per schema
+    List<TaskTemplate> Templates
 );

@@ -67,8 +67,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="docId">The ID of the Doc.</param>
         /// <param name="maxPageDepth">Optional. Maximum depth to retrieve pages and subpages.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="PageListingItem"/> objects.</returns>
-        Task<IEnumerable<PageListingItem>> GetDocPageListingAsync(
+        /// <returns>A list of <see cref="DocPageListingItem"/> objects.</returns>
+        Task<IEnumerable<DocPageListingItem>> GetDocPageListingAsync(
             string workspaceId,
             string docId,
             int? maxPageDepth = null,
@@ -126,14 +126,14 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="workspaceId">The ID of the Workspace.</param>
         /// <param name="docId">The ID of the Doc.</param>
         /// <param name="pageId">The ID of the page to edit.</param>
-        /// <param name="updatePageRequest">Details for editing the page.</param>
+        /// <param name="updatePageRequest">Details for editing the page using <see cref="EditPageRequest"/>.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
         System.Threading.Tasks.Task EditPageAsync(
             string workspaceId,
             string docId,
             string pageId,
-            UpdatePageRequest updatePageRequest,
+            EditPageRequest updatePageRequest,
             CancellationToken cancellationToken = default);
     }
 }

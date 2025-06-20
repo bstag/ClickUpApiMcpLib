@@ -1,13 +1,17 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ClickUp.Api.Client.Models.RequestModels.CustomFields;
 
 namespace ClickUp.Api.Client.Models.RequestModels.CustomFields.Values;
 
-/// <summary>
-/// Represents the request model for setting a label custom field value.
-/// </summary>
-public record class LabelCustomFieldValueRequest
-(
-    [property: JsonPropertyName("value")]
-    List<string> Value
-);
+public class LabelCustomFieldValueRequest : SetCustomFieldValueRequest
+{
+    [JsonPropertyName("value")]
+    public List<string> Value { get; set; }
+
+    public LabelCustomFieldValueRequest(List<string> value)
+    {
+        Value = value;
+    }
+    public LabelCustomFieldValueRequest() { Value = new List<string>(); } // Ensure list is initialized
+}

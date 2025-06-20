@@ -1,12 +1,16 @@
 using System.Text.Json.Serialization;
+using ClickUp.Api.Client.Models.RequestModels.CustomFields;
 
 namespace ClickUp.Api.Client.Models.RequestModels.CustomFields.Values;
 
-/// <summary>
-/// Represents the request model for setting a manual progress custom field value.
-/// </summary>
-public record class ManualProgressCustomFieldValueRequest
-(
-    [property: JsonPropertyName("value")]
-    ManualProgressValue Value
-);
+public class ManualProgressCustomFieldValueRequest : SetCustomFieldValueRequest
+{
+    [JsonPropertyName("value")]
+    public ManualProgressValue Value { get; set; } // Assuming ManualProgressValue is a defined type
+
+    public ManualProgressCustomFieldValueRequest(ManualProgressValue value)
+    {
+        Value = value;
+    }
+    public ManualProgressCustomFieldValueRequest() { /* Value will be initialized by deserializer or needs default if used directly */ }
+}

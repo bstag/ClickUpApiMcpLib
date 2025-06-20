@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.Entities.Users; // Assuming Guest, TeamMember DTOs are here
+using ClickUp.Api.Client.Models.Entities.Users; // Assuming Guest DTO is here
 using ClickUp.Api.Client.Models.RequestModels.Guests; // Assuming Request DTOs are here
+using ClickUp.Api.Client.Models.ResponseModels.Guests; // For InviteGuestToWorkspaceResponse
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -27,8 +27,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="inviteGuestRequest">Details for inviting the guest.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains details of the invited guest, often as a <see cref="TeamMember"/> or similar structure reflecting their addition to the team.</returns>
-        Task<TeamMember> InviteGuestToWorkspaceAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains details of the invited guest, typically including the user/guest object and their role via <see cref="InviteGuestToWorkspaceResponse"/>.</returns>
+        Task<InviteGuestToWorkspaceResponse> InviteGuestToWorkspaceAsync(
             string workspaceId,
             InviteGuestToWorkspaceRequest inviteGuestRequest,
             CancellationToken cancellationToken = default);
@@ -51,13 +51,13 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="guestId">The ID of the guest.</param>
-        /// <param name="updateGuestRequest">Details for editing the guest's permissions or properties.</param>
+        /// <param name="updateGuestRequest">Details for editing the guest's permissions or properties using <see cref="EditGuestOnWorkspaceRequest"/>.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="Guest"/> details.</returns>
         Task<Guest> EditGuestOnWorkspaceAsync(
             string workspaceId,
             string guestId,
-            UpdateGuestRequest updateGuestRequest,
+            EditGuestOnWorkspaceRequest updateGuestRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>
