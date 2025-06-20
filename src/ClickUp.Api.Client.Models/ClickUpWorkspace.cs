@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using ClickUp.Api.Client.Models.Entities.Users;
+using ClickUp.Api.Client.Models.Common; // For Member
+using ClickUp.Api.Client.Models.Entities.Users; // For User, if used elsewhere or as a general good practice
 
 namespace ClickUp.Api.Client.Models;
 
@@ -12,5 +13,5 @@ public record ClickUpWorkspace
     public string Name { get; init; } = string.Empty;
     public string? Color { get; init; }
     public string? Avatar { get; init; }
-    public List<User>? Members { get; init; } // Assuming User model is already defined
+    public List<Member>? Members { get; init; } // Changed from List<User> to List<Member>
 }

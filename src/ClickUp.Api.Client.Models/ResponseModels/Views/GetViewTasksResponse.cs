@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Entities.Tasks;
+using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Views;
 
@@ -10,7 +10,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Views;
 public record class GetViewTasksResponse
 (
     [property: JsonPropertyName("tasks")]
-    List<Task> Tasks,
+    List<CuTask> Tasks, // Changed from List<Task>
 
     [property: JsonPropertyName("last_page")]
     bool LastPage

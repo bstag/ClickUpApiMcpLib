@@ -36,12 +36,12 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Creates a new task Tag in a Space.
         /// </summary>
         /// <param name="spaceId">The ID of the Space.</param>
-        /// <param name="createSpaceTagRequest">Details of the Tag to create.</param>
+        /// <param name="modifyTagRequest">Details of the Tag to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
         System.Threading.Tasks.Task CreateSpaceTagAsync(
             string spaceId,
-            CreateSpaceTagRequest createSpaceTagRequest,
+            ModifyTagRequest modifyTagRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -49,13 +49,13 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="spaceId">The ID of the Space.</param>
         /// <param name="tagName">The original name of the Tag to edit.</param>
-        /// <param name="editSpaceTagRequest">Details for updating the Tag (e.g., new name, colors).</param>
+        /// <param name="modifyTagRequest">Details for updating the Tag (e.g., new name, colors).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The updated <see cref="Tag"/> details.</returns>
         Task<Tag> EditSpaceTagAsync(
             string spaceId,
             string tagName,
-            EditSpaceTagRequest editSpaceTagRequest,
+            ModifyTagRequest modifyTagRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>

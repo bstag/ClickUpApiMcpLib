@@ -34,8 +34,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="View"/> objects at the Workspace level.</returns>
-        Task<IEnumerable<View>> GetWorkspaceViewsAsync(
+        /// <returns>A <see cref="GetViewsResponse"/> object containing a list of views at the Workspace level.</returns>
+        Task<GetViewsResponse> GetWorkspaceViewsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
 
@@ -45,8 +45,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="createViewRequest">Details of the View to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="View"/>.</returns>
-        Task<View> CreateWorkspaceViewAsync(
+        /// <returns>A <see cref="CreateTeamViewResponse"/> object containing the created view.</returns>
+        Task<CreateTeamViewResponse> CreateWorkspaceViewAsync(
             string workspaceId,
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default);
@@ -56,8 +56,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="spaceId">The ID of the Space.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="View"/> objects in the Space.</returns>
-        Task<IEnumerable<View>> GetSpaceViewsAsync(
+        /// <returns>A <see cref="GetViewsResponse"/> object containing a list of views in the Space.</returns>
+        Task<GetViewsResponse> GetSpaceViewsAsync(
             string spaceId,
             CancellationToken cancellationToken = default);
 
@@ -67,8 +67,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="spaceId">The ID of the Space.</param>
         /// <param name="createViewRequest">Details of the View to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="View"/>.</returns>
-        Task<View> CreateSpaceViewAsync(
+        /// <returns>A <see cref="CreateSpaceViewResponse"/> object containing the created view.</returns>
+        Task<CreateSpaceViewResponse> CreateSpaceViewAsync(
             string spaceId,
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default);
@@ -78,8 +78,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="folderId">The ID of the Folder.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="View"/> objects in the Folder.</returns>
-        Task<IEnumerable<View>> GetFolderViewsAsync(
+        /// <returns>A <see cref="GetViewsResponse"/> object containing a list of views in the Folder.</returns>
+        Task<GetViewsResponse> GetFolderViewsAsync(
             string folderId,
             CancellationToken cancellationToken = default);
 
@@ -89,8 +89,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="folderId">The ID of the Folder.</param>
         /// <param name="createViewRequest">Details of the View to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="View"/>.</returns>
-        Task<View> CreateFolderViewAsync(
+        /// <returns>A <see cref="CreateFolderViewResponse"/> object containing the created view.</returns>
+        Task<CreateFolderViewResponse> CreateFolderViewAsync(
             string folderId,
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default);
@@ -100,8 +100,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="listId">The ID of the List.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="View"/> objects in the List.</returns>
-        Task<IEnumerable<View>> GetListViewsAsync(
+        /// <returns>A <see cref="GetViewsResponse"/> object containing a list of views in the List.</returns>
+        Task<GetViewsResponse> GetListViewsAsync(
             string listId,
             CancellationToken cancellationToken = default);
 
@@ -111,8 +111,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="listId">The ID of the List.</param>
         /// <param name="createViewRequest">Details of the View to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="View"/>.</returns>
-        Task<View> CreateListViewAsync(
+        /// <returns>A <see cref="CreateListViewResponse"/> object containing the created view.</returns>
+        Task<CreateListViewResponse> CreateListViewAsync(
             string listId,
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default);
@@ -122,8 +122,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="viewId">The ID of the View.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>Details of the <see cref="View"/>.</returns>
-        Task<View> GetViewAsync(
+        /// <returns>A <see cref="GetViewResponse"/> object containing details of the view.</returns>
+        Task<GetViewResponse> GetViewAsync(
             string viewId,
             CancellationToken cancellationToken = default);
 
@@ -133,8 +133,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="viewId">The ID of the View.</param>
         /// <param name="updateViewRequest">Details for updating the View.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The updated <see cref="View"/>.</returns>
-        Task<View> UpdateViewAsync(
+        /// <returns>A <see cref="UpdateViewResponse"/> object containing the updated view.</returns>
+        Task<UpdateViewResponse> UpdateViewAsync(
             string viewId,
             UpdateViewRequest updateViewRequest,
             CancellationToken cancellationToken = default);
