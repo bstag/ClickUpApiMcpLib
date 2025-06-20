@@ -28,3 +28,7 @@ This document outlines the C# interfaces for abstracting the ClickUp API.
 - [x] IWebhooksService
 - [x] IDocsService
 - [x] IChatService
+
+
+---
+**Update (YYYY-MM-DD):** All interfaces listed above have been refined. Specific DTOs are now used, parameter types are corrected, CancellationToken is included, namespaces are standardized, and XML documentation has been updated. This phase of interface definition and refinement is complete.

@@ -3,43 +3,46 @@
 This file contains specific notes, conventions, and information Jules needs to remember about this repository and the ongoing tasks.
 
 ## Project Overview & Goals
-- Objective: Develop a .NET client library for the ClickUp API.
-- Current Phase: Model creation based on OpenAPI specification (`docs/OpenApiSpec/ClickUp-6-17-25.json`).
-- Conceptual Plan: `docs/plans/01-core-models-conceptual.md` (guides naming, C# type mapping, etc.).
-- Implementation Tracking: `docs/plans/01-core-models-actual.md` (tracks specific schemas and their completion status).
+- Objective: Develop a professional-grade .NET client library for the ClickUp API, incorporating best practices for design, resilience, developer experience, and AI integration.
+- Current Phase: Finalizing Core Contracts (Refining Service Interfaces) and Updating Documentation.
+- Master Plan: `docs/plans/geminiPlan.md` (provides comprehensive architectural guidance).
+- Consolidated Operational Plan: `docs/plans/NEW_OVERALL_PLAN.md` (this is the plan currently being executed).
+- OpenAPI Spec: `docs/OpenApiSpec/ClickUp-6-17-25.json`.
 
-## Development Process
+## Current Project State:
+- **Models (`src/ClickUp.Api.Client.Models`):** Considered complete as per `docs/plans/01-core-models-actual.md`.
+- **Service Interfaces (`src/ClickUp.Api.Client.Abstractions`):** Defined, but require refinement to use concrete DTOs instead of generic `object` types and to ensure parameter correctness. `docs/plans/02-abstractions-interfaces-actual.md` tracks their existence.
+- **Service Implementations (`src/ClickUp.Api.Client`):** Not yet started. The `Services` folder is currently empty.
+- **`ClickUp.Net.Abstractions`:** This path appears to be deprecated or non-existent. The focus is on `ClickUp.Api.Client.Abstractions`.
 
-1.  **Model Creation**: Implement C# models based on the OpenAPI specification.
-    *   Group models into folders based on their purpose and the base endpoint type they are for.
-2.  **Service Implementation**: Create services to interact with the API endpoints.
-3.  **Interface Definitions**: Define abstractions for models and services.
-4.  **Helper Utilities**: Develop any necessary helper functions.
-5.  **Exception Handling**: Implement a global exception handling system.
-6.  **Testing**: Write unit tests for the client library.
-7.  **Example Projects**: Create example console and worker projects to demonstrate usage.
+## Current Task:
+- Following the consolidated plan approved by the user.
+- Current Step: "Refine Service Interfaces in `ClickUp.Api.Client.Abstractions`" (after this initial documentation update step is complete).
 
-## Key Decisions & Progress
-- (YYYY-MM-DD HH:MM:SS (Placeholder)): Successfully implemented P0, P1, and numerous P2 models from `01-core-models-actual.md`. This includes core entities, request/response wrappers, and helper DTOs/enums for features like Tasks, Folders, Spaces, Goals, Custom Fields, Time Tracking, Webhooks, v3 Docs, and v3 Chat.
-- Folder Structure: Models are organized under `src/ClickUp.Api.Client.Models/` into `Common/`, `Entities/`, `RequestModels/`, and `ResponseModels/`, further categorized by feature (e.g., `Entities/Tasks`, `RequestModels/Goals`).
-- Logging: User prompts are logged in `docs/prompts.md`. This file (`jules.md`) tracks project notes and context.
-- Next Steps (Post Model Implementation): The overall project plan involves developing abstractions, service implementations for API endpoints, HTTP client helpers, and a global exception handling system.
-- (YYYY-MM-DD HH:MM:SS UTC - Note: Dynamic timestamp failed): Completed the extensive model creation phase (Steps 3-22 of the plan of 2024-06-20). All listed P0, P1, P2, and relevant P3 models from `docs/plans/01-core-models-actual.md` have been implemented, including request/response DTOs and specific helper types for various API features like Attachments, Checklists, Comments, Custom Fields, Task Relationships, Folders, Guest Management, Lists, Member/Roles, Shared Hierarchy, Space Tags, Task Templates, Legacy Time Tracking, Time Entry Tags, User Management, Views, Workspace Plan/Seats, User Groups, and initial V3 API models (Audit Logs, Privacy/Access). The `User.cs` entity was also created/updated as part of this process.
-
-## Important Files & Directories:
+## Key Files & Directories:
 - OpenAPI Spec: `docs/OpenApiSpec/ClickUp-6-17-25.json`
-- Conceptual Model Plan: `docs/plans/01-core-models-conceptual.md`
-- Actual Model Plan / Implementation Tracking: `docs/plans/01-core-models-actual.md`
+- Master Conceptual Plan: `docs/plans/geminiPlan.md`
+- Current Operational Plan: `docs/plans/NEW_OVERALL_PLAN.md` (contains the detailed plan Jules is following)
+- Model Implementation Tracking: `docs/plans/01-core-models-actual.md`
+- Interface Implementation Tracking: `docs/plans/02-abstractions-interfaces-actual.md`
 - This file (Project Notes): `jules.md`
 - Prompt history: `docs/prompts.md`
-- Main model directory: `src/ClickUp.Api.Client.Models/`
-- Client library source (future): `src/ClickUp.Api.Client/`
-- Abstractions (future): `src/ClickUp.Api.Client.Abstractions/`
-- Test Project (future): `tests/ClickUp.Api.Client.Tests/`
-- Example Projects (future): `examples/`
+- Models: `src/ClickUp.Api.Client.Models/`
+- Abstractions: `src/ClickUp.Api.Client.Abstractions/`
+- Client Implementation: `src/ClickUp.Api.Client/`
+- Tests: `src/ClickUp.Api.Client.Tests/`
+- Examples: `examples/`
 
-## Current Task Context (from last user prompt):
-The primary task of creating all planned C# models for the ClickUp API client library, as outlined in `docs/plans/01-core-models-actual.md` and guided by `docs/plans/01-core-models-conceptual.md`, is now complete. This involved implementing entities, request/response DTOs, and helper types, and organizing them into the `src/ClickUp.Api.Client.Models/` directory structure.
-
-## Current Focus
-Model creation phase is complete. Awaiting next steps which, according to the original high-level plan, would involve developing abstractions, service implementations, HTTP client helpers, etc.
+## Notes on `geminiPlan.md`:
+The `geminiPlan.md` is the primary source for architectural principles, including:
+- SOLID principles, Facade, Strategy, Builder, Observer patterns.
+- Fluent interfaces for usability.
+- Clean Architecture (Abstractions, Client, Examples projects).
+- `IHttpClientFactory`, Polly for resilience.
+- Custom exception hierarchy.
+- Authentication (Personal Token, OAuth 2.0).
+- Pagination, async streaming.
+- Webhook helpers.
+- DocFX for documentation.
+- AI integration (Semantic Kernel, MCP).
+The new consolidated plan aims to implement these aspects systematically.

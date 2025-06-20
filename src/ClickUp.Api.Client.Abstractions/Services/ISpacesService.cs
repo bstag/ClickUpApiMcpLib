@@ -1,63 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.Entities; // Assuming Space DTO is here
+using ClickUp.Api.Client.Models.RequestModels.Spaces; // Assuming Request DTOs are here
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
-
-    // Represents the Spaces operations in the ClickUp API
-    // Based on endpoints like:
-    // - GET /v2/team/{team_id}/space
-    // - POST /v2/team/{team_id}/space
-    // - GET /v2/space/{space_id}
-    // - PUT /v2/space/{space_id}
-    // - DELETE /v2/space/{space_id}
-
+    /// <summary>
+    /// Represents the Spaces operations in the ClickUp API.
+    /// </summary>
+    /// <remarks>
+    /// Based on endpoints like:
+    /// - GET /v2/team/{team_id}/space
+    /// - POST /v2/team/{team_id}/space
+    /// - GET /v2/space/{space_id}
+    /// - PUT /v2/space/{space_id}
+    /// - DELETE /v2/space/{space_id}
+    /// </remarks>
     public interface ISpacesService
     {
         /// <summary>
         /// Retrieves Spaces available in a specific Workspace.
         /// </summary>
-        /// <param name="workspaceId">The ID of the Workspace (team_id).</param>
+        /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="archived">Optional. Whether to include archived Spaces.</param>
-        /// <returns>A list of Spaces in the Workspace.</returns>
-        Task<IEnumerable<object>> GetSpacesAsync(double workspaceId, bool? archived = null);
-        // Note: Return type should be IEnumerable<SpaceDto>.
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A list of <see cref="Space"/> objects in the Workspace.</returns>
+        Task<IEnumerable<Space>> GetSpacesAsync(
+            string workspaceId,
+            bool? archived = null,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates a new Space in a Workspace.
         /// </summary>
-        /// <param name="workspaceId">The ID of the Workspace (team_id).</param>
+        /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="createSpaceRequest">Details of the Space to create.</param>
-        /// <returns>The created Space.</returns>
-        Task<object> CreateSpaceAsync(double workspaceId, object createSpaceRequest);
-        // Note: createSpaceRequest should be CreateSpaceRequest, return type should be SpaceDto.
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The created <see cref="Space"/>.</returns>
+        Task<Space> CreateSpaceAsync(
+            string workspaceId,
+            CreateSpaceRequest createSpaceRequest,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves details of a specific Space.
         /// </summary>
         /// <param name="spaceId">The ID of the Space.</param>
-        /// <returns>Details of the Space.</returns>
-        Task<object> GetSpaceAsync(double spaceId);
-        // Note: Return type should be SpaceDto.
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Details of the <see cref="Space"/>.</returns>
+        Task<Space> GetSpaceAsync(
+            string spaceId,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Updates a Space.
         /// </summary>
         /// <param name="spaceId">The ID of the Space.</param>
         /// <param name="updateSpaceRequest">Details for updating the Space.</param>
-        /// <returns>The updated Space.</returns>
-        Task<object> UpdateSpaceAsync(double spaceId, object updateSpaceRequest);
-        // Note: updateSpaceRequest should be UpdateSpaceRequest, return type should be SpaceDto.
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The updated <see cref="Space"/>.</returns>
+        Task<Space> UpdateSpaceAsync(
+            string spaceId,
+            UpdateSpaceRequest updateSpaceRequest,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes a Space.
         /// </summary>
         /// <param name="spaceId">The ID of the Space to delete.</param>
-        /// <returns>An awaitable task representing the asynchronous operation.</returns>
-        Task DeleteSpaceAsync(double spaceId);
-        // Note: API returns 200 with an empty object.
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        System.Threading.Tasks.Task DeleteSpaceAsync(
+            string spaceId,
+            CancellationToken cancellationToken = default);
     }
 }
