@@ -6,7 +6,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Tasks
 {
     public record GetTasksResponse
     (
-        [property: JsonPropertyName("tasks")] List<Task> Tasks,
-        [property: JsonPropertyName("last_page")] bool? LastPage // For pagination if supported by the specific endpoint
+        [property: JsonPropertyName("tasks")] List<CuTask> Tasks, // Changed from List<Task>
+        [property: JsonPropertyName("last_page")] bool? LastPage
     );
 }

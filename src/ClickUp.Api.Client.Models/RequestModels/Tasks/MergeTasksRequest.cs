@@ -1,12 +1,16 @@
-// In file: src/ClickUp.Api.Client.Models/RequestModels/Tasks/MergeTasksRequest.cs
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ClickUp.Api.Client.Models.RequestModels.Tasks
+namespace ClickUp.Api.Client.Models.RequestModels.Tasks;
+
+/// <summary>
+/// Represents the request body for merging tasks.
+/// </summary>
+public record MergeTasksRequest
 {
-    public class MergeTasksRequest
-    {
-        [JsonPropertyName("source_task_ids")]
-        public List<string> SourceTaskIds { get; set; }
-    }
+    /// <summary>
+    /// Array of task IDs to merge into the target task.
+    /// </summary>
+    [JsonPropertyName("source_task_ids")]
+    public List<string> SourceTaskIds { get; init; } = new();
 }

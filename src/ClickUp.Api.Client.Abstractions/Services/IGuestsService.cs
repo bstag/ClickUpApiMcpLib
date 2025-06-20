@@ -39,9 +39,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="guestId">The ID of the guest.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>Details of the <see cref="Guest"/>.</returns>
-        /// <remarks>Original note mentioned API might return empty object; verify actual consistent response. Assuming Guest DTO is returned.</remarks>
-        Task<Guest> GetGuestAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="GetGuestResponse"/>.</returns>
+        Task<GetGuestResponse> GetGuestAsync(
             string workspaceId,
             string guestId,
             CancellationToken cancellationToken = default);

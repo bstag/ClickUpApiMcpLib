@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Checklists;
 using ClickUp.Api.Client.Models.RequestModels.Checklists; // Assuming Checklist is here
+using ClickUp.Api.Client.Models.ResponseModels.Checklists;
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -30,8 +31,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, references task by its custom task id.</param>
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the created <see cref="Checklist"/>.</returns>
-        Task<Checklist> CreateChecklistAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CreateChecklistResponse"/>.</returns>
+        Task<CreateChecklistResponse> CreateChecklistAsync(
             string taskId,
             CreateChecklistRequest createChecklistRequest,
             bool? customTaskIds = null,
@@ -44,8 +45,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="checklistId">The ID of the checklist.</param>
         /// <param name="editChecklistRequest">Details for editing the checklist (e.g., name, position).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="Checklist"/>.</returns>
-        Task<Checklist> EditChecklistAsync(
+        /// <returns>An awaitable task representing the asynchronous operation.</returns>
+        Task EditChecklistAsync(
             string checklistId,
             EditChecklistRequest editChecklistRequest,
             CancellationToken cancellationToken = default);
@@ -66,8 +67,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="checklistId">The ID of the checklist.</param>
         /// <param name="createChecklistItemRequest">Details of the checklist item to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the updated parent <see cref="Checklist"/>.</returns>
-        Task<Checklist> CreateChecklistItemAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CreateChecklistItemResponse"/>.</returns>
+        Task<CreateChecklistItemResponse> CreateChecklistItemAsync(
             string checklistId,
             CreateChecklistItemRequest createChecklistItemRequest,
             CancellationToken cancellationToken = default);
@@ -79,8 +80,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="checklistItemId">The ID of the checklist item.</param>
         /// <param name="editChecklistItemRequest">Details for editing the checklist item.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the updated parent <see cref="Checklist"/>.</returns>
-        Task<Checklist> EditChecklistItemAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="EditChecklistItemResponse"/>.</returns>
+        Task<EditChecklistItemResponse> EditChecklistItemAsync(
             string checklistId,
             string checklistItemId,
             EditChecklistItemRequest editChecklistItemRequest,

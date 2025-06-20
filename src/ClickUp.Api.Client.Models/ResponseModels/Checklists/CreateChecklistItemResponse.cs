@@ -4,10 +4,13 @@ using ClickUp.Api.Client.Models.Entities.Checklists;
 namespace ClickUp.Api.Client.Models.ResponseModels.Checklists;
 
 /// <summary>
-/// Represents the response model for creating a checklist item.
+/// Represents the response for creating a checklist item.
 /// </summary>
-public record class CreateChecklistItemResponse
-(
-    [property: JsonPropertyName("checklist")]
-    Checklist Checklist
-);
+public record CreateChecklistItemResponse
+{
+    /// <summary>
+    /// The parent checklist information, updated after item creation.
+    /// </summary>
+    [JsonPropertyName("checklist")]
+    public Checklist Checklist { get; init; } = null!;
+}

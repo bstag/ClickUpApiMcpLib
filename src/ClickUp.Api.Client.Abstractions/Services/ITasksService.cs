@@ -86,8 +86,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, references task by its custom task id.</param>
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="Task"/> object.</returns>
-        Task<Task> CreateTaskAsync(
+        /// <returns>The created <see cref="CuTask"/> object.</returns>
+        Task<CuTask> CreateTaskAsync(
             string listId,
             CreateTaskRequest createTaskRequest,
             bool? customTaskIds = null,
@@ -103,8 +103,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="includeSubtasks">Optional. Whether to include subtasks.</param>
         /// <param name="includeMarkdownDescription">Optional. Whether to return task description in Markdown format.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>Details of the <see cref="Task"/>.</returns>
-        Task<Task> GetTaskAsync(
+        /// <returns>Details of the <see cref="CuTask"/>.</returns>
+        Task<CuTask> GetTaskAsync(
             string taskId,
             bool? customTaskIds = null,
             string? teamId = null,
@@ -120,8 +120,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, references task by custom task id.</param>
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The updated <see cref="Task"/>.</returns>
-        Task<Task> UpdateTaskAsync(
+        /// <returns>The updated <see cref="CuTask"/>.</returns>
+        Task<CuTask> UpdateTaskAsync(
             string taskId,
             UpdateTaskRequest updateTaskRequest,
             bool? customTaskIds = null,
@@ -166,6 +166,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customFields">Optional. Filter by custom fields (JSON string).</param>
         /// <param name="customTaskIds">Optional. Export tasks with Custom CuTask IDs.</param>
         /// <param name="teamIdForCustomTaskIds">Optional. Team ID, required if custom_task_ids is true.</param>
+        /// <param name="customItems">Optional. Filter by custom task types (long integer IDs).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetTasksResponse"/> object containing a list of tasks and pagination details.</returns>
         Task<GetTasksResponse> GetFilteredTeamTasksAsync(
@@ -190,33 +191,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
             string? customFields = null,
             bool? customTaskIds = null, // This is for the query param "custom_task_ids" not the path param modifier
             string? teamIdForCustomTaskIds = null, // This is for the query param "team_id" related to "custom_task_ids"
+            IEnumerable<long>? customItems = null,
             CancellationToken cancellationToken = default);
-
-
-        /// <summary>
-        /// Merges a task into another task.
-        /// </summary>
-        /// <param name="taskId">The ID of the task to merge from.</param>
-        /// <param name="targetTaskId">The ID of the task to merge into.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true for either task.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
-        System.Threading.Tasks.Task MergeTasksAsync(
-            string taskId,
-            string targetTaskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
-            CancellationToken cancellationToken = default);
-        // Note: The original ClickUp API POST /v2/task/{task_id}/merge takes the target in the body.
-        // This method signature might need adjustment if it's for merging task_id INTO target_task_id.
-        // The prompt said "MergeTasksAsync: Request MergeTasksRequest, response CuTask".
-        // Let's assume for now it means merge ONE task (taskId) into another (targetTaskId).
-        // If it's for merging MULTIPLE tasks, the signature and DTO would be different (e.g. MergeTasksRequest DTO in body).
-        // Given the current method name and params, it seems like merging one specific task into another specific task.
-        // The API doc for "Merge Tasks" (POST /v2/task/{task_id}/merge) implies task_id is the source, and target is in body { "target_task_id": "string" }
-        // This is different from "Merge CuTask Into" (POST /v2/task/{task_id}/merge_into/{target_task_id})
-        // The prompt's "MergeTasksRequest" suggests a DTO. I will adjust this method to take a DTO.
 
         /// <summary>
         /// Merges tasks into a target task.
@@ -226,8 +202,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, references tasks by custom task id.</param>
         /// <param name="teamId">Optional. Workspace ID, required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The updated target <see cref="Task"/>.</returns>
-        Task<Task> MergeTasksAsync(
+        /// <returns>The updated target <see cref="CuTask"/>.</returns>
+        Task<CuTask> MergeTasksAsync(
             string targetTaskId,
             MergeTasksRequest mergeTasksRequest,
             bool? customTaskIds = null,
@@ -272,8 +248,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, references task by its custom task id.</param>
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="Task"/>.</returns>
-        Task<Task> CreateTaskFromTemplateAsync(
+        /// <returns>The created <see cref="CuTask"/>.</returns>
+        Task<CuTask> CreateTaskFromTemplateAsync(
             string listId,
             string templateId,
             CreateTaskFromTemplateRequest createTaskFromTemplateRequest,
@@ -306,8 +282,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customFields">Optional. Filter by custom fields (JSON string representation of an array of objects).</param>
         /// <param name="customItems">Optional. Filter by custom task types (integer IDs).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An asynchronous stream of tasks.</returns>
-        IAsyncEnumerable<Task> GetTasksAsyncEnumerableAsync(
+        /// <returns>An asynchronous stream of <see cref="CuTask"/> objects.</returns>
+        IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
             bool? archived = null,
             bool? includeMarkdownDescription = null,
