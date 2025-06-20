@@ -9,7 +9,7 @@ using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Tags;
 using ClickUp.Api.Client.Models.RequestModels.Tags; // For ModifyTagRequest
-using ClickUp.Api.Client.Models.ResponseModels.Tags; // Assuming GetTagsResponse exists
+using ClickUp.Api.Client.Models.ResponseModels; // Assuming GetTagsResponse exists
 using System.Linq; // For Enumerable.Empty
 
 namespace ClickUp.Api.Client.Services

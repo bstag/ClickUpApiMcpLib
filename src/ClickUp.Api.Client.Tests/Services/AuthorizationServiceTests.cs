@@ -88,10 +88,10 @@ namespace ClickUp.Api.Client.Tests.Services
             var clientId = "client-id";
             var clientSecret = "client-secret";
             var code = "auth-code";
-            var expectedResponse = new AccessTokenResponse("fake-access-token", "bearer");
+            var expectedResponse = new GetAccessTokenResponse("fake-access-token");
             var requestDto = new GetAccessTokenRequest(clientId, clientSecret, code);
 
-            _mockApiConnection.Setup(c => c.PostAsync<GetAccessTokenRequest, AccessTokenResponse>(
+            _mockApiConnection.Setup(c => c.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(
                 "oauth/token",
                 It.Is<GetAccessTokenRequest>(r => r.ClientId == clientId && r.ClientSecret == clientSecret && r.Code == code),
                 It.IsAny<CancellationToken>()))
