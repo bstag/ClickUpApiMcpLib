@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.RequestModels.Spaces; // Assuming EditSpaceTagInfo is in RequestModels
+using ClickUp.Api.Client.Models.Entities.Tags; // For Tag entity
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Spaces;
 
@@ -9,5 +9,5 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Spaces;
 public record class EditSpaceTagResponse
 (
     [property: JsonPropertyName("tag")]
-    EditSpaceTagInfo Tag
+    Tag Tag
 );

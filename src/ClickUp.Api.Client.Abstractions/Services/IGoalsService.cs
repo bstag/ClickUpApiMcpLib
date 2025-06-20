@@ -97,12 +97,12 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Updates a Target (Key Result).
         /// </summary>
         /// <param name="keyResultId">The UUID of the Key Result.</param>
-        /// <param name="updateKeyResultRequest">Details for editing the Key Result.</param>
+        /// <param name="editKeyResultRequest">Details for editing the Key Result.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The updated <see cref="KeyResult"/>.</returns>
         Task<KeyResult> EditKeyResultAsync( // Method name was EditKeyResult in original
             string keyResultId,
-            UpdateKeyResultRequest updateKeyResultRequest,
+            EditKeyResultRequest editKeyResultRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>

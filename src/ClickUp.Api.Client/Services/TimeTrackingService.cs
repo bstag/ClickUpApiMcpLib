@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.TimeTracking; // Specific import
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
-using ClickUp.Api.Client.Models.ResponseModels.TimeTracking; // Assuming response wrappers exist
+using ClickUp.Api.Client.Models.ResponseModels.TimeTracking;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -217,23 +217,21 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<TimeEntryTag>?> GetAllTimeEntryTagsAsync(
+        public async Task<IEnumerable<TaskTag>?> GetAllTimeEntryTagsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
-            // Endpoint for GET all tags: GET /team/{team_id}/time_entries/tags
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/tags";
-            var response = await _apiConnection.GetAsync<GetAllTimeEntryTagsResponse>(endpoint, cancellationToken); // Assuming { "tags": [...] } or { "data": [...] }
-            return response?.Tags; // Or response.Data if it's a generic wrapper
+            var response = await _apiConnection.GetAsync<GetAllTimeEntryTagsResponse>(endpoint, cancellationToken);
+            return response?.Data;
         }
 
         /// <inheritdoc />
         public async System.Threading.Tasks.Task AddTagsToTimeEntriesAsync(
             string workspaceId,
-            TimeEntryTagsRequest addTagsRequest, // Contains list of timer_ids and tags
+            AddTagsFromTimeEntriesRequest addTagsRequest,
             CancellationToken cancellationToken = default)
         {
-            // Endpoint: POST /team/{team_id}/time_entries/tags
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/tags";
             await _apiConnection.PostAsync(endpoint, addTagsRequest, cancellationToken);
         }
@@ -241,10 +239,9 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async System.Threading.Tasks.Task RemoveTagsFromTimeEntriesAsync(
             string workspaceId,
-            TimeEntryTagsRequest removeTagsRequest, // Contains list of timer_ids and tags
+            RemoveTagsFromTimeEntriesRequest removeTagsRequest,
             CancellationToken cancellationToken = default)
         {
-            // Endpoint: DELETE /team/{team_id}/time_entries/tags (uses request body for DELETE)
             // IApiConnection.DeleteAsync is void and doesn't take a body.
             // This requires a DeleteAsync<TRequest> or similar, or a custom SendAsync call.
             // For now, this specific method cannot be fully implemented with current IApiConnection.

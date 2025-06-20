@@ -1,27 +1,53 @@
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Entities.Spaces; // For Space entity
-using System.Collections.Generic; // For List
+// Assuming MemberSummary, Status, Features, DefaultListSettings are accessible
+// For example, through:
+using ClickUp.Api.Client.Models.Entities.Spaces; // For Features, MemberSummary, DefaultListSettings
 using ClickUp.Api.Client.Models.Common; // For Status
+using System.Collections.Generic;
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Spaces
 {
-    // GetSpaceResponse is typically a full Space object.
-    // We can make it inherit from Space or wrap it.
-    // Inheriting reduces redundancy if the structure is identical.
-    public record GetSpaceResponse
-    (
-        [property: JsonPropertyName("id")] string Id,
-        [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("private")] bool Private,
-        [property: JsonPropertyName("color")] string? Color,
-        [property: JsonPropertyName("avatar")] string? Avatar,
-        [property: JsonPropertyName("admin_can_manage")] bool? AdminCanManage,
-        [property: JsonPropertyName("archived")] bool? Archived,
-        [property: JsonPropertyName("members")] List<MemberSummary>? Members,
-        [property: JsonPropertyName("statuses")] List<Status>? Statuses,
-        [property: JsonPropertyName("multiple_assignees")] bool MultipleAssignees,
-        [property: JsonPropertyName("features")] Features Features,
-        [property: JsonPropertyName("team_id")] string? TeamId,
-        [property: JsonPropertyName("default_list_settings")] DefaultListSettings? DefaultListSettings
-    ) : Space(Id, Name, Private, Color, Avatar, AdminCanManage, Archived, Members, Statuses, MultipleAssignees, Features, TeamId, DefaultListSettings);
+    public class GetSpaceResponse
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = null!;
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = null!;
+
+        [JsonPropertyName("private")]
+        public bool Private { get; set; }
+
+        [JsonPropertyName("color")]
+        public string? Color { get; set; }
+
+        [JsonPropertyName("avatar")]
+        public string? Avatar { get; set; }
+
+        [JsonPropertyName("admin_can_manage")]
+        public bool? AdminCanManage { get; set; }
+
+        [JsonPropertyName("archived")]
+        public bool? Archived { get; set; }
+
+        [JsonPropertyName("members")]
+        public List<MemberSummary>? Members { get; set; }
+
+        [JsonPropertyName("statuses")]
+        public List<Status>? Statuses { get; set; }
+
+        [JsonPropertyName("multiple_assignees")]
+        public bool MultipleAssignees { get; set; }
+
+        [JsonPropertyName("features")]
+        public Features? Features { get; set; } // Made nullable for safety if Features is complex
+
+        [JsonPropertyName("team_id")]
+        public string? TeamId { get; set; }
+
+        [JsonPropertyName("default_list_settings")]
+        public DefaultListSettings? DefaultListSettings { get; set; }
+
+        public GetSpaceResponse() {} // For deserializer
+    }
 }

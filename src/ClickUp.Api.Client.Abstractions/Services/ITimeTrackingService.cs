@@ -146,8 +146,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="TimeEntryTag"/> objects.</returns>
-        Task<IEnumerable<TimeEntryTag>> GetAllTimeEntryTagsAsync(
+        /// <returns>A list of <see cref="TaskTag"/> objects.</returns>
+        Task<IEnumerable<TaskTag>> GetAllTimeEntryTagsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
 
@@ -155,36 +155,36 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Adds tags to specified time entries.
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
-        /// <param name="addTagsRequest">Request containing time entry IDs and tags to add.</param>
+        /// <param name="addTagsRequest">Request containing time entry IDs and tags to add, using <see cref="AddTagsFromTimeEntriesRequest"/>.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
         System.Threading.Tasks.Task AddTagsToTimeEntriesAsync(
             string workspaceId,
-            TimeEntryTagsRequest addTagsRequest,
+            AddTagsFromTimeEntriesRequest addTagsRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes tags from specified time entries.
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
-        /// <param name="removeTagsRequest">Request containing time entry IDs and tags to remove.</param>
+        /// <param name="removeTagsRequest">Request containing time entry IDs and tags to remove, using <see cref="RemoveTagsFromTimeEntriesRequest"/>.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
         System.Threading.Tasks.Task RemoveTagsFromTimeEntriesAsync(
             string workspaceId,
-            TimeEntryTagsRequest removeTagsRequest,
+            RemoveTagsFromTimeEntriesRequest removeTagsRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Changes the name and colors of a time entry tag across a Workspace.
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
-        /// <param name="changeTagNameRequest">Details for changing the tag name and colors.</param>
+        /// <param name="changeTagNamesRequest">Details for changing the tag name and colors.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
         System.Threading.Tasks.Task ChangeTimeEntryTagNameAsync(
             string workspaceId,
-            ChangeTimeEntryTagNameRequest changeTagNameRequest,
+            ChangeTagNamesFromTimeEntriesRequest changeTagNamesRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>

@@ -20,8 +20,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="WorkspaceSeats"/> details.</returns>
-        Task<WorkspaceSeats> GetWorkspaceSeatsAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="GetWorkspaceSeatsResponse"/> details.</returns>
+        Task<GetWorkspaceSeatsResponse> GetWorkspaceSeatsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
 
@@ -30,8 +30,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="WorkspacePlan"/> details.</returns>
-        Task<WorkspacePlan> GetWorkspacePlanAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="GetWorkspacePlanResponse"/> details.</returns>
+        Task<GetWorkspacePlanResponse> GetWorkspacePlanAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
 

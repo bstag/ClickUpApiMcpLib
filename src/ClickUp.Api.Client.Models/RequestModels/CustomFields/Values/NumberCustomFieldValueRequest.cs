@@ -1,12 +1,16 @@
 using System.Text.Json.Serialization;
+using ClickUp.Api.Client.Models.RequestModels.CustomFields;
 
 namespace ClickUp.Api.Client.Models.RequestModels.CustomFields.Values;
 
-/// <summary>
-/// Represents the request model for setting a number custom field value.
-/// </summary>
-public record class NumberCustomFieldValueRequest
-(
-    [property: JsonPropertyName("value")]
-    decimal Value
-);
+public class NumberCustomFieldValueRequest : SetCustomFieldValueRequest
+{
+    [JsonPropertyName("value")]
+    public decimal Value { get; set; }
+
+    public NumberCustomFieldValueRequest(decimal value)
+    {
+        Value = value;
+    }
+    public NumberCustomFieldValueRequest() {}
+}

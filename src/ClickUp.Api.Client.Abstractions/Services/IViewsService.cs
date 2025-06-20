@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Views; // Assuming View and CuTask DTOs are here
-using ClickUp.Api.Client.Models.RequestModels; // Assuming Request DTOs are here
+using ClickUp.Api.Client.Models.RequestModels.Views; // Assuming Request DTOs are here
 using ClickUp.Api.Client.Models.ResponseModels.Views; // Assuming GetViewTasksResponse is here
 
 namespace ClickUp.Api.Client.Abstractions.Services
