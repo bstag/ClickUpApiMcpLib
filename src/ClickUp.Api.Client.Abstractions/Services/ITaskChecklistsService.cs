@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Checklists;
 using ClickUp.Api.Client.Models.RequestModels.Checklists; // Assuming Checklist is here
-using ClickUp.Api.Client.Models.RequestModels.TaskChecklists; // Assuming Request DTOs are here
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -43,12 +42,12 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Renames a task checklist or reorders its items.
         /// </summary>
         /// <param name="checklistId">The ID of the checklist.</param>
-        /// <param name="updateChecklistRequest">Details for editing the checklist (e.g., name, position).</param>
+        /// <param name="editChecklistRequest">Details for editing the checklist (e.g., name, position).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="Checklist"/>.</returns>
         Task<Checklist> EditChecklistAsync(
             string checklistId,
-            UpdateChecklistRequest updateChecklistRequest,
+            EditChecklistRequest editChecklistRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -78,13 +77,13 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="checklistId">The ID of the checklist.</param>
         /// <param name="checklistItemId">The ID of the checklist item.</param>
-        /// <param name="updateChecklistItemRequest">Details for editing the checklist item.</param>
+        /// <param name="editChecklistItemRequest">Details for editing the checklist item.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the updated parent <see cref="Checklist"/>.</returns>
         Task<Checklist> EditChecklistItemAsync(
             string checklistId,
             string checklistItemId,
-            UpdateChecklistItemRequest updateChecklistItemRequest,
+            EditChecklistItemRequest editChecklistItemRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>

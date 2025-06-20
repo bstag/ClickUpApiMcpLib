@@ -10,6 +10,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models; // Added for ClickUpWorkspace
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Users; // For User and Workspace DTOs
 using ClickUp.Api.Client.Models.ResponseModels.Authorization;
@@ -30,8 +31,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="clientSecret">OAuth app client secret.</param>
         /// <param name="code">Authorization code received from redirect.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="AccessTokenResponse"/>.</returns>
-        Task<AccessTokenResponse> GetAccessTokenAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="GetAccessTokenResponse"/>.</returns>
+        Task<GetAccessTokenResponse> GetAccessTokenAsync(
             string clientId,
             string clientSecret,
             string code,
@@ -48,7 +49,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Retrieves the Workspaces (Teams) available to the authenticated user.
         /// </summary>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a list of authorized <see cref="Workspace"/> objects.</returns>
-        Task<IEnumerable<Workspace>> GetAuthorizedWorkspacesAsync(CancellationToken cancellationToken = default);
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of authorized <see cref="ClickUpWorkspace"/> objects.</returns>
+        Task<IEnumerable<ClickUpWorkspace>> GetAuthorizedWorkspacesAsync(CancellationToken cancellationToken = default);
     }
 }

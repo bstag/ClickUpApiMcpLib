@@ -26,8 +26,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="withCommentSince">Optional. Only return Channels with comments since the given Unix timestamp (ms).</param>
         /// <param name="roomTypes">Optional. Types of Channels to return (e.g., "CHANNEL", "DM", "GROUP_DM").</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A <see cref="GetChatChannelsResponse"/> object containing a paginated list of channels and next cursor.</returns>
-        Task<GetChatChannelsResponse> GetChatChannelsAsync(
+        /// <returns>A <see cref="ChatChannelPaginatedResponse"/> object containing a paginated list of channels and next cursor.</returns>
+        Task<ChatChannelPaginatedResponse> GetChatChannelsAsync(
             string workspaceId,
             string? descriptionFormat = null,
             string? cursor = null,

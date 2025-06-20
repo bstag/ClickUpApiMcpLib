@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.ResponseModels; // Assuming SharedHierarchy DTO is in a general ResponseModels namespace or similar
+using ClickUp.Api.Client.Models.ResponseModels.Sharing; // Assuming SharedHierarchy DTO is in a general ResponseModels namespace or similar
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -19,8 +19,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A <see cref="SharedHierarchy"/> object containing lists of shared tasks, lists, and folders.</returns>
-        Task<SharedHierarchy> GetSharedHierarchyAsync(
+        /// <returns>A <see cref="SharedHierarchyResponse"/> object containing lists of shared tasks, lists, and folders.</returns>
+        Task<SharedHierarchyResponse> GetSharedHierarchyAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
     }
