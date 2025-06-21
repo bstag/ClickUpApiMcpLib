@@ -2,13 +2,15 @@ using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.Entities.Chat
 {
-    // Could define a ChatChannelLocationType enum if "folder", "list", "space" are the only values.
-    // [JsonConverter(typeof(JsonStringEnumConverter))]
-    // public enum ChatChannelLocationType { FOLDER, LIST, SPACE }
-
+    /// <summary>
+    /// Represents the location (e.g., Folder, List, Space) to which a chat channel is related.
+    /// </summary>
+    /// <param name="Id">The unique identifier of the location entity (e.g., Folder ID, List ID, Space ID).</param>
+    /// <param name="Type">The type of the location entity.</param>
+    /// <example>"folder", "list", "space"</example>
     public record ChatChannelLocation
     (
-        [property: JsonPropertyName("id")] string Id, // ID of the folder, list, or space
-        [property: JsonPropertyName("type")] string Type // "folder", "list", or "space"
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("type")] string Type
     );
 }

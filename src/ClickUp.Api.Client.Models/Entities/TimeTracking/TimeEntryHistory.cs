@@ -8,42 +8,76 @@ using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask (if that's the tas
 
 namespace ClickUp.Api.Client.Models.Entities.TimeTracking;
 
+/// <summary>
+/// Represents a historical record of changes to a Time Entry.
+/// </summary>
 public class TimeEntryHistory
 {
+    /// <summary>
+    /// Gets or sets the user who performed the action.
+    /// </summary>
     [JsonPropertyName("user")]
     public User? User { get; set; }
 
+    /// <summary>
+    /// Gets or sets the type of action performed (e.g., "create", "update", "delete").
+    /// </summary>
     [JsonPropertyName("action")]
     public string? Action { get; set; }
 
+    /// <summary>
+    /// Gets or sets the field that was changed, if applicable.
+    /// </summary>
     [JsonPropertyName("field")]
     public string? Field { get; set; }
 
+    /// <summary>
+    /// Gets or sets the value of the field before the change. Captured as <see cref="JsonElement"/> due to potential variability.
+    /// </summary>
     [JsonPropertyName("before")]
     public JsonElement? Before { get; set; }
 
+    /// <summary>
+    /// Gets or sets the value of the field after the change. Captured as <see cref="JsonElement"/> due to potential variability.
+    /// </summary>
     [JsonPropertyName("after")]
     public JsonElement? After { get; set; }
 
+    /// <summary>
+    /// Gets or sets the date of the historical action, as a string (e.g., Unix timestamp in milliseconds).
+    /// </summary>
     [JsonPropertyName("date")]
-    public string? Date { get; set; } // Timestamp
+    public string? Date { get; set; }
 
+    /// <summary>
+    /// Gets or sets the source of the change (e.g., "clickup", "api").
+    /// </summary>
     [JsonPropertyName("source")]
     public string? Source { get; set; }
 
+    /// <summary>
+    /// Gets or sets any note associated with this historical change.
+    /// </summary>
     [JsonPropertyName("note")]
     public string? Note { get; set; }
 
-    // Optional related entities - might need specific simplified DTOs from API spec
+    /// <summary>
+    /// Gets or sets the task associated with this time entry history, if applicable.
+    /// </summary>
     [JsonPropertyName("task")]
-    public CuTask? Task { get; set; } // Assuming CuTask is the main task DTO
+    public CuTask? Task { get; set; }
 
-    // For List and Space, assuming simplified versions or direct IDs might be returned.
-    // If full objects ClickUpList/Space are returned, using them directly is fine.
-    // For now, let's assume they might be simplified or not always present.
+    /// <summary>
+    /// Gets or sets information about the list associated with this time entry's task.
+    /// Captured as <see cref="JsonElement"/> as the structure might be a simplified reference.
+    /// </summary>
     [JsonPropertyName("list")]
-    public JsonElement? List { get; set; } // Placeholder if specific List DTO for history isn't defined
+    public JsonElement? List { get; set; }
 
+    /// <summary>
+    /// Gets or sets information about the space associated with this time entry's task.
+    /// Captured as <see cref="JsonElement"/> as the structure might be a simplified reference.
+    /// </summary>
     [JsonPropertyName("space")]
-    public JsonElement? Space { get; set; } // Placeholder if specific Space DTO for history isn't defined
+    public JsonElement? Space { get; set; }
 }

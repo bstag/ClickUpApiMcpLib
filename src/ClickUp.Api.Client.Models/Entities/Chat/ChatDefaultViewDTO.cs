@@ -26,7 +26,8 @@ public record ChatDefaultViewDTO(
 )
 {
     /// <summary>
-    /// JSON string representing view settings.
+    /// Gets the JSON string representing detailed view settings.
+    /// The specific structure of this JSON string can vary based on the view type.
     /// </summary>
     [JsonPropertyName("view_settings")]
     public string? ViewSettings { get; init; }

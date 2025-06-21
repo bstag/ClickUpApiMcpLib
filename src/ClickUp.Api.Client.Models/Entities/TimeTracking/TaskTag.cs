@@ -3,17 +3,21 @@ using ClickUp.Api.Client.Models.Common; // For User, if creator is a User object
 
 namespace ClickUp.Api.Client.Models.Entities.TimeTracking
 {
-    // Note: This model might be identical to Common.Tag.
-    // If the structure (especially for 'creator') aligns perfectly with Common.Tag,
-    // Common.Tag should be used instead to avoid redundancy.
-    // This file is created based on the instruction that TaskTag might be distinct.
+    /// <summary>
+    /// Represents a Tag associated with a Task, specifically in the context of Time Tracking.
+    /// Note: This model is very similar to <see cref="ClickUp.Api.Client.Models.Entities.Tags.Tag"/>.
+    /// Consider consolidation if they represent the same concept. The 'Creator' property here is an int ID,
+    /// whereas in <see cref="ClickUp.Api.Client.Models.Entities.Tags.Tag"/> it's a User object.
+    /// </summary>
+    /// <param name="Name">The name of the tag.</param>
+    /// <param name="TagFg">The foreground color of the tag (hexadecimal).</param>
+    /// <param name="TagBg">The background color of the tag (hexadecimal).</param>
+    /// <param name="Creator">The identifier of the user who created the tag. In this context, it's often just the user ID.</param>
     public record TaskTag
     (
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("tag_fg")] string? TagFg,
         [property: JsonPropertyName("tag_bg")] string? TagBg,
-        [property: JsonPropertyName("creator")] int? Creator // In some contexts, creator might be just an ID for tags within time entries.
-                                                             // If it's a full User object, then Common.User should be used,
-                                                             // and this model becomes more like Common.Tag.
+        [property: JsonPropertyName("creator")] int? Creator
     );
 }

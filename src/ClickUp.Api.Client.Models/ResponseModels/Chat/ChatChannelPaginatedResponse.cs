@@ -4,19 +4,14 @@ using ClickUp.Api.Client.Models.Entities.Chat; // For ChatChannel
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Chat
 {
-    // This is a specific implementation for ChatChannel.
-    // A truly generic ChatPaginatedResponse<T> would require different handling
-    // or be used with known types.
+    /// <summary>
+    /// Represents a paginated response for a list of <see cref="ChatChannel"/> items.
+    /// </summary>
+    /// <param name="NextCursor">A cursor string to retrieve the next page of results. Null if no more pages.</param>
+    /// <param name="Data">The list of <see cref="ChatChannel"/> items for the current page.</param>
     public record ChatChannelPaginatedResponse
     (
         [property: JsonPropertyName("next_cursor")] string? NextCursor,
-        [property: JsonPropertyName("data")] List<ChatChannel> Data // Specific to ChatChannel here
+        [property: JsonPropertyName("data")] List<ChatChannel> Data
     );
-
-    // Placeholder for a more generic concept if needed, though not directly usable
-    // public record ChatPaginatedResponse<T>
-    // (
-    //     [property: JsonPropertyName("next_cursor")] string? NextCursor,
-    //     [property: JsonPropertyName("data")] List<T> Data
-    // );
 }

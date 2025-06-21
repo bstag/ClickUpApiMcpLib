@@ -6,21 +6,22 @@ namespace ClickUp.Api.Client.Models.Entities.Views;
 /// <summary>
 /// Represents the parent of a View (e.g., Workspace, Space, Folder, List).
 /// </summary>
+/// <param name="Id">The unique identifier of the parent entity.</param>
+/// <param name="Type">An integer representing the type of the parent entity.
+/// Common values: 7 for Workspace (Team), 4 for Space, 5 for Folder, 6 for List.
+/// Consider using <see cref="Enums.ViewParentType"/> for a more type-safe representation if appropriate.
+/// </param>
 public record ViewParent(
     [property: JsonPropertyName("id")]
-    string Id, // ID of the parent item
+    string Id,
 
-    /// <summary>
-    /// Type of the parent.
-    /// OpenAPI spec indicates: 7 for Workspace, 4 for Space, 5 for Folder, 6 for List.
-    /// Consider mapping to an enum (e.g., ViewParentType).
-    /// </summary>
     [property: JsonPropertyName("type")]
     int Type
 )
 {
-    // The schema might also include 'name' or other relevant parent details.
-    // Adding 'name' as it's common, but needs schema verification.
+    /// <summary>
+    /// Gets the name of the parent entity. This might not always be populated depending on the API response.
+    /// </summary>
     [JsonPropertyName("name")]
     public string? Name { get; init; }
 }

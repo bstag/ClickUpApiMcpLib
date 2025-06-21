@@ -9,43 +9,38 @@ namespace ClickUp.Api.Client.Models.Entities.Views;
 public record ViewFilters
 {
     /// <summary>
-    /// The logical operator to join filter fields (e.g., "AND", "OR").
+    /// Gets the logical operator (e.g., "AND", "OR") used to join the filter criteria in the <see cref="Fields"/> list.
     /// </summary>
     [JsonPropertyName("op")]
-    public string? Operator { get; init; } // "AND" or "OR"
+    public string? Operator { get; init; }
 
     /// <summary>
-    /// List of filter criteria.
+    /// Gets the list of individual filter criteria applied to the view.
     /// </summary>
     [JsonPropertyName("fields")]
     public List<ViewFilterField>? Fields { get; init; }
 
     /// <summary>
-    /// Text to search for within the view.
+    /// Gets the search text applied as a filter to the view.
     /// </summary>
     [JsonPropertyName("search")]
     public string? Search { get; init; }
 
     /// <summary>
-    /// Whether to show closed tasks.
+    /// Gets a value indicating whether closed tasks are shown in the view.
     /// </summary>
     [JsonPropertyName("show_closed")]
     public bool? ShowClosed { get; init; }
 
-    // Example from GetView response:
-    // "filters": {
-    //   "op": "AND",
-    //   "fields": [ ... view filter field objects ... ],
-    //   "search_custom_fields": true, // This might be part of 'settings' or here
-    //   "search": null,
-    //   "show_closed": false,
-    //   "show_everything_level": false // This might be part of 'settings' or here
-    // }
-    // Adding fields that appear common in filter objects, to be verified with exact schema.
-
+    /// <summary>
+    /// Gets a value indicating whether the search should include custom fields.
+    /// </summary>
     [JsonPropertyName("search_custom_fields")]
     public bool? SearchCustomFields { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether the view shows items from all levels (e.g., including subtasks from other locations if applicable).
+    /// </summary>
     [JsonPropertyName("show_everything_level")]
-    public bool? ShowEverythingLevel { get; init; } // Or "show_all_tasks_in_subfolders" etc.
+    public bool? ShowEverythingLevel { get; init; }
 }

@@ -3,54 +3,94 @@ using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.RequestModels.TimeTracking;
 
+/// <summary>
+/// Represents the request parameters for querying time entries.
+/// </summary>
 public class GetTimeEntriesRequest
 {
+    /// <summary>
+    /// Gets or sets the start date for filtering time entries (Unix timestamp in milliseconds).
+    /// </summary>
     [JsonPropertyName("start_date")]
-    public long? StartDate { get; set; } // Unix time ms
+    public long? StartDate { get; set; }
 
+    /// <summary>
+    /// Gets or sets the end date for filtering time entries (Unix timestamp in milliseconds).
+    /// </summary>
     [JsonPropertyName("end_date")]
-    public long? EndDate { get; set; } // Unix time ms
+    public long? EndDate { get; set; }
 
+    /// <summary>
+    /// Gets or sets a comma-separated string of user IDs to filter time entries by assignee.
+    /// </summary>
     [JsonPropertyName("assignee")]
-    public string? Assignee { get; set; } // Comma-separated user IDs
+    public string? Assignee { get; set; }
 
+    /// <summary>
+    /// Gets or sets the task ID to filter time entries by.
+    /// </summary>
     [JsonPropertyName("task_id")]
     public string? TaskId { get; set; }
 
+    /// <summary>
+    /// Gets or sets the list ID to filter time entries by.
+    /// </summary>
     [JsonPropertyName("list_id")]
     public string? ListId { get; set; }
 
+    /// <summary>
+    /// Gets or sets the folder ID to filter time entries by.
+    /// </summary>
     [JsonPropertyName("folder_id")]
     public string? FolderId { get; set; }
 
+    /// <summary>
+    /// Gets or sets the space ID to filter time entries by.
+    /// </summary>
     [JsonPropertyName("space_id")]
     public string? SpaceId { get; set; }
 
-    // 'project_id' is often an alias for list_id in ClickUp, but check spec if it's distinct here.
-    // For now, assuming it might be used if API differentiates.
+    /// <summary>
+    /// Gets or sets the project ID to filter time entries by.
+    /// Note: In ClickUp, 'project_id' is often an alias for 'folder_id'. Verify API specifics.
+    /// </summary>
     [JsonPropertyName("project_id")]
     public string? ProjectId { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to include task tags in the response.
+    /// </summary>
     [JsonPropertyName("include_task_tags")]
     public bool? IncludeTaskTags { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to include location names (List, Folder, Space names) in the response.
+    /// </summary>
     [JsonPropertyName("include_location_names")]
     public bool? IncludeLocationNames { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to include the task URL in the response.
+    /// </summary>
     [JsonPropertyName("include_task_url")]
     public bool? IncludeTaskUrl { get; set; }
 
-    // Custom fields filter can be complex (e.g., JSON string). Representing as string for now.
+    /// <summary>
+    /// Gets or sets a filter for custom fields. The format is typically a JSON string.
+    /// </summary>
     [JsonPropertyName("custom_fields")]
     public string? CustomFields { get; set; }
 
+    /// <summary>
+    /// Gets or sets a comma-separated string of custom item IDs to filter by.
+    /// </summary>
     [JsonPropertyName("custom_items")]
-    public string? CustomItems { get; set; } // Comma-separated custom item IDs
+    public string? CustomItems { get; set; }
 
-    // 'page' is handled by IAsyncEnumerable or specific pagination parameters in service methods usually, not in this DTO if it's for query params.
-    // However, if the API requires 'page' even for non-paginated looking endpoints, it can be added.
-    // The GetTimeEntriesAsync method in the interface takes this DTO, and GetTimeEntriesAsyncEnumerableAsync also takes this DTO (but shouldn't have page).
-    // For now, including page, as the non-async-enumerable GetTimeEntriesAsync might use it.
+    /// <summary>
+    /// Gets or sets the page number for pagination if the endpoint supports it.
+    /// Note: For endpoints returning <see cref="IAsyncEnumerable{T}"/>, pagination is typically handled internally.
+    /// </summary>
     [JsonPropertyName("page")]
     public int? Page { get; set; }
 }

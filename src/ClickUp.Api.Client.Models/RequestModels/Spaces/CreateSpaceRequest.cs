@@ -3,14 +3,19 @@ using ClickUp.Api.Client.Models.Entities.Spaces; // For Features entity
 
 namespace ClickUp.Api.Client.Models.RequestModels.Spaces
 {
+    /// <summary>
+    /// Represents the request to create a new Space.
+    /// </summary>
+    /// <param name="Name">The name of the new Space.</param>
+    /// <param name="MultipleAssignees">Optional: Indicates if tasks within this Space can have multiple assignees.</param>
+    /// <param name="Features">Optional: Configuration for features to be enabled or disabled for this Space.
+    /// Note: The ClickUp API might expect a flat structure for feature flags (e.g., "due_dates_enabled") directly in the request body
+    /// rather than a nested object. This model uses a nested <see cref="Entities.Spaces.Features"/> object; adjust if API behavior differs.
+    /// </param>
     public record CreateSpaceRequest
     (
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("multiple_assignees")] bool? MultipleAssignees,
-        [property: JsonPropertyName("features")] Features? Features // Features object to set for the space
-        // Note: OpenAPI spec for CreateSpace has features like "due_dates_enabled" directly in request body.
-        // Using a nested Features object is a common pattern but might need adjustment
-        // if the API expects a flat structure here. For now, aligning with a structured Features object.
-        // If API expects flat, properties from Features record would be listed here directly.
+        [property: JsonPropertyName("features")] Features? Features
     );
 }

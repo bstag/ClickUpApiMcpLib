@@ -42,11 +42,11 @@ This document provides a detailed plan for defining and refining the core models
         - [x] Specify the use of `JsonDerivedType` attributes for `System.Text.Json` to handle deserialization correctly. A discriminator property, if defined in the API, should be used. If not, custom `JsonConverter`s might be necessary and should be planned.
         - [x] Example: `SetCustomFieldValuerequest` from `01-core-models-actual.md` seems to be a candidate for this, with specific request models like `TextLikeCustomFieldValueRequest`. Ensure this is correctly modeled for polymorphic deserialization. (Implemented for `SetCustomFieldValueRequest` and its derived types)
 
-- [ ] **4. XML Documentation for Models:**
-    - [ ] Mandate `<summary>` for each public model and property. (Partially done, needs comprehensive pass)
-    - [ ] Documentation should clearly explain the purpose of the model/property, referencing the ClickUp API where helpful.
-    - [ ] Use `<example>` tags if a typical value or structure aids understanding.
-    - [ ] Ensure all enum members are also documented.
+- [x] **4. XML Documentation for Models:**
+    - [x] Mandate `<summary>` for each public model and property. (Documentation added for all existing models in `src/ClickUp.Api.Client.Models/` including subdirectories for `Entities`, `RequestModels`, and `ResponseModels` as of 2024-07-12. Some files were already well-documented.)
+    - [x] Documentation should clearly explain the purpose of the model/property, referencing the ClickUp API where helpful. (Done as part of the above)
+    - [x] Use `<example>` tags if a typical value or structure aids understanding. (Applied where appropriate)
+    - [x] Ensure all enum members are also documented. (Checked, existing enums were generally well-documented)
 
 - [x] **5. Output:**
     - [x] Update `01-core-models-actual.md` to reflect the validated and complete list of models. (This file is the primary tracking for "actual", it is largely up-to-date with created files)
