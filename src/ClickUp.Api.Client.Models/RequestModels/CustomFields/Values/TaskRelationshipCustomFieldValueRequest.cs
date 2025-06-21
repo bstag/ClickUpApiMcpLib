@@ -6,7 +6,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.CustomFields.Values;
 public class TaskRelationshipCustomFieldValueRequest : SetCustomFieldValueRequest
 {
     [JsonPropertyName("value")]
-    public TaskRelationshipActionValue Value { get; set; } // Assuming TaskRelationshipActionValue is a defined type
+    public required TaskRelationshipActionValue Value { get; set; } // Assuming TaskRelationshipActionValue is a defined type
 
     public TaskRelationshipCustomFieldValueRequest(TaskRelationshipActionValue value)
     {

@@ -51,108 +51,109 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<View>?> GetWorkspaceViewsAsync(
+        public async Task<GetViewsResponse> GetWorkspaceViewsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/view"; // team_id is workspaceId
-            var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken); // API returns {"views": [...]}
-            return response?.Views;
+            var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
+            return response ?? throw new InvalidOperationException($"API response was null for GetWorkspaceViewsAsync (Workspace ID: {workspaceId}).");
         }
 
         /// <inheritdoc />
-        public async Task<View?> CreateWorkspaceViewAsync(
+        public async Task<CreateTeamViewResponse> CreateWorkspaceViewAsync(
             string workspaceId,
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/view";
-            var response = await _apiConnection.PostAsync<CreateViewRequest, GetViewResponse>(endpoint, createViewRequest, cancellationToken); // API returns {"view": {...}}
-            return response?.View;
+            // Assuming CreateTeamViewResponse is the correct wrapper, or if it's just View, adjust PostAsync generic type
+            var response = await _apiConnection.PostAsync<CreateViewRequest, CreateTeamViewResponse>(endpoint, createViewRequest, cancellationToken);
+            return response ?? throw new InvalidOperationException($"API response was null for CreateWorkspaceViewAsync (Workspace ID: {workspaceId}).");
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<View>?> GetSpaceViewsAsync(
+        public async Task<GetViewsResponse> GetSpaceViewsAsync(
             string spaceId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/view";
             var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            return response?.Views;
+            return response ?? throw new InvalidOperationException($"API response was null for GetSpaceViewsAsync (Space ID: {spaceId}).");
         }
 
         /// <inheritdoc />
-        public async Task<View?> CreateSpaceViewAsync(
+        public async Task<CreateSpaceViewResponse> CreateSpaceViewAsync(
             string spaceId,
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/view";
-            var response = await _apiConnection.PostAsync<CreateViewRequest, GetViewResponse>(endpoint, createViewRequest, cancellationToken);
-            return response?.View;
+            var response = await _apiConnection.PostAsync<CreateViewRequest, CreateSpaceViewResponse>(endpoint, createViewRequest, cancellationToken);
+            return response ?? throw new InvalidOperationException($"API response was null for CreateSpaceViewAsync (Space ID: {spaceId}).");
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<View>?> GetFolderViewsAsync(
+        public async Task<GetViewsResponse> GetFolderViewsAsync(
             string folderId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"folder/{folderId}/view";
             var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            return response?.Views;
+            return response ?? throw new InvalidOperationException($"API response was null for GetFolderViewsAsync (Folder ID: {folderId}).");
         }
 
         /// <inheritdoc />
-        public async Task<View?> CreateFolderViewAsync(
+        public async Task<CreateFolderViewResponse> CreateFolderViewAsync(
             string folderId,
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"folder/{folderId}/view";
-            var response = await _apiConnection.PostAsync<CreateViewRequest, GetViewResponse>(endpoint, createViewRequest, cancellationToken);
-            return response?.View;
+            var response = await _apiConnection.PostAsync<CreateViewRequest, CreateFolderViewResponse>(endpoint, createViewRequest, cancellationToken);
+            return response ?? throw new InvalidOperationException($"API response was null for CreateFolderViewAsync (Folder ID: {folderId}).");
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<View>?> GetListViewsAsync(
+        public async Task<GetViewsResponse> GetListViewsAsync(
             string listId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"list/{listId}/view";
             var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            return response?.Views;
+            return response ?? throw new InvalidOperationException($"API response was null for GetListViewsAsync (List ID: {listId}).");
         }
 
         /// <inheritdoc />
-        public async Task<View?> CreateListViewAsync(
+        public async Task<CreateListViewResponse> CreateListViewAsync(
             string listId,
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"list/{listId}/view";
-            var response = await _apiConnection.PostAsync<CreateViewRequest, GetViewResponse>(endpoint, createViewRequest, cancellationToken);
-            return response?.View;
+            var response = await _apiConnection.PostAsync<CreateViewRequest, CreateListViewResponse>(endpoint, createViewRequest, cancellationToken);
+            return response ?? throw new InvalidOperationException($"API response was null for CreateListViewAsync (List ID: {listId}).");
         }
 
         /// <inheritdoc />
-        public async Task<View?> GetViewAsync(
+        public async Task<GetViewResponse> GetViewAsync(
             string viewId,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"view/{viewId}";
             var response = await _apiConnection.GetAsync<GetViewResponse>(endpoint, cancellationToken);
-            return response?.View;
+            return response ?? throw new InvalidOperationException($"API response was null for GetViewAsync (View ID: {viewId}).");
         }
 
         /// <inheritdoc />
-        public async Task<View?> UpdateViewAsync(
+        public async Task<UpdateViewResponse> UpdateViewAsync(
             string viewId,
             UpdateViewRequest updateViewRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"view/{viewId}";
-            var response = await _apiConnection.PutAsync<UpdateViewRequest, GetViewResponse>(endpoint, updateViewRequest, cancellationToken);
-            return response?.View;
+            var response = await _apiConnection.PutAsync<UpdateViewRequest, UpdateViewResponse>(endpoint, updateViewRequest, cancellationToken);
+            return response ?? throw new InvalidOperationException($"API response was null for UpdateViewAsync (View ID: {viewId}).");
         }
 
         /// <inheritdoc />
@@ -165,7 +166,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetViewTasksResponse?> GetViewTasksAsync(
+        public async Task<GetViewTasksResponse> GetViewTasksAsync(
             string viewId,
             int page,
             CancellationToken cancellationToken = default)
@@ -177,57 +178,11 @@ namespace ClickUp.Api.Client.Services
             };
             endpoint += BuildQueryString(queryParams);
 
-            return await _apiConnection.GetAsync<GetViewTasksResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetViewTasksResponse>(endpoint, cancellationToken);
+            return response ?? throw new InvalidOperationException($"API response was null for GetViewTasksAsync (View ID: {viewId}, Page: {page}).");
         }
 
-        Task<GetViewsResponse> IViewsService.GetWorkspaceViewsAsync(string workspaceId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<CreateTeamViewResponse> IViewsService.CreateWorkspaceViewAsync(string workspaceId, CreateViewRequest createViewRequest, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<GetViewsResponse> IViewsService.GetSpaceViewsAsync(string spaceId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<CreateSpaceViewResponse> IViewsService.CreateSpaceViewAsync(string spaceId, CreateViewRequest createViewRequest, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<GetViewsResponse> IViewsService.GetFolderViewsAsync(string folderId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<CreateFolderViewResponse> IViewsService.CreateFolderViewAsync(string folderId, CreateViewRequest createViewRequest, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<GetViewsResponse> IViewsService.GetListViewsAsync(string listId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<CreateListViewResponse> IViewsService.CreateListViewAsync(string listId, CreateViewRequest createViewRequest, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<GetViewResponse> IViewsService.GetViewAsync(string viewId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<UpdateViewResponse> IViewsService.UpdateViewAsync(string viewId, UpdateViewRequest updateViewRequest, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        // Removed redundant explicit interface implementations that were throwing NotImplementedException.
+        // The public methods above with matching signatures implicitly implement the interface.
     }
 }

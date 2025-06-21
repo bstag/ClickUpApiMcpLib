@@ -6,7 +6,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.CustomFields.Values;
 public class ManualProgressCustomFieldValueRequest : SetCustomFieldValueRequest
 {
     [JsonPropertyName("value")]
-    public ManualProgressValue Value { get; set; } // Assuming ManualProgressValue is a defined type
+    public required ManualProgressValue Value { get; set; } // Assuming ManualProgressValue is a defined type
 
     public ManualProgressCustomFieldValueRequest(ManualProgressValue value)
     {

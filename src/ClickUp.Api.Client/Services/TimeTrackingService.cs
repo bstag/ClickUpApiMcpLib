@@ -178,7 +178,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<TimeEntry> GetRunningTimeEntryAsync(
+        public async Task<TimeEntry?> GetRunningTimeEntryAsync(
             string workspaceId,
             string? assigneeUserId = null, // This is a query param: assignee_user_id
             CancellationToken cancellationToken = default)
@@ -190,15 +190,7 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.GetAsync<GetTimeEntryResponse>(endpoint, cancellationToken); // API returns {"data": ...} (or null if no timer)
-            // A running timer might legitimately not exist, returning null.
-            // The interface contract Task<TimeEntry> implies it should always exist or error.
-            // This might need discussion: should it be Task<TimeEntry?> or handle null as an exception?
-            // For now, adhering strictly to making it non-nullable if interface is non-nullable.
-            if (responseWrapper?.Data == null)
-            {
-                 throw new InvalidOperationException($"No running time entry found or API returned null/empty data for workspace {workspaceId} and assignee {assigneeUserId ?? "any"}.");
-            }
-            return responseWrapper.Data;
+            return responseWrapper?.Data; // Return null if responseWrapper or its Data is null
         }
 
         /// <inheritdoc />

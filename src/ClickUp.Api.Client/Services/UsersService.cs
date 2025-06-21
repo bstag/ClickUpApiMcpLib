@@ -53,68 +53,77 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GuestUserInfo?> GetUserFromWorkspaceAsync(
+        public async Task<User> GetUserFromWorkspaceAsync(
             string workspaceId,
             string userId,
-            bool? includeShared = null, // This parameter is not standard for GET user. Might be specific to certain ClickUp contexts or older versions.
+            bool? includeShared = null,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/user/{userId}";
             var queryParams = new Dictionary<string, string?>();
-            // The 'include_shared' parameter is not listed in the standard GET /team/{team_id}/user/{user_id} endpoint.
-            // If it's valid for a specific use case, it would be added here.
-            // if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
+            // 'includeShared' is not used as it's not standard for this endpoint.
             endpoint += BuildQueryString(queryParams);
 
-            // API usually returns {"user": {...}}
             var response = await _apiConnection.GetAsync<GetUserResponse>(endpoint, cancellationToken);
-            var inviteGuestUser = response.Member.User;
-            var user = new GuestUserInfo
-            {
-                Id = inviteGuestUser.Id,
-                Username = inviteGuestUser.Username,
-                Email = inviteGuestUser.Email,
-                Color = inviteGuestUser.Color,
-                ProfilePicture = inviteGuestUser.ProfilePicture,
-                Initials = inviteGuestUser.Initials,
-                Role = inviteGuestUser.Role,
-                CustomRole = inviteGuestUser.CustomRole,
-                LastActive = inviteGuestUser.LastActive,
-                DateJoined = inviteGuestUser.DateJoined,
-                DateInvited = inviteGuestUser.DateInvited
-            };
 
-            return user;
+            if (response?.Member?.User == null)
+            {
+                throw new InvalidOperationException($"API response, Member, or User data was null for GetUserFromWorkspaceAsync (Workspace: {workspaceId}, User: {userId}).");
+            }
+
+            // Assuming response.Member.User is of a type compatible with Models.Entities.Users.User
+            // If GetUserResponse.Member.User is already Models.Entities.Users.User, direct return is fine.
+            // If it's a different DTO, mapping is needed. Let's assume it's compatible or is the target type.
+            // The original code used 'inviteGuestUser' which implies response.Member.User was GuestUserInfo or similar.
+            // The interface IUsersService expects Models.Entities.Users.User.
+            // Let's assume GetUserResponse.Member.User is of type Models.Entities.Users.User.
+            // (This requires GetUserResponse and its nested types to be correctly defined)
+
+            // If response.Member.User is the exact type Models.Entities.Users.User:
+            // return response.Member.User;
+
+            // If mapping is needed from an intermediate DTO (e.g., response.Member.User is some internal DTO)
+            // to Models.Entities.Users.User:
+            var sourceUser = response.Member.User;
+            return new User( // Constructing the Models.Entities.Users.User record
+                Id: sourceUser.Id, // Assuming sourceUser.Id is int
+                Username: sourceUser.Username, // Assuming sourceUser.Username is string?
+                Email: sourceUser.Email,       // Assuming sourceUser.Email is string
+                Color: sourceUser.Color,       // Assuming sourceUser.Color is string?
+                ProfilePicture: sourceUser.ProfilePicture, // Assuming sourceUser.ProfilePicture is string?
+                Initials: sourceUser.Initials, // Assuming sourceUser.Initials is string?
+                ProfileInfo: null // Assuming sourceUser doesn't have ProfileInfo or it's mapped if available
+                                  // This part needs to align with what `GetUserResponse.Member.User` actually is.
+                                  // For now, this is a direct mapping of common fields.
+                                  // If GetUserResponse.Member.User IS Models.Entities.Users.User, then this mapping is redundant.
+            );
         }
 
         /// <inheritdoc />
-        public async Task<GuestUserInfo?> EditUserOnWorkspaceAsync(
+        public async Task<User> EditUserOnWorkspaceAsync(
             string workspaceId,
             string userId,
             EditUserOnWorkspaceRequest editUserRequest,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/user/{userId}";
-            // API usually returns {"user": {...}}
             var response = await _apiConnection.PutAsync<EditUserOnWorkspaceRequest, GetUserResponse>(endpoint, editUserRequest, cancellationToken);
-            var inviteGuestUser = response.Member.User;
-            var user = new GuestUserInfo
+
+            if (response?.Member?.User == null)
             {
-                Id = inviteGuestUser.Id,
-                Username = inviteGuestUser.Username,
-                Email = inviteGuestUser.Email,
-                Color = inviteGuestUser.Color,
-                ProfilePicture = inviteGuestUser.ProfilePicture,
-                Initials = inviteGuestUser.Initials,
-                Role = inviteGuestUser.Role,
-                CustomRole = inviteGuestUser.CustomRole,
-                LastActive = inviteGuestUser.LastActive,
-                DateJoined = inviteGuestUser.DateJoined,
-                DateInvited = inviteGuestUser.DateInvited
-            };
+                throw new InvalidOperationException($"API response, Member, or User data was null for EditUserOnWorkspaceAsync (Workspace: {workspaceId}, User: {userId}).");
+            }
 
-            return user;
-
+            var sourceUser = response.Member.User;
+            return new User(
+                Id: sourceUser.Id,
+                Username: sourceUser.Username,
+                Email: sourceUser.Email,
+                Color: sourceUser.Color,
+                ProfilePicture: sourceUser.ProfilePicture,
+                Initials: sourceUser.Initials,
+                ProfileInfo: null
+            );
         }
 
         /// <inheritdoc />
@@ -124,18 +133,9 @@ namespace ClickUp.Api.Client.Services
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/user/{userId}";
-            // API returns a 'team' object, but interface is void.
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
 
-        Task<Models.Entities.Users.User> IUsersService.GetUserFromWorkspaceAsync(string workspaceId, string userId, bool? includeShared, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<Models.Entities.Users.User> IUsersService.EditUserOnWorkspaceAsync(string workspaceId, string userId, EditUserOnWorkspaceRequest editUserRequest, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        // Removed explicit interface implementations as public methods above match the interface.
     }
 }

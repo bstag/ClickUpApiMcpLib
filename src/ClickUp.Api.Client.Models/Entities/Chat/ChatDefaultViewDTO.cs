@@ -6,27 +6,25 @@ namespace ClickUp.Api.Client.Models.Entities.Chat;
 /// Represents the default view settings for a chat room.
 /// Corresponds to #/components/schemas/ChatRoom_default_view
 /// </summary>
-public record ChatDefaultViewDTO
-{
+public record ChatDefaultViewDTO(
     /// <summary>
     /// Type of the view.
     /// </summary>
     /// <example>"list"</example>
-    [JsonPropertyName("type")]
-    public string Type { get; init; }
-
+    [property: JsonPropertyName("type")]
+    string Type,
     /// <summary>
     /// ID of the view.
     /// </summary>
-    [JsonPropertyName("id")]
-    public string Id { get; init; }
-
+    [property: JsonPropertyName("id")]
+    string Id,
     /// <summary>
     /// Name of the view.
     /// </summary>
-    [JsonPropertyName("name")]
-    public string Name { get; init; }
-
+    [property: JsonPropertyName("name")]
+    string Name
+)
+{
     /// <summary>
     /// JSON string representing view settings.
     /// </summary>
