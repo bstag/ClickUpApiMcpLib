@@ -88,13 +88,13 @@ This document provides a detailed plan for defining and refining the core models
     - [ ] Identify any missing service interfaces or methods for documented API endpoints. (Ongoing review during service implementation)
     - [ ] Plan for the creation of these missing elements.
 
-- [ ] **3. XML Documentation for Interfaces:**
-    - [ ] Mandate comprehensive XML documentation for all interfaces and their methods. (Partially done, needs comprehensive pass)
-    - [ ] `<summary>`: Clearly describe the purpose of the interface or method.
-    - [ ] `<param name="paramName">`: Describe each parameter, its purpose, and any specific requirements (e.g., format, valid values if not obvious from type).
-    - [ ] `<returns>`: Describe the expected return value (e.g., "A `TaskDto` representing the retrieved task."). For `Task` (non-generic), indicate it completes upon successful execution.
-    - [ ] `<exception cref="ApiExceptionType">`: Document potential API-specific exceptions that can be thrown (details to be fleshed out in the Exception Handling plan).
-    - [ ] `<remarks>`: Add any additional important notes or usage considerations.
+- [x] **3. XML Documentation for Interfaces:**
+    - [x] Mandate comprehensive XML documentation for all interfaces and their methods. (Partially done, needs comprehensive pass)
+    - [x] `<summary>`: Clearly describe the purpose of the interface or method.
+    - [x] `<param name="paramName">`: Describe each parameter, its purpose, and any specific requirements (e.g., format, valid values if not obvious from type).
+    - [x] `<returns>`: Describe the expected return value (e.g., "A `TaskDto` representing the retrieved task."). For `Task` (non-generic), indicate it completes upon successful execution.
+    - [x] `<exception cref="ApiExceptionType">`: Document potential API-specific exceptions that can be thrown (details to be fleshed out in the Exception Handling plan).
+    - [x] `<remarks>`: Add any additional important notes or usage considerations.
 
 - [x] **4. Output:**
     - [x] Update `02-abstractions-interfaces-actual.md` to reflect the refined and complete set of interfaces and their method signatures. (This file is considered up-to-date based on its own content)

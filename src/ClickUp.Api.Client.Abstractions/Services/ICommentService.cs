@@ -186,12 +186,12 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="commentId">The ID of the parent comment.</param>
         /// <param name="createCommentRequest">Details of the threaded comment to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <returns>A <see cref="CreateCommentResponse"/> object containing details of the created threaded comment.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="commentId"/> or <paramref name="createCommentRequest"/> is null.</exception>
         /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the parent comment with the specified ID is not found.</exception>
         /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create a threaded comment.</exception>
         /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
-        System.Threading.Tasks.Task CreateThreadedCommentAsync(
+        Task<CreateCommentResponse> CreateThreadedCommentAsync(
             string commentId,
             CreateCommentRequest createCommentRequest,
             CancellationToken cancellationToken = default);
