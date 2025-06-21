@@ -109,15 +109,20 @@ namespace ClickUp.Api.Client.Services
             // If the API strictly requires a separate 'filename' field even with file upload, it would be:
             // multipartContent.Add(new StringContent(fileName), "\"filename\""); // Quotes might be needed for form field names by some servers
 
-            var attachment = await _apiConnection.PostMultipartAsync<Attachment>(endpoint, multipartContent, cancellationToken);
-            if (attachment == null)
+            // Ensure the IApiConnection interface and its implementation support PostMultipartAsync
+            // For now, we assume it correctly handles the multipart request and deserializes the response.
+            var createdAttachment = await _apiConnection.PostMultipartAsync<Attachment>(endpoint, multipartContent, cancellationToken);
+
+            if (createdAttachment == null)
             {
                 // This case should ideally not happen if the API successfully creates an attachment and returns it.
-                // If it can happen (e.g. API returns 204 No Content on success sometimes), the interface IAttachmentsService might need to be Task<Attachment?>
-                // For now, adhering to the non-null interface contract.
-                throw new InvalidOperationException($"Failed to create attachment or API returned an unexpected null response for task {taskId}.");
+                // If it can happen (e.g. API returns 204 No Content on success for some reason, though unlikely for a create operation),
+                // the interface IAttachmentsService might need to be Task<Attachment?> or handle it differently.
+                // For now, adhering to the non-null interface contract and ClickUp's typical behavior of returning the created entity.
+                throw new InvalidOperationException($"Failed to create attachment for task {taskId}, or the API returned an unexpected null response.");
             }
-            return attachment;
+
+            return createdAttachment;
         }
     }
 }
