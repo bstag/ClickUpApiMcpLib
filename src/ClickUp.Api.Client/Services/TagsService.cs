@@ -146,5 +146,15 @@ namespace ClickUp.Api.Client.Services
 
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
+
+        public Task CreateSpaceTagAsync(string spaceId, Models.RequestModels.Spaces.ModifyTagRequest modifyTagRequest, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Tag> EditSpaceTagAsync(string spaceId, string tagName, Models.RequestModels.Spaces.ModifyTagRequest modifyTagRequest, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

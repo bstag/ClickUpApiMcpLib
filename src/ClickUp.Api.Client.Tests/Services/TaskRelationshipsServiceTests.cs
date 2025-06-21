@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 using System.Linq;
+using ClickUp.Api.Client.Models.Entities.Tasks;
+using ClickUp.Api.Client.Models.ResponseModels.Tasks;
 
 namespace ClickUp.Api.Client.Tests.Services
 {
@@ -24,20 +26,20 @@ namespace ClickUp.Api.Client.Tests.Services
             _taskRelationshipsService = new TaskRelationshipsService(_mockApiConnection.Object);
         }
 
-        private Models.Entities.Task CreateSampleTask(string id, string name)
+        private CuTask CreateSampleTask(string id, string name)
         {
-            var task = (Models.Entities.Task)Activator.CreateInstance(typeof(Models.Entities.Task), nonPublic: true)!;
-            var props = typeof(Models.Entities.Task).GetProperties();
+            var task = (CuTask)Activator.CreateInstance(typeof(CuTask), nonPublic: true)!;
+            var props = typeof(CuTask).GetProperties();
             props.FirstOrDefault(p => p.Name == "Id")?.SetValue(task, id);
             props.FirstOrDefault(p => p.Name == "Name")?.SetValue(task, name);
             return task;
         }
 
-        private GetTaskResponse CreateSampleGetTaskResponse(Models.Entities.Task task)
+        private GetTaskResponse CreateSampleGetTaskResponse(CuTask task)
         {
             var responseType = typeof(GetTaskResponse);
             var constructor = responseType.GetConstructors().FirstOrDefault(c =>
-                c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(Models.Entities.Task));
+                c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(CuTask));
             if (constructor != null)
             {
                 return (GetTaskResponse)constructor.Invoke(new object[] { task });

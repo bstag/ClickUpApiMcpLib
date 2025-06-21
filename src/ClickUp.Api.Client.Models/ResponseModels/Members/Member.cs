@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ClickUp.Api.Client.Models.Entities.Users;
 using ClickUp.Api.Client.Models.ResponseModels.Users; // Using the newly created User class
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Members

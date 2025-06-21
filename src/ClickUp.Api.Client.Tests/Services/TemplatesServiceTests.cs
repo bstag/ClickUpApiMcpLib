@@ -11,6 +11,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using ClickUp.Api.Client.Models.Entities.Templates;
 
 namespace ClickUp.Api.Client.Tests.Services
 {
@@ -25,26 +26,26 @@ namespace ClickUp.Api.Client.Tests.Services
             _templatesService = new TemplatesService(_mockApiConnection.Object);
         }
 
-        private Template CreateSampleTemplate(string id, string name)
+        private TaskTemplate CreateSampleTemplate(string id, string name)
         {
-            var template = (Template)Activator.CreateInstance(typeof(Template), nonPublic: true)!;
-            var props = typeof(Template).GetProperties();
+            var template = (TaskTemplate)Activator.CreateInstance(typeof(TaskTemplate), nonPublic: true)!;
+            var props = typeof(TaskTemplate).GetProperties();
             props.FirstOrDefault(p => p.Name == "Id")?.SetValue(template, id);
             props.FirstOrDefault(p => p.Name == "Name")?.SetValue(template, name);
             return template;
         }
 
-        private GetTemplatesResponse CreateSampleGetTemplatesResponse(List<Template> templates)
+        private GetTaskTemplatesResponse CreateSampleGetTemplatesResponse(List<TaskTemplate> templates)
         {
             // Assuming GetTemplatesResponse has a constructor or settable property "Templates"
-            var responseType = typeof(GetTemplatesResponse);
+            var responseType = typeof(GetTaskTemplatesResponse);
             var constructor = responseType.GetConstructors().FirstOrDefault(c =>
-                c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(List<Template>));
+                c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(List<TaskTemplate>));
             if (constructor != null)
             {
-                return (GetTemplatesResponse)constructor.Invoke(new object[] { templates });
+                return (GetTaskTemplatesResponse)constructor.Invoke(new object[] { templates });
             }
-            var instance = (GetTemplatesResponse)Activator.CreateInstance(responseType, nonPublic: true)!;
+            var instance = (GetTaskTemplatesResponse)Activator.CreateInstance(responseType, nonPublic: true)!;
             responseType.GetProperty("Templates")?.SetValue(instance, templates);
             return instance;
         }
@@ -55,10 +56,10 @@ namespace ClickUp.Api.Client.Tests.Services
             // Arrange
             var workspaceId = "ws-id";
             var page = 0;
-            var expectedTemplates = new List<Template> { CreateSampleTemplate("template-1", "My CuTask Template") };
+            var expectedTemplates = new List<TaskTemplate> { CreateSampleTemplate("template-1", "My CuTask Template") };
             var expectedResponse = CreateSampleGetTemplatesResponse(expectedTemplates);
 
-            _mockApiConnection.Setup(c => c.GetAsync<GetTemplatesResponse>(
+            _mockApiConnection.Setup(c => c.GetAsync<GetTaskTemplatesResponse>(
                 $"team/{workspaceId}/taskTemplate?page={page}",
                 It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
@@ -69,7 +70,7 @@ namespace ClickUp.Api.Client.Tests.Services
             // Assert
             result.Should().NotBeNull();
             result.Should().BeEquivalentTo(expectedTemplates);
-            _mockApiConnection.Verify(c => c.GetAsync<GetTemplatesResponse>(
+            _mockApiConnection.Verify(c => c.GetAsync<GetTaskTemplatesResponse>(
                 $"team/{workspaceId}/taskTemplate?page={page}",
                 It.IsAny<CancellationToken>()), Times.Once);
         }

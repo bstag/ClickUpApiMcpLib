@@ -5,7 +5,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Users
     /// <summary>
     /// Represents a ClickUp User.
     /// </summary>
-    public class User
+    public class UserResponse
     {
         [JsonPropertyName("id")]
         public long Id { get; set; }
@@ -29,11 +29,11 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Users
         public string? Initials { get; set; }
 
         // Parameterless constructor for deserialization
-        public User() { }
+        public UserResponse() { }
 
         // Constructor to initialize required fields (if any identified as strictly required by API for all User contexts)
         // For now, assuming Username and Email are generally essential.
-        public User(long id, string username, string email)
+        public UserResponse(long id, string username, string email)
         {
             Id = id;
             Username = username ?? throw new ArgumentNullException(nameof(username));

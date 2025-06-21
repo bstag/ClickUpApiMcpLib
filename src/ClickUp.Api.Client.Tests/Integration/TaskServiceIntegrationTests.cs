@@ -4,9 +4,10 @@ using Microsoft.Extensions.DependencyInjection; // For GetRequiredService
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
 // Ensure correct using for CuTask DTO, assuming it's in Entities:
-using ClickUpTask = ClickUp.Api.Client.Models.Entities.Task;
+using ClickUpTask = ClickUp.Api.Client.Models.Entities.Tasks;
 using System.Threading.Tasks;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace ClickUp.Api.Client.Tests.Integration
@@ -48,8 +49,8 @@ namespace ClickUp.Api.Client.Tests.Integration
         {
             // Arrange
             var taskName = $"My Integration Test CuTask - {Guid.NewGuid()}";
-            var createTaskRequest = new CreateTaskRequest(Name: taskName);
-            ClickUpTask? createdTask = null;
+            var createTaskRequest = new CreateTaskRequest(Name: taskName,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+            ClickUpTask.CuTask? createdTask = null;
 
             try
             {
@@ -102,7 +103,7 @@ namespace ClickUp.Api.Client.Tests.Integration
             // This test primarily checks if the call executes without error and yields some tasks.
             Console.WriteLine($"Getting tasks as IAsyncEnumerable from list '{_testListId}'...");
 
-            var collectedTasks = new List<ClickUpTask>();
+            var collectedTasks = new List<ClickUpTask.CuTask>();
             int count = 0;
             bool hasAtLeastOneTask = false;
 

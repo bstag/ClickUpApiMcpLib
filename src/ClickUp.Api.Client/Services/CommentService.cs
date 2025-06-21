@@ -215,5 +215,15 @@ namespace ClickUp.Api.Client.Services
             }
             return response;
         }
+
+        Task ICommentsService.UpdateCommentAsync(string commentId, UpdateCommentRequest updateCommentRequest, CancellationToken cancellationToken)
+        {
+            return UpdateCommentAsync(commentId, updateCommentRequest, cancellationToken);
+        }
+
+        Task ICommentsService.CreateThreadedCommentAsync(string commentId, CreateCommentRequest createCommentRequest, CancellationToken cancellationToken)
+        {
+            return CreateThreadedCommentAsync(commentId, createCommentRequest, cancellationToken);
+        }
     }
 }

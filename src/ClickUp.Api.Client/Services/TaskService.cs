@@ -555,5 +555,10 @@ namespace ClickUp.Api.Client.Services
                 }
             } while (!lastPage);
         }
+
+        public Task<GetTasksResponse> GetFilteredTeamTasksAsync(string workspaceId, int? page = null, string? orderBy = null, bool? reverse = null, bool? subtasks = null, IEnumerable<string>? spaceIds = null, IEnumerable<string>? projectIds = null, IEnumerable<string>? listIds = null, IEnumerable<string>? statuses = null, bool? includeClosed = null, IEnumerable<string>? assignees = null, IEnumerable<string>? tags = null, long? dueDateGreaterThan = null, long? dueDateLessThan = null, long? dateCreatedGreaterThan = null, long? dateCreatedLessThan = null, long? dateUpdatedGreaterThan = null, long? dateUpdatedLessThan = null, string? customFields = null, bool? customTaskIds = null, string? teamIdForCustomTaskIds = null, IEnumerable<long>? customItems = null, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

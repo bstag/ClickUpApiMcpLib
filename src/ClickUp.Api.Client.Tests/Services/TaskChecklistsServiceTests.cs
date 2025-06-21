@@ -11,6 +11,8 @@ using System.Threading;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using ClickUp.Api.Client.Models.Entities.Checklists;
+using ClickUp.Api.Client.Models.RequestModels.Checklists;
 
 namespace ClickUp.Api.Client.Tests.Services
 {

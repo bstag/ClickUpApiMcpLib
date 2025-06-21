@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.IO;
+using ClickUp.Api.Client.Models.Entities.TimeTracking;
 
 namespace ClickUp.Api.Client.Tests.Services
 {

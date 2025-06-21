@@ -137,7 +137,7 @@ namespace ClickUp.Api.Client.Services
             // Add CuTask Link API is POST and returns the task.
             // It does not take a request body. So we send an empty object.
             var response = await _apiConnection.PostAsync<object, GetTaskResponse>(endpoint, new { }, cancellationToken);
-            return response?.Task;
+            return response;
         }
 
         /// <inheritdoc />

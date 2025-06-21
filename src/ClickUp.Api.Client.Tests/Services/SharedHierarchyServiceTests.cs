@@ -3,8 +3,7 @@ using Moq;
 using FluentAssertions;
 using ClickUp.Api.Client.Services;
 using ClickUp.Api.Client.Abstractions.Http; // For IApiConnection
-using ClickUp.Api.Client.Models.ResponseModels; // For SharedHierarchy
-using ClickUp.Api.Client.Models.ResponseModels.Shared; // Namespace from service
+using ClickUp.Api.Client.Models.ResponseModels; // Namespace from service
 using System.Threading.Tasks;
 using System.Threading;
 using System;

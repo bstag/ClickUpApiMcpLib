@@ -1,3 +1,10 @@
+using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
+using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Users;
+using ClickUp.Api.Client.Models.RequestModels.Users;
+using ClickUp.Api.Client.Models.ResponseModels.Users; // Assuming GetUserResponse exists
+
 using System;
 using System.Collections.Generic; // For Dictionary
 using System.Linq; // For Linq Any
@@ -5,11 +12,6 @@ using System.Net.Http;
 using System.Text; // For StringBuilder
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
-using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.RequestModels.Users;
-using ClickUp.Api.Client.Models.ResponseModels.Users; // Assuming GetUserResponse exists
 
 namespace ClickUp.Api.Client.Services
 {
@@ -51,7 +53,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<User?> GetUserFromWorkspaceAsync(
+        public async Task<GuestUserInfo?> GetUserFromWorkspaceAsync(
             string workspaceId,
             string userId,
             bool? includeShared = null, // This parameter is not standard for GET user. Might be specific to certain ClickUp contexts or older versions.
@@ -66,11 +68,27 @@ namespace ClickUp.Api.Client.Services
 
             // API usually returns {"user": {...}}
             var response = await _apiConnection.GetAsync<GetUserResponse>(endpoint, cancellationToken);
-            return response?.User;
+            var inviteGuestUser = response.Member.User;
+            var user = new GuestUserInfo
+            {
+                Id = inviteGuestUser.Id,
+                Username = inviteGuestUser.Username,
+                Email = inviteGuestUser.Email,
+                Color = inviteGuestUser.Color,
+                ProfilePicture = inviteGuestUser.ProfilePicture,
+                Initials = inviteGuestUser.Initials,
+                Role = inviteGuestUser.Role,
+                CustomRole = inviteGuestUser.CustomRole,
+                LastActive = inviteGuestUser.LastActive,
+                DateJoined = inviteGuestUser.DateJoined,
+                DateInvited = inviteGuestUser.DateInvited
+            };
+
+            return user;
         }
 
         /// <inheritdoc />
-        public async Task<User?> EditUserOnWorkspaceAsync(
+        public async Task<GuestUserInfo?> EditUserOnWorkspaceAsync(
             string workspaceId,
             string userId,
             EditUserOnWorkspaceRequest editUserRequest,
@@ -79,7 +97,24 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/user/{userId}";
             // API usually returns {"user": {...}}
             var response = await _apiConnection.PutAsync<EditUserOnWorkspaceRequest, GetUserResponse>(endpoint, editUserRequest, cancellationToken);
-            return response?.User;
+            var inviteGuestUser = response.Member.User;
+            var user = new GuestUserInfo
+            {
+                Id = inviteGuestUser.Id,
+                Username = inviteGuestUser.Username,
+                Email = inviteGuestUser.Email,
+                Color = inviteGuestUser.Color,
+                ProfilePicture = inviteGuestUser.ProfilePicture,
+                Initials = inviteGuestUser.Initials,
+                Role = inviteGuestUser.Role,
+                CustomRole = inviteGuestUser.CustomRole,
+                LastActive = inviteGuestUser.LastActive,
+                DateJoined = inviteGuestUser.DateJoined,
+                DateInvited = inviteGuestUser.DateInvited
+            };
+
+            return user;
+
         }
 
         /// <inheritdoc />
@@ -91,6 +126,16 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/user/{userId}";
             // API returns a 'team' object, but interface is void.
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
+        }
+
+        Task<Models.Entities.Users.User> IUsersService.GetUserFromWorkspaceAsync(string workspaceId, string userId, bool? includeShared, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Models.Entities.Users.User> IUsersService.EditUserOnWorkspaceAsync(string workspaceId, string userId, EditUserOnWorkspaceRequest editUserRequest, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

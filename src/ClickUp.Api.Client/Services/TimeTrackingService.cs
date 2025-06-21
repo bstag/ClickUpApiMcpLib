@@ -457,5 +457,10 @@ namespace ClickUp.Api.Client.Services
                 }
             } while (!lastPageReached);
         }
+
+        public Task ChangeTimeEntryTagNameAsync(string workspaceId, ChangeTagNamesFromTimeEntriesRequest changeTagNamesRequest, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

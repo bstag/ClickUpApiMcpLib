@@ -57,7 +57,7 @@ namespace ClickUp.Api.Client.Services
         {
             // This endpoint retrieves all fields accessible by a List, including those from parent Folders, Spaces, and the Workspace.
             var endpoint = $"list/{listId}/field";
-            var response = await _apiConnection.GetAsync<GetCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
+            var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
             return response?.Fields ?? Enumerable.Empty<Field>();
         }
 
@@ -67,7 +67,7 @@ namespace ClickUp.Api.Client.Services
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"folder/{folderId}/field";
-            var response = await _apiConnection.GetAsync<GetCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
+            var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
             return response?.Fields ?? Enumerable.Empty<Field>();
         }
 
@@ -77,7 +77,7 @@ namespace ClickUp.Api.Client.Services
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"space/{spaceId}/field";
-            var response = await _apiConnection.GetAsync<GetCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
+            var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
             return response?.Fields ?? Enumerable.Empty<Field>();
         }
 
@@ -87,7 +87,7 @@ namespace ClickUp.Api.Client.Services
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"team/{workspaceId}/field"; // team_id is workspaceId
-            var response = await _apiConnection.GetAsync<GetCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
+            var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
             return response?.Fields ?? Enumerable.Empty<Field>();
         }
 

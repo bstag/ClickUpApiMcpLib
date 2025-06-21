@@ -265,7 +265,13 @@ namespace ClickUp.Api.Client.Services
                         {
                             yield break;
                         }
-                        yield return list;
+                        yield return new ClickUpList
+                        {
+                            Id = list.Id,
+                            Name = list.Name,
+                            Folder = list.Folder,
+                            Priority = list.Priority
+                        };
                     }
                     // We infer lastPage if the returned list is empty.
                     // ClickUp's /space/{id}/list endpoint with 'page' might not return a 'last_page' field.

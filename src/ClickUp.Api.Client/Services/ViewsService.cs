@@ -179,5 +179,55 @@ namespace ClickUp.Api.Client.Services
 
             return await _apiConnection.GetAsync<GetViewTasksResponse>(endpoint, cancellationToken);
         }
+
+        Task<GetViewsResponse> IViewsService.GetWorkspaceViewsAsync(string workspaceId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<CreateTeamViewResponse> IViewsService.CreateWorkspaceViewAsync(string workspaceId, CreateViewRequest createViewRequest, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<GetViewsResponse> IViewsService.GetSpaceViewsAsync(string spaceId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<CreateSpaceViewResponse> IViewsService.CreateSpaceViewAsync(string spaceId, CreateViewRequest createViewRequest, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<GetViewsResponse> IViewsService.GetFolderViewsAsync(string folderId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<CreateFolderViewResponse> IViewsService.CreateFolderViewAsync(string folderId, CreateViewRequest createViewRequest, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<GetViewsResponse> IViewsService.GetListViewsAsync(string listId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<CreateListViewResponse> IViewsService.CreateListViewAsync(string listId, CreateViewRequest createViewRequest, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<GetViewResponse> IViewsService.GetViewAsync(string viewId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<UpdateViewResponse> IViewsService.UpdateViewAsync(string viewId, UpdateViewRequest updateViewRequest, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
