@@ -20,22 +20,60 @@
 **Phase 2: Implement Core Client Functionality (Following `geminiPlan.md` Sections II & III)**
 
 4.  - [ ] **Implement Service Layer in `ClickUp.Api.Client`:**
-    - [x] Create initial stub implementations for all service classes.
-    - [ ] Implement actual HTTP call logic using HttpClient (to be done in conjunction with Step 5).
-    - [ ] Integrate error handling (Step 6) and authentication (Step 7).
-    *   Create concrete service classes (e.g., `TaskService`, `ListService`) in `src/ClickUp.Api.Client/Services/` that implement the refined interfaces from Phase 1.
-    *   These services will orchestrate request construction, execution, and response processing.
-    *   Initially, focus on direct `HttpClient` usage without Polly or advanced auth handlers, to be added in subsequent steps.
+    - [x] Create initial stub implementations for all service classes in `src/ClickUp.Api.Client/Services/`.
+    - [ ] **For each service (e.g., `TaskService`, `ListService`, etc.):**
+        - [ ] **Inject `HttpClient` (or typed `ClickUpHttpClient`) and `ILogger`.** (Conceptual plan: `docs/plans/03-service-implementations-conceptual.md`)
+        - [ ] **Implement actual HTTP call logic for each method:**
+            - [ ] Construct the correct relative URL for the endpoint (refer to OpenAPI spec: `docs/OpenApiSpec/ClickUp-6-17-25.json`).
+            - [ ] Determine the HTTP method (GET, POST, PUT, DELETE).
+            - [ ] If the method requires a request body:
+                - [ ] Serialize the request DTO (from `ClickUp.Api.Client.Models`) to JSON.
+                - [ ] Create `StringContent` with `application/json` media type.
+            - [ ] Make the HTTP call using the injected `HttpClient` (passing `CancellationToken`).
+            - [ ] Receive the `HttpResponseMessage`.
+            - [ ] **Process the response:**
+                - [ ] Check `response.IsSuccessStatusCode`.
+                - [ ] If successful:
+                    - [ ] If body returned, deserialize JSON content into the response DTO (using shared `JsonSerializerOptions` from Step 5).
+                    - [ ] Return deserialized DTO or `Task.CompletedTask`.
+                - [ ] If not successful:
+                    - [ ] Implement error handling logic (see Step 6).
+        - [ ] Ensure all public methods align with refined interfaces (correct DTOs, `CancellationToken`).
+        - [ ] Add XML documentation comments for implemented methods.
 
 5.  - [ ] **Setup `IHttpClientFactory` and Basic `HttpClient` Configuration:**
-    *   Integrate `IHttpClientFactory` for `HttpClient` management.
-    *   Configure a typed client (e.g., `ClickUpHttpClient`) or a named client.
-    *   Set the base API address (`https://api.clickup.com/api/v2/`) and default headers (e.g., `User-Agent`).
-    *   Implement basic JSON serialization/deserialization helpers using `System.Text.Json` with centrally configured `JsonSerializerOptions` (as per `docs/plans/04-httpclient-helpers-conceptual.md`).
+    - [x] Conceptual plan: `docs/plans/04-httpclient-helpers-conceptual.md`.
+    - [ ] **In client library DI setup (e.g., `services.AddClickUpApiClient(...)` extension method):**
+        - [ ] Register and configure a typed client (e.g., `ClickUpHttpClient`) or named client.
+            - [ ] Set Base API Address: `https://api.clickup.com/api/v2/`.
+            - [ ] Set Default Headers: `User-Agent`, `Accept: application/json`.
+        - [ ] Integrate `AuthenticationDelegatingHandler` (Step 7) via `.AddHttpMessageHandler()`.
+    - [ ] **Implement JSON Serialization/Deserialization Helpers:**
+        - [ ] Create/Use a central place for `JsonSerializerOptions` (e.g., static class `ClickUpJsonSerializerSettings`).
+            - [ ] Configure `PropertyNamingPolicy` (Action: Verify ClickUp API's casing).
+            - [ ] Configure `DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull`.
+            - [ ] Add necessary converters (e.g., `JsonStringEnumConverter`).
+        - [ ] Ensure services use these shared options.
+    - [ ] **(Optional) Create basic helper methods if `System.Net.Http.Json` isn't sufficient.**
+    - [ ] **(Optional) Query String Builder Utility for complex queries.** (Refer to `docs/plans/04-httpclient-helpers-conceptual.md`).
 
 6.  - [ ] **Implement Robust Exception Handling:**
-    *   Define the custom exception hierarchy (e.g., `ClickUpApiException`, `ClickUpApiValidationException`, etc.) in the `ClickUp.Api.Client.Models` project, as outlined in `docs/plans/05-exception-system-conceptual.md`.
-    *   Implement centralized error handling logic within the service implementations (or a shared helper) to translate HTTP error responses into these custom exceptions.
+    - [x] Conceptual plan: `docs/plans/05-exception-system-conceptual.md`.
+    - [x] Basic custom exception types defined in `ClickUp.Api.Client.Models/Exceptions/`.
+    - [ ] **Refine and Expand Custom Exception Hierarchy (as needed):**
+        - [ ] `ClickUpApiValidationException`
+        - [ ] `ClickUpApiAuthenticationException`
+        - [ ] `ClickUpApiNotFoundException`
+        - [ ] `ClickUpApiRateLimitException`
+        - [ ] `ClickUpApiServerException`
+        - [ ] Ensure all inherit from `ClickUpApiException` and include properties for API error details.
+    - [ ] **Implement Centralized Error Handling Logic:**
+        - [ ] Create a shared helper method (e.g., `async Task ThrowClickUpApiExceptionAsync(HttpResponseMessage response)`).
+        - [ ] This helper should:
+            - [ ] Read and deserialize error content into a structured error DTO (Action: Define `ClickUpApiErrorResponse` model).
+            - [ ] Instantiate and throw the appropriate custom exception based on status code and error details.
+    - [ ] **Integrate into Service Implementations:** Call the error helper when `!response.IsSuccessStatusCode`.
+    - [ ] **Handle `HttpRequestException`:** Wrap in `ClickUpApiException`.
 
 7.  - [ ] **Implement Authentication Handling:**
     *   **Personal API Token:** Implement a `DelegatingHandler` (e.g., `AuthenticationDelegatingHandler`) to add the Personal API Token to requests.
