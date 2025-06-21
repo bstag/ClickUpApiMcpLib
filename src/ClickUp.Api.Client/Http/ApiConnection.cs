@@ -238,9 +238,33 @@ namespace ClickUp.Api.Client.Http
         /// <inheritdoc />
         public async Task<TResponse?> PostMultipartAsync<TResponse>(string endpoint, MultipartFormDataContent content, CancellationToken cancellationToken = default)
         {
-            await Task.CompletedTask; // To allow async keyword
-            throw new NotImplementedException("Actual HTTP POST multipart logic to be implemented.");
-            // Or return await CuTask.FromResult<TResponse?>(default);
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, endpoint) { Content = content };
+                // Multipart requests often don't explicitly set Content-Type header here,
+                // as HttpClient does it based on MultipartFormDataContent.
+
+                var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == HttpStatusCode.NoContent || response.Content == null)
+                    {
+                        return default;
+                    }
+                    // Ensure the response is treated as JSON. ClickUp API usually returns JSON.
+                    // If it could be something else, this might need adjustment or specific handling.
+                    response.Content.Headers.ContentType ??= new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+                    return await response.Content.ReadFromJsonAsync<TResponse>(JsonSerializerOptionsHelper.Options, cancellationToken).ConfigureAwait(false);
+                }
+
+                await HandleErrorResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                return default; // Should not be reached
+            }
+            catch (Exception ex) when (ex is not ClickUpApiException)
+            {
+                throw new ClickUpApiRequestException($"Request failed for POST multipart {endpoint}: {ex.Message}", null, null, null, ex);
+            }
         }
 
         /// <inheritdoc />
