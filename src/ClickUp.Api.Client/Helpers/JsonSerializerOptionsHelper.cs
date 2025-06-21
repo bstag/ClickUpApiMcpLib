@@ -17,11 +17,12 @@ namespace ClickUp.Api.Client.Helpers
         {
             Options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower, // For serializing C# PascalCase to snake_case
+                PropertyNameCaseInsensitive = true, // For deserializing snake_case from API to C# PascalCase
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 Converters =
                 {
-                    new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) // Or CamelCase if API prefers that for enums
+                    new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) // Assumes enums are also snake_case in API
                 }
             };
 
