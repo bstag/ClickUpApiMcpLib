@@ -6,10 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities;
+// using ClickUp.Api.Client.Models.Entities; // May not be needed if Attachment model is not directly used here
 using System.Collections.Generic; // For Dictionary
-using System.Linq;
-using ClickUp.Api.Client.Models.Entities.Attachments; // For Linq Any
+using System.Linq; // For Linq Any
+// using ClickUp.Api.Client.Models.Entities.Attachments; // Replaced by specific response
+using ClickUp.Api.Client.Models.Responses.Attachments; // For CreateTaskAttachmentResponse
 
 namespace ClickUp.Api.Client.Services
 {
@@ -50,7 +51,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Attachment> CreateTaskAttachmentAsync(
+        public async Task<CreateTaskAttachmentResponse> CreateTaskAttachmentAsync(
             string taskId,
             Stream fileStream,
             string fileName,
@@ -96,33 +97,37 @@ namespace ClickUp.Api.Client.Services
 
             // Let's use the more standard way of providing filename via ContentDisposition
             // and ensure the field name for the file is "attachment".
+
+            // Add the filename as a separate form-data field as per ClickUp API docs
+            multipartContent.Add(new StringContent(fileName), "filename");
+
             var fileContent = new StreamContent(fileStream);
+            // It's good practice to set ContentType for file uploads, though HttpClient might infer it.
+            // e.g., fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            // However, for "attachment" part, the API expects the raw file data.
+            // The 'Name' in ContentDisposition is what links it to the form field name.
             fileContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
             {
                 Name = "attachment", // This is the field name expected by ClickUp for the file data
-                FileName = fileName  // This sets the filename in the Content-Disposition
+                FileName = fileName  // This sets the filename in the Content-Disposition, which is standard
             };
-            multipartContent.Add(fileContent);
-
-            // ClickUp documentation also shows an optional 'filename' field for when 'attachment' field is a URL.
-            // When 'attachment' is the file content, the filename in Content-Disposition should suffice.
-            // If the API strictly requires a separate 'filename' field even with file upload, it would be:
-            // multipartContent.Add(new StringContent(fileName), "\"filename\""); // Quotes might be needed for form field names by some servers
+            multipartContent.Add(fileContent, "attachment"); // Explicitly provide field name here too
 
             // Ensure the IApiConnection interface and its implementation support PostMultipartAsync
             // For now, we assume it correctly handles the multipart request and deserializes the response.
-            var createdAttachment = await _apiConnection.PostMultipartAsync<Attachment>(endpoint, multipartContent, cancellationToken);
+            var response = await _apiConnection.PostMultipartAsync<CreateTaskAttachmentResponse>(endpoint, multipartContent, cancellationToken);
 
-            if (createdAttachment == null)
+            if (response == null)
             {
                 // This case should ideally not happen if the API successfully creates an attachment and returns it.
                 // If it can happen (e.g. API returns 204 No Content on success for some reason, though unlikely for a create operation),
-                // the interface IAttachmentsService might need to be Task<Attachment?> or handle it differently.
+                // the interface IAttachmentsService might need to be Task<CreateTaskAttachmentResponse?> or handle it differently.
                 // For now, adhering to the non-null interface contract and ClickUp's typical behavior of returning the created entity.
-                throw new InvalidOperationException($"Failed to create attachment for task {taskId}, or the API returned an unexpected null response.");
+                // Consider specific exception handling (Step 6 of overall plan) here in future.
+                throw new InvalidOperationException($"Failed to create attachment for task {taskId}, or the API returned an unexpected null or invalid response.");
             }
 
-            return createdAttachment;
+            return response;
         }
     }
 }

@@ -2,8 +2,8 @@
 using System.IO; // Required for Stream
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.Entities.Attachments; // Assuming Attachment DTO is here
+using ClickUp.Api.Client.Models.Entities; // May not be needed if Attachment is not directly used
+using ClickUp.Api.Client.Models.Responses.Attachments; // Changed to use the new response DTO
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -26,8 +26,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, references task by custom task id.</param>
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains details of the created <see cref="Attachment"/>.</returns>
-        Task<Attachment> CreateTaskAttachmentAsync(
+        /// <returns>A task that represents the asynchronous operation. The task result contains details of the created attachment response <see cref="CreateTaskAttachmentResponse"/>.</returns>
+        Task<CreateTaskAttachmentResponse> CreateTaskAttachmentAsync(
             string taskId,
             Stream fileStream,
             string fileName,
