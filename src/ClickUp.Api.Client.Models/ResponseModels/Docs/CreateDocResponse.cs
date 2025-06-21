@@ -3,8 +3,12 @@ using ClickUp.Api.Client.Models.Entities.Docs; // For Doc entity and PageDefault
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Docs
 {
-    // PageDefaults is now defined in Entities/Docs/PageDefaults.cs
-
+    /// <summary>
+    /// Represents the response after creating a new Document.
+    /// </summary>
+    /// <param name="Doc">The newly created <see cref="Entities.Docs.Doc"/> object.</param>
+    /// <param name="PageDefaults">Default settings for pages created within this document.</param>
+    /// <param name="DefaultPageId">The ID of the default page created within the document, if applicable.</param>
     public record CreateDocResponse
     (
         [property: JsonPropertyName("doc")] Doc Doc,

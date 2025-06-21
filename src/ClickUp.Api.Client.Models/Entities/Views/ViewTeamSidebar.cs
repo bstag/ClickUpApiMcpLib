@@ -8,31 +8,32 @@ namespace ClickUp.Api.Client.Models.Entities.Views;
 public record ViewTeamSidebar
 {
     /// <summary>
-    /// Indicates if the view or an associated item is pinned in the sidebar.
+    /// Gets a value indicating whether the view or an associated item is pinned in the team sidebar.
     /// </summary>
     [JsonPropertyName("pinned")]
     public bool? Pinned { get; init; }
 
     /// <summary>
-    /// Indicates if the sidebar section related to this view is visible.
+    /// Gets a value indicating whether the sidebar section related to this view is visible.
     /// </summary>
     [JsonPropertyName("visible")]
     public bool? Visible { get; init; }
 
-    // Example from GetView response:
-    // "team_sidebar": {
-    //   "pinned": false,
-    //   "visible": true
-    //   // Potentially other settings like "assign_me", "assign_others", "unassigned" for task lists
-    // }
-    // Adding some common ones, verify with actual schema.
-
+    /// <summary>
+    /// Gets a value indicating whether the "Assign Me" filter or section is active in the sidebar context.
+    /// </summary>
     [JsonPropertyName("assign_me")]
     public bool? AssignMe { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether the "Assign Others" filter or section is active in the sidebar context.
+    /// </summary>
     [JsonPropertyName("assign_others")]
     public bool? AssignOthers { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether the "Unassigned" filter or section is active in the sidebar context.
+    /// </summary>
     [JsonPropertyName("unassigned")]
     public bool? Unassigned { get; init; }
 }

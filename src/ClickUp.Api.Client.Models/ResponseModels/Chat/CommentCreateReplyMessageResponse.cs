@@ -3,11 +3,14 @@ using ClickUp.Api.Client.Models.Entities.Chat; // For ReplyMessage
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Chat
 {
+    /// <summary>
+    /// Represents the response after creating a reply to a chat message.
+    /// </summary>
+    /// <param name="Reply">The created <see cref="ReplyMessage"/> object.
+    /// The actual API might wrap this in a "data" or "reply" property, or return the ReplyMessage structure directly.
+    /// </param>
     public record CommentCreateReplyMessageResponse
     (
-        // Assuming the response is the created ReplyMessage object.
-        // The structure might be nested under a "reply" or "data" property in the actual API.
-        // For now, assuming it's directly the ReplyMessage.
-        [property: JsonPropertyName("reply")] ReplyMessage Reply // Or directly inherit from ReplyMessage
+        [property: JsonPropertyName("reply")] ReplyMessage Reply
     );
 }

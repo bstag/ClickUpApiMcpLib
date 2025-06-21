@@ -4,12 +4,12 @@ using ClickUp.Api.Client.Models.Entities.Users;
 namespace ClickUp.Api.Client.Models.ResponseModels.Guests;
 
 /// <summary>
-/// Represents the response for getting a single guest.
+/// Represents the response when retrieving information about a single guest.
 /// </summary>
 public record GetGuestResponse
 {
     /// <summary>
-    /// The guest information.
+    /// Gets the detailed information about the guest.
     /// </summary>
     [JsonPropertyName("guest")]
     public Guest Guest { get; init; } = null!;

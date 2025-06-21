@@ -3,14 +3,23 @@ using ClickUp.Api.Client.Models.Entities.Users; // For GuestUserInfo, InvitedByU
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Guests;
 
-// This class represents an item in the "members" array of InviteGuestToWorkspaceResponseTeam
+/// <summary>
+/// Represents an invited guest member within a team, often returned as part of inviting a guest to a workspace.
+/// </summary>
+/// <param name="User">Detailed information about the guest user.</param>
+/// <param name="InvitedBy">Information about the user who invited this guest.</param>
+/// <param name="CanSeeTimeSpent">Indicates if the guest can see time spent on tasks.</param>
+/// <param name="CanSeeTimeEstimated">Indicates if the guest can see time estimated for tasks.</param>
+/// <param name="CanEditTags">Indicates if the guest can edit tags.</param>
+/// <param name="CanCreateViews">Indicates if the guest can create views.</param>
+/// <param name="CanSeePointsEstimated">Indicates if the guest can see estimated story points.</param>
 public record InvitedGuestMember
 (
     [property: JsonPropertyName("user")]
-    GuestUserInfo User, // Assuming GuestUserInfo is suitable from Guest.cs or defined elsewhere
+    GuestUserInfo User,
 
     [property: JsonPropertyName("invited_by")]
-    InvitedByUserInfo? InvitedBy, // Assuming InvitedByUserInfo is suitable
+    InvitedByUserInfo? InvitedBy,
 
     [property: JsonPropertyName("can_see_time_spent")]
     bool? CanSeeTimeSpent,

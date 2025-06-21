@@ -9,29 +9,27 @@ namespace ClickUp.Api.Client.Models.Entities.Views;
 public record ViewGrouping
 {
     /// <summary>
-    /// Field to group by (e.g., "status", "assignee", "priority", "tag", "due_date", or a custom field ID).
+    /// Gets the field used for grouping items in the view (e.g., "status", "assignee", "priority", or a custom field ID).
     /// </summary>
     [JsonPropertyName("field")]
     public string? Field { get; init; }
 
     /// <summary>
-    /// Direction of grouping (e.g., "asc", "desc").
-    /// The API spec uses integer 0 for asc, 1 for desc for sorting, need to verify for grouping.
-    /// Assuming string for now as it's common, but could be int.
+    /// Gets the direction of grouping (e.g., "asc" for ascending, "desc" for descending).
+    /// Some API contexts might use integers (e.g., 0 for ascending, 1 for descending).
     /// </summary>
     [JsonPropertyName("dir")]
-    public string? Dir { get; init; } // Or potentially int (0 = asc, 1 = desc)
-
-    [JsonPropertyName("collapsed")]
-    public List<string>? Collapsed { get; init; } // List of IDs/names that are collapsed
+    public string? Dir { get; init; }
 
     /// <summary>
-    /// Whether to ignore collapsed state for new items or when view is loaded.
+    /// Gets a list of identifiers (e.g., group names or IDs) for groups that are collapsed by default.
+    /// </summary>
+    [JsonPropertyName("collapsed")]
+    public List<string>? Collapsed { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the collapsed state of groups should be ignored when new items are added or the view is loaded.
     /// </summary>
     [JsonPropertyName("ignore_collapsed")]
     public bool? IgnoreCollapsed { get; init; }
-
-    // Other potential fields from spec:
-    // "type": string (e.g. "status_group", "assignees_group") - need to verify if this exists
-    // "orderindex": number - need to verify
 }
