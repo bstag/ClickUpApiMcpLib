@@ -50,6 +50,22 @@ You came up with a plan in docs/plans/01-core-models-conceptual.md you suggest w
 Save and append prompts you get from me with the date and time in /docs/prompts.md. Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
 </issue>
 
+## 2024-07-09T12:00:00Z
+
+<issue>
+This is a .net 9 core project. You have created a file called jules.md in the root folder that has knowledge you found matters follow the rules and information in it. You can build it from the src folder with this command dotnet build ClickUp.Api.sln --nologo. You can run the tests from the with dotnet test. If you need to understand the repository more you can look at the docs folder which is full of documents.
+
+OpenJson definition /docs/OpenApiSpec/ClickUp-6-17-25.json. This file is a OpenApi JSON document it details out the ClickUp Api including all the calls and objects that are used. The website reference for the api is also here https://developer.clickup.com/reference/.
+
+You came up with a plans in docs/plans/ please review them and this file docs/plans/geminiPlan.md from there please review the existing code base and how the project is separated and put together so far and determine what parts we missed as we created it along the way. Please continue with NEW_OVERALL_PLAN.md a d do the next steps.
+
+Please build and test from your last publish.
+
+we have a .net install script in /utilities/dotnet-install.sh you can use this to install the correct environment to build and test this application. the basic install command line is dotnet-install.sh --channel 9.0
+
+Save all prompts you get from me with the date and time in /docs/prompts.md. Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
+</issue>
+
 
 ## 2024-07-08T12:00:00Z
 
