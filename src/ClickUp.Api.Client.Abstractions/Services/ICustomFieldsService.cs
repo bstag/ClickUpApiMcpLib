@@ -26,6 +26,10 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// <param name="listId">The ID of the List.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of <see cref="Field"/> objects accessible from the List.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the list with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access custom fields for this list.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Field>> GetAccessibleCustomFieldsAsync(
             string listId,
             CancellationToken cancellationToken = default);
@@ -42,6 +46,10 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// <param name="folderId">The ID of the Folder.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of <see cref="Field"/> objects for the Folder.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="folderId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the folder with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access custom fields for this folder.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Field>> GetFolderCustomFieldsAsync(
             string folderId,
             CancellationToken cancellationToken = default);
@@ -52,6 +60,10 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// <param name="spaceId">The ID of the Space.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of <see cref="Field"/> objects for the Space.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access custom fields for this space.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Field>> GetSpaceCustomFieldsAsync(
             string spaceId,
             CancellationToken cancellationToken = default);
@@ -62,6 +74,10 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// <param name="workspaceId">The ID of the Workspace (Team).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of <see cref="Field"/> objects for the Workspace.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the workspace with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access custom fields for this workspace.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Field>> GetWorkspaceCustomFieldsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
@@ -76,6 +92,11 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/>, <paramref name="fieldId"/>, or <paramref name="setFieldValueRequest"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task or custom field with the specified IDs are not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiValidationException">Thrown if the provided value is invalid for the custom field type.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to set this custom field value.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task SetCustomFieldValueAsync(
             string taskId,
             string fieldId,
@@ -93,6 +114,10 @@ namespace ClickUp.Api.Client.Abstractions.Services // Corrected namespace
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="fieldId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task or custom field with the specified IDs are not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to remove this custom field value.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task RemoveCustomFieldValueAsync(
             string taskId,
             string fieldId,

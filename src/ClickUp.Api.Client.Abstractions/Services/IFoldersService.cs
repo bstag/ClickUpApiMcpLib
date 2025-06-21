@@ -29,6 +29,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="archived">Optional. Whether to include archived Folders.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of <see cref="Folder"/> objects in the Space.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access folders in this space.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Folder>> GetFoldersAsync(
             string spaceId,
             bool? archived = null,
@@ -41,6 +45,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createFolderRequest">Details of the Folder to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created <see cref="Folder"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> or <paramref name="createFolderRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create folders in this space.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<Folder> CreateFolderAsync(
             string spaceId,
             CreateFolderRequest createFolderRequest,
@@ -52,6 +60,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="folderId">The ID of the Folder.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>Details of the <see cref="Folder"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="folderId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the folder with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this folder.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<Folder> GetFolderAsync(
             string folderId,
             CancellationToken cancellationToken = default);
@@ -63,6 +75,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="updateFolderRequest">Details for updating the Folder.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The updated <see cref="Folder"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="folderId"/> or <paramref name="updateFolderRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the folder with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to update this folder.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<Folder> UpdateFolderAsync(
             string folderId,
             UpdateFolderRequest updateFolderRequest,
@@ -74,6 +90,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="folderId">The ID of the Folder to delete.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="folderId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the folder with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this folder.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task DeleteFolderAsync(
             string folderId,
             CancellationToken cancellationToken = default);
@@ -86,6 +106,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createFolderFromTemplateRequest">Details for creating the Folder from a template.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created <see cref="Folder"/>. Note: API might return only an ID if 'return_immediately' option is used.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/>, <paramref name="templateId"/>, or <paramref name="createFolderFromTemplateRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space or template with the specified IDs are not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to perform this action.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<Folder> CreateFolderFromTemplateAsync(
             string spaceId,
             string templateId,

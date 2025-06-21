@@ -36,6 +36,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="startId">Optional. Comment ID to start pagination from.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of <see cref="Comment"/> objects for the task.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this task.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Comment>> GetTaskCommentsAsync(
             string taskId,
             bool? customTaskIds = null,
@@ -53,6 +57,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="CreateCommentResponse"/> object containing details of the created comment (often includes the comment ID and the comment itself).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="createCommentRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create a comment on this task.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<CreateCommentResponse> CreateTaskCommentAsync(
             string taskId,
             CreateCommentRequest createCommentRequest,
@@ -68,6 +76,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="startId">Optional. Comment ID to start pagination from.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of <see cref="Comment"/> objects for the Chat view.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="viewId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Chat view with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this view.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Comment>> GetChatViewCommentsAsync(
             string viewId,
             long? start = null, // Changed int? to long? for Unix time ms
@@ -81,6 +93,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createCommentRequest">Details of the comment to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="CreateCommentResponse"/> object containing details of the created comment.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="viewId"/> or <paramref name="createCommentRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Chat view with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create a comment on this view.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<CreateCommentResponse> CreateChatViewCommentAsync(
             string viewId,
             CreateCommentRequest createCommentRequest,
@@ -94,6 +110,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="startId">Optional. Comment ID to start pagination from.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of <see cref="Comment"/> objects for the List.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the list with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this list.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Comment>> GetListCommentsAsync(
             string listId,
             long? start = null, // Changed int? to long? for Unix time ms
@@ -107,6 +127,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createCommentRequest">Details of the comment to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="CreateCommentResponse"/> object containing details of the created comment.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> or <paramref name="createCommentRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the list with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create a comment on this list.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<CreateCommentResponse> CreateListCommentAsync(
             string listId,
             CreateCommentRequest createCommentRequest,
@@ -119,6 +143,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="updateCommentRequest">Details for updating the comment.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="commentId"/> or <paramref name="updateCommentRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the comment with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to update this comment.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task UpdateCommentAsync(
             string commentId,
             UpdateCommentRequest updateCommentRequest,
@@ -130,6 +158,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="commentId">The ID of the comment to delete.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="commentId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the comment with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this comment.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task DeleteCommentAsync(
             string commentId,
             CancellationToken cancellationToken = default);
@@ -140,6 +172,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="commentId">The ID of the parent comment.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A list of threaded <see cref="Comment"/> objects.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="commentId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the parent comment with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access threaded comments.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<Comment>> GetThreadedCommentsAsync(
             string commentId,
             CancellationToken cancellationToken = default);
@@ -151,6 +187,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createCommentRequest">Details of the threaded comment to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="commentId"/> or <paramref name="createCommentRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the parent comment with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create a threaded comment.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task CreateThreadedCommentAsync(
             string commentId,
             CreateCommentRequest createCommentRequest,

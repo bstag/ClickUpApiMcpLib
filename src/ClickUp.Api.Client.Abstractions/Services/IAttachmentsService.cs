@@ -27,6 +27,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains details of the created attachment response <see cref="CreateTaskAttachmentResponse"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/>, <paramref name="fileStream"/>, or <paramref name="fileName"/> is null or empty/whitespace.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails. Common derived types include <see cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException"/>, <see cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiRateLimitException"/>, or <see cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiRequestException"/>.</exception>
         Task<CreateTaskAttachmentResponse> CreateTaskAttachmentAsync(
             string taskId,
             Stream fileStream,

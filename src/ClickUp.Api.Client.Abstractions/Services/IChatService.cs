@@ -27,6 +27,9 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="roomTypes">Optional. Types of Channels to return (e.g., "CHANNEL", "DM", "GROUP_DM").</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ChatChannelPaginatedResponse"/> object containing a paginated list of channels and next cursor.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access the workspace.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatChannelPaginatedResponse> GetChatChannelsAsync(
             string workspaceId,
             string? descriptionFormat = null,
@@ -45,6 +48,9 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createChatChannelRequest">Details for creating the Channel.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created or existing <see cref="ChatChannel"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="createChatChannelRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to perform this action.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatChannel> CreateChatChannelAsync(
             string workspaceId,
             ChatCreateChatChannelRequest createChatChannelRequest,
@@ -57,6 +63,9 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createLocationChatChannelRequest">Details for creating the location-based Channel.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created or existing <see cref="ChatChannel"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="createLocationChatChannelRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to perform this action.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatChannel> CreateLocationChatChannelAsync(
             string workspaceId,
             ChatCreateLocationChatChannelRequest createLocationChatChannelRequest,
@@ -69,6 +78,9 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createDirectMessageChatChannelRequest">User IDs for the DM/Group DM.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created or existing Direct Message <see cref="ChatChannel"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="createDirectMessageChatChannelRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to perform this action.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatChannel> CreateDirectMessageChatChannelAsync(
             string workspaceId,
             ChatCreateDirectMessageChatChannelRequest createDirectMessageChatChannelRequest,
@@ -82,6 +94,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="descriptionFormat">Optional. Format of the Channel Description.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>Details of the <see cref="ChatChannel"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="channelId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this channel.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatChannel> GetChatChannelAsync(
             string workspaceId,
             string channelId,
@@ -96,6 +112,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="updateChatChannelRequest">Details for updating the Channel.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The updated <see cref="ChatChannel"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/>, <paramref name="channelId"/>, or <paramref name="updateChatChannelRequest"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to update this channel.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatChannel> UpdateChatChannelAsync(
             string workspaceId,
             string channelId,
@@ -109,6 +129,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="channelId">The ID of the Channel to delete.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="channelId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this channel.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task DeleteChatChannelAsync(
             string workspaceId,
             string channelId,
@@ -123,6 +147,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="limit">Optional. Maximum number of results per page.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetChatUsersResponse"/> object containing a paginated list of channel followers (<see cref="ChatUser"/>) and next cursor.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="channelId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<GetChatUsersResponse> GetChatChannelFollowersAsync(
             string workspaceId,
             string channelId,
@@ -139,6 +167,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="limit">Optional. Maximum number of results per page.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetChatUsersResponse"/> object containing a paginated list of channel members (<see cref="ChatUser"/>) and next cursor.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="channelId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<GetChatUsersResponse> GetChatChannelMembersAsync(
             string workspaceId,
             string channelId,
@@ -158,6 +190,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="contentFormat">Optional. Format of the message content.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetChatMessagesResponse"/> object containing a paginated list of messages (<see cref="ChatMessage"/>) and next cursor.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="channelId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access messages in this channel.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<GetChatMessagesResponse> GetChatMessagesAsync(
             string workspaceId,
             string channelId,
@@ -174,6 +210,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createMessageRequest">Details of the message to send.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created <see cref="ChatMessage"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/>, <paramref name="channelId"/>, or <paramref name="createMessageRequest"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to send messages to this channel.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatMessage> CreateChatMessageAsync(
             string workspaceId,
             string channelId,
@@ -188,6 +228,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="updateMessageRequest">Details for updating the message.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The updated <see cref="ChatMessage"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/>, <paramref name="messageId"/>, or <paramref name="updateMessageRequest"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the message with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to update this message.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatMessage> UpdateChatMessageAsync(
             string workspaceId,
             string messageId,
@@ -201,6 +245,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="messageId">The ID of the message to delete.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="messageId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the message with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this message.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task DeleteChatMessageAsync(
             string workspaceId,
             string messageId,
@@ -214,6 +262,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createReplyRequest">Details of the reply message to send.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created reply <see cref="ChatMessage"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/>, <paramref name="messageId"/>, or <paramref name="createReplyRequest"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the parent message with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to reply to this message.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatMessage> CreateReplyMessageAsync(
             string workspaceId,
             string messageId,
@@ -230,6 +282,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="contentFormat">Optional. Format of the message content.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetChatMessagesResponse"/> object containing a paginated list of reply messages (<see cref="ChatMessage"/>) and next cursor.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="messageId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the parent message with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access replies for this message.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<GetChatMessagesResponse> GetChatMessageRepliesAsync(
             string workspaceId,
             string messageId,
@@ -249,6 +305,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="limit">Optional. Maximum number of results per page.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetChatReactionsResponse"/> object containing a paginated list of reactions (<see cref="ChatReaction"/>) and next cursor.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="messageId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the message with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access reactions for this message.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<GetChatReactionsResponse> GetChatMessageReactionsAsync(
             string workspaceId,
             string messageId,
@@ -264,6 +324,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createReactionRequest">The reaction emoji details.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created <see cref="ChatReaction"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/>, <paramref name="messageId"/>, or <paramref name="createReactionRequest"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the message with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to react to this message.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<ChatReaction> CreateChatReactionAsync(
             string workspaceId,
             string messageId,
@@ -278,6 +342,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="reaction">The name/emoji of the reaction to delete (e.g., ":thumbsup:").</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/>, <paramref name="messageId"/>, or <paramref name="reaction"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the message or reaction is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this reaction.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task DeleteChatReactionAsync(
             string workspaceId,
             string messageId,
@@ -293,6 +361,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="limit">Optional. Maximum number of results per page.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetChatUsersResponse"/> object containing a paginated list of tagged users (<see cref="ChatUser"/>) and next cursor.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="messageId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the message with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<GetChatUsersResponse> GetChatMessageTaggedUsersAsync(
             string workspaceId,
             string messageId,
