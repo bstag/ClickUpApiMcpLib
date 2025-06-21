@@ -4,7 +4,8 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
-using ClickUp.Api.Client.Models.Entities.Attachments; // Corrected Namespace
+using ClickUp.Api.Client.Models.Responses.Attachments; // Changed to use Response DTO
+using ClickUp.Api.Client.Models.Entities.Users; // For User model within response
 using ClickUp.Api.Client.Services;
 using Moq;
 using Xunit;
@@ -34,7 +35,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fileContent = "This is a test file.";
             using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
 
-            var expectedAttachment = new Attachment(
+            var mockUser = new User(Id: 123, Username: "Test User", Email: "test@example.com", Color: "#ffffff", ProfilePicture: null, Initials: "TU", ProfileInfo: null);
+            var expectedResponse = new CreateTaskAttachmentResponse(
                 Id: "generated-id",
                 Version: "1",
                 Date: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
@@ -43,27 +45,27 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 ThumbnailSmall: "http://example.com/thumb_small.txt",
                 ThumbnailLarge: "http://example.com/thumb_large.txt",
                 Url: "http://example.com/url.txt",
+                UrlWQuery: "http://example.com/url.txt?query=1",
+                UrlWHost: "https://host.com/url.txt",
+                IsFolder: false,
+                ParentId: "parent-id",
+                Size: 1024,
+                TotalComments: 0,
+                ResolvedComments: 0,
+                User: mockUser,
+                Deleted: false,
                 Orientation: null,
-                Type: null,
-                Source: null,
-                EmailFrom: null,
-                EmailTo: null,
-                EmailCc: null,
-                EmailReplyTo: null,
-                EmailDate: null,
-                EmailSubject: null,
-                EmailPreview: null,
-                EmailTextContent: null,
-                EmailHtmlContentId: null,
-                EmailAttachmentsCount: null,
-                User: null
+                Type: 1,
+                Source: 1,
+                EmailData: null,
+                ResourceId: "resource-id"
             );
 
-            _mockApiConnection.Setup(x => x.PostMultipartAsync<Attachment>(
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
                     It.IsAny<string>(),
                     It.IsAny<MultipartFormDataContent>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expectedAttachment);
+                .ReturnsAsync(expectedResponse);
 
             // Act
             var result = await _attachmentsService.CreateTaskAttachmentAsync(
@@ -76,10 +78,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedAttachment.Id, result.Id);
-            Assert.Equal(expectedAttachment.Title, result.Title);
+            Assert.Equal(expectedResponse.Id, result.Id);
+            Assert.Equal(expectedResponse.Title, result.Title);
 
-            _mockApiConnection.Verify(x => x.PostMultipartAsync<Attachment>(
+            _mockApiConnection.Verify(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
                 $"task/{taskId}/attachment?custom_task_ids=false",
                 It.IsAny<MultipartFormDataContent>(), // Simplified check for unit test
                 CancellationToken.None), Times.Once);
@@ -96,20 +98,21 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fileContent = "This is a test file.";
             using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
 
-            var expectedAttachment = new Attachment(
-                Id: "id", Version: "v", Date: 123, Title: "title", Extension: "ext", ThumbnailSmall: "ts",
-                ThumbnailLarge: "tl", Url: "url", Orientation: null, Type: null, Source: null,
-                EmailFrom: null, EmailTo: null, EmailCc: null, EmailReplyTo: null, EmailDate: null,
-                EmailSubject: null, EmailPreview: null, EmailTextContent: null, EmailHtmlContentId: null,
-                EmailAttachmentsCount: null, User: null
+            var mockUser = new User(Id: 124, Username: "Test User 2", Email: "test2@example.com", Color: "#000000", ProfilePicture: null, Initials: "TU2", ProfileInfo: null);
+            var expectedResponse = new CreateTaskAttachmentResponse(
+                Id: "id", Version: "v", Date: 123, Title: fileName, Extension: "ext", ThumbnailSmall: "ts",
+                ThumbnailLarge: "tl", Url: "url", UrlWQuery: "url?q=2", UrlWHost: "host2/url",
+                IsFolder: false, ParentId: "parent2", Size: 2048, TotalComments: 1, ResolvedComments: 0,
+                User: mockUser, Deleted: false, Orientation: null, Type: 2, Source: 2,
+                EmailData: null, ResourceId: "resource2"
             );
 
 
-            _mockApiConnection.Setup(x => x.PostMultipartAsync<Attachment>(
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
                     It.IsAny<string>(),
                     It.IsAny<MultipartFormDataContent>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expectedAttachment);
+                .ReturnsAsync(expectedResponse);
 
             // Act
             await _attachmentsService.CreateTaskAttachmentAsync(
@@ -121,7 +124,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.PostMultipartAsync<Attachment>(
+            _mockApiConnection.Verify(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
                 $"task/{taskId}/attachment?custom_task_ids=true&team_id={teamId}",
                 It.IsAny<MultipartFormDataContent>(),
                 CancellationToken.None), Times.Once);
@@ -136,11 +139,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fileContent = "This is a test file.";
             using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
 
-            _mockApiConnection.Setup(x => x.PostMultipartAsync<Attachment>(
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>( // Changed to CreateTaskAttachmentResponse
                     It.IsAny<string>(),
                     It.IsAny<MultipartFormDataContent>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Attachment?)null); // Added ? for nullable return
+                .ReturnsAsync((CreateTaskAttachmentResponse?)null); // Changed to CreateTaskAttachmentResponse
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
