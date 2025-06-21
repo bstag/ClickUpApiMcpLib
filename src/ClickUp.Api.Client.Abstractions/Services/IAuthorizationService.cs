@@ -32,6 +32,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="code">Authorization code received from redirect.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="GetAccessTokenResponse"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="clientId"/>, <paramref name="clientSecret"/>, or <paramref name="code"/> is null or empty/whitespace.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails, e.g., due to invalid credentials or an expired/invalid code. Common derived types include <see cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException"/> or <see cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiRequestException"/>.</exception>
         Task<GetAccessTokenResponse> GetAccessTokenAsync(
             string clientId,
             string clientSecret,
@@ -43,6 +45,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the authorized <see cref="User"/>'s details.</returns>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the current session is not authenticated (e.g., missing or invalid API token).</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons. See inner exception and properties for details.</exception>
         Task<User> GetAuthorizedUserAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -50,6 +54,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of authorized <see cref="ClickUpWorkspace"/> objects.</returns>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the current session is not authenticated (e.g., missing or invalid API token).</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons. See inner exception and properties for details.</exception>
         Task<IEnumerable<ClickUpWorkspace>> GetAuthorizedWorkspacesAsync(CancellationToken cancellationToken = default);
     }
 }

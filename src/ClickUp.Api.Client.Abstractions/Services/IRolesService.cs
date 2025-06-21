@@ -26,6 +26,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An enumerable of <see cref="CustomRole"/> objects for the Workspace.</returns>
         /// <remarks>The ClickUp API returns roles in a {"custom_roles": []} structure. This method should ideally return a wrapper response object if additional details like total count are needed.</remarks>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the workspace with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access custom roles for this workspace.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<IEnumerable<CustomRole>> GetCustomRolesAsync(
             string workspaceId,
             bool? includeMembers = null,

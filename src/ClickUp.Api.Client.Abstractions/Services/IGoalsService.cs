@@ -32,6 +32,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="includeCompleted">Optional. Whether to include completed Goals.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="GetGoalsResponse"/> object containing lists of goals and goal folders.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the workspace with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access goals in this workspace.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<GetGoalsResponse> GetGoalsAsync(
             string workspaceId,
             bool? includeCompleted = null,
@@ -44,6 +48,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createGoalRequest">Details of the Goal to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created <see cref="Goal"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="createGoalRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the workspace with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create goals in this workspace.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<Goal> CreateGoalAsync(
             string workspaceId,
             CreateGoalRequest createGoalRequest,
@@ -55,6 +63,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="goalId">The UUID of the Goal.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>Details of the <see cref="Goal"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="goalId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the goal with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this goal.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<Goal> GetGoalAsync(
             string goalId,
             CancellationToken cancellationToken = default);
@@ -66,6 +78,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="updateGoalRequest">Details for updating the Goal.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The updated <see cref="Goal"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="goalId"/> or <paramref name="updateGoalRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the goal with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to update this goal.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<Goal> UpdateGoalAsync(
             string goalId,
             UpdateGoalRequest updateGoalRequest,
@@ -77,6 +93,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="goalId">The UUID of the Goal to delete.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="goalId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the goal with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this goal.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task DeleteGoalAsync(
             string goalId,
             CancellationToken cancellationToken = default);
@@ -88,6 +108,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="createKeyResultRequest">Details of the Key Result to create.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The created <see cref="KeyResult"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="goalId"/> or <paramref name="createKeyResultRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the goal with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to add key results to this goal.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<KeyResult> CreateKeyResultAsync(
             string goalId,
             CreateKeyResultRequest createKeyResultRequest,
@@ -100,6 +124,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="editKeyResultRequest">Details for editing the Key Result.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The updated <see cref="KeyResult"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="keyResultId"/> or <paramref name="editKeyResultRequest"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the key result with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to edit this key result.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         Task<KeyResult> EditKeyResultAsync( // Method name was EditKeyResult in original
             string keyResultId,
             EditKeyResultRequest editKeyResultRequest,
@@ -111,6 +139,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="keyResultId">The UUID of the Key Result to delete.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="keyResultId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the key result with the specified ID is not found.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this key result.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
         System.Threading.Tasks.Task DeleteKeyResultAsync(
             string keyResultId,
             CancellationToken cancellationToken = default);
