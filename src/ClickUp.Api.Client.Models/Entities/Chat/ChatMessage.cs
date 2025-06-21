@@ -10,43 +10,35 @@ namespace ClickUp.Api.Client.Models.Entities.Chat;
 /// Represents a Chat Message in ClickUp.
 /// Corresponds to #/components/schemas/ChatMessage
 /// </summary>
-public record ChatMessage
-{
-    [JsonPropertyName("id")]
-    public string Id { get; init; }
-
+public record ChatMessage(
+    [property: JsonPropertyName("id")]
+    string Id,
     /// <summary>
     /// Type of the message.
     /// </summary>
     /// <example>"comment"</example>
     /// <example>"system"</example>
     /// <example>"post"</example>
-    [JsonPropertyName("type")]
-    public string Type { get; init; }
-
-    [JsonPropertyName("user")]
-    public User User { get; init; } // From Common.User
-
-    [JsonPropertyName("date")]
-    public long Date { get; init; } // Unix timestamp
-
+    [property: JsonPropertyName("type")]
+    string Type,
+    [property: JsonPropertyName("user")]
+    User User, // From Common.User
+    [property: JsonPropertyName("date")]
+    long Date, // Unix timestamp
+    [property: JsonPropertyName("group_id")]
+    string GroupId,
+    [property: JsonPropertyName("team_id")]
+    string TeamId,
+    [property: JsonPropertyName("channel_id")]
+    string ChannelId,
+    [property: JsonPropertyName("deleted")]
+    bool Deleted,
+    [property: JsonPropertyName("edited")]
+    bool Edited
+)
+{
     [JsonPropertyName("text_content")]
     public string? TextContent { get; init; }
-
-    [JsonPropertyName("group_id")]
-    public string GroupId { get; init; }
-
-    [JsonPropertyName("team_id")]
-    public string TeamId { get; init; }
-
-    [JsonPropertyName("channel_id")]
-    public string ChannelId { get; init; }
-
-    [JsonPropertyName("deleted")]
-    public bool Deleted { get; init; }
-
-    [JsonPropertyName("edited")]
-    public bool Edited { get; init; }
 
     [JsonPropertyName("edited_at")]
     public long? EditedAt { get; init; } // Nullable Unix timestamp

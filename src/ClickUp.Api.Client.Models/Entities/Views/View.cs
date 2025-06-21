@@ -11,20 +11,20 @@ namespace ClickUp.Api.Client.Models.Entities.Views;
 /// Represents a View in ClickUp.
 /// Based on GetViewresponse schema and typical View object structure.
 /// </summary>
-public record View
-{
-    [JsonPropertyName("id")]
-    public string Id { get; init; }
+public record View(
+    [property: JsonPropertyName("id")]
+    string Id,
 
-    [JsonPropertyName("name")]
-    public string Name { get; init; }
+    [property: JsonPropertyName("name")]
+    string Name,
 
     /// <summary>
     /// Type of the view (e.g., "list", "board", "calendar", "gantt", "table", "workload", "activity", "map", "chat", "doc", "form", "embed", "timeline", "whiteboard").
     /// </summary>
-    [JsonPropertyName("type")]
-    public string Type { get; init; }
-
+    [property: JsonPropertyName("type")]
+    string Type
+)
+{
     [JsonPropertyName("parent")]
     public ViewParent? Parent { get; init; }
 

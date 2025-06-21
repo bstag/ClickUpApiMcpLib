@@ -6,26 +6,21 @@ namespace ClickUp.Api.Client.Models.Entities.Chat;
 /// Represents the links related to a chat channel.
 /// Corresponds to #/components/schemas/ChatChannel_links
 /// </summary>
-public record ChatChannelLinks
+public record ChatChannelLinks(
+    [property: JsonPropertyName("channel")]
+    string Channel,
+    [property: JsonPropertyName("channel_settings")]
+    string ChannelSettings,
+    [property: JsonPropertyName("members")]
+    string Members,
+    [property: JsonPropertyName("messages")]
+    string Messages,
+    [property: JsonPropertyName("reactions")]
+    string Reactions,
+    [property: JsonPropertyName("uploads")]
+    string Uploads
+)
 {
-    [JsonPropertyName("channel")]
-    public string Channel { get; init; }
-
-    [JsonPropertyName("channel_settings")]
-    public string ChannelSettings { get; init; }
-
-    [JsonPropertyName("members")]
-    public string Members { get; init; }
-
-    [JsonPropertyName("messages")]
-    public string Messages { get; init; }
-
-    [JsonPropertyName("reactions")]
-    public string Reactions { get; init; }
-
-    [JsonPropertyName("uploads")]
-    public string Uploads { get; init; }
-
     [JsonPropertyName("calls")]
     public string? Calls { get; init; }
 

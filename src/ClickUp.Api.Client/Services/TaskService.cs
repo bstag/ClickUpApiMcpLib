@@ -542,7 +542,9 @@ namespace ClickUp.Api.Client.Services
                         }
                         yield return task;
                     }
-                    lastPage = (bool)response.LastPage;
+                    // If response.LastPage is true, it's the last page.
+                    // If response.LastPage is false or null, it's not the last page.
+                    lastPage = response.LastPage == true;
                 }
                 else
                 {

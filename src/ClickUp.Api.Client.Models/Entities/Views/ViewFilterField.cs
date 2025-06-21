@@ -7,20 +7,12 @@ namespace ClickUp.Api.Client.Models.Entities.Views;
 /// <summary>
 /// Represents a single filter field criterion in a View.
 /// </summary>
-public record ViewFilterField
-{
+public record ViewFilterField(
     /// <summary>
     /// ID of the field to filter by (e.g., "status", "assignees", "priority", "tags", "due_date", or a custom field ID).
     /// </summary>
-    [JsonPropertyName("id")]
-    public string Id { get; init; }
-
-    /// <summary>
-    /// The specific field instance or sub-field if applicable (e.g. for custom fields).
-    /// </summary>
-    [JsonPropertyName("field")]
-    public string? Field { get; init; }
-
+    [property: JsonPropertyName("id")]
+    string Id,
 
     /// <summary>
     /// The filter operator. Values depend on the field type.
@@ -28,8 +20,15 @@ public record ViewFilterField
     /// The actual values might be numeric IDs in some API versions/parts.
     /// The GetView response example shows string operators like "IS NULL".
     /// </summary>
-    [JsonPropertyName("operator")]
-    public string Operator { get; init; } // e.g. "IS NULL", "EQUALS", "ANY"
+    [property: JsonPropertyName("operator")]
+    string Operator // e.g. "IS NULL", "EQUALS", "ANY"
+)
+{
+    /// <summary>
+    /// The specific field instance or sub-field if applicable (e.g. for custom fields).
+    /// </summary>
+    [JsonPropertyName("field")]
+    public string? Field { get; init; }
 
     /// <summary>
     /// Value(s) for the filter. Can be a single value or an array of values.

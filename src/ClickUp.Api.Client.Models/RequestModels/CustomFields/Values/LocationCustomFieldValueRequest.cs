@@ -6,7 +6,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.CustomFields.Values;
 public class LocationCustomFieldValueRequest : SetCustomFieldValueRequest
 {
     [JsonPropertyName("value")]
-    public LocationValue Value { get; set; } // Assuming LocationValue is a defined type
+    public required LocationValue Value { get; set; } // Assuming LocationValue is a defined type
 
     public LocationCustomFieldValueRequest(LocationValue value)
     {
