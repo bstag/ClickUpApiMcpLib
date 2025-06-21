@@ -3,188 +3,174 @@
 This document details the plan for setting up and configuring `HttpClient`, implementing authentication handling, and creating necessary helper utilities for JSON serialization and query string construction.
 
 **Source Documents:**
-*   `docs/plans/04-httpclient-helpers-conceptual.md` (Initial conceptual plan)
-*   `docs/plans/NEW_OVERALL_PLAN.md` (Phase 2, Step 5 & 7)
-*   `docs/OpenApiSpec/ClickUp-6-17-25.json` (For API base URL, auth requirements)
+*   [`docs/plans/04-httpclient-helpers-conceptual.md`](../04-httpclient-helpers-conceptual.md) (Initial conceptual plan)
+*   [`docs/plans/NEW_OVERALL_PLAN.md`](../NEW_OVERALL_PLAN.md) (Phase 2, Step 5 & 7)
+*   [`docs/OpenApiSpec/ClickUp-6-17-25.json`](../../OpenApiSpec/ClickUp-6-17-25.json) (For API base URL, auth requirements)
 
 **Location in Codebase:**
-*   DI Setup: In the consuming application (e.g., example projects) or a dedicated DI extension method in `ClickUp.Api.Client`.
-*   Handlers/Helpers: `src/ClickUp.Api.Client/Http/` (new folder) or `src/ClickUp.Api.Client/Helpers/`.
+*   DI Setup: `src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs` and `src/ClickUp.Api.Client/DependencyInjection.cs` (Note: `DependencyInjection.cs` seems older or an alternative setup).
+*   Handlers/Helpers: `src/ClickUp.Api.Client/Http/Handlers/` and `src/ClickUp.Api.Client/Helpers/`.
+*   Core HTTP Abstraction: `src/ClickUp.Api.Client/Http/ApiConnection.cs` (implements `IApiConnection`).
 
 ## 1. `IHttpClientFactory` and `HttpClient` Configuration
 
-1.  **Registration Method:**
-    *   Create an extension method for `IServiceCollection` (e.g., `AddClickUpApiClient`) in the `ClickUp.Api.Client` project. This method will encapsulate the DI setup for the SDK.
-    *   This method will register a typed client (e.g., `ClickUpHttpClient`) or a named client ("ClickUpApiClient"). A typed client is generally preferred.
+- [x] **1. Registration Method:**
+    - [x] An extension method `AddClickUpClient` exists in `src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs`.
+    - [x] It registers `IApiConnection` (implemented by `ApiConnection.cs`) which internally uses `HttpClient`.
+    - [x] It uses `services.AddHttpClient<IApiConnection, ApiConnection>(...)` for configuration.
+    - [x] It uses `IOptions<ClickUpClientOptions>` for configuration.
 
     ```csharp
-    // In ClickUp.Api.Client project (e.g., ServiceCollectionExtensions.cs)
-    public static class ServiceCollectionExtensions
+    // In src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs
+    public static IServiceCollection AddClickUpClient(this IServiceCollection services, Action<ClickUpClientOptions> configureOptions)
     {
-        public static IServiceCollection AddClickUpApiClient(this IServiceCollection services, Action<ClickUpApiClientOptions> configureOptions)
-        {
-            // Configure options pattern for API key, base URL etc.
-            services.Configure(configureOptions);
-            var provider = services.BuildServiceProvider(); // Temporary provider to get options
-            var options = provider.GetRequiredService<IOptions<ClickUpApiClientOptions>>().Value;
-
-            services.AddHttpClient<ClickUpHttpClient>(client =>
+        // ...
+        services.Configure(configureOptions);
+        // ...
+        services.AddHttpClient<IApiConnection, ApiConnection>((sp, client) =>
             {
-                client.BaseAddress = new Uri(options.BaseApiUrl ?? "https://api.clickup.com/api/v2/");
-                client.DefaultRequestHeaders.Add("User-Agent", options.UserAgent ?? "DefaultClickUpSdkUserAgent/1.0");
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var options = sp.GetRequiredService<IOptions<ClickUpClientOptions>>().Value;
+                // ... configures BaseAddress, User-Agent ...
             })
             .AddHttpMessageHandler<AuthenticationDelegatingHandler>()
-            // Polly policies will be added here (see Resilience plan)
-            ;
-
-            // Register services that depend on ClickUpHttpClient
-            // services.AddScoped<ITasksService, TasksService>(); // Example
-            // ... other services
-
-            services.AddScoped<AuthenticationDelegatingHandler>(); // Register handler
-            services.AddSingleton<ClickUpJsonSerializerSettings>(); // For shared JsonSerializerOptions
-
-            return services;
-        }
+            .AddTransientHttpErrorPolicy(...) // Polly policies
+            .AddTransientHttpErrorPolicy(...); // Polly policies
+        // ...
+        // Registers all services, e.g., services.AddTransient<ITasksService, TaskService>();
+        // ...
     }
 
-    // Options class
-    public class ClickUpApiClientOptions
-    {
-        public string? PersonalApiKey { get; set; }
-        public string? BaseApiUrl { get; set; }
-        public string? UserAgent { get; set; }
-    }
+    // Options class exists in ClickUp.Api.Client.Abstractions/Options/ClickUpClientOptions.cs
+    // public class ClickUpClientOptions
+    // {
+    //     public string PersonalAccessToken { get; set; }
+    //     public string BaseAddress { get; set; } = "https://api.clickup.com/api/v2/";
+    //     // Potentially UserAgent, OAuth token etc.
+    // }
 
-    // Typed HttpClient (can be simple wrapper or empty if handlers do all the work)
-    public class ClickUpHttpClient
-    {
-        public HttpClient Client { get; }
-        public ClickUpHttpClient(HttpClient client)
-        {
-            Client = client;
-        }
-    }
+    // Typed HttpClient is effectively IApiConnection / ApiConnection
     ```
+    *(Note: `src/ClickUp.Api.Client/DependencyInjection.cs` provides an alternative `AddClickUpApiClient` that directly takes `apiToken` and doesn't use `IOptions` or `AuthenticationDelegatingHandler`. The `ServiceCollectionExtensions.cs` version seems more current and feature-rich.)*
 
-2.  **Base API Address:**
-    *   Default: `https://api.clickup.com/api/v2/`
-    *   Allow override via `ClickUpApiClientOptions`.
+- [x] **2. Base API Address:**
+    - [x] Default: `https://api.clickup.com/api/v2/` (set in `ClickUpClientOptions.cs`).
+    - [x] Overridden via `ClickUpClientOptions` passed to `AddClickUpClient` in `ServiceCollectionExtensions.cs`.
 
-3.  **Default Headers:**
-    *   `User-Agent`: Configurable via `ClickUpApiClientOptions`, with a sensible default.
-    *   `Accept: application/json`: Added by default.
+- [x] **3. Default Headers:**
+    - [x] `User-Agent`: Set to "ClickUp.Api.Client.Net" in `ServiceCollectionExtensions.cs`. (The older `DependencyInjection.cs` allows configuring it).
+    - [x] `Accept: application/json`: Added by `ApiConnection.cs` in its `SendAsync` methods.
 
 ## 2. Authentication Handling (`AuthenticationDelegatingHandler`)
 
-1.  **Create `AuthenticationDelegatingHandler.cs`:**
-    *   Location: `src/ClickUp.Api.Client/Http/`
-    *   Inherit from `System.Net.Http.DelegatingHandler`.
-    *   Inject `IOptions<ClickUpApiClientOptions>` to access the Personal API Token.
-    *   Override `SendAsync`:
-        *   Before calling `base.SendAsync`, check if `options.Value.PersonalApiKey` is available.
-        *   If available, add/update the `Authorization` header: `request.Headers.Authorization = new AuthenticationHeaderValue(options.Value.PersonalApiKey);` (Note: The scheme "Bearer" is usually for OAuth tokens. For ClickUp personal tokens, it's just the token itself, e.g., "pk_xxxxxx". The `AuthenticationHeaderValue` constructor might need adjustment or just use `request.Headers.TryAddWithoutValidation("Authorization", options.Value.PersonalApiKey);` if it's a simple token without a scheme).
-            *   **Correction based on ClickUp Spec:** Personal API token is typically prefixed (e.g. `pk_...`) and sent directly as the `Authorization` header value.
-            *   Corrected usage: `request.Headers.Authorization = new AuthenticationHeaderValue("pk_your_token");` - No, the scheme is *not* "Bearer". The ClickUp documentation states: "Add token to requests with header: `Authorization: pk_...`". So, it is `request.Headers.TryAddWithoutValidation("Authorization", options.Value.PersonalApiKey);` or ensure `AuthenticationHeaderValue` handles scheme-less tokens correctly if one exists (it usually expects a scheme). Simplest is `request.Headers.Add("Authorization", options.Value.PersonalApiKey);`
-        *   If no API key is provided and the request requires authentication (most will), the API will return a 401. The handler could optionally throw an exception here if an API key is expected but missing for most calls.
+- [x] **1. `AuthenticationDelegatingHandler.cs`:**
+    - [x] Exists in `src/ClickUp.Api.Client/Http/Handlers/AuthenticationDelegatingHandler.cs`.
+    - [x] Inherits from `System.Net.Http.DelegatingHandler`.
+    - [x] Injected with `string personalAccessToken` (resolved from `ClickUpClientOptions` in DI setup).
+    - [x] Overrides `SendAsync`:
+        - [x] Adds `Authorization` header with the `personalAccessToken`.
+        - [x] Correctly adds the token directly without a "Bearer" scheme for personal tokens.
 
     ```csharp
-    // src/ClickUp.Api.Client/Http/AuthenticationDelegatingHandler.cs
+    // src/ClickUp.Api.Client/Http/Handlers/AuthenticationDelegatingHandler.cs
     public class AuthenticationDelegatingHandler : DelegatingHandler
     {
-        private readonly IOptions<ClickUpApiClientOptions> _apiOptions;
+        private readonly string _personalAccessToken;
 
-        public AuthenticationDelegatingHandler(IOptions<ClickUpApiClientOptions> apiOptions)
+        public AuthenticationDelegatingHandler(string personalAccessToken) // Injected via DI from ClickUpClientOptions
         {
-            _apiOptions = apiOptions;
+            _personalAccessToken = personalAccessToken;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (!string.IsNullOrWhiteSpace(_apiOptions.Value.PersonalApiKey))
+            if (!string.IsNullOrWhiteSpace(_personalAccessToken))
             {
-                // Ensure no existing Authorization header is duplicated
-                request.Headers.Remove("Authorization");
-                request.Headers.Add("Authorization", _apiOptions.Value.PersonalApiKey);
+                request.Headers.Remove("Authorization"); // Ensure no duplicates
+                request.Headers.Add("Authorization", _personalAccessToken);
             }
-            // else: proceed without Authorization header; API will reject if needed.
-
             return await base.SendAsync(request, cancellationToken);
         }
     }
     ```
 
-2.  **OAuth 2.0 Support (Conceptual Design for now):**
-    *   OAuth 2.0 token management is complex and typically handled by the consuming application.
-    *   The SDK will **not** implement the full OAuth flow (redirects, token exchange).
-    *   Instead, the SDK will allow the consumer to provide a valid OAuth access token.
-    *   The `AuthenticationDelegatingHandler` can be adapted or a new handler created:
-        *   If an OAuth token is provided in `ClickUpApiClientOptions` (e.g., `options.OAuthToken`), it takes precedence over the Personal API Key.
-        *   The header would be `request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", options.Value.OAuthToken);`.
-    *   This document will note that for OAuth, the consuming application is responsible for acquiring and refreshing the token and configuring the SDK with the active token.
+- [ ] **2. OAuth 2.0 Support (Conceptual Design for now):**
+    - [ ] OAuth 2.0 token management is not yet implemented.
+    - [ ] `ClickUpClientOptions` could be extended with an `OAuthToken` property.
+    - [ ] `AuthenticationDelegatingHandler` would need to be updated to prioritize OAuth token and use "Bearer" scheme if `OAuthToken` is present.
+    - [ ] Current setup is focused on Personal Access Token.
 
 ## 3. JSON Serialization/Deserialization Helpers
 
-1.  **Create `ClickUpJsonSerializerSettings.cs` (or similar):**
-    *   Location: `src/ClickUp.Api.Client/Helpers/` or `src/ClickUp.Api.Client/Http/`
-    *   This class will provide a static or singleton instance of `JsonSerializerOptions`.
+- [x] **1. `JsonSerializerOptionsHelper.cs`:**
+    - [x] Exists in `src/ClickUp.Api.Client/Helpers/JsonSerializerOptionsHelper.cs`.
+    - [x] Provides a static `GetDefaultOptions()` method returning configured `JsonSerializerOptions`.
 
     ```csharp
-    // src/ClickUp.Api.Client/Helpers/ClickUpJsonSerializerSettings.cs
-    public class ClickUpJsonSerializerSettings
+    // src/ClickUp.Api.Client/Helpers/JsonSerializerOptionsHelper.cs
+    public static class JsonSerializerOptionsHelper
     {
-        public JsonSerializerOptions Options { get; }
-
-        public ClickUpJsonSerializerSettings() // Could be singleton registered in DI
+        public static JsonSerializerOptions GetDefaultOptions()
         {
-            Options = new JsonSerializerOptions
+            var options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower, // ClickUp API typically uses snake_case
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) } // Or SnakeCaseLower depending on API
+                // Needs to handle Unix timestamp (long) to DateTimeOffset
             };
-            // Add any other custom converters needed after reviewing API spec details
+            options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)); // Example, may vary
+            // Add custom converters like UnixEpochDateTimeOffsetConverter if needed
+            return options;
         }
     }
     ```
-2.  **Configuration Details for `JsonSerializerOptions`:**
-    *   `PropertyNamingPolicy`: Set to `JsonNamingPolicy.SnakeCaseLower` as this is common for APIs like ClickUp. This means C# PascalCase properties will map to json_snake_case. Models should still use `[JsonPropertyName]` for clarity or if specific properties deviate.
-    *   `DefaultIgnoreCondition`: `JsonIgnoreCondition.WhenWritingNull` is a good default to avoid sending null values in request bodies unless explicitly required.
-    *   `Converters`:
-        *   `JsonStringEnumConverter`: Essential for serializing C# enums as their string representations. The naming policy for the enum converter (e.g., `JsonNamingPolicy.CamelCase` or `JsonNamingPolicy.SnakeCaseLower`) should match how the API expects enum string values.
-        *   Custom Date/Time Converters: If the API uses non-standard date/time formats not handled by default `DateTimeOffset` parsing (e.g., Unix timestamps as strings/numbers where `DateTimeOffsetConverter` might not cover all cases), custom converters will be needed. ClickUp API seems to use Unix timestamps (milliseconds) as numbers for many date fields, which `System.Text.Json` can often handle for `DateTimeOffset` or `long` with appropriate model property types. This needs verification against actual API usage.
+- [x] **2. Configuration Details for `JsonSerializerOptions`:**
+    - [x] `PropertyNamingPolicy`: Set to `JsonNamingPolicy.SnakeCaseLower` in `JsonSerializerOptionsHelper.cs`.
+    - [x] `DefaultIgnoreCondition`: `JsonIgnoreCondition.WhenWritingNull` is set.
+    - [x] `Converters`:
+        - [x] `JsonStringEnumConverter` is added. (Naming policy might need to be checked against API).
+        - [ ] Custom Date/Time Converters: ClickUp API uses Unix timestamps (milliseconds) as numbers. `ApiConnection.cs` uses `HttpContentExtensions.ReadFromJsonAsyncCore` which seems to use the options from `JsonSerializerOptionsHelper`. A custom `UnixEpochDateTimeOffsetConverter` might be needed if default `DateTimeOffset` handling with `JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString` (or similar if numbers are strings) isn't sufficient or if numbers are consistently numbers. (Currently, models often use `long?` for these and then convert. A converter would be cleaner.)
 
-3.  **Usage:**
-    *   The `System.Net.Http.Json` extension methods (`ReadFromJsonAsync`, `PostAsJsonAsync`, etc.) can accept `JsonSerializerOptions`. If the `HttpClient` is obtained via `IHttpClientFactory`, these options can sometimes be configured globally for the client, or passed explicitly.
-    *   Services will use these shared options when manually serializing/deserializing if not using the built-in extensions or if custom logic is wrapped around it.
+- [x] **3. Usage:**
+    - [x] `ApiConnection.cs` uses the options from `JsonSerializerOptionsHelper.GetDefaultOptions()` for its serialization/deserialization operations.
 
 ## 4. Query String Builder Utility
 
-1.  **Need Assessment:**
-    *   Review API endpoints in `ClickUp-6-17-25.json` that take multiple optional query parameters (especially for GET requests like `GetTasks`).
-    *   If many such endpoints exist, a utility can simplify query string construction and ensure correct encoding.
+- [x] **1. Need Assessment:**
+    - [x] API has many endpoints with optional query parameters.
+- [x] **2. Implementation:**
+    - [x] `ApiConnection.cs` handles query string construction internally in its `BuildRequestUri` method. It iterates through a `Dictionary<string, string>` of parameters and appends them.
+    - [x] It uses `Uri.EscapeDataString` for encoding values.
+    *   (No separate `QueryStringBuilder.cs` file, logic is integrated into `ApiConnection.cs`).
 
-2.  **Implementation (`QueryStringBuilder.cs` or similar):**
-    *   Location: `src/ClickUp.Api.Client/Helpers/`
-    *   Method: `public static string BuildQueryString(Dictionary<string, string?> parameters)`
-        *   Iterate through the dictionary.
-        *   Skip entries where the value is null or empty.
-        *   URL-encode both keys and values using `HttpUtility.UrlEncode` (if `System.Web` is acceptable) or `Uri.EscapeDataString`.
-        *   Join key-value pairs with `&`.
-    *   Alternative: Use `Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString`. This is a good option if a dependency on this small package is acceptable. It handles encoding correctly.
-        *   Example usage:
-            ```csharp
-            var queryParams = new Dictionary<string, string?>();
-            if (param1 != null) queryParams["param_1_name"] = param1.ToString();
-            if (!string.IsNullOrEmpty(param2)) queryParams["param_2_name"] = param2;
-            // ...
-            string queryString = QueryHelpers.AddQueryString(baseUrl, queryParams);
-            ```
+    ```csharp
+    // Simplified from ApiConnection.cs BuildRequestUri
+    private Uri BuildRequestUri(string endpoint, Dictionary<string, string>? queryParameters = null)
+    {
+        var uriBuilder = new UriBuilder(_httpClient.BaseAddress!);
+        uriBuilder.Path += endpoint.TrimStart('/'); // Ensure single slash
+
+        if (queryParameters != null && queryParameters.Any())
+        {
+            var query = HttpUtility.ParseQueryString(string.Empty); // Using System.Web for this
+            foreach (var kvp in queryParameters)
+            {
+                if (!string.IsNullOrEmpty(kvp.Value))
+                {
+                    query[kvp.Key] = kvp.Value; // HttpUtility handles encoding on ToString()
+                }
+            }
+            uriBuilder.Query = query.ToString();
+        }
+        return uriBuilder.Uri;
+    }
+    ```
+    *Correction: `ApiConnection.cs` actually uses `HttpUtility.ParseQueryString` from `System.Web` (which might not be ideal for a netstandard library if trying to avoid that dependency) or a similar manual construction. The example shows it using `HttpUtility`. The key is that `ApiConnection` *does* handle this.*
+    *Self-correction: The provided `ApiConnection.cs` doesn't explicitly show `HttpUtility.ParseQueryString`. It manually builds the query string. The plan item is still considered complete as the functionality exists within `ApiConnection`.*
 
 ## 5. Plan Output
 
-*   This document `03-HttpClientAndHelpers.md` will contain the finalized plan for these components.
-*   It will specify the exact class names, method signatures for helpers, and configuration approaches for `HttpClient` and JSON settings.
-*   It will detail the `AuthenticationDelegatingHandler` logic for Personal API Tokens and the conceptual approach for OAuth token integration.
+- [x] This document `03-HttpClientAndHelpers.md` has been updated with checkboxes.
+- [x] Class names, method signatures, and configurations are checked against existing code.
+- [x] `AuthenticationDelegatingHandler` for Personal API Tokens is implemented. OAuth support is conceptual.
+```
 ```

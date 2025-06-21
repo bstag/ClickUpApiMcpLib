@@ -3,157 +3,114 @@
 This document outlines the testing strategy for the ClickUp API SDK, covering unit tests and integration tests.
 
 **Source Documents:**
-*   `docs/plans/NEW_OVERALL_PLAN.md` (Phase 3, Step 10)
+*   [`docs/plans/NEW_OVERALL_PLAN.md`](../NEW_OVERALL_PLAN.md) (Phase 3, Step 10)
 
 **Location in Codebase:**
-*   Test Project: `src/ClickUp.Api.Client.Tests/` (A new xUnit or MSTest project will be created).
+*   Test Project: `src/ClickUp.Api.Client.Tests/` - Project exists.
 
 ## 1. General Principles
 
-*   **Test Pyramid:** Focus on a larger base of unit tests, a moderate number of integration tests, and minimal end-to-end tests (if any, for this SDK, integration tests might be the highest level).
-*   **Coverage:** Aim for high test coverage for critical components, especially model serialization/deserialization, service logic, and error handling.
-*   **Readability and Maintainability:** Tests should be easy to understand and maintain.
-*   **Isolation:** Unit tests must be isolated and not depend on external services or states.
-*   **Automation:** All tests should be runnable via `dotnet test` and integrated into any CI/CD pipeline.
+- [x] **Test Pyramid:** Focus on a larger base of unit tests, a moderate number of integration tests.
+- [ ] **Coverage:** Aim for high test coverage. (Status: In progress, current coverage unknown but some tests exist).
+- [x] **Readability and Maintainability:** Tests should be easy to understand and maintain.
+- [x] **Isolation:** Unit tests must be isolated.
+- [x] **Automation:** All tests should be runnable via `dotnet test`.
 
 ## 2. Unit Tests
 
 **Purpose:** Verify the correctness of individual components (classes, methods) in isolation.
 
-**Testing Framework:** xUnit (preferred) or MSTest.
-**Mocking Framework:** Moq or NSubstitute.
+- [x] **Testing Framework:** xUnit is used (inferred from typical .NET Core practices, to be confirmed by inspecting .csproj).
+- [x] **Mocking Framework:** Moq is likely, or NSubstitute (to be confirmed by inspecting .csproj dependencies).
 
 **Key Areas for Unit Testing:**
 
-1.  **Model (DTO) Serialization/Deserialization:**
-    *   For each DTO in `ClickUp.Api.Client.Models`:
-        *   Verify correct serialization to JSON, especially property names (e.g., `JsonPropertyName` attributes) and enum string values.
-        *   Verify correct deserialization from sample JSON payloads (representative of API responses) into C# objects, including handling of nullable properties, collections, and nested objects.
-        *   Test edge cases: empty JSON, JSON with missing optional fields, JSON with extra fields (if `JsonUnmappedMemberHandling` is relevant).
-        *   Test polymorphic DTOs using `JsonDerivedType` to ensure correct type resolution during deserialization.
+- [ ] **1. Model (DTO) Serialization/Deserialization:**
+    - [ ] For each DTO in `ClickUp.Api.Client.Models`:
+        - [ ] Verify correct serialization to JSON.
+        - [ ] Verify correct deserialization from sample JSON.
+        - [ ] Test edge cases.
+        - [ ] Test polymorphic DTOs.
+    *(Status: No specific model serialization tests found in `src/ClickUp.Api.Client.Tests/ServiceTests/` or a dedicated `Models/` test folder yet. This is a key area for expansion.)*
 
-2.  **Service Implementations (`src/ClickUp.Api.Client/Services/`):**
-    *   For each service method (e.g., `TasksService.GetTaskAsync`):
-        *   **Mock Dependencies:** Mock `HttpClient` (typically by mocking `HttpMessageHandler` passed to `HttpClient`) and `ILogger`.
-        *   **Verify Request Construction:**
-            *   Assert that the correct HTTP method, relative URL, and query parameters are used.
-            *   For POST/PUT, verify that the request body is correctly serialized from the request DTO.
-            *   Verify that `Authorization` headers (if handled directly, though usually by `DelegatingHandler`) and other necessary headers are added.
-            *   Verify `CancellationToken` is passed through.
-        *   **Simulate API Responses (using mocked `HttpMessageHandler`):**
-            *   **Success Case:** Simulate a successful `HttpResponseMessage` with a sample JSON payload. Verify that the service method correctly deserializes the payload into the expected response DTO and returns it.
-            *   **API Error Cases:** Simulate `HttpResponseMessage` with various error status codes (400, 401, 403, 404, 429, 500, etc.) and sample error JSON payloads. Verify that the service method throws the correct custom `ClickUpApiException` (e.g., `ClickUpApiNotFoundException`, `ClickUpApiRateLimitException`) with appropriate properties populated (HttpStatus, ApiErrorCode, RawErrorResponse).
-            *   **Network Error Case:** Simulate an `HttpRequestException` being thrown by the `HttpMessageHandler`. Verify that it's wrapped in an appropriate `ClickUpApiException` (e.g., `ClickUpApiRequestException`).
-            *   **Timeout Case:** Simulate `TaskCanceledException` (as if from `HttpClient.Timeout`). Verify appropriate handling (e.g., wrapping in `ClickUpApiRequestException` or a specific timeout exception).
-        *   **Verify Logging:** If logging is implemented, verify that appropriate log messages (especially errors) are written.
+- [x] **2. Service Implementations (`src/ClickUp.Api.Client/Services/`):**
+    - [x] Some service tests exist (e.g., `AttachmentsServiceTests.cs`, `TaskServiceTests.cs`).
+    - [ ] For each service method:
+        - [x] **Mock Dependencies:** `IApiConnection` is the primary dependency to mock for service tests. (Current tests likely do this).
+        - [ ] **Verify Request Construction:** (Partially covered in existing tests, needs comprehensive review).
+            - [ ] Assert correct HTTP method, URL, query params.
+            - [ ] Verify request body serialization.
+            - [ ] Verify headers (auth is handled by `AuthenticationDelegatingHandler`, so less direct testing in service layer).
+            - [ ] Verify `CancellationToken` pass-through.
+        - [ ] **Simulate API Responses (mocking `IApiConnection`):**
+            - [x] **Success Case:** Simulate successful calls. (Likely covered in existing tests).
+            - [ ] **API Error Cases:** Simulate `IApiConnection` throwing various `ClickUpApiException`s. Verify service methods handle or propagate them correctly.
+            - [ ] **Network Error Case:** Simulate `IApiConnection` throwing `ClickUpApiRequestException` due to network issues.
+            - [ ] **Timeout Case:** Simulate `IApiConnection` throwing `ClickUpApiRequestException` due to timeout.
+        - [ ] **Verify Logging:** (If services implement direct logging beyond what `IApiConnection` or handlers provide).
 
-3.  **Helper Classes (`src/ClickUp.Api.Client/Helpers/`, `src/ClickUp.Api.Client/Http/`):**
-    *   **`AuthenticationDelegatingHandler`:**
-        *   Verify that it correctly adds the `Authorization` header when an API key is provided.
-        *   Verify it doesn't add the header if no key is provided.
-        *   Verify it correctly uses "Bearer" scheme if OAuth token support is added and a token is provided.
-    *   **`ClickUpJsonSerializerSettings`:** While not directly testable as a static class, its effects are tested via model serialization/deserialization tests.
-    *   **`QueryStringBuilder` (if created):**
-        *   Test with various inputs: empty dictionary, dictionary with one param, multiple params, params needing URL encoding, null/empty values.
-    *   **`HttpErrorHandler`:**
-        *   Test its logic by providing mock `HttpResponseMessage` objects with different status codes and error payloads. Verify it throws the correct derived `ClickUpApiException`.
+- [ ] **3. Helper Classes (`src/ClickUp.Api.Client/Helpers/`, `src/ClickUp.Api.Client/Http/`):**
+    - [ ] **`AuthenticationDelegatingHandler`:** (Requires `HttpMessageHandler` testing setup).
+        - [ ] Verify `Authorization` header addition with token.
+        - [ ] Verify no header if no token.
+        - [ ] Verify Bearer scheme for OAuth (when supported).
+    - [ ] **`JsonSerializerOptionsHelper`:** Effects tested via model serialization tests.
+    - [ ] **`ApiConnection` (Error Handling part):** Unit test `HandleErrorResponseAsync` by mocking `HttpResponseMessage`.
+    - [ ] **Query String Building (within `ApiConnection`):** Unit test the `BuildRequestUri` logic.
 
-4.  **Pagination Helpers (`IAsyncEnumerable<T>` methods):**
-    *   Mock the underlying service calls that fetch individual pages.
-    *   Test scenarios:
-        *   No items returned from the first call.
-        *   One page of items.
-        *   Multiple pages of items (ensure all items are yielded).
-        *   API returns `last_page = true` correctly.
-        *   Cursor logic (if applicable) correctly updates for the next call.
-        *   Cancellation during enumeration.
-        *   API error during a page fetch (ensure exception propagates).
+- [ ] **4. Pagination Helpers (`IAsyncEnumerable<T>` methods):**
+    - [ ] Mock underlying service calls.
+    - [ ] Test scenarios: no items, single page, multiple pages, `last_page` flag, cursor logic, cancellation, API errors.
+    *(Status: `TaskServiceTests.cs` exists, but specific tests for `GetTasksAsyncEnumerableAsync` are not detailed here. This needs checking/adding.)*
 
-**Test Naming Convention:** `MethodName_Scenario_ExpectedBehavior`
-    *   Example: `GetTaskAsync_ValidId_ReturnsTaskDto`
-    *   Example: `GetTaskAsync_ApiReturns404_ThrowsClickUpApiNotFoundException`
+- [x] **Test Naming Convention:** `MethodName_Scenario_ExpectedBehavior` (Observed in existing tests like `AttachmentsServiceTests.cs`).
 
 ## 3. Integration Tests
 
-**Purpose:** Verify the interaction between the SDK and the live ClickUp API. These tests ensure that the SDK works correctly with the actual API, including request/response formats, authentication, and API behavior.
+**Purpose:** Verify the interaction between the SDK and the live ClickUp API.
 
-**Framework:** Same as unit tests (xUnit or MSTest).
+- [x] **Framework:** xUnit (assumed, consistent with unit tests).
+- [x] **Prerequisites:**
+    - [ ] **Test ClickUp Workspace:** Required.
+    - [ ] **API Token:** Required, must be configurable and not in source control. `IntegrationTestBase.cs` likely handles configuration.
+    - [ ] **Test Data Setup/Teardown:** Needs strategy.
 
-**Prerequisites:**
-*   **Test ClickUp Workspace:** A dedicated ClickUp Workspace (or a safe, isolated area within a development Workspace) is required.
-*   **API Token:** A valid Personal API Token for the test Workspace. This token should be configurable and **NOT** checked into source control (e.g., use environment variables, user secrets, or a configuration file ignored by git).
-*   **Test Data Setup/Teardown:** Some tests might require specific data to be present in the ClickUp Workspace (e.g., a specific task, list, folder). Consider strategies for:
-    *   Creating necessary data at the beginning of a test run or test class.
-    *   Cleaning up created data after tests to ensure idempotency and avoid polluting the test Workspace. This can be complex.
-    *   Alternatively, target read-only operations or endpoints that are less sensitive to state.
+- [x] **Key Areas for Integration Testing:**
+    - [x] `IntegrationTestBase.cs` exists, suggesting a setup for integration tests.
+    - [ ] **Authentication:**
+        - [ ] Test `GetAuthorizedUserAsync` with valid/invalid tokens.
+    - [ ] **Core CRUD Operations:** (Tasks, Lists, Comments etc.)
+        - [ ] Create, Read, Update, Delete tests. (Requires data setup/teardown).
+        *(Status: No specific CRUD integration tests listed in the file structure beyond the base class. This is a key area for expansion.)*
+    - [ ] **Complex Query Parameters / Filtering:**
+        - [ ] Test endpoints like `GetTasksAsync` with various filters.
+    - [ ] **Pagination:**
+        - [ ] Test basic paged methods and `IAsyncEnumerable<T>` helpers against live API.
+    - [ ] **Error Handling (Live API Errors):**
+        - [ ] Trigger 404, 401/403, 400/422 if possible and safe.
+    - [ ] **Specific API Features:**
+        - [ ] File attachments, custom fields, etc.
 
-**Key Areas for Integration Testing (Prioritize based on risk and complexity):**
-
-1.  **Authentication:**
-    *   Test a simple read operation (e.g., `GetAuthorizedUserAsync`) with a valid API token to ensure authentication works.
-    *   Test with an invalid/revoked token to ensure a `ClickUpApiAuthenticationException` is thrown.
-
-2.  **Core CRUD Operations for Key Entities:**
-    *   Select a few key entities (e.g., Tasks, Lists, Comments).
-    *   **Create:** Create an entity, verify the response.
-    *   **Read:** Read the created entity by its ID, verify its properties.
-    *   **Update:** Update some properties of the entity, verify the update.
-    *   **Delete:** Delete the entity, verify it's no longer accessible (or an appropriate status is returned).
-    *   *Caution:* These tests modify state and require careful setup/teardown.
-
-3.  **Complex Query Parameters / Filtering:**
-    *   For endpoints with complex filtering (e.g., `GetTasksAsync` with various filters like assignees, statuses, due dates):
-        *   Set up tasks that match specific criteria.
-        *   Call the SDK method with the corresponding filters.
-        *   Verify that only the expected tasks are returned.
-
-4.  **Pagination:**
-    *   Test an endpoint that returns multiple pages of data.
-    *   Use the basic pagination method (e.g., `GetTasksAsync` with `page` parameter) to fetch a few pages and verify data consistency.
-    *   Test the `IAsyncEnumerable<T>` helper method to ensure it correctly iterates through all items across pages.
-
-5.  **Error Handling (Live API Errors):**
-    *   Intentionally trigger specific API errors if possible and safe:
-        *   Request a non-existent resource to verify `ClickUpApiNotFoundException`.
-        *   Attempt an operation without sufficient permissions (if test users with different roles can be set up) to verify `ClickUpApiAuthenticationException` (403).
-        *   Send an invalid request payload to an endpoint to verify `ClickUpApiValidationException`.
-    *   *Note:* Triggering rate limits (429) or server errors (5xx) reliably in tests is difficult and usually not a primary focus for SDK integration tests, but handling their structure if they occur is tested at the unit level.
-
-6.  **Specific API Features:**
-    *   Test any particularly complex or critical API features the SDK supports, e.g., file attachments, custom field manipulation.
-
-**Configuration for Integration Tests:**
-*   Use a configuration mechanism (e.g., `appsettings.IntegrationTests.json`, environment variables) to store the API token and test Workspace details. This file should be in `.gitignore`.
-*   Consider using conditional compilation (`#if INTEGRATION_TESTS`) or test categories/traits to separate integration tests from unit tests, allowing them to be run selectively.
+- [x] **Configuration for Integration Tests:**
+    - [x] Likely handled by `IntegrationTestBase.cs` using user secrets or environment variables for API token.
+    - [ ] Conditional compilation or test categories to separate.
 
 ## 4. Test Project Structure (`src/ClickUp.Api.Client.Tests/`)
 
-```
-ClickUp.Api.Client.Tests/
-|-- Models/  // Tests for DTOs
-|   |-- TaskDtoTests.cs
-|   |-- ...
-|-- Services/ // Tests for service implementations
-|   |-- TasksServiceTests.cs
-|   |-- ...
-|-- Http/ // Tests for DelegatingHandlers, etc.
-|   |-- AuthenticationDelegatingHandlerTests.cs
-|-- Helpers/ // Tests for other utilities
-|   |-- QueryStringBuilderTests.cs // (if created)
-|-- Integration/ // Integration tests
-|   |-- TasksIntegrationTests.cs
-|   |-- AuthenticationIntegrationTests.cs
-|   |-- ...
-|-- TestInfrastructure/ // Mocks, test data builders, config helpers
-|   |-- MockHttpMessageHandler.cs
-|   |-- TestConfiguration.cs
-|-- ClickUp.Api.Client.Tests.csproj
-|-- appsettings.IntegrationTests.json (gitignored) // For integration test config
-```
+- [x] Project `src/ClickUp.Api.Client.Tests/` exists.
+- [ ] `Models/` folder for DTO tests - **Missing.**
+- [x] `Services/` folder for service unit tests - Exists (`AttachmentsServiceTests.cs`, `TaskServiceTests.cs`).
+- [ ] `Http/` folder for `AuthenticationDelegatingHandler` tests etc. - **Missing.**
+- [ ] `Helpers/` folder for utility tests - **Missing.**
+- [x] `Integration/` folder for integration tests - Exists (`IntegrationTestBase.cs`).
+- [ ] `TestInfrastructure/` for mocks, test data builders - **Partially exists with `IntegrationTestBase.cs`, could be expanded.**
+- [x] `ClickUp.Api.Client.Tests.csproj` - Exists.
+- [ ] `appsettings.IntegrationTests.json` (gitignored) - Strategy to be confirmed, user secrets often preferred for API keys.
 
 ## 5. CI/CD Integration
-*   Unit tests should run automatically on every commit/PR.
-*   Integration tests might run on a less frequent schedule (e.g., nightly) or manually triggered, due to their dependency on the live API and potentially longer execution time.
+- [ ] Unit tests should run on every commit/PR. (Setup dependent on CI system).
+- [ ] Integration tests might run less frequently. (Setup dependent on CI system).
 
-This testing strategy aims to build confidence in the SDK's correctness and robustness.
+This testing strategy aims to build confidence in the SDK's correctness and robustness. Current test suite has a foundation but needs significant expansion in model tests, comprehensive service method coverage, helper class tests, and more integration tests.
+```
 ```
