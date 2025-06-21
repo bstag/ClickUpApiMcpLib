@@ -3,142 +3,114 @@
 This document details the plan for integrating Polly policies into the `HttpClient` setup to provide resilience against transient HTTP errors and improve the robustness of the ClickUp API SDK.
 
 **Source Documents:**
-*   `docs/plans/NEW_OVERALL_PLAN.md` (Phase 2, Step 8)
-*   `docs/plans/updatedPlans/http/03-HttpClientAndHelpers.md` (HttpClient setup context)
+*   [`docs/plans/NEW_OVERALL_PLAN.md`](../NEW_OVERALL_PLAN.md) (Phase 2, Step 8)
+*   [`docs/plans/updatedPlans/http/03-HttpClientAndHelpers.md`](./http/03-HttpClientAndHelpers.md) (HttpClient setup context)
 
 **Location in Codebase:**
-*   Polly policy configuration will be part of the `IServiceCollection` extension method (e.g., `AddClickUpApiClient`) in the `ClickUp.Api.Client` project, where `IHttpClientFactory` is configured.
+*   Polly policy configuration is part of the `IServiceCollection` extension method `AddClickUpClient` in `src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs`.
 
 ## 1. Polly Policies to Implement
 
-The following Polly policies will be configured for the `HttpClient` used by the SDK:
+The following Polly policies are configured for the `HttpClient` used by the SDK:
 
-1.  **Retry Policy for Transient Errors:**
-    *   **Purpose:** Automatically retry requests that fail due to transient network issues or temporary server-side problems.
-    *   **Trigger Conditions:**
-        *   `HttpRequestException` (indicating network-level failures).
-        *   HTTP status codes:
-            *   `5xx` (Server errors: 500, 502, 503, 504).
-            *   `408` (Request Timeout).
-            *   Possibly `429` (Too Many Requests) if the API doesn't provide a `Retry-After` header that the Circuit Breaker handles more gracefully. If `Retry-After` is present, the Circuit Breaker or a dedicated rate limit policy might be better. For now, include 429 here for basic retry, but this may be refined.
-    *   **Retry Strategy:** Exponential backoff with jitter.
-        *   Number of retries: e.g., 3 to 5.
-        *   Initial delay: e.g., 1-2 seconds.
-        *   Backoff factor: 2 (delay doubles with each retry).
-        *   Jitter: Add a small random component to the delay to prevent thundering herd scenarios.
-    *   **Implementation:**
+- [x] **1. Retry Policy for Transient Errors:**
+    - [x] **Purpose:** Automatically retry requests that fail due to transient network issues or temporary server-side problems.
+    - [x] **Trigger Conditions:** Uses `AddTransientHttpErrorPolicy` which handles `HttpRequestException` and HTTP status codes 5xx and 408 by default.
+    - [x] **Retry Strategy:** Exponential backoff with jitter.
+        - [x] Number of retries: 3 (fixed in code).
+        - [x] Sleep duration: `TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) + TimeSpan.FromMilliseconds(jitterer.Next(0, 500))`.
+        - [x] Jitter: Random milliseconds between 0 and 500.
+    - [x] **Implementation:**
         ```csharp
-        // Within services.AddHttpClient<ClickUpHttpClient>(...)
-        .AddTransientHttpErrorPolicy(policyBuilder =>
-            policyBuilder.Or<HttpRequestException>() // Also handle network errors
-                       .WaitAndRetryAsync(
-                           retryCount: 3, // Configurable
-                           sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) // Exponential backoff
-                               + TimeSpan.FromMilliseconds(new Random().Next(0, 1000)), // Jitter
-                           onRetry: (outcome, timespan, retryAttempt, context) =>
-                           {
-                               // Log the retry attempt
-                               var logger = context.GetLogger(); // Requires context and helper to get logger
-                               logger?.LogWarning(outcome.Exception,
-                                   "Delaying for {Timespan}ms, then making retry {RetryAttempt} of request to {RequestUri}",
-                                   timespan.TotalMilliseconds, retryAttempt, context.GetRequestUri()); // Helper to get URI
-                           }
-                       )
-        )
+        // From src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs
+        .AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(
+            retryCount: 3,
+            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))
+                                                 + TimeSpan.FromMilliseconds(jitterer.Next(0, 500)), // Jitter
+            onRetry: (outcome, timespan, retryAttempt, context) =>
+            {
+                // Using Console.WriteLine for now. In a real app, use ILogger.
+                Console.WriteLine($"[PollyRetry] Request to {outcome.Result?.RequestMessage?.RequestUri} failed with {outcome.Result?.StatusCode}. Delaying for {timespan.TotalMilliseconds}ms, then making retry {retryAttempt}. CorrelationId: {context.CorrelationId}");
+            }
+        ))
         ```
-        *Note: Accessing `ILogger` and `HttpRequestMessage` within `onRetry` requires passing them via `Polly.Context`. The `IHttpClientFactory` integration with Polly provides some of this automatically.*
+    - [ ] *Refinement Note:* The current `.AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(...))` will retry based on the default definition of transient errors (5xx, 408, HttpRequestException). The plan mentions `.Or<HttpRequestException>()` and specific status codes like 429. The current implementation is simpler by relying on the default `AddTransientHttpErrorPolicy` behavior. If 429 needs specific retry handling (especially considering `Retry-After` headers), it might require a more custom policy definition or ensuring the circuit breaker handles it appropriately.
 
-2.  **Circuit Breaker Policy:**
-    *   **Purpose:** Prevent the application from repeatedly trying to call an endpoint that is consistently failing, allowing the downstream service time to recover.
-    *   **Trigger Conditions:** Same as the retry policy (transient HTTP errors and `HttpRequestException`).
-    *   **Configuration:**
-        *   Exceptions allowed before breaking: e.g., 5 consecutive failures.
-        *   Duration of break: e.g., 30 seconds to 1 minute.
-        *   `onBreak`: Log that the circuit is breaking.
-        *   `onReset`: Log that the circuit is resetting.
-        *   `onHalfOpen`: Log that the circuit is attempting a trial request.
-    *   **Implementation:**
+- [x] **2. Circuit Breaker Policy:**
+    - [x] **Purpose:** Prevent the application from repeatedly trying to call an endpoint that is consistently failing.
+    - [x] **Trigger Conditions:** Uses `AddTransientHttpErrorPolicy` which handles `HttpRequestException` and HTTP status codes 5xx and 408 by default.
+    - [x] **Configuration:**
+        - [x] Exceptions allowed before breaking: 5 (fixed in code).
+        - [x] Duration of break: 30 seconds (fixed in code).
+        - [x] `onBreak`: Logs to console.
+        - [x] `onReset`: Logs to console.
+        - [x] `onHalfOpen`: Logs to console.
+    - [x] **Implementation:**
         ```csharp
-        // Chained after the retry policy
-        .AddPolicyHandler(Policy<HttpResponseMessage>
-            .Handle<HttpRequestException>()
-            .OrResult(response => (int)response.StatusCode >= 500 || response.StatusCode == HttpStatusCode.RequestTimeout || response.StatusCode == HttpStatusCode.TooManyRequests)
-            .CircuitBreakerAsync(
-                exceptionsAllowedBeforeBreaking: 5, // Configurable
-                durationOfBreak: TimeSpan.FromSeconds(30), // Configurable
-                onBreak: (result, timespan, context) =>
-                {
-                    var logger = context.GetLogger();
-                    logger?.LogWarning(result.Exception ?? new Exception($"Breaking circuit for {timespan.TotalSeconds}s due to {result.Result?.StatusCode} from {context.GetRequestUri()}"));
-                },
-                onReset: (context) =>
-                {
-                    var logger = context.GetLogger();
-                    logger?.LogInformation($"Circuit closed for {context.GetRequestUri()}");
-                },
-                onHalfOpen: (context) =>
-                {
-                    var logger = context.GetLogger();
-                    logger?.LogInformation($"Circuit half-open for {context.GetRequestUri()}, next call is a trial.");
-                }
-            )
-        )
+        // From src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs
+        .AddTransientHttpErrorPolicy(builder => builder.CircuitBreakerAsync(
+            handledEventsAllowedBeforeBreaking: 5,
+            durationOfBreak: TimeSpan.FromSeconds(30),
+            onBreak: (outcome, breakDelay, context) =>
+            {
+                Console.WriteLine($"[PollyCircuitBreaker] Circuit broken for {breakDelay.TotalSeconds}s for request to {outcome.Result?.RequestMessage?.RequestUri} due to {outcome.Result?.StatusCode}. CorrelationId: {context.CorrelationId}");
+            },
+            onReset: (context) =>
+            {
+                Console.WriteLine($"[PollyCircuitBreaker] Circuit reset. CorrelationId: {context.OperationKey}");
+            },
+            onHalfOpen: () =>
+            {
+                Console.WriteLine("[PollyCircuitBreaker] Circuit is now half-open; next request is a trial.");
+            }
+        ));
         ```
+    - [ ] *Refinement Note:* Similar to the retry policy, this uses the default transient error definition. If specific handling for 429 (Too Many Requests) with `Retry-After` is desired for the circuit breaker, the policy definition might need to be more specific than the general `AddTransientHttpErrorPolicy`.
 
-3.  **(Optional) Timeout Policy:**
-    *   **Purpose:** Ensure that individual HTTP requests do not hang indefinitely.
-    *   **Configuration:** Define a reasonable timeout per request (e.g., 30-60 seconds). `HttpClient.Timeout` provides a total timeout for a request including retries. Polly's TimeoutPolicy can apply per try.
-    *   **Note:** `HttpClient.Timeout` (default 100 seconds) might be sufficient. If more granular per-try timeouts are needed, a Polly `TimeoutPolicy` can be added. For now, rely on `HttpClient.Timeout`.
+- [x] **3. (Optional) Timeout Policy:**
+    - [x] **Status:** Not explicitly implemented with a Polly `TimeoutPolicy`.
+    - [x] Relies on the default `HttpClient.Timeout` (which is 100 seconds). This is acceptable for now as per the plan.
 
 ## 2. Policy Configuration and Order
 
-*   Policies will be configured using the `Microsoft.Extensions.Http.Polly` integration with `IHttpClientFactory`.
-*   **Order Matters:** Policies are typically wrapped from outside-in. A common order is:
-    1.  Retry Policy (inner)
-    2.  Circuit Breaker Policy (outer)
-    *   This means a request attempt goes through the Circuit Breaker first. If closed/half-open, it proceeds. If it fails and is a transient error, the Retry Policy handles it. If retries are exhausted and still failing, these failures count towards the Circuit Breaker's threshold.
+- [x] Policies are configured using `Microsoft.Extensions.Http.Polly` in `ServiceCollectionExtensions.cs`.
+- [x] **Order:** The `WaitAndRetryAsync` policy is added first, then the `CircuitBreakerAsync` policy. This means the circuit breaker is the outer policy, and retries happen "inside" it. If retries fail, those failures count towards the circuit breaker. This matches the common recommended order.
 
 ## 3. Context Propagation
 
-*   For logging within policy delegates (`onRetry`, `onBreak`, etc.), `Polly.Context` can be used to pass information like the `ILogger` instance or `HttpRequestMessage`.
-*   Helper extension methods for `Context` like `GetLogger()` and `GetRequestUri()` might be created for convenience.
+- [x] The `onRetry`, `onBreak`, `onReset` delegates in the current implementation use `Console.WriteLine` for logging.
+- [ ] For proper logging, `ILogger` would need to be made available to these delegates, potentially via `Polly.Context` or by resolving `ILoggerFactory` from the `ServiceProvider` if the context is accessible. The current `Console.WriteLine` is a placeholder.
+- [x] The context is used to get `RequestMessage.RequestUri` and `CorrelationId` in logs.
 
 ## 4. Making Policies Configurable
 
-*   Key parameters of the policies (number of retries, break duration, exceptions allowed before breaking) should be configurable.
-*   This can be achieved by accepting an `Action<PollyPolicyOptions>` in the `AddClickUpApiClient` extension method, where `PollyPolicyOptions` is a custom class holding these values. These options can then be read from the application's configuration.
+- [ ] Key parameters (retry count, delays, break duration, etc.) are currently hardcoded in `ServiceCollectionExtensions.cs`.
+- [ ] The plan suggests a `ClickUpPollyOptions` class and using `IOptions<ClickUpPollyOptions>` to make these configurable. This is **not yet implemented**.
 
     ```csharp
-    // Example Options class
-    public class ClickUpPollyOptions
-    {
-        public int RetryCount { get; set; } = 3;
-        public double InitialDelaySeconds { get; set; } = 1.0;
-        public double JitterMilliseconds { get; set; } = 100.0;
-        public int CircuitBreakerAllowedExceptions { get; set; } = 5;
-        public double CircuitBreakerDurationSeconds { get; set; } = 30.0;
-    }
-
-    // In AddClickUpApiClient, use IOptions<ClickUpPollyOptions>
-    // var pollyOptions = services.BuildServiceProvider().GetRequiredService<IOptions<ClickUpPollyOptions>>().Value;
-    // ... then use pollyOptions.RetryCount etc. in policy configuration.
+    // Example Options class (Not yet implemented)
+    // public class ClickUpPollyOptions
+    // {
+    //     public int RetryCount { get; set; } = 3;
+    //     public double InitialDelaySeconds { get; set; } = 1.0;
+    //     public double JitterMilliseconds { get; set; } = 100.0;
+    //     public int CircuitBreakerAllowedExceptions { get; set; } = 5;
+    //     public double CircuitBreakerDurationSeconds { get; set; } = 30.0;
+    // }
     ```
 
 ## 5. Testing Resilience Policies
 
-*   Testing Polly policies often involves setting up a mock `HttpMessageHandler` that can simulate transient failures, specific HTTP status codes, or delays.
-*   Assert that retries occur as expected and that the circuit breaker opens and closes correctly under defined conditions.
-*   Unit tests can verify that the policies are added to the `HttpClient` pipeline.
+- [ ] This plan item refers to the strategy for testing. Actual tests are not part of this checklist for the plan document itself.
 
 ## 6. Documentation
 
-*   The SDK's documentation should mention the resilience policies in place and any configurable aspects.
-*   Guidance on how consumers can further customize Polly policies if they take direct control of `HttpClient` configuration (though the default setup should be robust for most).
+- [ ] This plan item refers to SDK documentation. Not applicable to this checklist for the plan document itself.
 
 ## Plan Output
 
-*   This document `05-ResilienceWithPolly.md` will serve as the detailed plan.
-*   It will specify the exact policies, their configurations (with default values), and the order of application.
-*   It will include code snippets for how these policies are added in the `IServiceCollection` extension method.
-*   It will outline how policy parameters can be made configurable.
+- [x] This document `05-ResilienceWithPolly.md` has been updated with checkboxes.
+- [x] It reflects that basic Retry and Circuit Breaker policies are implemented using `AddTransientHttpErrorPolicy`.
+- [x] It notes that advanced configuration (like specific handling for 429 with Retry-After, making parameters configurable via options, and robust logging) are areas for future enhancement.
+```
 ```
