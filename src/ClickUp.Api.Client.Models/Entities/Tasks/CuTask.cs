@@ -8,7 +8,8 @@ using ClickUp.Api.Client.Models.Entities.CustomFields; // For CustomFieldValue (
 using ClickUp.Api.Client.Models.Entities.Lists;   // For List (simplified)
 using ClickUp.Api.Client.Models.Entities.Folders; // For Folder (simplified)
 using ClickUp.Api.Client.Models.Entities.Spaces;
-using ClickUp.Api.Client.Models.Entities.Tags; // For Space (simplified)
+using ClickUp.Api.Client.Models.Entities.Tags;
+using ClickUp.Api.Client.Models.Entities.Users; // For Space (simplified)
 
 
 // Assuming CustomFieldValue is in ClickUp.Api.Client.Models.Entities namespace based on previous steps
@@ -38,10 +39,10 @@ namespace ClickUp.Api.Client.Models.Entities.Tasks
         [property: JsonPropertyName("date_updated")] string? DateUpdated, // Timestamp as string
         [property: JsonPropertyName("date_closed")] string? DateClosed, // Timestamp as string
         [property: JsonPropertyName("archived")] bool? Archived,
-        [property: JsonPropertyName("creator")] ComUser? Creator,
-        [property: JsonPropertyName("assignees")] List<ComUser>? Assignees,
+        [property: JsonPropertyName("creator")] User? Creator,
+        [property: JsonPropertyName("assignees")] List<User>? Assignees,
         [property: JsonPropertyName("group_assignees")] List<UserGroup>? GroupAssignees, // Requires UserGroup record
-        [property: JsonPropertyName("watchers")] List<ComUser>? Watchers,
+        [property: JsonPropertyName("watchers")] List<User>? Watchers,
         [property: JsonPropertyName("checklists")] List<Checklist>? Checklists,
         [property: JsonPropertyName("tags")] List<Tag>? Tags,
         [property: JsonPropertyName("parent")] string? Parent, // ID of parent task

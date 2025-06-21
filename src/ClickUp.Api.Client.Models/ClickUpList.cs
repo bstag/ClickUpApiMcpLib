@@ -3,6 +3,7 @@ using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Folders;
 using ClickUp.Api.Client.Models.Entities.Lists;
 using ClickUp.Api.Client.Models.Entities.Spaces;
+using ClickUp.Api.Client.Models.Entities.Users;
 
 namespace ClickUp.Api.Client.Models;
 
@@ -17,7 +18,7 @@ public record ClickUpList
     public string? Content { get; init; }
     public ListStatusInfo? Status { get; init; } // List's own color/status display
     public ListPriorityInfo? Priority { get; init; } // Using ListPriorityInfo for list's own priority display
-    public ComUser? Assignee { get; init; } // Assuming User model
+    public User? Assignee { get; init; } // Assuming User model
     public string? TaskCount { get; init; }
     public string? DueDate { get; init; } // Consider DateTime, but string from spec for now
     public bool? DueDateTime { get; init; }

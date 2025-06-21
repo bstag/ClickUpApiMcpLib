@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Common; // For User
+using ClickUp.Api.Client.Models.Common;
+using ClickUp.Api.Client.Models.Entities.Users; // For User
 
 namespace ClickUp.Api.Client.Models.Entities.Webhooks
 {
@@ -8,7 +9,7 @@ namespace ClickUp.Api.Client.Models.Entities.Webhooks
     (
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("userid")] int UserId, // Assuming int for user ID
-        [property: JsonPropertyName("user")] ComUser? User, // Optional User object
+        [property: JsonPropertyName("user")] User? User, // Optional User object
         [property: JsonPropertyName("team_id")] int TeamId, // Assuming int for team/workspace ID
         [property: JsonPropertyName("endpoint")] string Endpoint,
         [property: JsonPropertyName("client_id")] string? ClientId, // Nullable if not an OAuth app webhook

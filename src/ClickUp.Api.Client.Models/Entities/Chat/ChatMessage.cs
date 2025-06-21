@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Common; // For User
+using ClickUp.Api.Client.Models.Common;
+using ClickUp.Api.Client.Models.Entities.Users; // For User
 
 namespace ClickUp.Api.Client.Models.Entities.Chat;
 
@@ -24,7 +25,7 @@ public record ChatMessage
     public string Type { get; init; }
 
     [JsonPropertyName("user")]
-    public ComUser User { get; init; } // From Common.User
+    public User User { get; init; } // From Common.User
 
     [JsonPropertyName("date")]
     public long Date { get; init; } // Unix timestamp
@@ -87,7 +88,7 @@ public record ChatMessage
     public long? PinnedAt { get; init; } // Nullable Unix timestamp
 
     [JsonPropertyName("pinned_by")]
-    public ComUser? PinnedBy { get; init; } // From Common.User
+    public User? PinnedBy { get; init; } // From Common.User
 
     [JsonPropertyName("system_event_type")]
     public string? SystemEventType { get; init; }

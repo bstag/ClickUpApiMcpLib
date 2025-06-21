@@ -34,6 +34,10 @@
     <ProjectReference Include="..\ClickUp.Api.Client.Models\ClickUp.Api.Client.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
   <!-- No <Using Include="NUnit.Framework"/> needed for xUnit -->
 
 </Project>

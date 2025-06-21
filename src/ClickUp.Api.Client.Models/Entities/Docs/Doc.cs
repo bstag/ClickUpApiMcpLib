@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Common; // For User type
+using ClickUp.Api.Client.Models.Common;
+using ClickUp.Api.Client.Models.Entities.Users; // For User type
 
 namespace ClickUp.Api.Client.Models.Entities.Docs
 {
@@ -8,6 +9,6 @@ namespace ClickUp.Api.Client.Models.Entities.Docs
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("workspace_id")] string WorkspaceId,
-        [property: JsonPropertyName("creator")] ComUser? Creator // Assuming Creator can be nullable
+        [property: JsonPropertyName("creator")] User? Creator // Assuming Creator can be nullable
     );
 }

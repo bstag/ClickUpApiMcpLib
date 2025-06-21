@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using ClickUp.Api.Client.Models.Entities.Chat.Enums; // Updated namespace
-using ClickUp.Api.Client.Models.Common; // For User if it's there
+using ClickUp.Api.Client.Models.Common;
+using ClickUp.Api.Client.Models.Entities.Users; // For User if it's there
 
 namespace ClickUp.Api.Client.Models.Entities.Chat;
 
@@ -37,7 +38,7 @@ public record ChatChannel
     public ChatDefaultViewDTO? DefaultView { get; init; }
 
     [JsonPropertyName("creator")]
-    public ComUser? Creator { get; init; } // Assuming User model from Common
+    public User? Creator { get; init; } // Assuming User model from Common
 
     [JsonPropertyName("created_at")]
     public long CreatedAt { get; init; } // Unix timestamp
@@ -49,10 +50,10 @@ public record ChatChannel
     public long? ArchivedAt { get; init; } // Nullable Unix timestamp
 
     [JsonPropertyName("members")]
-    public List<ComUser>? Members { get; init; } // Assuming User model from Common
+    public List<User>? Members { get; init; } // Assuming User model from Common
 
     [JsonPropertyName("guests")]
-    public List<ComUser>? Guests { get; init; } // Assuming User model from Common
+    public List<User>? Guests { get; init; } // Assuming User model from Common
 
     [JsonPropertyName("links")]
     public ChatChannelLinks? Links { get; init; }

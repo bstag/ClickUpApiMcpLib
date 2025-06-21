@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Common; // For User, if userid maps to a User object
+using ClickUp.Api.Client.Models.Common;
+using ClickUp.Api.Client.Models.Entities.Users; // For User, if userid maps to a User object
 
 namespace ClickUp.Api.Client.Models.Entities.Goals
 {
@@ -8,7 +9,7 @@ namespace ClickUp.Api.Client.Models.Entities.Goals
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("key_result_id")] string KeyResultId,
         [property: JsonPropertyName("userid")] int UserId, // Assuming int for user ID, could be User object
-        [property: JsonPropertyName("user")] ComUser? User, // Optional User object if API provides it
+        [property: JsonPropertyName("user")] User? User, // Optional User object if API provides it
         [property: JsonPropertyName("date_modified")] string DateModified, // Assuming string, could be DateTimeOffset
         [property: JsonPropertyName("steps_taken")] int? StepsTaken, // Assuming int, based on common usage for "steps"
         [property: JsonPropertyName("note")] string? Note,
