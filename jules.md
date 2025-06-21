@@ -16,12 +16,19 @@ This file contains specific notes, conventions, and information Jules needs to r
 - **Service Implementations (`src/ClickUp.Api.Client`):** Implementation is in progress. Focus is on resolving build errors stemming from interface implementations and missing types.
 - **`ClickUp.Net.Abstractions`:** This path appears to be deprecated or non-existent. The focus is on `ClickUp.Api.Client.Abstractions`.
 
-## Current Task (as per prompt on 2024-07-09):
+## Current Task (as per prompt on 2024-07-10):
+1.  **Documentation Update:** Detail out steps 4, 5, and 6 of `NEW_OVERALL_PLAN.md`.
+    *   This is a documentation-only task.
+    *   Involves reviewing existing conceptual plans and the main `NEW_OVERALL_PLAN.md`.
+    *   The goal is to add detailed checklists and mark accomplished sub-tasks for these sections.
+    *   Status: In progress. `NEW_OVERALL_PLAN.md` has been updated with the detailed breakdown. `jules.md` and `prompts.md` are being updated.
+
+## Previous Task (as per prompt on 2024-07-09):
 1.  **Build and Test:** Build the solution and run tests to ensure the last set of changes were successful and the environment is stable.
     *   **Build Status (2024-07-09):** Successful (0 errors, 3 warnings - CS8424 regarding `EnumeratorCancellationAttribute` misuse).
     *   **Test Status (2024-07-09):** Pending.
 2.  **Continue with `NEW_OVERALL_PLAN.md`:** Proceed with the next steps outlined in `docs/plans/NEW_OVERALL_PLAN.md`.
-    *   The immediate next step according to the plan is **Phase 2, Step 4: Implement Service Layer in `ClickUp.Api.Client`**, focusing on implementing the actual HTTP call logic.
+    *   The (then) immediate next step according to the plan was **Phase 2, Step 4: Implement Service Layer in `ClickUp.Api.Client`**, focusing on implementing the actual HTTP call logic. This is now superseded by the documentation task.
 
 ## Key Files & Directories:
 
