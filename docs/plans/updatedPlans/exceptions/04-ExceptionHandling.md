@@ -63,12 +63,12 @@ All custom exceptions inherit from a base `ClickUpApiException`.
 
 A DTO to represent the common error structure returned by the ClickUp API.
 
-- [ ] **1. `ClickUpErrorResponse.cs`**
-    - [ ] Location: `src/ClickUp.Api.Client.Models/Responses/Shared/` (or similar) - **Not found.** `ApiConnection.cs` currently does not deserialize into a specific error DTO. It reads raw error content.
-    - [ ] Properties:
-        - [ ] `[JsonPropertyName("err")] public string? ErrorMessage { get; set; }`
-        - [ ] `[JsonPropertyName("ECODE")] public string? ErrorCode { get; set; }`
-    *Action: This DTO should be created to improve error parsing in `ApiConnection.HandleErrorResponseAsync`.*
+- [x] **1. `ClickUpErrorResponse.cs`**
+    - [x] Location: `src/ClickUp.Api.Client.Models/Responses/Shared/ClickUpErrorResponse.cs` - Implemented.
+    - [x] Properties:
+        - [x] `[JsonPropertyName("err")] public string ErrorMessage { get; set; }`
+        - [x] `[JsonPropertyName("ECODE")] public string ErrorCode { get; set; }`
+    *Action: This DTO has been created and is used in `ApiConnection.HandleErrorResponseAsync`.*
 
 ## 3. Centralized Error Handling Logic Helper
 
@@ -80,13 +80,13 @@ The logic is centralized within `ApiConnection.HandleErrorResponseAsync`.
         - [x] If `response.IsSuccessStatusCode`, it's not called (logic is `if (!response.IsSuccessStatusCode) { await HandleErrorResponseAsync... }`).
         - [x] Otherwise:
             - [x] Reads the raw response body as a string: `string rawErrorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`
-            - [ ] Attempt to deserialize `rawErrorContent` into `ClickUpErrorResponse`. **(Currently not done, uses raw content directly for message, `apiErrorCode` is null).**
-            - [x] Extracts `errorMessage` (currently generic + status code, or `response.ReasonPhrase`).
-            - [x] `apiErrorCode` is currently passed as `null` to exception constructors.
+            - [x] Attempts to deserialize `rawErrorContent` into `ClickUpErrorResponse`. (Implemented)
+            - [x] Extracts `errorMessage` (from DTO if available, otherwise generic + status code, or `response.ReasonPhrase`).
+            - [x] `apiErrorCode` is populated from DTO if available, otherwise null. (Implemented)
             - [x] `httpStatus = response.StatusCode;` is used.
             - [x] Switch on `httpStatus`:
                 - [x] `case HttpStatusCode.BadRequest (400):`
-                - [x] `case HttpStatusCode.UnprocessableEntity (422):` -> `throw new ClickUpApiValidationException(...)` (ValidationErrors is null).
+                - [x] `case HttpStatusCode.UnprocessableEntity (422):` -> `throw new ClickUpApiValidationException(...)` (Detailed `ValidationErrors` dictionary is not yet parsed from raw content, passed as null).
                 - [x] `case HttpStatusCode.Unauthorized (401):`
                 - [x] `case HttpStatusCode.Forbidden (403):` -> `throw new ClickUpApiAuthenticationException(...)`.
                 - [x] `case HttpStatusCode.NotFound (404):` -> `throw new ClickUpApiNotFoundException(...)`.
@@ -116,8 +116,8 @@ The logic is centralized within `ApiConnection.HandleErrorResponseAsync`.
 ## 4. Plan Output
 - [x] This document `04-ExceptionHandling.md` has been updated with checkboxes.
 - [x] The exception class hierarchy is largely implemented as planned.
-- [ ] The `ClickUpErrorResponse` DTO is missing and should be implemented to improve error detail extraction.
-- [x] The logic in `ApiConnection.HandleErrorResponseAsync` implements most of the planned error handling, with some minor deviations (e.g., default exception for unmapped 4xx, no detailed `apiErrorCode` or `ValidationErrors` parsing yet).
+- [x] The `ClickUpErrorResponse` DTO has been implemented and is used for error detail extraction.
+- [x] The logic in `ApiConnection.HandleErrorResponseAsync` has been improved to parse `apiErrorCode` from the error DTO. Parsing detailed `ValidationErrors` and the default exception for unmapped 4xx remain as minor deviations/areas for enhancement.
 - [x] Service implementations are correctly integrated via `ApiConnection`.
 ```
 ```

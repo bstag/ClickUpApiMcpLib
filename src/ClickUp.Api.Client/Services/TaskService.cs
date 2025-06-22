@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ClickUp.Api.Client.Models.Entities.Tasks; // CuTask DTO
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
@@ -20,15 +22,18 @@ namespace ClickUp.Api.Client.Services
     public class TaskService : ITasksService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<TaskService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public TaskService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public TaskService(IApiConnection apiConnection, ILogger<TaskService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<TaskService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -84,6 +89,7 @@ namespace ClickUp.Api.Client.Services
             IEnumerable<long>? customItems = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting tasks for list ID: {ListId}, Page: {Page}", listId, page);
             var endpoint = $"list/{listId}/task";
             var queryParams = new Dictionary<string, string?>();
             if (archived.HasValue) queryParams["archived"] = archived.Value.ToString().ToLower();
@@ -135,6 +141,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating task in list ID: {ListId} with name: {TaskName}", listId, createTaskRequest.Name);
             var endpoint = $"list/{listId}/task";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -158,6 +165,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeMarkdownDescription = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting task with ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -182,6 +190,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Updating task with ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -203,6 +212,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting task with ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -279,40 +289,14 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async System.Threading.Tasks.Task MergeTasksAsync(
-            string taskId,
-            string targetTaskId,
-            bool? pathCustomTaskIds = null,
-            string? pathTeamId = null,
-            CancellationToken cancellationToken = default)
-        {
-            // This overload seems to map to POST /v2/task/{task_id}/merge_into/{target_task_id}
-            // Or it's an alternative way to call POST /v2/task/{task_id}/merge if target is in path
-            // Assuming it's the merge_into variant for now as it's simpler.
-            // The ClickUp API doc for "Merge CuTask Into" is POST /task/{task_id}/merge_into/{target_task_id}
-            // This does not take a body.
-            var endpoint = $"task/{taskId}/merge_into/{targetTaskId}";
-            var queryParams = new Dictionary<string, string?>();
-            if (pathCustomTaskIds.HasValue) queryParams["custom_task_ids"] = pathCustomTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(pathTeamId)) queryParams["team_id"] = pathTeamId;
-            endpoint += BuildQueryString(queryParams);
-
-            // This specific endpoint might not return a body or might return the merged task.
-            // IApiConnection.PostAsync (no TResponse) would be suitable if no body.
-            // For now, using DeleteAsync as a placeholder for a "fire and forget" style if no response body.
-            // This needs clarification based on actual API for this specific merge variant.
-            // Let's assume it's a POST with no expected response body.
-            await _apiConnection.PostAsync<object, object>(endpoint, new { }, cancellationToken); // Sending empty object as placeholder payload
-        }
-
-        /// <inheritdoc />
         public async Task<CuTask> MergeTasksAsync(
-            string targetTaskId, // This is task_id in POST /v2/task/{task_id}/merge
-            MergeTasksRequest mergeTasksRequest, // This contains the actual target_task_id in its body
-            bool? bodyCustomTaskIds = null,
-            string? bodyTeamId = null,
+            string targetTaskId,
+            MergeTasksRequest mergeTasksRequest,
+            bool? customTaskIds = null, // Applies to source_task_ids and targetTaskId if used as query params
+            string? teamId = null,      // Applies to source_task_ids and targetTaskId if used as query params
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Merging tasks into target task ID: {TargetTaskId}", targetTaskId);
             // This overload maps to POST /v2/task/{task_id}/merge where task_id is the targetTaskId param
             // and mergeTasksRequest.TargetTaskId is the actual target.
             // The API is POST /task/{task_id}/merge with body { "target_task_id": "string" }
@@ -368,35 +352,68 @@ namespace ClickUp.Api.Client.Services
             // For simplicity of stubbing, I'll assume mergeTasksRequest has one source task ID and targetTaskId is the destination.
             // This is a common pattern: POST /task/{source_id}/merge  Body: { "target_task_id": "dest_id" }
             // Let's say mergeTasksRequest contains the source_id, and targetTaskId is the destination.
-            // The interface signature is (string targetTaskId, MergeTasksRequest mergeTasksRequest, ...)
-            // This is still slightly ambiguous. Let's assume the `targetTaskId` in the method signature IS the actual target.
-            // And the `mergeTasksRequest` contains the single source task ID to merge.
-            // This means the endpoint should be: task/{mergeTasksRequest.SourceTaskId}/merge
-            // And the body should be: { "target_task_id": targetTaskId }
-            // The method will return the target task.
-
+            if (string.IsNullOrWhiteSpace(targetTaskId))
+            {
+                throw new ArgumentNullException(nameof(targetTaskId));
+            }
+            if (mergeTasksRequest == null)
+            {
+                throw new ArgumentNullException(nameof(mergeTasksRequest));
+            }
             if (mergeTasksRequest.SourceTaskIds == null || !mergeTasksRequest.SourceTaskIds.Any())
             {
-                throw new ArgumentException("MergeTasksRequest must contain at least one source task ID.", nameof(mergeTasksRequest));
+                throw new ArgumentException("MergeTasksRequest must contain at least one source task ID.", nameof(mergeTasksRequest.SourceTaskIds));
             }
-            // This implementation will assume merging the FIRST task from the request into the target for simplicity.
-            // A real implementation would loop or use a bulk endpoint if available.
-            var sourceTaskId = mergeTasksRequest.SourceTaskIds.First();
-            var endpoint = $"task/{sourceTaskId}/merge";
-            var queryParams = new Dictionary<string, string?>();
-            if (bodyCustomTaskIds.HasValue) queryParams["custom_task_ids"] = bodyCustomTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(bodyTeamId)) queryParams["team_id"] = bodyTeamId;
-            endpoint += BuildQueryString(queryParams);
 
-            // The actual payload for this specific ClickUp endpoint is { "target_task_id": "string" }
-            var payload = new { target_task_id = targetTaskId };
+            CuTask? lastMergedTargetTask = null;
 
-            var task = await _apiConnection.PostAsync<object, CuTask>(endpoint, payload, cancellationToken);
-            if (task == null)
+            // Iterate through each source task and merge it into the target task.
+            // The API documentation for "Merge Tasks" (POST /task/{task_id}/merge)
+            // states that {task_id} in the path is the source task ID,
+            // and the body contains { "target_task_id": "string" }.
+            // The response is the updated target task.
+            foreach (var sourceTaskId in mergeTasksRequest.SourceTaskIds)
             {
-                throw new InvalidOperationException($"API connection returned null response when merging tasks into target task {targetTaskId}.");
+                if (string.IsNullOrWhiteSpace(sourceTaskId))
+                {
+                    // Optionally, log this or decide if the whole operation should fail.
+                    // For now, skipping invalid source task IDs.
+                    continue;
+                }
+
+                var endpoint = $"task/{sourceTaskId}/merge";
+                var queryParams = new Dictionary<string, string?>();
+                if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
+                if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
+
+                string fullEndpoint = endpoint + BuildQueryString(queryParams);
+
+                var payload = new { target_task_id = targetTaskId };
+
+                // The API returns the updated TARGET task after a successful merge.
+                var updatedTargetTask = await _apiConnection.PostAsync<object, CuTask>(fullEndpoint, payload, cancellationToken);
+
+                if (updatedTargetTask == null)
+                {
+                    // If any merge operation fails to return the task, consider it an issue.
+                    // Depending on desired atomicity, one might choose to throw here or collect errors.
+                    // For now, throwing an exception indicating which merge failed.
+                    throw new InvalidOperationException($"API connection returned null response when merging source task '{sourceTaskId}' into target task '{targetTaskId}'.");
+                }
+                lastMergedTargetTask = updatedTargetTask; // Keep track of the latest state of the target task.
             }
-            return task;
+
+            if (lastMergedTargetTask == null)
+            {
+                // This would happen if SourceTaskIds was empty or contained only invalid IDs,
+                // and no merge operations were attempted or all skipped.
+                // Or if the loop completed but no task was returned from the last operation (should be caught above).
+                // It might be better to fetch the target task if no merges happened but that adds complexity.
+                // For now, if no merge was successfully performed and returned a task, throw.
+                throw new InvalidOperationException($"No merge operations were successfully performed, or the target task '{targetTaskId}' could not be retrieved after merging.");
+            }
+
+            return lastMergedTargetTask;
         }
 
         /// <inheritdoc />
@@ -406,6 +423,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting task time in status for task ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}/time_in_status";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -427,6 +445,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting bulk tasks time in status for task IDs: {TaskIdsCount}", taskIds?.Count());
             var endpoint = $"task/bulk_time_in_status/task_ids"; // Path doesn't take task_ids directly
             var queryParams = new Dictionary<string, string?>();
             queryParams["task_ids"] = string.Join(",", taskIds); // Comma-separated list
@@ -451,6 +470,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating task in list ID: {ListId} from template ID: {TemplateId}", listId, templateId);
             var endpoint = $"list/{listId}/taskTemplate/{templateId}";
             var queryParams = new Dictionary<string, string?>();
             // Note: ClickUp API for this endpoint doesn't explicitly list custom_task_ids or team_id as query params.
@@ -494,6 +514,7 @@ namespace ClickUp.Api.Client.Services
             IEnumerable<long>? customItems = null,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting tasks as an async enumerable for list ID: {ListId}", listId);
             int currentPage = 0;
             bool lastPage;
 
@@ -501,11 +522,11 @@ namespace ClickUp.Api.Client.Services
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    // Log or handle cancellation before breaking/returning
-                    // For an IAsyncEnumerable, simply stop yielding.
+                    _logger.LogDebug("Cancellation requested while getting tasks for list ID {ListId} via async enumerable.", listId);
                     yield break;
                 }
 
+                _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
                 var response = await GetTasksAsync( // Call the existing paged method
                     listId: listId,
                     archived: archived,
@@ -558,9 +579,82 @@ namespace ClickUp.Api.Client.Services
             } while (!lastPage);
         }
 
-        public Task<GetTasksResponse> GetFilteredTeamTasksAsync(string workspaceId, int? page = null, string? orderBy = null, bool? reverse = null, bool? subtasks = null, IEnumerable<string>? spaceIds = null, IEnumerable<string>? projectIds = null, IEnumerable<string>? listIds = null, IEnumerable<string>? statuses = null, bool? includeClosed = null, IEnumerable<string>? assignees = null, IEnumerable<string>? tags = null, long? dueDateGreaterThan = null, long? dueDateLessThan = null, long? dateCreatedGreaterThan = null, long? dateCreatedLessThan = null, long? dateUpdatedGreaterThan = null, long? dateUpdatedLessThan = null, string? customFields = null, bool? customTaskIds = null, string? teamIdForCustomTaskIds = null, IEnumerable<long>? customItems = null, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task<GetTasksResponse> GetFilteredTeamTasksAsync(
+            string workspaceId,
+            int? page = null,
+            string? orderBy = null,
+            bool? reverse = null,
+            bool? subtasks = null,
+            IEnumerable<string>? spaceIds = null,
+            IEnumerable<string>? projectIds = null,
+            IEnumerable<string>? listIds = null,
+            IEnumerable<string>? statuses = null,
+            bool? includeClosed = null,
+            IEnumerable<string>? assignees = null,
+            IEnumerable<string>? tags = null,
+            long? dueDateGreaterThan = null,
+            long? dueDateLessThan = null,
+            long? dateCreatedGreaterThan = null,
+            long? dateCreatedLessThan = null,
+            long? dateUpdatedGreaterThan = null,
+            long? dateUpdatedLessThan = null,
+            string? customFields = null,
+            bool? customTaskIds = null, // Name in interface
+            string? teamIdForCustomTaskIds = null, // Name in interface
+            IEnumerable<long>? customItems = null,
+            CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, page);
+            if (string.IsNullOrWhiteSpace(workspaceId))
+            {
+                throw new ArgumentNullException(nameof(workspaceId));
+            }
+
+            var endpoint = $"team/{workspaceId}/task";
+            var queryParams = new Dictionary<string, string?>();
+
+            if (page.HasValue) queryParams["page"] = page.Value.ToString();
+            if (!string.IsNullOrEmpty(orderBy)) queryParams["order_by"] = orderBy;
+            if (reverse.HasValue) queryParams["reverse"] = reverse.Value.ToString().ToLower();
+            if (subtasks.HasValue) queryParams["subtasks"] = subtasks.Value.ToString().ToLower();
+            if (includeClosed.HasValue) queryParams["include_closed"] = includeClosed.Value.ToString().ToLower();
+
+            if (dueDateGreaterThan.HasValue) queryParams["due_date_gt"] = dueDateGreaterThan.Value.ToString();
+            if (dueDateLessThan.HasValue) queryParams["due_date_lt"] = dueDateLessThan.Value.ToString();
+            if (dateCreatedGreaterThan.HasValue) queryParams["date_created_gt"] = dateCreatedGreaterThan.Value.ToString();
+            if (dateCreatedLessThan.HasValue) queryParams["date_created_lt"] = dateCreatedLessThan.Value.ToString();
+            if (dateUpdatedGreaterThan.HasValue) queryParams["date_updated_gt"] = dateUpdatedGreaterThan.Value.ToString();
+            if (dateUpdatedLessThan.HasValue) queryParams["date_updated_lt"] = dateUpdatedLessThan.Value.ToString();
+
+            if (!string.IsNullOrEmpty(customFields)) queryParams["custom_fields"] = customFields;
+            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(teamIdForCustomTaskIds)) queryParams["team_id"] = teamIdForCustomTaskIds;
+
+            var queryString = BuildQueryString(queryParams);
+
+            var arrayParams = new List<string>();
+            if (spaceIds != null && spaceIds.Any()) arrayParams.Add(BuildQueryStringFromArray("space_ids", spaceIds));
+            if (projectIds != null && projectIds.Any()) arrayParams.Add(BuildQueryStringFromArray("project_ids", projectIds));
+            if (listIds != null && listIds.Any()) arrayParams.Add(BuildQueryStringFromArray("list_ids", listIds));
+            if (statuses != null && statuses.Any()) arrayParams.Add(BuildQueryStringFromArray("statuses", statuses));
+            if (assignees != null && assignees.Any()) arrayParams.Add(BuildQueryStringFromArray("assignees", assignees));
+            if (tags != null && tags.Any()) arrayParams.Add(BuildQueryStringFromArray("tags", tags));
+            if (customItems != null && customItems.Any()) arrayParams.Add(BuildQueryStringFromArray("custom_items", customItems.Select(ci => ci.ToString())));
+
+            if (arrayParams.Any(p => !string.IsNullOrEmpty(p)))
+            {
+                queryString += (string.IsNullOrEmpty(queryString) || queryString == "?" ? (queryString == "?" ? "" : "?") : "&") + string.Join("&", arrayParams.Where(p => !string.IsNullOrEmpty(p)));
+            }
+            if (queryString == "?") queryString = string.Empty;
+
+            var response = await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+            if (response == null)
+            {
+                // Consider a more specific message or logging
+                throw new InvalidOperationException($"API connection returned null response when getting filtered team tasks for workspace {workspaceId}.");
+            }
+            return response;
         }
     }
 }

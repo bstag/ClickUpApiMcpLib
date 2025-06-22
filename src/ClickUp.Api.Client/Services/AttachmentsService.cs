@@ -1,5 +1,6 @@
 using System.Text; // For StringBuilder query params
-
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.ResponseModels.Attachments;
@@ -15,15 +16,18 @@ namespace ClickUp.Api.Client.Services
     public class AttachmentsService : IAttachmentsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<AttachmentsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AttachmentsService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public AttachmentsService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public AttachmentsService(IApiConnection apiConnection, ILogger<AttachmentsService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<AttachmentsService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -54,6 +58,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating task attachment for task ID: {TaskId}, FileName: {FileName}", taskId, fileName);
             var endpoint = $"task/{taskId}/attachment";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();

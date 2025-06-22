@@ -10,6 +10,8 @@ using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Chat;
 using ClickUp.Api.Client.Models.RequestModels.Chat;
 using ClickUp.Api.Client.Models.ResponseModels.Chat;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // Conceptual helper DTOs for v3 responses, if not already handled by specific Response DTOs
 // internal class ClickUpV3DataResponse<T> { public T? Data { get; set; } }
@@ -24,16 +26,19 @@ namespace ClickUp.Api.Client.Services
     public class ChatService : IChatService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<ChatService> _logger;
         private const string BaseEndpoint = "/v3/workspaces"; // Base for v3 Chat API
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChatService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public ChatService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public ChatService(IApiConnection apiConnection, ILogger<ChatService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<ChatService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -74,6 +79,7 @@ namespace ClickUp.Api.Client.Services
             IEnumerable<string>? roomTypes = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting chat channels for workspace ID: {WorkspaceId}, Cursor: {Cursor}, Limit: {Limit}", workspaceId, cursor, limit);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels"; // Corrected v3 endpoint from /docs to /channels
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(descriptionFormat)) queryParams["description_format"] = descriptionFormat;
@@ -105,6 +111,7 @@ namespace ClickUp.Api.Client.Services
             ChatCreateChatChannelRequest createChannelRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating chat channel in workspace ID: {WorkspaceId} with name: {ChannelName}", workspaceId, createChannelRequest.Name);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels";
             var response = await _apiConnection.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createChannelRequest, cancellationToken);
             if (response?.Data == null)
@@ -120,6 +127,7 @@ namespace ClickUp.Api.Client.Services
             ChatCreateLocationChatChannelRequest createLocationChannelRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating location chat channel in workspace ID: {WorkspaceId} for location ID: {LocationId}", workspaceId, createLocationChannelRequest.LocationId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels/location"; // Example, actual endpoint might vary
             var response = await _apiConnection.PostAsync<ChatCreateLocationChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createLocationChannelRequest, cancellationToken);
             if (response?.Data == null)
