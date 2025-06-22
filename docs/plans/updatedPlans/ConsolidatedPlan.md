@@ -37,11 +37,11 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 ## Phase 2: Testing Expansion
 
 ### 4. Expand Unit Test Coverage - Models & Helpers
-- [ ] **Task:** Write unit tests for polymorphic DTOs if any are identified as needing specific testing beyond standard deserialization.
+- [x] **Task:** Write unit tests for polymorphic DTOs if any are identified as needing specific testing beyond standard deserialization. (Completed for `CustomFieldValue`)
     - *Files:* New test files in `src/ClickUp.Api.Client.Tests/Models/`
     - *Why:* Ensures correct deserialization of complex model hierarchies.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
-- [ ] **Task:** Write unit tests for `AuthenticationDelegatingHandler`.
+- [x] **Task:** Write unit tests for `AuthenticationDelegatingHandler`. (Tests added for current PAT implementation; OAuth and ClickUpClientOptions support to be added to handler later)
     - *Files:* New test file in `src/ClickUp.Api.Client.Tests/Http/`
     - *Why:* Verifies correct authentication header manipulation.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
