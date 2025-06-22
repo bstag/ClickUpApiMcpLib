@@ -17,7 +17,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.Goals
     public record UpdateGoalRequest
     (
         [property: JsonPropertyName("name")] string? Name,
-        [property: JsonPropertyName("due_date")] long? DueDate,
+        [property: JsonPropertyName("due_date")] System.DateTimeOffset? DueDate,
         [property: JsonPropertyName("description")] string? Description,
         [property: JsonPropertyName("rem_owners")] List<int>? RemoveOwners,
         [property: JsonPropertyName("add_owners")] List<int>? AddOwners,

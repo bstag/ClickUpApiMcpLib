@@ -36,13 +36,13 @@ public record ChatChannel(
     [property: JsonPropertyName("unread_count")]
     int UnreadCount,
     [property: JsonPropertyName("last_message_at")]
-    long LastMessageAt,
+    DateTimeOffset LastMessageAt,
     [property: JsonPropertyName("team_id")]
     string TeamId,
     [property: JsonPropertyName("created_at")]
-    long CreatedAt,
+    DateTimeOffset CreatedAt,
     [property: JsonPropertyName("updated_at")]
-    long UpdatedAt,
+    DateTimeOffset UpdatedAt,
     [property: JsonPropertyName("is_private")]
     bool IsPrivate,
     [property: JsonPropertyName("is_favorite")]
@@ -92,10 +92,10 @@ public record ChatChannel(
     public User? Creator { get; init; }
 
     /// <summary>
-    /// Gets the Unix timestamp (milliseconds) when the channel was archived, if applicable.
+    /// Gets the timestamp when the channel was archived, if applicable.
     /// </summary>
     [JsonPropertyName("archived_at")]
-    public long? ArchivedAt { get; init; }
+    public DateTimeOffset? ArchivedAt { get; init; }
 
     /// <summary>
     /// Gets the list of members in this channel.

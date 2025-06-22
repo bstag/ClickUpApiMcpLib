@@ -17,7 +17,7 @@ public record class UpdateListRequest
     string? MarkdownContent,
 
     [property: JsonPropertyName("due_date")]
-    long? DueDate,
+    System.DateTimeOffset? DueDate,
 
     [property: JsonPropertyName("due_date_time")]
     bool? DueDateTime,

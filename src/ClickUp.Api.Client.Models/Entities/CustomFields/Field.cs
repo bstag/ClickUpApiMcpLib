@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Users; // For User
 
@@ -22,7 +23,7 @@ namespace ClickUp.Api.Client.Models.Entities.CustomFields
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("type")] string Type,
         [property: JsonPropertyName("type_config")] TypeConfig? TypeConfig,
-        [property: JsonPropertyName("date_created")] string? DateCreated,
+        [property: JsonPropertyName("date_created")] DateTimeOffset? DateCreated,
         [property: JsonPropertyName("hide_from_guests")] bool? HideFromGuests,
         [property: JsonPropertyName("required")] bool? Required,
         [property: JsonPropertyName("creator")] User? Creator

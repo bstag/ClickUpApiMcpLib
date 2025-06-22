@@ -33,13 +33,13 @@ public record class User
     CustomRole? CustomRole = null,
 
     [property: JsonPropertyName("last_active")]
-    string? LastActive = null, // String representation of Unix ms timestamp
+    DateTimeOffset? LastActive = null,
 
     [property: JsonPropertyName("date_joined")]
-    string? DateJoined = null, // String representation of Unix ms timestamp
+    DateTimeOffset? DateJoined = null,
 
     [property: JsonPropertyName("date_invited")]
-    string? DateInvited = null, // String representation of Unix ms timestamp
+    DateTimeOffset? DateInvited = null,
 
     [property: JsonPropertyName("profileInfo")]
     ProfileInfo? ProfileInfo = null

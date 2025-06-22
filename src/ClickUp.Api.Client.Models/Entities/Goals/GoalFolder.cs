@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Users; // For User and Member
 
@@ -24,7 +25,7 @@ namespace ClickUp.Api.Client.Models.Entities.Goals
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("team_id")] string TeamId,
         [property: JsonPropertyName("private")] bool Private,
-        [property: JsonPropertyName("date_created")] string? DateCreated,
+        [property: JsonPropertyName("date_created")] DateTimeOffset? DateCreated,
         [property: JsonPropertyName("creator")] User? CreatorUser,
         [property: JsonPropertyName("goal_count")] int GoalCount,
         [property: JsonPropertyName("members")] List<Member> Members,

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Users; // For User and Member
 
@@ -43,16 +44,16 @@ namespace ClickUp.Api.Client.Models.Entities.Goals
         [property: JsonPropertyName("creator")] User? CreatorUser,
         [property: JsonPropertyName("owner")] User? OwnerUser,
         [property: JsonPropertyName("color")] string? Color,
-        [property: JsonPropertyName("date_created")] string? DateCreated,
-        [property: JsonPropertyName("start_date")] string? StartDate,
-        [property: JsonPropertyName("due_date")] string? DueDate,
+        [property: JsonPropertyName("date_created")] DateTimeOffset? DateCreated,
+        [property: JsonPropertyName("start_date")] DateTimeOffset? StartDate,
+        [property: JsonPropertyName("due_date")] DateTimeOffset? DueDate,
         [property: JsonPropertyName("description")] string? Description,
         [property: JsonPropertyName("private")] bool Private,
         [property: JsonPropertyName("archived")] bool Archived,
         [property: JsonPropertyName("multiple_owners")] bool MultipleOwners,
         [property: JsonPropertyName("editor_token")] string? EditorToken,
-        [property: JsonPropertyName("date_updated")] string? DateUpdated,
-        [property: JsonPropertyName("last_update")] string? LastUpdate,
+        [property: JsonPropertyName("date_updated")] DateTimeOffset? DateUpdated,
+        [property: JsonPropertyName("last_update")] DateTimeOffset? LastUpdate,
         [property: JsonPropertyName("folder_id")] string? FolderId,
         [property: JsonPropertyName("pinned")] bool Pinned,
         [property: JsonPropertyName("owners")] List<User>? Owners,

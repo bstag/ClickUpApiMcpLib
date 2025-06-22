@@ -1,9 +1,11 @@
 using System;
 using System.Net.Http.Headers;
+
 using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Http;
 using ClickUp.Api.Client.Services;
+
 using Microsoft.Extensions.DependencyInjection; // Required for IServiceCollection, AddHttpClient, etc.
 
 namespace ClickUp.Api.Client
@@ -37,9 +39,12 @@ namespace ClickUp.Api.Client
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(apiToken); // This is for Personal API Token. OAuth would be different.
                 client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            });
-            // In a more complex scenario with Polly, DelegatingHandlers for auth, etc.,
-            // this is where those would be added via .AddHttpMessageHandler()
+            })
+            .AddPolicyHandler(Http.Handlers.HttpPolicyBuilders.GetRetryAfterPolicy()) // Handle Retry-After header specifically
+            .AddPolicyHandler(Http.Handlers.HttpPolicyBuilders.GetRetryPolicy()) // General transient error retry
+            .AddPolicyHandler(Http.Handlers.HttpPolicyBuilders.GetCircuitBreakerPolicy()); // Circuit breaker for repeated failures
+            // Consider adding a TimeoutPolicy if long-running requests are an issue: .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10)));
+
 
             // Register services
             services.AddScoped<IAttachmentsService, AttachmentsService>();

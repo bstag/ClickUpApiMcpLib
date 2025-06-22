@@ -33,7 +33,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Roles
         /// Gets or sets the date when this custom role was created, as a Unix timestamp (long).
         /// </summary>
         [JsonPropertyName("date_created")]
-        public long DateCreated { get; set; }
+        public DateTimeOffset DateCreated { get; set; }
 
         /// <summary>
         /// Gets or sets a list of user IDs who are members of this custom role.
@@ -57,7 +57,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Roles
         /// <param name="id">The ID of the custom role.</param>
         /// <param name="name">The name of the custom role.</param>
         /// <param name="dateCreated">The creation date timestamp of the custom role.</param>
-        public CustomRole(int id, string name, long dateCreated)
+        public CustomRole(int id, string name, DateTimeOffset dateCreated)
         {
             Id = id;
             Name = name ?? throw new ArgumentNullException(nameof(name));

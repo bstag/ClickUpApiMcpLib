@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Entities.Chat; // For ChatMessage
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Chat
@@ -20,7 +21,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Chat
     public record CommentPatchChatMessageResponse
     (
         [property: JsonPropertyName("id")] string Id,
-        [property: JsonPropertyName("date")] long Date,
+        [property: JsonPropertyName("date")] DateTimeOffset Date,
         [property: JsonPropertyName("user_id")] string UserId,
         [property: JsonPropertyName("type")] string Type,
         [property: JsonPropertyName("content")] object Content,

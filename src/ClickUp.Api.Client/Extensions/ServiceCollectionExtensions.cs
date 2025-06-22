@@ -46,15 +46,15 @@ namespace ClickUp.Api.Client.Extensions
             var jitterer = new Random(); // For jitter in retry policy
 
             services.AddHttpClient<IApiConnection, ApiConnection>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<ClickUpClientOptions>>().Value;
+                if (string.IsNullOrWhiteSpace(options.BaseAddress))
                 {
-                    var options = sp.GetRequiredService<IOptions<ClickUpClientOptions>>().Value;
-                    if (string.IsNullOrWhiteSpace(options.BaseAddress))
-                    {
-                        throw new InvalidOperationException("BaseAddress is not configured in ClickUpClientOptions.");
-                    }
-                    client.BaseAddress = new Uri(options.BaseAddress);
-                    client.DefaultRequestHeaders.Add("User-Agent", "ClickUp.Api.Client.Net");
-                })
+                    throw new InvalidOperationException("BaseAddress is not configured in ClickUpClientOptions.");
+                }
+                client.BaseAddress = new Uri(options.BaseAddress);
+                client.DefaultRequestHeaders.Add("User-Agent", "ClickUp.Api.Client.Net");
+            })
                 .AddHttpMessageHandler<AuthenticationDelegatingHandler>()
                 .AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(
                     retryCount: 3,
@@ -108,6 +108,7 @@ namespace ClickUp.Api.Client.Extensions
             services.AddTransient<IViewsService, ViewsService>();
             services.AddTransient<IWebhooksService, WebhooksService>();
             services.AddTransient<IWorkspacesService, WorkspacesService>();
+            services.AddTransient<IUserGroupsService, UserGroupsService>();
 
             return services;
         }

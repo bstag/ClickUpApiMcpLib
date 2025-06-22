@@ -44,10 +44,10 @@ public class TimeEntryHistory
     public JsonElement? After { get; set; }
 
     /// <summary>
-    /// Gets or sets the date of the historical action, as a string (e.g., Unix timestamp in milliseconds).
+    /// Gets or sets the date of the historical action.
     /// </summary>
     [JsonPropertyName("date")]
-    public string? Date { get; set; }
+    public DateTimeOffset? Date { get; set; }
 
     /// <summary>
     /// Gets or sets the source of the change (e.g., "clickup", "api").

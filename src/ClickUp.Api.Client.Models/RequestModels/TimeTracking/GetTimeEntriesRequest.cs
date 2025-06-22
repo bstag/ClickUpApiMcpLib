@@ -9,16 +9,16 @@ namespace ClickUp.Api.Client.Models.RequestModels.TimeTracking;
 public class GetTimeEntriesRequest
 {
     /// <summary>
-    /// Gets or sets the start date for filtering time entries (Unix timestamp in milliseconds).
+    /// Gets or sets the start date for filtering time entries.
     /// </summary>
     [JsonPropertyName("start_date")]
-    public long? StartDate { get; set; }
+    public System.DateTimeOffset? StartDate { get; set; }
 
     /// <summary>
-    /// Gets or sets the end date for filtering time entries (Unix timestamp in milliseconds).
+    /// Gets or sets the end date for filtering time entries.
     /// </summary>
     [JsonPropertyName("end_date")]
-    public long? EndDate { get; set; }
+    public System.DateTimeOffset? EndDate { get; set; }
 
     /// <summary>
     /// Gets or sets a comma-separated string of user IDs to filter time entries by assignee.

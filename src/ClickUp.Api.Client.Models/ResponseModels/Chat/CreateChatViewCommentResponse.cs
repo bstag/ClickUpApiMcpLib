@@ -14,5 +14,5 @@ public record class CreateChatViewCommentResponse
     string HistId,
 
     [property: JsonPropertyName("date")]
-    long Date
+    DateTimeOffset Date
 );

@@ -68,8 +68,8 @@ This document details the plan for implementing the service classes that provide
         - [ ] _Optional but recommended:_ Log basic request/response information. (Partially implemented, needs consistency)
         - [ ] Log errors with more details. (`IApiConnection` or its error handler should manage this).
 
-    - [ ] **XML Documentation:**
-        - [ ] Ensure each implemented public method has XML documentation. (Partially implemented, needs comprehensive pass)
+    - [x] **XML Documentation:**
+        - [x] Ensure each implemented public method has XML documentation. (Completed 2024-07-12 - All service implementations in `src/ClickUp.Api.Client/Services/` reviewed. Public methods use `inheritdoc` and corresponding interfaces are comprehensively documented.)
 
 ## Example Method Implementation (Conceptual Snippet based on current `IApiConnection` usage)
 
@@ -123,7 +123,7 @@ public async Task<GetTaskResponse> GetTaskAsync(string taskId, bool includeSubta
 - [x] `TaskService.cs` (Note: filename is `TaskService.cs`, interface `ITasksService`)
 - [x] `TemplatesService.cs`
 - [x] `TimeTrackingService.cs`
-- [ ] `UserGroupsService` (corresponds to "Teams" in some API contexts, ensure naming consistency - **Currently no `UserGroupsService.cs` exists, but `IUsersService` might cover some aspects or it's pending**)
+- [x] `UserGroupsService.cs` (Implemented 2024-07-12. Handles User Groups, also known as Teams in ClickUp's UI/some API docs.)
 - [x] `UsersService.cs`
 - [x] `ViewsService.cs`
 - [x] `WebhooksService.cs`

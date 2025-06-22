@@ -41,11 +41,11 @@ This document outlines the plan for setting up and generating comprehensive API 
     *(Status: Some XML comments exist, e.g., in `ITasksService.cs` and `CuTask.cs`. However, comprehensive coverage across all public APIs is needed.)*
 - [x] **Standard XML Tags:** Use `<summary>`, `<param>`, `<returns>`, etc.
 - [ ] **Enable XML Documentation File Generation in `.csproj` files:**
-    - [ ] Add `<GenerateDocumentationFile>true</GenerateDocumentationFile>` to:
-        - [ ] `src/ClickUp.Api.Client.Abstractions/ClickUp.Api.Client.Abstractions.csproj` - **Missing**
-        - [ ] `src/ClickUp.Api.Client.Models/ClickUp.Api.Client.Models.csproj` - **Missing**
-        - [ ] `src/ClickUp.Api.Client/ClickUp.Api.Client.csproj` - **Missing**
-- [ ] **Review and Enhance Existing Comments:** A full pass is required to ensure completeness and accuracy.
+    - [x] Add `<GenerateDocumentationFile>true</GenerateDocumentationFile>` to: (Completed 2024-07-12)
+        - [x] `src/ClickUp.Api.Client.Abstractions/ClickUp.Api.Client.Abstractions.csproj`
+        - [x] `src/ClickUp.Api.Client.Models/ClickUp.Api.Client.Models.csproj`
+        - [x] `src/ClickUp.Api.Client/ClickUp.Api.Client.csproj`
+- [x] **Review and Enhance Existing Comments:** (Completed 2024-07-12 - Interfaces reviewed and found complete. Service implementations use `inheritdoc`.) A full pass is required to ensure completeness and accuracy.
 
 ## 3. Conceptual Documentation (Articles)
 

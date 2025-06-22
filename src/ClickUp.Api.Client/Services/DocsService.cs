@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text; // For StringBuilder
 using System.Threading;
 using System.Threading.Tasks;
+
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Docs;
@@ -90,6 +91,54 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}";
             var responseWrapper = await _apiConnection.GetAsync<ClickUpV3DataResponse<Doc>>(endpoint, cancellationToken);
             return responseWrapper?.Data ?? throw new InvalidOperationException($"API response or its data was null for GetDocAsync (Doc ID: {docId}).");
+        }
+
+        /// <inheritdoc />
+        public IAsyncEnumerable<Doc> SearchAllDocsAsync(
+            string workspaceId,
+            SearchDocsRequest baseSearchDocsRequest,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(workspaceId)) throw new ArgumentNullException(nameof(workspaceId));
+            if (baseSearchDocsRequest == null) throw new ArgumentNullException(nameof(baseSearchDocsRequest));
+
+            return Helpers.PaginationHelpers.GetAllPaginatedDataAsync<Doc, SearchDocsResponse>(
+                async (currentCursor, ct) =>
+                {
+                    // Clone the base request and update cursor for this specific call
+                    var pageRequest = baseSearchDocsRequest with { Cursor = currentCursor, Limit = null }; // Limit is handled by API if not set, or could be exposed
+
+                    var endpoint = $"{BaseEndpoint}/{workspaceId}/docs";
+                    var queryParams = new Dictionary<string, string?>();
+                    if (!string.IsNullOrEmpty(pageRequest.Query)) queryParams["q"] = pageRequest.Query;
+                    // Add other relevant parameters from pageRequest to queryParams here, similar to SearchDocsAsync
+                    // Example: if (pageRequest.SomeOtherFilter.HasValue) queryParams["some_other_filter"] = pageRequest.SomeOtherFilter.Value.ToString();
+                    if (!string.IsNullOrEmpty(pageRequest.ParentId)) queryParams["parent_id"] = pageRequest.ParentId;
+                    if (pageRequest.ParentType.HasValue) queryParams["parent_type"] = ((int)pageRequest.ParentType.Value).ToString();
+                    if (pageRequest.IncludeArchived.HasValue) queryParams["archived"] = pageRequest.IncludeArchived.Value.ToString().ToLower();
+                    if (pageRequest.IncludeDeleted.HasValue) queryParams["deleted"] = pageRequest.IncludeDeleted.Value.ToString().ToLower();
+                    if (pageRequest.CreatorId.HasValue) queryParams["creator"] = pageRequest.CreatorId.Value.ToString();
+                    // The 'limit' parameter for the underlying API call can be omitted if the API default is acceptable,
+                    // or it could be set to a reasonable default (e.g., 100, the max per OpenAPI spec for searchDocs).
+                    // For now, we'll let the API use its default page size.
+                    if (!string.IsNullOrEmpty(pageRequest.Cursor)) queryParams["cursor"] = pageRequest.Cursor;
+
+
+                    endpoint += BuildQueryString(queryParams);
+
+                    // Ensure SearchDocsResponse has a public property 'Docs' and 'NextCursor'
+                    // The helper already validates for 'Data' or 'Items' and 'NextCursor'.
+                    // If SearchDocsResponse uses 'Docs' specifically, the helper needs adjustment or SearchDocsResponse needs an 'Items' alias.
+                    // For now, assuming SearchDocsResponse has 'Docs' and the helper's logic for 'Items'/'Data' needs to be robust.
+                    // The helper looks for `typeof(TItem).Name + "s"` which would be "Docs".
+                    var response = await _apiConnection.GetAsync<SearchDocsResponse>(endpoint, ct);
+
+                    // The helper expects TResponse to be non-null if there's a next page or items.
+                    // If response can be null even with items/nextcursor, this might need adjustment in the helper or here.
+                    // However, _apiConnection.GetAsync already throws if the response is not successful or returns null unexpectedly for success.
+                    return response;
+                },
+                cancellationToken);
         }
 
         /// <inheritdoc />

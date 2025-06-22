@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ClickUp.Api.Client.Models.Serialization.Converters;
 
 namespace ClickUp.Api.Client.Models.Entities.Tasks;
 
@@ -14,8 +15,12 @@ public record class LinkedTask
     string LinkId,
 
     [property: JsonPropertyName("date_created")]
-    string DateCreated,
+    DateTimeOffset DateCreated,
 
     [property: JsonPropertyName("userid")]
     string UserId
-);
+)
+{
+    [JsonConverter(typeof(UnixEpochDateTimeOffsetConverter))]
+    public DateTimeOffset DateCreated { get; init; } = DateCreated;
+}

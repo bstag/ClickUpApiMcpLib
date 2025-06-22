@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Users; // For User
 
@@ -24,7 +25,7 @@ namespace ClickUp.Api.Client.Models.Entities.Checklists
         [property: JsonPropertyName("assignee")] User? Assignee,
         [property: JsonPropertyName("resolved")] bool Resolved,
         [property: JsonPropertyName("parent")] string? Parent,
-        [property: JsonPropertyName("date_created")] string? DateCreated,
+        [property: JsonPropertyName("date_created")] DateTimeOffset? DateCreated,
         [property: JsonPropertyName("children")] List<ChecklistItem>? Children
     );
 }

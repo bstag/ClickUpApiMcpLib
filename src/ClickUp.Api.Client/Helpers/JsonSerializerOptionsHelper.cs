@@ -22,13 +22,13 @@ namespace ClickUp.Api.Client.Helpers
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 Converters =
                 {
-                    new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) // Assumes enums are also snake_case in API
+                    new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower), // Assumes enums are also snake_case in API
+                    new Models.Serialization.Converters.UnixEpochDateTimeOffsetConverter(),
+                    new Models.Serialization.Converters.NullableUnixEpochDateTimeOffsetConverter()
                 }
             };
 
-            // Add any other custom converters or settings here if identified from:
-            // docs/plans/04-httpclient-helpers-conceptual.md
-            // For example, if there are custom date formats or specific type converters needed.
+            // Further custom converters or settings can be added here.
         }
     }
 }

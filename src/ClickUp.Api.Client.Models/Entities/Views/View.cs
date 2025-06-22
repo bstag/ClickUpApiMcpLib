@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Common; // For User if needed
 // Assuming other nested types will be in the same namespace:
 // using ClickUp.Api.Client.Models.Entities.Views;
@@ -74,10 +75,10 @@ public record View(
     public ViewSettings? Settings { get; init; }
 
     /// <summary>
-    /// Gets the Unix timestamp (milliseconds) when the view was created.
+    /// Gets the timestamp when the view was created.
     /// </summary>
     [JsonPropertyName("date_created")]
-    public long? DateCreated { get; init; }
+    public DateTimeOffset? DateCreated { get; init; }
 
     /// <summary>
     /// Gets the identifier of the user who created the view.

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Entities.Users;
 
 namespace ClickUp.Api.Client.Models.Entities.Attachments
@@ -32,7 +33,7 @@ namespace ClickUp.Api.Client.Models.Entities.Attachments
     (
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("version")] string Version,
-        [property: JsonPropertyName("date")] long Date,
+        [property: JsonPropertyName("date")] DateTimeOffset Date,
         [property: JsonPropertyName("title")] string Title,
         [property: JsonPropertyName("extension")] string Extension,
         [property: JsonPropertyName("thumbnail_small")] string? ThumbnailSmall,

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Users; // For User
 
@@ -39,6 +40,6 @@ namespace ClickUp.Api.Client.Models.Entities.Webhooks
         [property: JsonPropertyName("health")] WebhookHealth? Health,
         [property: JsonPropertyName("secret")] string? Secret,
         [property: JsonPropertyName("status")] string? Status,
-        [property: JsonPropertyName("date_created")] string? DateCreated
+        [property: JsonPropertyName("date_created")] DateTimeOffset? DateCreated
     );
 }

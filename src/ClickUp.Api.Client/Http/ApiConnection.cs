@@ -7,6 +7,7 @@ using System.Text; // For StringContent
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
 using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Helpers;
 using ClickUp.Api.Client.Models.Exceptions; // For custom exceptions
@@ -190,20 +191,26 @@ namespace ClickUp.Api.Client.Http
             // For now, we'll use a generic message and pass rawErrorContent.
             // A more sophisticated approach would be to deserialize rawErrorContent into a ClickUpError DTO.
             string? apiErrorCode = null;
-            string errorMessage = $"API request failed with status code {response.StatusCode}.";
+            string errorMessage = $"API request failed with status code {response.StatusCode}. Raw content: {rawErrorContent}";
+            Models.ResponseModels.Shared.ClickUpErrorResponse? errorDto = null;
 
-            // Example: if ClickUp returns { "ECODE": "X_XXX", "err": "Error message" }
-            // try
-            // {
-            //     var errorDto = JsonSerializer.Deserialize<ClickUpErrorDto>(rawErrorContent, JsonSerializerOptionsHelper.Options);
-            //     if (errorDto != null)
-            //     {
-            //         apiErrorCode = errorDto.ErrorCode; // Assuming ClickUpErrorDto has ErrorCode property
-            //         errorMessage = errorDto.ErrorMessage ?? errorMessage; // Assuming ClickUpErrorDto has ErrorMessage property
-            //     }
-            // }
-            // catch (JsonException) { /* Ignore if content is not the expected error DTO */ }
-
+            if (!string.IsNullOrWhiteSpace(rawErrorContent))
+            {
+                try
+                {
+                    errorDto = JsonSerializer.Deserialize<Models.ResponseModels.Shared.ClickUpErrorResponse>(rawErrorContent, JsonSerializerOptionsHelper.Options);
+                    if (errorDto != null)
+                    {
+                        apiErrorCode = errorDto.ErrorCode;
+                        errorMessage = string.IsNullOrWhiteSpace(errorDto.ErrorMessage) ? errorMessage : errorDto.ErrorMessage;
+                    }
+                }
+                catch (JsonException)
+                {
+                    // If deserialization fails, keep the original generic error message and null apiErrorCode.
+                    // The rawErrorContent will still be part of the exception.
+                }
+            }
 
             switch (response.StatusCode)
             {
@@ -224,6 +231,8 @@ namespace ClickUp.Api.Client.Http
                 case HttpStatusCode.UnprocessableEntity: // Often used for validation errors
                     // IReadOnlyDictionary<string, IReadOnlyList<string>>? validationErrors = null;
                     // if (!string.IsNullOrWhiteSpace(rawErrorContent)) { /* Try to parse validationErrors */ }
+                    // Consider enhancing ClickUpApiValidationException to accept the ClickUpErrorResponse DTO directly
+                    // or parse specific validation error structures if the API provides them.
                     throw new ClickUpApiValidationException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent, null /* validationErrors */);
                 case HttpStatusCode.InternalServerError:
                 case HttpStatusCode.BadGateway:

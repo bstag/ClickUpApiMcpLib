@@ -90,9 +90,9 @@ namespace ClickUp.Api.Client.Models.Entities.Tasks
         [property: JsonPropertyName("markdown_description")] string? MarkdownDescription,
         [property: JsonPropertyName("status")] Status? Status,
         [property: JsonPropertyName("orderindex")] string? OrderIndex,
-        [property: JsonPropertyName("date_created")] string? DateCreated,
-        [property: JsonPropertyName("date_updated")] string? DateUpdated,
-        [property: JsonPropertyName("date_closed")] string? DateClosed,
+        [property: JsonPropertyName("date_created")] DateTimeOffset? DateCreated,
+        [property: JsonPropertyName("date_updated")] DateTimeOffset? DateUpdated,
+        [property: JsonPropertyName("date_closed")] DateTimeOffset? DateClosed,
         [property: JsonPropertyName("archived")] bool? Archived,
         [property: JsonPropertyName("creator")] User? Creator,
         [property: JsonPropertyName("assignees")] List<User>? Assignees,
@@ -102,8 +102,8 @@ namespace ClickUp.Api.Client.Models.Entities.Tasks
         [property: JsonPropertyName("tags")] List<Tag>? Tags,
         [property: JsonPropertyName("parent")] string? Parent,
         [property: JsonPropertyName("priority")] Priority? Priority,
-        [property: JsonPropertyName("due_date")] string? DueDate,
-        [property: JsonPropertyName("start_date")] string? StartDate,
+        [property: JsonPropertyName("due_date")] DateTimeOffset? DueDate,
+        [property: JsonPropertyName("start_date")] DateTimeOffset? StartDate,
         [property: JsonPropertyName("points")] double? Points,
         [property: JsonPropertyName("time_estimate")] int? TimeEstimate,
         [property: JsonPropertyName("time_spent")] int? TimeSpent,
@@ -140,7 +140,7 @@ namespace ClickUp.Api.Client.Models.Entities.Tasks
     /// Represents sharing options for an entity like a CuTask.
     /// </summary>
     /// <param name="Public">Indicates if the entity is publicly shared.</param>
-    /// <param name="PublicShareExpiresOn">The expiration date for the public share link, as a string.</param>
+    /// <param name="PublicShareExpiresOn">The expiration date for the public share link.</param>
     /// <param name="PublicLink">The public share link URL.</param>
-    public record SharingOptions([property: JsonPropertyName("public")] bool? Public, [property: JsonPropertyName("public_share_expires_on")] string? PublicShareExpiresOn, [property: JsonPropertyName("public_link")] string? PublicLink);
+    public record SharingOptions([property: JsonPropertyName("public")] bool? Public, [property: JsonPropertyName("public_share_expires_on")] DateTimeOffset? PublicShareExpiresOn, [property: JsonPropertyName("public_link")] string? PublicLink);
 }

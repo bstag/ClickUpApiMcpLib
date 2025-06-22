@@ -32,11 +32,11 @@ public record GuestUserInfo
     public CustomRole? CustomRole { get; init; }
 
     [JsonPropertyName("last_active")]
-    public string? LastActive { get; init; }
+    public DateTimeOffset? LastActive { get; init; }
 
     [JsonPropertyName("date_joined")]
-    public string? DateJoined { get; init; }
+    public DateTimeOffset? DateJoined { get; init; }
 
     [JsonPropertyName("date_invited")]
-    public string DateInvited { get; init; } = null!;
+    public DateTimeOffset DateInvited { get; init; } // Assuming this is non-null based on original; if it can be null, make DateTimeOffset?
 }

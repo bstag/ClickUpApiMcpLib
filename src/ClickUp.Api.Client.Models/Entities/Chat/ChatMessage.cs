@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Users; // For User
 
@@ -27,7 +28,7 @@ public record ChatMessage(
     [property: JsonPropertyName("user")]
     User User,
     [property: JsonPropertyName("date")]
-    long Date,
+    DateTimeOffset Date,
     [property: JsonPropertyName("group_id")]
     string GroupId,
     [property: JsonPropertyName("team_id")]
@@ -47,10 +48,10 @@ public record ChatMessage(
     public string? TextContent { get; init; }
 
     /// <summary>
-    /// Gets the Unix timestamp (milliseconds) when the message was last edited, if applicable.
+    /// Gets the timestamp when the message was last edited, if applicable.
     /// </summary>
     [JsonPropertyName("edited_at")]
-    public long? EditedAt { get; init; }
+    public DateTimeOffset? EditedAt { get; init; }
 
     /// <summary>
     /// Gets additional data associated with the message, typically for "post" type messages.
@@ -107,10 +108,10 @@ public record ChatMessage(
     public bool? Pinned { get; init; }
 
     /// <summary>
-    /// Gets the Unix timestamp (milliseconds) when this message was pinned, if applicable.
+    /// Gets the timestamp when this message was pinned, if applicable.
     /// </summary>
     [JsonPropertyName("pinned_at")]
-    public long? PinnedAt { get; init; }
+    public DateTimeOffset? PinnedAt { get; init; }
 
     /// <summary>
     /// Gets the user who pinned this message.

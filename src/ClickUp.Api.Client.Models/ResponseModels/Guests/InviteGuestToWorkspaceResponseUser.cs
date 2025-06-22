@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 using ClickUp.Api.Client.Models.Entities.Users;
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Guests;
@@ -33,11 +34,11 @@ public record class InviteGuestToWorkspaceResponseUser
     CustomRole? CustomRole,
 
     [property: JsonPropertyName("last_active")]
-    string? LastActive,
+    DateTimeOffset? LastActive,
 
     [property: JsonPropertyName("date_joined")]
-    string? DateJoined,
+    DateTimeOffset? DateJoined,
 
     [property: JsonPropertyName("date_invited")]
-    string DateInvited
+    DateTimeOffset DateInvited
 );

@@ -14,5 +14,5 @@ public record class CreateListCommentResponse
     string HistId,
 
     [property: JsonPropertyName("date")]
-    long Date
+    DateTimeOffset Date
 );

@@ -30,7 +30,7 @@ public record CustomFieldDefinition
     /// <summary>
     /// Gets the date when the custom field was created, as a string (Unix timestamp in milliseconds).
     /// </summary>
-    public string DateCreated { get; init; } = string.Empty;
+    public DateTimeOffset? DateCreated { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether this custom field is hidden from guests.
