@@ -97,7 +97,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 Id: 1, Username: "guest1", Email: "guest@example.com", Color: "#00FF00", ProfilePicture: null, Initials: "G1", Role: 0, CustomRole: null, LastActive: null, DateJoined: null, DateInvited: DateTimeOffset.UtcNow
             );
             var sampleInviterDto = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfo(
-                UserId: 99, Username: "AdminInviter", Email: "admin@example.com", Color: "#FFFF00", ProfilePicture: null, Initials: "AI"
+                Id: 99, Username: "AdminInviter", Email: "admin@example.com", Color: "#FFFF00", ProfilePicture: null, Initials: "AI"
             );
             var teamMember = new ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseTeamMember(
                 User: sampleInvitedUserDto,
@@ -183,6 +183,500 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _guestsService.AddGuestToTaskAsync(taskId, guestId, request));
+        }
+
+        // --- InviteGuestToWorkspaceAsync Additional Tests ---
+
+        [Fact]
+        public async Task InviteGuestToWorkspaceAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_invite_err";
+            var request = new InviteGuestToWorkspaceRequest("err@example.com", false, false, false, false, false, 0);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<InviteGuestToWorkspaceRequest, InviteGuestToWorkspaceResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.InviteGuestToWorkspaceAsync(workspaceId, request));
+        }
+
+        [Fact]
+        public async Task InviteGuestToWorkspaceAsync_NullResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_invite_null";
+            var request = new InviteGuestToWorkspaceRequest("null@example.com", false, false, false, false, false, 0);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<InviteGuestToWorkspaceRequest, InviteGuestToWorkspaceResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((InviteGuestToWorkspaceResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.InviteGuestToWorkspaceAsync(workspaceId, request));
+        }
+
+        // --- GetGuestAsync Additional Tests ---
+
+        [Fact]
+        public async Task GetGuestAsync_NullApiResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_get_null_api";
+            var guestId = "guest_null_api";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetGuestResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.GetGuestAsync(workspaceId, guestId));
+        }
+
+        [Fact]
+        public async Task GetGuestAsync_NullGuestInResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_get_null_guest";
+            var guestId = "guest_null_guest";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = null! });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.GetGuestAsync(workspaceId, guestId));
+        }
+
+        // --- EditGuestOnWorkspaceAsync Tests ---
+        [Fact]
+        public async Task EditGuestOnWorkspaceAsync_ValidRequest_CallsPutAndReturnsGuest()
+        {
+            var workspaceId = "ws_edit";
+            var guestId = "guest_edit_1";
+            var request = new EditGuestOnWorkspaceRequest(
+                CanEditTags: true,
+                CanSeeTimeEstimated: true,
+                CanSeeTimeSpent: true,
+                CanCreateViews: true,
+                CustomRoleId: 1,
+                CanSeePointsEstimated: true
+            );
+            var originalGuest = CreateSampleGuest(userId: 246); // Using a fixed int, as guestId "guest_edit_1" is not parsable
+            // Simulate that the API returns the guest with potentially updated permissions, but username would not change via this request.
+            var expectedGuestResponse = originalGuest with { CanEditTags = true, CanCreateViews = true }; // Example: reflect some changes from request
+
+            _mockApiConnection
+                .Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = expectedGuestResponse });
+
+            var result = await _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request);
+
+            Assert.NotNull(result);
+            Assert.Equal(originalGuest.User.Username, result.User.Username); // Username should not change
+            Assert.True(result.CanEditTags); // Assert one of the changed properties
+            _mockApiConnection.Verify(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(
+                $"team/{workspaceId}/guest/{guestId}",
+                request,
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task EditGuestOnWorkspaceAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_edit_err";
+            var guestId = "guest_edit_err";
+            var request = new EditGuestOnWorkspaceRequest(CanEditTags: false, CanSeeTimeEstimated: false, CanSeeTimeSpent: false, CanCreateViews: false, CustomRoleId: 0, CanSeePointsEstimated: false);
+            _mockApiConnection
+                .Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request));
+        }
+
+        [Fact]
+        public async Task EditGuestOnWorkspaceAsync_NullApiResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_edit_null_api";
+            var guestId = "guest_edit_null_api";
+            var request = new EditGuestOnWorkspaceRequest(CanEditTags: false, CanSeeTimeEstimated: false, CanSeeTimeSpent: false, CanCreateViews: false, CustomRoleId: 0, CanSeePointsEstimated: false);
+            _mockApiConnection
+                .Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetGuestResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request));
+        }
+
+        [Fact]
+        public async Task EditGuestOnWorkspaceAsync_NullGuestInResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_edit_null_guest";
+            var guestId = "guest_edit_null_guest";
+            var request = new EditGuestOnWorkspaceRequest(CanEditTags: false, CanSeeTimeEstimated: false, CanSeeTimeSpent: false, CanCreateViews: false, CustomRoleId: 0, CanSeePointsEstimated: false);
+            _mockApiConnection
+                .Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = null! });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request));
+        }
+
+        // --- RemoveGuestFromWorkspaceAsync Tests ---
+        [Fact]
+        public async Task RemoveGuestFromWorkspaceAsync_ValidIds_CallsDelete()
+        {
+            var workspaceId = "ws_remove";
+            var guestId = "guest_remove_1";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            await _guestsService.RemoveGuestFromWorkspaceAsync(workspaceId, guestId);
+
+            _mockApiConnection.Verify(c => c.DeleteAsync(
+                $"team/{workspaceId}/guest/{guestId}",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromWorkspaceAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_remove_err";
+            var guestId = "guest_remove_err";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.RemoveGuestFromWorkspaceAsync(workspaceId, guestId));
+        }
+
+        // --- AddGuestToTaskAsync Additional Tests ---
+        [Fact]
+        public async Task AddGuestToTaskAsync_ValidRequest_CallsPostAndReturnsGuest()
+        {
+            var taskId = "task_add_guest";
+            var guestId = "guest_for_task";
+            var request = new AddGuestToItemRequest { PermissionLevel = 1 };
+            var expectedGuest = CreateSampleGuest(int.Parse(guestId.Replace("guest_for_task","100"))); // ensure different id for clarity
+
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = expectedGuest });
+
+            var result = await _guestsService.AddGuestToTaskAsync(taskId, guestId, request, true, true, "team_abc");
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedGuest.User.Id, result.User.Id);
+            _mockApiConnection.Verify(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(
+                $"task/{taskId}/guest/{guestId}?include_shared=true&custom_task_ids=true&team_id=team_abc",
+                request,
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddGuestToTaskAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var taskId = "task_add_err";
+            var guestId = "guest_add_err";
+            var request = new AddGuestToItemRequest { PermissionLevel = 1 };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.AddGuestToTaskAsync(taskId, guestId, request));
+        }
+
+        [Fact]
+        public async Task AddGuestToTaskAsync_NullApiResponse_ThrowsInvalidOperationException()
+        {
+            var taskId = "task_add_null_api";
+            var guestId = "guest_add_null_api";
+            var request = new AddGuestToItemRequest { PermissionLevel = 1 };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetGuestResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.AddGuestToTaskAsync(taskId, guestId, request));
+        }
+
+        // --- RemoveGuestFromTaskAsync Tests ---
+        [Fact]
+        public async Task RemoveGuestFromTaskAsync_ValidRequest_CallsDeleteAndReturnsGuest()
+        {
+            var taskId = "task_remove_guest";
+            var guestId = "guest_from_task";
+            var expectedGuest = CreateSampleGuest(int.Parse(guestId.Replace("guest_from_task","200")));
+
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = expectedGuest });
+
+            var result = await _guestsService.RemoveGuestFromTaskAsync(taskId, guestId, false, false, "team_xyz");
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedGuest.User.Id, result.User.Id);
+            _mockApiConnection.Verify(c => c.DeleteAsync<GetGuestResponse>(
+                $"task/{taskId}/guest/{guestId}?include_shared=false&custom_task_ids=false&team_id=team_xyz",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromTaskAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var taskId = "task_remove_err";
+            var guestId = "guest_remove_err";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.RemoveGuestFromTaskAsync(taskId, guestId));
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromTaskAsync_NullApiResponse_ThrowsInvalidOperationException()
+        {
+            var taskId = "task_remove_null_api";
+            var guestId = "guest_remove_null_api";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetGuestResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.RemoveGuestFromTaskAsync(taskId, guestId));
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromTaskAsync_NullGuestInResponse_ThrowsInvalidOperationException()
+        {
+            var taskId = "task_remove_null_guest";
+            var guestId = "guest_remove_null_guest";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = null! });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.RemoveGuestFromTaskAsync(taskId, guestId));
+        }
+
+        // --- AddGuestToListAsync Tests ---
+        [Fact]
+        public async Task AddGuestToListAsync_ValidRequest_CallsPostAndReturnsGuest()
+        {
+            var listId = "list_add_guest";
+            var guestId = "guest_for_list";
+            var request = new AddGuestToItemRequest { PermissionLevel = 2 };
+            var expectedGuest = CreateSampleGuest(300);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = expectedGuest });
+
+            var result = await _guestsService.AddGuestToListAsync(listId, guestId, request, true);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedGuest.User.Id, result.User.Id);
+            _mockApiConnection.Verify(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(
+                $"list/{listId}/guest/{guestId}?include_shared=true",
+                request,
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddGuestToListAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var listId = "list_add_err";
+            var guestId = "guest_add_err_list";
+            var request = new AddGuestToItemRequest { PermissionLevel = 2 };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.AddGuestToListAsync(listId, guestId, request));
+        }
+
+        [Fact]
+        public async Task AddGuestToListAsync_NullApiResponse_ThrowsInvalidOperationException()
+        {
+            var listId = "list_add_null_api";
+            var guestId = "guest_add_null_api_list";
+            var request = new AddGuestToItemRequest { PermissionLevel = 2 };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetGuestResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.AddGuestToListAsync(listId, guestId, request));
+        }
+
+        [Fact]
+        public async Task AddGuestToListAsync_NullGuestInResponse_ThrowsInvalidOperationException()
+        {
+            var listId = "list_add_null_guest";
+            var guestId = "guest_add_null_guest_list";
+            var request = new AddGuestToItemRequest { PermissionLevel = 2 };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse{ Guest = null! });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.AddGuestToListAsync(listId, guestId, request));
+        }
+
+
+        // --- RemoveGuestFromListAsync Tests ---
+        [Fact]
+        public async Task RemoveGuestFromListAsync_ValidRequest_CallsDeleteAndReturnsGuest()
+        {
+            var listId = "list_remove_guest";
+            var guestId = "guest_from_list";
+            var expectedGuest = CreateSampleGuest(400);
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = expectedGuest });
+
+            var result = await _guestsService.RemoveGuestFromListAsync(listId, guestId, false);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedGuest.User.Id, result.User.Id);
+            _mockApiConnection.Verify(c => c.DeleteAsync<GetGuestResponse>(
+                $"list/{listId}/guest/{guestId}?include_shared=false",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromListAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var listId = "list_remove_err";
+            var guestId = "guest_remove_err_list";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.RemoveGuestFromListAsync(listId, guestId));
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromListAsync_NullApiResponse_ThrowsInvalidOperationException()
+        {
+            var listId = "list_remove_null_api";
+            var guestId = "guest_remove_null_api_list";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetGuestResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.RemoveGuestFromListAsync(listId, guestId));
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromListAsync_NullGuestInResponse_ThrowsInvalidOperationException()
+        {
+            var listId = "list_remove_null_guest";
+            var guestId = "guest_remove_null_guest_list";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = null! });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.RemoveGuestFromListAsync(listId, guestId));
+        }
+
+        // --- AddGuestToFolderAsync Tests ---
+        [Fact]
+        public async Task AddGuestToFolderAsync_ValidRequest_CallsPostAndReturnsGuest()
+        {
+            var folderId = "folder_add_guest";
+            var guestId = "guest_for_folder";
+            var request = new AddGuestToItemRequest { PermissionLevel = 3 };
+            var expectedGuest = CreateSampleGuest(500);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = expectedGuest });
+
+            var result = await _guestsService.AddGuestToFolderAsync(folderId, guestId, request, true);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedGuest.User.Id, result.User.Id);
+            _mockApiConnection.Verify(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(
+                $"folder/{folderId}/guest/{guestId}?include_shared=true",
+                request,
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddGuestToFolderAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var folderId = "folder_add_err";
+            var guestId = "guest_add_err_folder";
+            var request = new AddGuestToItemRequest { PermissionLevel = 3 };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.AddGuestToFolderAsync(folderId, guestId, request));
+        }
+
+        [Fact]
+        public async Task AddGuestToFolderAsync_NullApiResponse_ThrowsInvalidOperationException()
+        {
+            var folderId = "folder_add_null_api";
+            var guestId = "guest_add_null_api_folder";
+            var request = new AddGuestToItemRequest { PermissionLevel = 3 };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetGuestResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.AddGuestToFolderAsync(folderId, guestId, request));
+        }
+
+        [Fact]
+        public async Task AddGuestToFolderAsync_NullGuestInResponse_ThrowsInvalidOperationException()
+        {
+            var folderId = "folder_add_null_guest";
+            var guestId = "guest_add_null_guest_folder";
+            var request = new AddGuestToItemRequest { PermissionLevel = 3 };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse{ Guest = null! });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.AddGuestToFolderAsync(folderId, guestId, request));
+        }
+
+        // --- RemoveGuestFromFolderAsync Tests ---
+        [Fact]
+        public async Task RemoveGuestFromFolderAsync_ValidRequest_CallsDeleteAndReturnsGuest()
+        {
+            var folderId = "folder_remove_guest";
+            var guestId = "guest_from_folder";
+            var expectedGuest = CreateSampleGuest(600);
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = expectedGuest });
+
+            var result = await _guestsService.RemoveGuestFromFolderAsync(folderId, guestId, false);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedGuest.User.Id, result.User.Id);
+            _mockApiConnection.Verify(c => c.DeleteAsync<GetGuestResponse>(
+                $"folder/{folderId}/guest/{guestId}?include_shared=false",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromFolderAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var folderId = "folder_remove_err";
+            var guestId = "guest_remove_err_folder";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.RemoveGuestFromFolderAsync(folderId, guestId));
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromFolderAsync_NullApiResponse_ThrowsInvalidOperationException()
+        {
+            var folderId = "folder_remove_null_api";
+            var guestId = "guest_remove_null_api_folder";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetGuestResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.RemoveGuestFromFolderAsync(folderId, guestId));
+        }
+
+        [Fact]
+        public async Task RemoveGuestFromFolderAsync_NullGuestInResponse_ThrowsInvalidOperationException()
+        {
+            var folderId = "folder_remove_null_guest";
+            var guestId = "guest_remove_null_guest_folder";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetGuestResponse { Guest = null! });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.RemoveGuestFromFolderAsync(folderId, guestId));
         }
     }
 }
