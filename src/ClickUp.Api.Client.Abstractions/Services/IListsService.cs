@@ -203,30 +203,21 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
--        /// Retrieves all folderless lists in a specific Space, automatically handling pagination.
-+        /// Retrieves all Folderless Lists within a specific Space, automatically handling pagination using <see cref="IAsyncEnumerable{T}"/>.
+        /// Retrieves all Folderless Lists within a specific Space, automatically handling pagination using <see cref="IAsyncEnumerable{T}"/>.
          /// </summary>
--        /// <param name="spaceId">The ID of the Space.</param>
--        /// <param name="archived">Optional. Whether to include archived Lists.</param>
--        /// <param name="cancellationToken">Cancellation token.</param>
--        /// <returns>An asynchronous stream of folderless lists.</returns>
-+        /// <param name="spaceId">The unique identifier of the Space.</param>
-+        /// <param name="archived">Optional. If set to <c>true</c>, includes archived Lists in the results. Defaults to <c>false</c>.</param>
-+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation. This token will also be used by the <see cref="System.Runtime.CompilerServices.EnumeratorCancellationAttribute"/> for the async iterator.</param>
-+        /// <returns>An asynchronous stream of <see cref="ClickUpList"/> objects representing the Folderless Lists in the Space.</returns>
+        /// <param name="spaceId">The unique identifier of the Space.</param>
+        /// <param name="archived">Optional. If set to <c>true</c>, includes archived Lists in the results. Defaults to <c>false</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation. This token will also be used by the <see cref="System.Runtime.CompilerServices.EnumeratorCancellationAttribute"/> for the async iterator.</param>
+        /// <returns>An asynchronous stream of <see cref="ClickUpList"/> objects representing the Folderless Lists in the Space.</returns>
          /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> is null or empty.</exception>
--        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
--        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access folderless lists in this space.</exception>
--        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons during pagination.</exception>
-+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist.</exception>
-+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Folderless Lists in this Space.</exception>
-+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown if an API call fails during the pagination process.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Folderless Lists in this Space.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown if an API call fails during the pagination process.</exception>
          IAsyncEnumerable<ClickUpList> GetFolderlessListsAsyncEnumerableAsync(
              string spaceId,
              bool? archived = null,
              [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default
          );
      }
--}
-+}
-\ No newline at end of file
+
+}

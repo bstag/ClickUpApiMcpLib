@@ -1,16 +1,11 @@
-using System;
-using System.IO;
-using System.Net.Http; // Required for MultipartFormDataContent and StreamContent
 using System.Text; // For StringBuilder query params
-using System.Threading;
-using System.Threading.Tasks;
+
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Models.ResponseModels.Attachments;
+
 // using ClickUp.Api.Client.Models.Entities; // May not be needed if Attachment model is not directly used here
-using System.Collections.Generic; // For Dictionary
-using System.Linq; // For Linq Any
 // using ClickUp.Api.Client.Models.Entities.Attachments; // Replaced by specific response
-using ClickUp.Api.Client.Models.Responses.Attachments; // For CreateTaskAttachmentResponse
 
 namespace ClickUp.Api.Client.Services
 {
