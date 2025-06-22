@@ -4,9 +4,10 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
-using ClickUp.Api.Client.Models.Common; // For Status, Priority
-using ClickUp.Api.Client.Models.Entities; // For CustomFieldValue
+using ClickUp.Api.Client.Models.Common;
+using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Tasks;
+using ClickUp.Api.Client.Models.Entities.UserGroups; // Added for UserGroup
 using ClickUp.Api.Client.Models.Entities.Users;
 using ClickUp.Api.Client.Models.Entities.Checklists; // For Checklist
 using ClickUp.Api.Client.Models.Entities.Tags;       // For Tag
@@ -37,7 +38,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 TextContent: "Sample text content",
                 Description: "Sample markdown description",
                 MarkdownDescription: "Sample markdown description",
-                Status: new Models.Common.Status("open", "Open", 0, "open"), // Corrected namespace
+                Status: new Status("open", "Open", 0, "open"), // Removed Models.Common prefix
                 OrderIndex: "1.0",
                 DateCreated: DateTimeOffset.FromUnixTimeMilliseconds(1678886400000L), // Example timestamp
                 DateUpdated: DateTimeOffset.FromUnixTimeMilliseconds(1678886400000L),
@@ -50,13 +51,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 Checklists: new List<Checklist>(),
                 Tags: new List<Tag>(),
                 Parent: null,
-                Priority: new Models.Common.Priority { Id = "1", PriorityValue = "High", Color = "#FF0000", OrderIndex = "1" },
+                Priority: new Priority { Id = "1", PriorityValue = "High", Color = "#FF0000", OrderIndex = "1" }, // Removed Models.Common prefix
                 DueDate: null,
                 StartDate: null,
                 Points: null,
                 TimeEstimate: null,
                 TimeSpent: null,
-                CustomFields: new List<CustomFieldValue>(), // Corrected namespace
+                CustomFields: new List<CustomFieldValue>(),
                 Dependencies: new List<Dependency>(),
                 LinkedTasks: new List<TaskLink>(),
                 TeamId: "workspace-id",

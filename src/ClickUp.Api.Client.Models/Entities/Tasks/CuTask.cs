@@ -9,7 +9,8 @@ using ClickUp.Api.Client.Models.Entities.Lists;   // For List (simplified)
 using ClickUp.Api.Client.Models.Entities.Folders; // For Folder (simplified)
 using ClickUp.Api.Client.Models.Entities.Spaces;
 using ClickUp.Api.Client.Models.Entities.Tags;
-using ClickUp.Api.Client.Models.Entities.Users; // For Space (simplified)
+using ClickUp.Api.Client.Models.Entities.Users;
+using ClickUp.Api.Client.Models.Entities.UserGroups; // Added for UserGroup
 
 
 // Assuming CustomFieldValue is in ClickUp.Api.Client.Models.Entities namespace based on previous steps
@@ -121,13 +122,8 @@ namespace ClickUp.Api.Client.Models.Entities.Tasks
         [property: JsonPropertyName("project")] TaskFolderReference? Project
     );
 
-    /// <summary>
-    /// Represents a User Group in ClickUp.
-    /// </summary>
-    /// <param name="Id">The unique identifier of the user group.</param>
-    /// <param name="Name">The name of the user group.</param>
-    /// <param name="TeamId">The identifier of the team (workspace) this group belongs to.</param>
-    public record UserGroup([property: JsonPropertyName("id")] string Id, [property: JsonPropertyName("name")] string Name, [property: JsonPropertyName("team_id")] string TeamId);
+    // Removed local UserGroup definition to resolve ambiguity.
+    // The global one from ClickUp.Api.Client.Models.Entities.UserGroups will be used.
 
     /// <summary>
     /// Represents a link between two tasks.

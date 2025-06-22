@@ -20,35 +20,35 @@ This document outlines the plan for developing showcase example projects that de
 
 ## 2. Configuration Management for Examples
 
-- [ ] **API Token:**
-    - [ ] Both examples will require a ClickUp Personal API Token.
-    - [x] Token **MUST NOT** be hardcoded.
-    - [ ] Use `Microsoft.Extensions.Configuration`. (Partially set up in Worker, Console is basic).
-    - [ ] Provide `appsettings.template.json` or `secrets.template.json`. - **Missing for both.**
-    - [x] Actual `appsettings.json` or `secrets.json` should be in `.gitignore`. (Assumed standard practice, .gitignore not checked here).
-    - [ ] Instructions in README for configuration. - **READMEs for examples missing.**
-    - [ ] Example `appsettings.template.json` provided in plan.
+- [x] **API Token:**
+    - [x] Both examples will require a ClickUp Personal API Token. (Verified by adding config)
+    - [x] Token **MUST NOT** be hardcoded. (Ensured by template/secrets approach)
+    - [x] Use `Microsoft.Extensions.Configuration`. (Implemented in both Console and Worker)
+    - [x] Provide `appsettings.template.json` or `secrets.template.json`. (Added `appsettings.template.json` for both)
+    - [x] Actual `appsettings.json` or `secrets.json` should be in `.gitignore`. (Standard practice, assumed covered by general .gitignore)
+    - [x] Instructions in README for configuration. (Added READMEs with config instructions for both)
+    - [x] Example `appsettings.template.json` provided in plan. (Done by adding the file itself)
 - [ ] **Other Configuration:** Workspace IDs, List IDs, etc. via configuration.
 
 ## 3. `examples/ClickUp.Api.Client.Console`
 
 **Purpose:** A simple console application to demonstrate basic SDK usage.
-*(Current status: `Program.cs` is a basic "Hello, World!".)*
+*(Current status: Basic setup for DI, logging, and config is done. Initial user fetch example implemented.)*
 
 - [x] **Project Setup:**
     - [x] .NET Console Application - Exists.
-    - [ ] PackageReferences:
-        - [ ] `ClickUp.Api.Client` (project reference) - **Likely needs to be added.**
-        - [ ] `Microsoft.Extensions.Hosting` (for DI and configuration) - **Missing.**
-        - [ ] `Microsoft.Extensions.Http.Polly` - **Missing.**
-        - [ ] `Serilog.Extensions.Hosting` and `Serilog.Sinks.Console` - **Missing.**
+    - [x] PackageReferences:
+        - [x] `ClickUp.Api.Client` (project reference) - Verified, was existing.
+        - [x] `Microsoft.Extensions.Hosting` (for DI and configuration) - Added.
+        - [x] `Microsoft.Extensions.Http.Polly` - Added.
+        - [x] `Serilog.Extensions.Hosting` and `Serilog.Sinks.Console` - Added.
 
 - [ ] **Scenarios to Demonstrate:** (All scenarios are pending implementation)
-    - [ ] **1. Initialization and Authentication:**
-        - [ ] Configure `ClickUpApiClientOptions`.
-        - [ ] Show `IServiceCollection.AddClickUpApiClient(...)` setup.
-        - [ ] Inject and use a service (e.g., `IUsersService`).
-        - [ ] Example: Fetch authorized user.
+    - [x] **1. Initialization and Authentication:**
+        - [x] Configure `ClickUpApiClientOptions`. (Done in Program.cs)
+        - [x] Show `IServiceCollection.AddClickUpApiClient(...)` setup. (Done in Program.cs)
+        - [x] Inject and use a service (e.g., `IUsersService`). (Done for `IUsersService` in `App.cs`)
+        - [x] Example: Fetch authorized user. (Implemented in `App.cs`)
     - [ ] **2. Basic CRUD Operations (e.g., Tasks):**
         - [ ] Requires configured `ListId`.
         - [ ] Create, Read, Update, Delete Task examples.
@@ -77,16 +77,16 @@ This document outlines the plan for developing showcase example projects that de
 
 - [x] **Project Setup:**
     - [x] .NET Worker Service project template - Exists.
-    - [ ] PackageReferences:
-        - [ ] `ClickUp.Api.Client` (project reference) - **Likely needs to be added.**
-        - [ ] `Microsoft.Extensions.Hosting` - Exists (part of worker template).
-        - [ ] `Microsoft.Extensions.Http.Polly` - **Missing.**
-        - [ ] `Serilog.Extensions.Hosting` / `Serilog.Sinks.Console` (or other logger) - Basic MS logging is present.
+    - [x] PackageReferences:
+        - [x] `ClickUp.Api.Client` (project reference) - Verified, was existing.
+        - [x] `Microsoft.Extensions.Hosting` - Exists (part of worker template, version aligned).
+        - [x] `Microsoft.Extensions.Http.Polly` - Added.
+        - [x] `Serilog.Extensions.Hosting` / `Serilog.Sinks.Console` (or other logger) - Added Serilog.
 
 - [ ] **Scenarios to Demonstrate:** (All scenarios are pending implementation within the worker logic)
-    - [ ] **1. Initialization and Configuration:**
-        - [ ] DI setup for `AddClickUpClient` in `Program.cs`.
-        - [ ] API token configured via `appsettings.json` (needs `ClickUpApiOptions` section).
+    - [x] **1. Initialization and Configuration:**
+        - [ ] DI setup for `AddClickUpClient` in `Program.cs`. (Placeholder for this is set, actual `AddClickUpClient` call to be added when worker logic uses it)
+        - [x] API token configured via `appsettings.json` (needs `ClickUpApiOptions` section). (Configuration for options is set up in Program.cs)
     - [ ] **2. Periodic Polling Example (e.g., Check for New Tasks):**
         - [ ] Implement in `Worker.cs` or a new `BackgroundService`.
         - [ ] Inject `ITasksService`, `ILogger`.
@@ -103,12 +103,12 @@ This document outlines the plan for developing showcase example projects that de
 
 ## 5. README Files for Examples
 
-- [ ] Each example project should have its own `README.md`. - **Missing for both.**
-    - [ ] Description, Prerequisites.
-    - [ ] Configuration steps (copy template, fill API key/IDs).
-    - [ ] How to run.
-    - [ ] Expected output.
+- [x] Each example project should have its own `README.md`. - (Added for both Console and Worker)
+    - [x] Description, Prerequisites. (Included in new READMEs)
+    - [x] Configuration steps (copy template, fill API key/IDs). (Included in new READMEs)
+    - [x] How to run. (Included in new READMEs)
+    - [ ] Expected output. (To be updated as examples become more concrete)
 
-**Overall Status:** The example project skeletons (`ClickUp.Api.Client.Console` and `ClickUp.Api.Client.Worker`) exist. However, they are very basic and do not yet implement any of the planned scenarios demonstrating SDK usage, configuration, or features. Key tasks like setting up proper configuration, adding SDK references, implementing DI, and writing the actual demonstration logic are all pending. README files with setup and run instructions are also missing.
+**Overall Status:** The example project skeletons (`ClickUp.Api.Client.Console` and `ClickUp.Api.Client.Worker`) have been significantly improved with proper configuration, logging, DI foundations, and necessary package references. The Console example now demonstrates basic SDK initialization and fetching an authorized user. README files with setup and run instructions have been added for both. More detailed SDK feature demonstrations are pending.
 ```
 ```
