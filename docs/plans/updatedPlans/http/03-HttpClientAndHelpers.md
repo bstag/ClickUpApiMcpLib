@@ -128,22 +128,38 @@ This document details the plan for setting up and configuring `HttpClient`, impl
     - [x] `DefaultIgnoreCondition`: `JsonIgnoreCondition.WhenWritingNull` is set.
     - [x] `Converters`:
         - [x] `JsonStringEnumConverter` is added. (Naming policy might need to be checked against API).
-        - [ ] Custom Date/Time Converters: ClickUp API uses Unix timestamps (milliseconds) as numbers. `ApiConnection.cs` uses `HttpContentExtensions.ReadFromJsonAsyncCore` which seems to use the options from `JsonSerializerOptionsHelper`. A custom `UnixEpochDateTimeOffsetConverter` might be needed if default `DateTimeOffset` handling with `JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString` (or similar if numbers are strings) isn't sufficient or if numbers are consistently numbers. (Currently, models often use `long?` for these and then convert. A converter would be cleaner.)
+        - [x] Custom Date/Time Converters: ClickUp API uses Unix timestamps (milliseconds) as numbers. `UnixEpochDateTimeOffsetConverter` and `NullableUnixEpochDateTimeOffsetConverter` are implemented and used in `JsonSerializerOptionsHelper.Options`. This handles the conversion cleanly.
 
 - [x] **3. Usage:**
-    - [x] `ApiConnection.cs` uses the options from `JsonSerializerOptionsHelper.GetDefaultOptions()` for its serialization/deserialization operations.
+    - [x] `ApiConnection.cs` uses the options from `JsonSerializerOptionsHelper.Options` (which includes custom date converters) for its serialization/deserialization operations.
 
 ## 4. Query String Builder Utility
 
 - [x] **1. Need Assessment:**
     - [x] API has many endpoints with optional query parameters.
-- [x] **2. Implementation:**
-    - [x] `ApiConnection.cs` handles query string construction internally in its `BuildRequestUri` method. It iterates through a `Dictionary<string, string>` of parameters and appends them.
-    - [x] It uses `Uri.EscapeDataString` for encoding values.
-    *   (No separate `QueryStringBuilder.cs` file, logic is integrated into `ApiConnection.cs`).
+- [ ] **2. Implementation:**
+    - [ ] `ApiConnection.cs` does not handle query string construction from a dictionary. Service implementations (e.g., `TaskService.cs`) build the query string using private helper methods and append it to the endpoint string before passing it to `ApiConnection` methods.
+    - [x] These service-level helpers use `Uri.EscapeDataString` for encoding values.
+    *   (No separate `QueryStringBuilder.cs` file; logic is integrated into individual services).
 
     ```csharp
-    // Simplified from ApiConnection.cs BuildRequestUri
+    // Conceptual Query String Builder logic (as found in services like TaskService.cs)
+    // private string BuildQueryString(Dictionary<string, string?> queryParams)
+    // {
+    //     if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null)) return string.Empty;
+    //     var sb = new StringBuilder("?");
+    //     foreach (var kvp in queryParams)
+    //     {
+    //         if (kvp.Value != null)
+    //         {
+    //             if (sb.Length > 1) sb.Append('&');
+    //             sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
+    //         }
+    //     }
+    //     return sb.ToString();
+    // }
+    //
+    // // Simplified from ApiConnection.cs BuildRequestUri (Conceptual - NOT CURRENT IMPLEMENTATION)
     private Uri BuildRequestUri(string endpoint, Dictionary<string, string>? queryParameters = null)
     {
         var uriBuilder = new UriBuilder(_httpClient.BaseAddress!);

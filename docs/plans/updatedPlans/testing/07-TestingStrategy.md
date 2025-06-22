@@ -72,7 +72,7 @@ This document outlines the testing strategy for the ClickUp API SDK, covering un
 - [x] **Framework:** xUnit (assumed, consistent with unit tests).
 - [x] **Prerequisites:**
     - [ ] **Test ClickUp Workspace:** Required.
-    - [ ] **API Token:** Required, must be configurable and not in source control. `IntegrationTestBase.cs` likely handles configuration.
+    - [x] **API Token:** Required, must be configurable and not in source control. `IntegrationTestBase.cs` handles configuration via user secrets/environment variables.
     - [ ] **Test Data Setup/Teardown:** Needs strategy.
 
 - [x] **Key Areas for Integration Testing:**

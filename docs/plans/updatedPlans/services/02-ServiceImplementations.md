@@ -18,19 +18,19 @@ This document details the plan for implementing the service classes that provide
 
 - [x] **2. Constructor and Dependencies:**
     - [x] Inject `IApiConnection` (which internally uses `HttpClient`) for making HTTP calls.
-    - [x] Inject `ILogger<XxxService>` for logging.
-    - [x] Store these dependencies in private readonly fields.
+    - [ ] Inject `ILogger<XxxService>` for logging. (Not consistently implemented in constructors)
+    - [x] Store these dependencies in private readonly fields. (`IApiConnection` is; `ILogger` would be if injected)
     *   (Note: Current implementations use `IApiConnection` which abstracts `HttpClient` and `JsonSerializerOptions`.)
 
     ```csharp
     // Example: Current pattern in TaskService.cs
     private readonly IApiConnection _apiConnection;
-    private readonly ILogger<TasksService> _logger;
+    // private readonly ILogger<TasksService> _logger; // Logger injection not consistently implemented
 
-    public TasksService(IApiConnection apiConnection, ILogger<TasksService> logger)
+    public TasksService(IApiConnection apiConnection /*, ILogger<TasksService> logger */)
     {
         _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
-        _logger = logger ?? NullLogger<TasksService>.Instance;
+        // _logger = logger ?? NullLogger<TasksService>.Instance;
     }
     ```
 
@@ -42,8 +42,8 @@ This document details the plan for implementing the service classes that provide
         - [x] Determine the relative URL based on the OpenAPI specification. (Done per method)
         - [x] Use string interpolation for path parameters. (Done per method)
         - [x] For query parameters:
-            - [x] Collect all non-null query parameters. (Done per method)
-            - [x] Use `IApiConnection`'s methods which handle query string construction. (Done per method)
+            - [x] Collect all non-null query parameters. (Done per method in services)
+            - [x] Query string is built in services before passing to `IApiConnection`. (Done per method in services)
 
     - [x] **HTTP Method Determination:**
         - [x] Identify the correct HTTP method (GET, POST, PUT, DELETE) from the OpenAPI spec. (Done per method via `IApiConnection` calls like `GetAsync`, `PostAsync`, etc.)
@@ -62,7 +62,7 @@ This document details the plan for implementing the service classes that provide
             - [x] If successful, `IApiConnection` deserializes and returns the `TResponse`.
             - [x] For `Task` (no data) methods, `IApiConnection` has non-generic methods (e.g., `PostAsync<TRequest>`).
         - [x] **Error Handling:**
-            - [x] `IApiConnection` is responsible for calling a shared error handler (e.g., `HttpErrorHandler.HandleErrorResponseAsync` or similar logic internally) and throwing appropriate custom exceptions.
+            - [x] `IApiConnection` is responsible for calling a shared error handler (`ApiConnection.HandleErrorResponseAsync`) and throwing appropriate custom exceptions.
 
     - [ ] **Logging:**
         - [ ] _Optional but recommended:_ Log basic request/response information. (Partially implemented, needs consistency)
@@ -96,9 +96,9 @@ public async Task<GetTaskResponse> GetTaskAsync(string taskId, bool includeSubta
 ## Shared Helper Components (To be detailed in other plans)
 
 - [x] **`IApiConnection`**: Abstracts `HttpClient`, JSON options, error handling. (Implemented)
-    - [ ] `HttpErrorHandler.HandleErrorResponseAsync` (or similar logic within `ApiConnection`): Central method for processing non-success HTTP responses and throwing specific `ClickUpApiException`s. (Details in `docs/plans/updatedPlans/exceptions/04-ExceptionHandling.md`) (Logic exists in `ApiConnection.cs`)
+    - [ ] `HttpErrorHandler.HandleErrorResponseAsync` (or similar logic within `ApiConnection`): Central method for processing non-success HTTP responses and throwing specific `ClickUpApiException`s. (Details in `docs/plans/updatedPlans/exceptions/04-ExceptionHandling.md`) (Logic exists in `ApiConnection.cs` as `ApiConnection.HandleErrorResponseAsync`)
 - [x] **JSON Serialization Options**: A shared `JsonSerializerOptions` instance configured. (Managed by `JsonSerializerOptionsHelper.cs` and used by `ApiConnection.cs`) (Details in `docs/plans/updatedPlans/http/03-HttpClientAndHelpers.md`)
-- [x] **Query String Building Utility**: Handled internally by `IApiConnection` methods. (Details in `docs/plans/updatedPlans/http/03-HttpClientAndHelpers.md`)
+- [ ] **Query String Building Utility**: Handled by helper methods within each service, not by `IApiConnection` directly. (Details in `docs/plans/updatedPlans/http/03-HttpClientAndHelpers.md`)
 
 ## List of Services to Implement (Based on `02-abstractions-interfaces-actual.md` and OpenAPI tags)
 (Status based on existence of the service file in `src/ClickUp.Api.Client/Services/`. Individual method completion varies.)

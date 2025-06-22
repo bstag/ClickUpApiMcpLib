@@ -38,14 +38,14 @@ This document outlines the plan for setting up and generating comprehensive API 
 ## 2. XML Documentation Comments
 
 - [x] **Mandatory for all public types and members.**
-    *(Status: Some XML comments exist, e.g., in `ITasksService.cs` and `CuTask.cs`. However, comprehensive coverage across all public APIs is needed.)*
-- [x] **Standard XML Tags:** Use `<summary>`, `<param>`, `<returns>`, etc.
-- [ ] **Enable XML Documentation File Generation in `.csproj` files:**
-    - [x] Add `<GenerateDocumentationFile>true</GenerateDocumentationFile>` to: (Completed 2024-07-12)
+    *(Status: Core interfaces and models are well-documented. Service implementations use `inheritdoc`. Comprehensive coverage across all utility/internal types may still be ongoing.)*
+- [x] **Standard XML Tags:** Use `<summary>`, `<param>`, `<returns>`, etc. (Confirmed in documented code.)
+- [x] **Enable XML Documentation File Generation in `.csproj` files:** (Verified 2024-07-15)
+    - [x] Add `<GenerateDocumentationFile>true</GenerateDocumentationFile>` to: (Completed 2024-07-12, Verified 2024-07-15)
         - [x] `src/ClickUp.Api.Client.Abstractions/ClickUp.Api.Client.Abstractions.csproj`
         - [x] `src/ClickUp.Api.Client.Models/ClickUp.Api.Client.Models.csproj`
         - [x] `src/ClickUp.Api.Client/ClickUp.Api.Client.csproj`
-- [x] **Review and Enhance Existing Comments:** (Completed 2024-07-12 - Interfaces reviewed and found complete. Service implementations use `inheritdoc`.) A full pass is required to ensure completeness and accuracy.
+- [x] **Review and Enhance Existing Comments:** (Interfaces reviewed and found complete. Service implementations use `inheritdoc`. Ongoing for full SDK depth.)
 
 ## 3. Conceptual Documentation (Articles)
 
@@ -82,6 +82,6 @@ This document outlines the plan for setting up and generating comprehensive API 
 - [ ] Thoroughly review all generated documentation once available.
 - [ ] Check links, formatting, code examples.
 
-**Overall Status:** The plan for DocFX setup and documentation generation is clear. However, the actual implementation (DocFX initialization, comprehensive XML comments, conceptual articles, build workflow) is largely pending. Some initial XML comments exist in the code, but generation of the XML documentation file is not yet enabled in the project files.
+**Overall Status:** The plan for DocFX setup and documentation generation is clear. XML documentation file generation is enabled in project files, and core components are documented. However, the DocFX project itself, conceptual articles, and the build workflow are largely pending.
 ```
 ```

@@ -84,9 +84,9 @@ This document outlines the plan for developing showcase example projects that de
         - [x] `Serilog.Extensions.Hosting` / `Serilog.Sinks.Console` (or other logger) - Added Serilog.
 
 - [ ] **Scenarios to Demonstrate:** (All scenarios are pending implementation within the worker logic)
-    - [x] **1. Initialization and Configuration:**
-        - [ ] DI setup for `AddClickUpClient` in `Program.cs`. (Placeholder for this is set, actual `AddClickUpClient` call to be added when worker logic uses it)
-        - [x] API token configured via `appsettings.json` (needs `ClickUpApiOptions` section). (Configuration for options is set up in Program.cs)
+    - [ ] **1. Initialization and Configuration:**
+        - [ ] DI setup for `AddClickUpClient` in `Program.cs`. (Placeholder for this is set, actual `AddClickUpClient` call to be added when worker logic uses it. `ClickUpClientOptions` are not yet explicitly configured/bound in Worker's `Program.cs`.)
+        - [x] API token can be configured via `appsettings.json`/user secrets. (Configuration providers are set up in `Program.cs`; binding happens via `AddClickUpClient` which is planned).
     - [ ] **2. Periodic Polling Example (e.g., Check for New Tasks):**
         - [ ] Implement in `Worker.cs` or a new `BackgroundService`.
         - [ ] Inject `ITasksService`, `ILogger`.
