@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Comments;
-using ClickUp.Api.Client.Models.Entities.Users; // Added for User model
-using ClickUp.Api.Client.Models.ResponseModels.Comments; // Corrected namespace
+using ClickUp.Api.Client.Models.Entities.Users;
+using ClickUp.Api.Client.Models.ResponseModels.Comments;
+using ClickUp.Api.Client.Models.RequestModels.Comments; // Added for request models
 using ClickUp.Api.Client.Services;
-using Microsoft.Extensions.Logging; // Added for ILogger
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -385,6 +386,343 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 await foreach (var _ in _commentService.GetChatViewCommentsStreamAsync(viewId, start: 0, cancellationToken: CancellationToken.None)) { }
             });
             _mockApiConnection.Verify(api => api.GetAsync<GetListCommentsResponse>( $"view/{viewId}/comment?start=0", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateTaskCommentAsync_ValidInput_CallsApiConnectionPostAsyncWithCorrectParameters()
+        {
+            // Arrange
+            var taskId = "task123";
+            var request = new CreateCommentRequest { CommentText = "Test comment", Assignee = 123, NotifyAll = null };
+            var mockUser = new User(1, "User", "user@example.com", "#fff", null, "U");
+            var expectedComment = new Comment
+            {
+                Id = "comment_1",
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test comment" } },
+                CommentText = "Test comment",
+                User = mockUser,
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "comment_1", Comment = expectedComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            var result = await _commentService.CreateTaskCommentAsync(taskId, request, null, null, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedResponse.Id, result.Id);
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"task/{taskId}/comment",
+                request,
+                CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateTaskCommentAsync_WithCustomTaskIdsAndTeamId_BuildsCorrectEndpoint()
+        {
+            // Arrange
+            var taskId = "custom-task-id";
+            var request = new CreateCommentRequest { CommentText = "Test comment", Assignee = 123, NotifyAll = null };
+            var customTaskIds = true;
+            var teamId = "team-123";
+            var mockUser = new User(2, "User2", "user2@example.com", "#000", null, "U2");
+            var expectedComment = new Comment
+            {
+                Id = "comment_2",
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test comment" } },
+                CommentText = "Test comment",
+                User = mockUser,
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "comment_2", Comment = expectedComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.CreateTaskCommentAsync(taskId, request, customTaskIds, teamId, CancellationToken.None);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"task/{taskId}/comment?custom_task_ids=true&team_id={teamId}",
+                request,
+                CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateChatViewCommentAsync_ValidInput_CallsApiConnectionPostAsyncWithCorrectParameters()
+        {
+            // Arrange
+            var viewId = "view123";
+            var request = new CreateCommentRequest { CommentText = "Test comment", Assignee = 123, NotifyAll = null };
+            var mockUser = new User(3, "User3", "user3@example.com", "#111", null, "U3");
+            var expectedComment = new Comment
+            {
+                Id = "comment_3",
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test comment" } },
+                CommentText = "Test comment",
+                User = mockUser,
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "comment_3", Comment = expectedComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            var result = await _commentService.CreateChatViewCommentAsync(viewId, request, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedResponse.Id, result.Id);
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"view/{viewId}/comment",
+                request,
+                CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateListCommentAsync_ValidInput_CallsApiConnectionPostAsyncWithCorrectParameters()
+        {
+            // Arrange
+            var listId = "list123";
+            var request = new CreateCommentRequest { CommentText = "Test comment", Assignee = 123, NotifyAll = null };
+            var mockUser = new User(4, "User4", "user4@example.com", "#222", null, "U4");
+            var expectedComment = new Comment
+            {
+                Id = "comment_4",
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test comment" } },
+                CommentText = "Test comment",
+                User = mockUser,
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "comment_4", Comment = expectedComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            var result = await _commentService.CreateListCommentAsync(listId, request, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedResponse.Id, result.Id);
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"list/{listId}/comment",
+                request,
+                CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateCommentAsync_ValidInput_CallsApiConnectionPutAsyncWithCorrectParameters()
+        {
+            // Arrange
+            var commentId = "comment123";
+            var request = new UpdateCommentRequest("Updated comment", null, false, null);
+            var mockUser = new User(0, "", "", "", null, ""); // Add a default user or use a specific one
+            var expectedResponse = new Comment
+            {
+                Id = commentId,
+                CommentText = "Updated comment",
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Updated comment" } },
+                User = mockUser,
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = "",
+                ReplyCount = "0"
+            };
+
+            _mockApiConnection.Setup(api => api.PutAsync<UpdateCommentRequest, Comment>(
+                    It.IsAny<string>(),
+                    It.IsAny<UpdateCommentRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            var result = await _commentService.UpdateCommentAsync(commentId, request, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedResponse.Id, result.Id);
+            _mockApiConnection.Verify(api => api.PutAsync<UpdateCommentRequest, Comment>(
+                $"comment/{commentId}",
+                request,
+                CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteCommentAsync_ValidInput_CallsApiConnectionDeleteAsyncWithCorrectParameters()
+        {
+            // Arrange
+            var commentId = "comment123";
+            _mockApiConnection.Setup(api => api.DeleteAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            // Act
+            await _commentService.DeleteCommentAsync(commentId, CancellationToken.None);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.DeleteAsync(
+                $"comment/{commentId}",
+                CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetThreadedCommentsAsync_ValidInput_CallsApiConnectionGetAsyncWithCorrectParameters()
+        {
+            // Arrange
+            var commentId = "comment123";
+            var expectedResponse = new GetListCommentsResponse(CreateSampleComments(2)); // Assuming GetListCommentsResponse is used for replies
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            var result = await _commentService.GetThreadedCommentsAsync(commentId, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count());
+            _mockApiConnection.Verify(api => api.GetAsync<GetListCommentsResponse>(
+                $"comment/{commentId}/reply",
+                CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateThreadedCommentAsync_ValidInput_CallsApiConnectionPostAsyncWithCorrectParameters()
+        {
+            // Arrange
+            var commentId = "comment123";
+            var request = new CreateCommentRequest { CommentText = "Threaded comment", Assignee = 456, NotifyAll = null };
+            var mockUser = new User(5, "User5", "user5@example.com", "#333", null, "U5");
+            var expectedComment = new Comment
+            {
+                Id = "comment_5",
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Threaded comment" } },
+                CommentText = "Threaded comment",
+                User = mockUser,
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "comment_5", Comment = expectedComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            var result = await _commentService.CreateThreadedCommentAsync(commentId, request, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedResponse.Id, result.Id);
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"comment/{commentId}/reply",
+                request,
+                CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateTaskCommentAsync_ApiConnectionThrowsException_PropagatesException()
+        {
+            // Arrange
+            var taskId = "task123";
+            var request = new CreateCommentRequest { CommentText = "Test comment", Assignee = 123, NotifyAll = null };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API call failed"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _commentService.CreateTaskCommentAsync(taskId, request, null, null, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task GetTaskCommentsAsync_ApiConnectionThrowsException_PropagatesException()
+        {
+            // Arrange
+            var taskId = "task123";
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetTaskCommentsResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API call failed"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _commentService.GetTaskCommentsAsync(taskId, null, null, null, null, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task UpdateCommentAsync_ApiConnectionThrowsException_PropagatesException()
+        {
+            // Arrange
+            var commentId = "comment123";
+            var request = new UpdateCommentRequest("Updated comment", null, false, null);
+
+            _mockApiConnection.Setup(api => api.PutAsync<UpdateCommentRequest, Comment>(
+                    It.IsAny<string>(),
+                    It.IsAny<UpdateCommentRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API call failed"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _commentService.UpdateCommentAsync(commentId, request, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task DeleteCommentAsync_ApiConnectionThrowsException_PropagatesException()
+        {
+            // Arrange
+            var commentId = "comment123";
+
+            _mockApiConnection.Setup(api => api.DeleteAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API call failed"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _commentService.DeleteCommentAsync(commentId, CancellationToken.None));
         }
     }
 }

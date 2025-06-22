@@ -158,5 +158,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     CancellationToken.None)
             );
         }
+
+        [Fact]
+        public async Task CreateTaskAttachmentAsync_ApiConnectionThrowsException_PropagatesException()
+        {
+            // Arrange
+            var taskId = "test-task-id";
+            var fileName = "test-file.txt";
+            var fileContent = "This is a test file.";
+            using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
+
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<MultipartFormDataContent>(),
+                    It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API call failed"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _attachmentsService.CreateTaskAttachmentAsync(
+                    taskId,
+                    memoryStream,
+                    fileName,
+                    false,
+                    null,
+                    CancellationToken.None)
+            );
+        }
     }
 }
