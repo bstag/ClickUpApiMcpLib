@@ -21,11 +21,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
     {
         private readonly Mock<IApiConnection> _mockApiConnection;
         private readonly TaskService _taskService;
+        private readonly Mock<Microsoft.Extensions.Logging.ILogger<TaskService>> _mockLogger;
 
         public TaskServiceTests()
         {
             _mockApiConnection = new Mock<IApiConnection>();
-            _taskService = new TaskService(_mockApiConnection.Object);
+            _mockLogger = new Mock<Microsoft.Extensions.Logging.ILogger<TaskService>>();
+            _taskService = new TaskService(_mockApiConnection.Object, _mockLogger.Object);
         }
 
         private CuTask CreateSampleTask(string taskId = "sample-task-id")
@@ -170,6 +172,125 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 _taskService.GetTaskAsync(taskId, null, null, null, null, CancellationToken.None)
             );
             Assert.Equal(apiException.Message, actualException.Message);
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsync_WithNewParameters_BuildsCorrectEndpoint()
+        {
+            // Arrange
+            var workspaceId = "ws-123";
+            long dateDoneGreaterThan = 1678886400000;
+            long dateDoneLessThan = 1678887400000;
+            var parentTaskId = "parent-task-abc";
+            var includeMarkdownDescription = true;
+
+            var expectedResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse(
+                new List<CuTask> { CreateSampleTask() },
+                false
+            );
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            var expectedEndpoint = $"team/{workspaceId}/task?date_done_gt={dateDoneGreaterThan}&date_done_lt={dateDoneLessThan}&parent={parentTaskId}&include_markdown_description=true";
+
+            // Act
+            await _taskService.GetFilteredTeamTasksAsync(
+                workspaceId,
+                dateDoneGreaterThan: dateDoneGreaterThan,
+                dateDoneLessThan: dateDoneLessThan,
+                parentTaskId: parentTaskId,
+                includeMarkdownDescription: includeMarkdownDescription,
+                cancellationToken: CancellationToken.None);
+
+            // Assert
+            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(expectedEndpoint, CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsync_WithSomeNewAndSomeOldParameters_BuildsCorrectEndpoint()
+        {
+            // Arrange
+            var workspaceId = "ws-456";
+            var page = 1;
+            var orderBy = "due_date";
+            long? dateDoneGreaterThan = null; // New param not used
+            long dateDoneLessThan = 1678889900000; // New param used
+            string? parentTaskId = null; // New param not used
+            var includeMarkdownDescription = false; // New param used
+            var statuses = new List<string> { "open", "in progress" };
+            var assignees = new List<string> { "user1", "user2" };
+
+
+            var expectedResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse(
+                new List<CuTask> { CreateSampleTask() },
+                false
+            );
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            var expectedEndpoint = $"team/{workspaceId}/task?page={page}&order_by={orderBy}&date_done_lt={dateDoneLessThan}&include_markdown_description=false&statuses[]={Uri.EscapeDataString(statuses[0])}&statuses[]={Uri.EscapeDataString(statuses[1])}&assignees[]={assignees[0]}&assignees[]={assignees[1]}";
+
+            // Act
+            await _taskService.GetFilteredTeamTasksAsync(
+                workspaceId,
+                page: page,
+                orderBy: orderBy,
+                dateDoneGreaterThan: dateDoneGreaterThan,
+                dateDoneLessThan: dateDoneLessThan,
+                parentTaskId: parentTaskId,
+                includeMarkdownDescription: includeMarkdownDescription,
+                statuses: statuses,
+                assignees: assignees,
+                cancellationToken: CancellationToken.None);
+
+            // Assert
+            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(expectedEndpoint, CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsync_NullWorkspaceId_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
+                _taskService.GetFilteredTeamTasksAsync(null!, customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
+            );
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsync_EmptyWorkspaceId_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
+                _taskService.GetFilteredTeamTasksAsync("", customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
+            );
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsync_WhitespaceWorkspaceId_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
+                _taskService.GetFilteredTeamTasksAsync("   ", customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
+            );
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsync_ApiReturnsNull_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var workspaceId = "ws-789";
+            _mockApiConnection
+                .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _taskService.GetFilteredTeamTasksAsync(workspaceId, customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
+            );
         }
     }
 }

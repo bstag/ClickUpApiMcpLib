@@ -127,7 +127,7 @@ namespace ClickUp.Api.Client.Services
             ChatCreateLocationChatChannelRequest createLocationChannelRequest,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Creating location chat channel in workspace ID: {WorkspaceId} for location ID: {LocationId}", workspaceId, createLocationChannelRequest.LocationId);
+            _logger.LogInformation("Creating location chat channel in workspace ID: {WorkspaceId} for location ID: {LocationId}", workspaceId, createLocationChannelRequest.Location.Id);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels/location"; // Example, actual endpoint might vary
             var response = await _apiConnection.PostAsync<ChatCreateLocationChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(endpoint, createLocationChannelRequest, cancellationToken);
             if (response?.Data == null)

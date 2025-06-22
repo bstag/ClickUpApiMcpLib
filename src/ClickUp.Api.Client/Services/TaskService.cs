@@ -603,6 +603,10 @@ namespace ClickUp.Api.Client.Services
             bool? customTaskIds = null, // Name in interface
             string? teamIdForCustomTaskIds = null, // Name in interface
             IEnumerable<long>? customItems = null,
+            long? dateDoneGreaterThan = null,
+            long? dateDoneLessThan = null,
+            string? parentTaskId = null,
+            bool? includeMarkdownDescription = null,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, page);
@@ -626,6 +630,10 @@ namespace ClickUp.Api.Client.Services
             if (dateCreatedLessThan.HasValue) queryParams["date_created_lt"] = dateCreatedLessThan.Value.ToString();
             if (dateUpdatedGreaterThan.HasValue) queryParams["date_updated_gt"] = dateUpdatedGreaterThan.Value.ToString();
             if (dateUpdatedLessThan.HasValue) queryParams["date_updated_lt"] = dateUpdatedLessThan.Value.ToString();
+            if (dateDoneGreaterThan.HasValue) queryParams["date_done_gt"] = dateDoneGreaterThan.Value.ToString();
+            if (dateDoneLessThan.HasValue) queryParams["date_done_lt"] = dateDoneLessThan.Value.ToString();
+            if (!string.IsNullOrEmpty(parentTaskId)) queryParams["parent"] = parentTaskId;
+            if (includeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = includeMarkdownDescription.Value.ToString().ToLower();
 
             if (!string.IsNullOrEmpty(customFields)) queryParams["custom_fields"] = customFields;
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();

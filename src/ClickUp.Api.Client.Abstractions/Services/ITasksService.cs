@@ -193,6 +193,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="customTaskIds">Optional. If true, indicates that task IDs used in other filters (like projectIds, listIds if they can contain task IDs) are custom task IDs. Also affects how task IDs are exported/returned if applicable.</param>
         /// <param name="teamIdForCustomTaskIds">Optional. The Workspace ID (team_id), required if <paramref name="customTaskIds"/> is true and custom task IDs are used in filters.</param>
         /// <param name="customItems">Optional. An enumerable of custom item type IDs (long integers) to filter Tasks by.</param>
+        /// <param name="dateDoneGreaterThan">Optional. Filters for Tasks completed after this Unix timestamp (in milliseconds).</param>
+        /// <param name="dateDoneLessThan">Optional. Filters for Tasks completed before this Unix timestamp (in milliseconds).</param>
+        /// <param name="parentTaskId">Optional. Filters for subtasks of a specific parent Task ID.</param>
+        /// <param name="includeMarkdownDescription">Optional. If set to <c>true</c>, returns Task descriptions in Markdown format. Defaults to <c>false</c>.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetTasksResponse"/> object with the list of matching Tasks and pagination details.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
@@ -221,6 +225,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
             bool? customTaskIds = null,
             string? teamIdForCustomTaskIds = null,
             IEnumerable<long>? customItems = null,
+            long? dateDoneGreaterThan = null,
+            long? dateDoneLessThan = null,
+            string? parentTaskId = null,
+            bool? includeMarkdownDescription = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
