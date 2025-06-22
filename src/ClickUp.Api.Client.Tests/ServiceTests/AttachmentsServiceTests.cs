@@ -185,5 +185,76 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     CancellationToken.None)
             );
         }
+
+        [Fact]
+        public async Task CreateTaskAttachmentAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var taskId = "test-task-id";
+            var fileName = "test-file.txt";
+            var fileContent = "This is a test file.";
+            using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.Cancel(); // Pre-cancel to simulate immediate timeout or cancellation
+
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<MultipartFormDataContent>(),
+                    It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API call timed out"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _attachmentsService.CreateTaskAttachmentAsync(
+                    taskId,
+                    memoryStream,
+                    fileName,
+                    false,
+                    null,
+                    cancellationTokenSource.Token) // Pass the cancelled token
+            );
+        }
+
+        [Fact]
+        public async Task CreateTaskAttachmentAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var taskId = "test-task-id";
+            var fileName = "test-file.txt";
+            var fileContent = "This is a test file.";
+            using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+
+            var mockUser = new User(Id: 123, Username: "Test User", Email: "test@example.com", Color: "#ffffff", ProfilePicture: null, Initials: "TU", ProfileInfo: null);
+            var expectedResponse = new CreateTaskAttachmentResponse(
+                Id: "generated-id", Version: "1", Date: DateTimeOffset.UtcNow, Title: fileName, Extension: "txt", ThumbnailSmall: "ts", ThumbnailLarge: "tl",
+                Url: "url", UrlWQuery: "url?q", UrlWHost: "host/url", IsFolder: false, ParentId: "pid", Size: 100, TotalComments: 0, ResolvedComments: 0, User: mockUser,
+                Deleted: false, Orientation: null, Type: 1, Source: 1, EmailData: null, ResourceId: "rid"
+            );
+
+
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<MultipartFormDataContent>(),
+                    expectedToken)) // Expect the specific token
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _attachmentsService.CreateTaskAttachmentAsync(
+                taskId,
+                memoryStream,
+                fileName,
+                false,
+                null,
+                expectedToken); // Pass the token
+
+            // Assert
+            _mockApiConnection.Verify(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
+                It.IsAny<string>(),
+                It.IsAny<MultipartFormDataContent>(),
+                expectedToken), // Verify the token was passed
+                Times.Once);
+        }
     }
 }

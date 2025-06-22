@@ -58,16 +58,16 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 - [ ] **Task:** For all service methods in `src/ClickUp.Api.Client/Services/`, ensure comprehensive unit tests covering:
     - [x] Verification of correct request construction (URL, query parameters, body serialization). *(Completed for AttachmentsService and CommentService)*
     - [x] Simulation of API error cases (testing that appropriate `ClickUpApiException`s are thrown or propagated). *(Completed for AttachmentsService and CommentService)*
-    - [ ] Simulation of network errors and timeouts.
-    - [ ] Verification of `CancellationToken` pass-through.
+    - [x] Simulation of network errors and timeouts. *(Completed for AttachmentsService, CommentService, TaskService)*
+    - [x] Verification of `CancellationToken` pass-through. *(Completed for AttachmentsService, CommentService, TaskService)*
     - *Files:* All files in `src/ClickUp.Api.Client.Tests/ServiceTests/`
     - *Why:* Ensures individual service method logic is correct and robust.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
 
 ### 6. Develop Integration Tests
-- [ ] **Task:** Define a strategy for Test Data Setup/Teardown for integration tests.
+- [x] **Task:** Define a strategy for Test Data Setup/Teardown for integration tests.
     - *Why:* Essential for reliable and repeatable integration tests.
-    - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md` (Conceptual)
+    - *Ref:* `docs/testing/INTEGRATION_TEST_DATA_STRATEGY.md`
 - [ ] **Task:** Implement integration tests for:
     - [ ] Authentication (`GetAuthorizedUserAsync` with valid/invalid tokens).
     - [ ] Core CRUD operations for major entities (e.g., Tasks, Lists, Comments).

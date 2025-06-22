@@ -724,5 +724,406 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _commentService.DeleteCommentAsync(commentId, CancellationToken.None));
         }
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through ---
+
+        [Fact]
+        public async Task CreateTaskCommentAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var taskId = "task_cancel_ex";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cts = new CancellationTokenSource();
+            cts.Cancel(); // Simulate timeout/cancellation
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.CreateTaskCommentAsync(taskId, request, null, null, cts.Token));
+        }
+
+        [Fact]
+        public async Task CreateTaskCommentAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var taskId = "task_ct_pass";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var mockUser = new User(0, "", "", "", null, "");
+            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = new Comment { Id = "1", User = mockUser } };
+
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.CreateTaskCommentAsync(taskId, request, null, null, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"task/{taskId}/comment", request, expectedToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetTaskCommentsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var taskId = "task_cancel_ex_get";
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetTaskCommentsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.GetTaskCommentsAsync(taskId, null, null, null, null, cts.Token));
+        }
+
+        [Fact]
+        public async Task GetTaskCommentsAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var taskId = "task_ct_pass_get";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetTaskCommentsResponse(new List<Comment>());
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetTaskCommentsResponse>(
+                    It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.GetTaskCommentsAsync(taskId, null, null, null, null, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.GetAsync<GetTaskCommentsResponse>(
+                $"task/{taskId}/comment", expectedToken), Times.Once);
+        }
+
+
+        [Fact]
+        public async Task CreateChatViewCommentAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var viewId = "view_cancel_ex";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.CreateChatViewCommentAsync(viewId, request, cts.Token));
+        }
+
+        [Fact]
+        public async Task CreateChatViewCommentAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var viewId = "view_ct_pass";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var mockUser = new User(0, "", "", "", null, "");
+            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = new Comment { Id = "1", User = mockUser } };
+
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.CreateChatViewCommentAsync(viewId, request, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"view/{viewId}/comment", request, expectedToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetChatViewCommentsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var viewId = "view_cancel_ex_get";
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>( // Uses GetListCommentsResponse
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.GetChatViewCommentsAsync(viewId, null, null, cts.Token));
+        }
+
+        [Fact]
+        public async Task GetChatViewCommentsAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var viewId = "view_ct_pass_get";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetListCommentsResponse(new List<Comment>()); // Uses GetListCommentsResponse
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>(
+                    It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.GetChatViewCommentsAsync(viewId, null, null, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.GetAsync<GetListCommentsResponse>(
+                $"view/{viewId}/comment", expectedToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateListCommentAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var listId = "list_cancel_ex";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.CreateListCommentAsync(listId, request, cts.Token));
+        }
+
+        [Fact]
+        public async Task CreateListCommentAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var listId = "list_ct_pass";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var mockUser = new User(0, "", "", "", null, "");
+            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = new Comment { Id = "1", User = mockUser } };
+
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.CreateListCommentAsync(listId, request, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"list/{listId}/comment", request, expectedToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetListCommentsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var listId = "list_cancel_ex_get";
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.GetListCommentsAsync(listId, null, null, cts.Token));
+        }
+
+        [Fact]
+        public async Task GetListCommentsAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var listId = "list_ct_pass_get";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetListCommentsResponse(new List<Comment>());
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>(
+                    It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.GetListCommentsAsync(listId, null, null, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.GetAsync<GetListCommentsResponse>(
+                $"list/{listId}/comment", expectedToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateCommentAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var commentId = "comment_cancel_ex";
+            var request = new UpdateCommentRequest("Updated", null, false, null);
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.PutAsync<UpdateCommentRequest, Comment>(
+                    It.IsAny<string>(), It.IsAny<UpdateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.UpdateCommentAsync(commentId, request, cts.Token));
+        }
+
+        [Fact]
+        public async Task UpdateCommentAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var commentId = "comment_ct_pass";
+            var request = new UpdateCommentRequest("Updated", null, false, null);
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var mockUser = new User(0, "", "", "", null, "");
+            var expectedResponse = new Comment { Id = commentId, User = mockUser };
+
+
+            _mockApiConnection.Setup(api => api.PutAsync<UpdateCommentRequest, Comment>(
+                    It.IsAny<string>(), It.IsAny<UpdateCommentRequest>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.UpdateCommentAsync(commentId, request, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.PutAsync<UpdateCommentRequest, Comment>(
+                $"comment/{commentId}", request, expectedToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteCommentAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var commentId = "comment_cancel_ex_delete";
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.DeleteCommentAsync(commentId, cts.Token));
+        }
+
+        [Fact]
+        public async Task DeleteCommentAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var commentId = "comment_ct_pass_delete";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+
+            _mockApiConnection.Setup(api => api.DeleteAsync(
+                    It.IsAny<string>(), expectedToken))
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            // Act
+            await _commentService.DeleteCommentAsync(commentId, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.DeleteAsync(
+                $"comment/{commentId}", expectedToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetThreadedCommentsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var commentId = "comment_thread_cancel_ex_get";
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>( // Uses GetListCommentsResponse
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.GetThreadedCommentsAsync(commentId, cts.Token));
+        }
+
+        [Fact]
+        public async Task GetThreadedCommentsAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var commentId = "comment_thread_ct_pass_get";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetListCommentsResponse(new List<Comment>());
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>(
+                    It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.GetThreadedCommentsAsync(commentId, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.GetAsync<GetListCommentsResponse>(
+                $"comment/{commentId}/reply", expectedToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateThreadedCommentAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var commentId = "comment_thread_cancel_ex_create";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _commentService.CreateThreadedCommentAsync(commentId, request, cts.Token));
+        }
+
+        [Fact]
+        public async Task CreateThreadedCommentAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var commentId = "comment_thread_ct_pass_create";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var mockUser = new User(0, "", "", "", null, "");
+            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = new Comment { Id = "1", User = mockUser } };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _commentService.CreateThreadedCommentAsync(commentId, request, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                $"comment/{commentId}/reply", request, expectedToken), Times.Once);
+        }
     }
 }

@@ -22,6 +22,10 @@ This file contains specific notes, conventions, and information Jules needs to r
     *   Involves reviewing existing conceptual plans and the main `NEW_OVERALL_PLAN.md`.
     *   The goal is to add detailed checklists and mark accomplished sub-tasks for these sections.
     *   Status: In progress. `NEW_OVERALL_PLAN.md` has been updated with the detailed breakdown. `jules.md` and `prompts.md` are being updated.
+- **Current Task (as per prompt on 2024-07-12):**
+    1. Complete outstanding unit tests for services: Add tests for network errors, timeouts, and CancellationToken propagation to `AttachmentsServiceTests.cs`, `CommentServiceTests.cs`, and `TaskServiceTests.cs`. (Completed)
+    2. Define Integration Test Data Setup/Teardown Strategy: Create `docs/testing/INTEGRATION_TEST_DATA_STRATEGY.md` outlining approaches for managing test data. (Completed)
+    - *Files Modified:* `src/ClickUp.Api.Client.Tests/ServiceTests/*`, `docs/testing/INTEGRATION_TEST_DATA_STRATEGY.md`, `docs/plans/updatedPlans/ConsolidatedPlan.md`
 
 ## Key Files & Directories:
 - OpenAPI Spec: `docs/OpenApiSpec/ClickUp-6-17-25.json`
