@@ -19,7 +19,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *Ref:* `docs/plans/updatedPlans/services/02-ServiceImplementations.md`
 
 ### 2. Enhance Pagination Helpers
-- [ ] **Task:** Implement `IAsyncEnumerable<T>` helper methods for cursor-based pagination in `CommentService.cs` (e.g., for `GetTaskCommentsAsync`, `GetChatViewCommentsAsync`, `GetListCommentsAsync`). This involves creating new methods that internally loop, manage `start`/`start_id` cursors, and `yield return` items.
+- [x] **Task:** Implement `IAsyncEnumerable<T>` helper methods for cursor-based pagination in `CommentService.cs` (e.g., for `GetTaskCommentsAsync`, `GetChatViewCommentsAsync`, `GetListCommentsAsync`). This involves creating new methods that internally loop, manage `start`/`start_id` cursors, and `yield return` items.
     - *File:* `src/ClickUp.Api.Client/Services/CommentService.cs`
     - *Why:* Simplifies consumption of fully paginated comment streams for SDK users.
     - *Ref:* `docs/plans/updatedPlans/helpers/06-PaginationHelpers.md`
