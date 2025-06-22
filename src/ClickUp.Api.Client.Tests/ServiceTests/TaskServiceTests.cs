@@ -453,5 +453,87 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // --- End of tests for GetFilteredTeamTasksAsyncEnumerableAsync ---
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for GetTaskAsync ---
+        [Fact]
+        public async Task GetTaskAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var taskId = "error-task-cancel";
+            var cts = new CancellationTokenSource();
+            cts.Cancel(); // Simulate timeout
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated API timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _taskService.GetTaskAsync(taskId, null, null, null, null, cts.Token)
+            );
+        }
+
+        [Fact]
+        public async Task GetTaskAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var taskId = "test-task-ct";
+            var expectedTask = CreateSampleTask(taskId);
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<CuTask>(It.Is<string>(s => s.StartsWith($"task/{taskId}")), expectedToken))
+                .ReturnsAsync(expectedTask);
+
+            // Act
+            await _taskService.GetTaskAsync(taskId, null, null, null, null, expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(x => x.GetAsync<CuTask>(
+                $"task/{taskId}",
+                expectedToken), Times.Once);
+        }
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for GetFilteredTeamTasksAsync ---
+        [Fact]
+        public async Task GetFilteredTeamTasksAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            // Arrange
+            var workspaceId = "ws-cancel-ex";
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("Simulated API timeout"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _taskService.GetFilteredTeamTasksAsync(workspaceId, cancellationToken: cts.Token)
+            );
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsync_PassesCancellationTokenToApiConnection()
+        {
+            // Arrange
+            var workspaceId = "ws-ct-pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetTasksResponse(new List<CuTask> { CreateSampleTask() }, false);
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<GetTasksResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            // Act
+            await _taskService.GetFilteredTeamTasksAsync(workspaceId, cancellationToken: expectedToken);
+
+            // Assert
+            _mockApiConnection.Verify(x => x.GetAsync<GetTasksResponse>(
+                $"team/{workspaceId}/task", // Base endpoint without other params
+                expectedToken), Times.Once);
+        }
     }
 }

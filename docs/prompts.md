@@ -50,6 +50,16 @@ You came up with a plan in docs/plans/01-core-models-conceptual.md you suggest w
 Save and append prompts you get from me with the date and time in /docs/prompts.md. Please keep track of anything you need to know about hits repository or what we are doing with it in jules.md
 </issue>
 
+## 2024-07-12T00:00:00Z
+
+<issue>
+This is a .net 9 core project. You have a file called agents.md in the root folder that has knowledge you found matters. Pease follow the rules and information in it. It contains plenty of information on this repository. Let me know if I should give you more based on tasks at hand.
+
+In the plans created in /docs/plans/updatedPlans/ConsolidatedPlans.md please do the next two logical steps.
+
+Please use the check boxes to the plans to mark what has been completed
+</issue>
+
 ## 2024-07-10T10:00:00Z
 
 <issue>
