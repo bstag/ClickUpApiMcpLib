@@ -221,9 +221,9 @@ namespace ClickUp.Api.Client.Services
             return UpdateCommentAsync(commentId, updateCommentRequest, cancellationToken);
         }
 
-        Task ICommentsService.CreateThreadedCommentAsync(string commentId, CreateCommentRequest createCommentRequest, CancellationToken cancellationToken)
+        async Task<CreateCommentResponse> ICommentsService.CreateThreadedCommentAsync(string commentId, CreateCommentRequest createCommentRequest, CancellationToken cancellationToken)
         {
-            return CreateThreadedCommentAsync(commentId, createCommentRequest, cancellationToken);
+            return await CreateThreadedCommentAsync(commentId, createCommentRequest, cancellationToken);
         }
     }
 }

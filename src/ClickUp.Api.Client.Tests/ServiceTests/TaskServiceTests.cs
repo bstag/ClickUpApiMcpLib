@@ -39,8 +39,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 MarkdownDescription: "Sample markdown description",
                 Status: new Models.Common.Status("open", "Open", 0, "open"), // Corrected namespace
                 OrderIndex: "1.0",
-                DateCreated: "1678886400000", // Example timestamp
-                DateUpdated: "1678886400000",
+                DateCreated: DateTimeOffset.FromUnixTimeMilliseconds(1678886400000L), // Example timestamp
+                DateUpdated: DateTimeOffset.FromUnixTimeMilliseconds(1678886400000L),
                 DateClosed: null,
                 Archived: false,
                 Creator: new User(1, "Test User", "test@example.com", "#FFFFFF", "http://example.com/pic.jpg", "TU", null), // Corrected constructor

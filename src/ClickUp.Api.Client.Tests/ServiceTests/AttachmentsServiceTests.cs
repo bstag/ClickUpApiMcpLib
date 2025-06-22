@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
-using ClickUp.Api.Client.Models.Responses.Attachments; // Changed to use Response DTO
+using ClickUp.Api.Client.Models.ResponseModels.Attachments; // Changed to use Response DTO
 using ClickUp.Api.Client.Models.Entities.Users; // For User model within response
 using ClickUp.Api.Client.Services;
 using Moq;
@@ -39,7 +39,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var expectedResponse = new CreateTaskAttachmentResponse(
                 Id: "generated-id",
                 Version: "1",
-                Date: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Date: DateTimeOffset.UtcNow,
                 Title: fileName,
                 Extension: "txt",
                 ThumbnailSmall: "http://example.com/thumb_small.txt",
@@ -100,7 +100,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             var mockUser = new User(Id: 124, Username: "Test User 2", Email: "test2@example.com", Color: "#000000", ProfilePicture: null, Initials: "TU2", ProfileInfo: null);
             var expectedResponse = new CreateTaskAttachmentResponse(
-                Id: "id", Version: "v", Date: 123, Title: fileName, Extension: "ext", ThumbnailSmall: "ts",
+                Id: "id", Version: "v", Date: DateTimeOffset.FromUnixTimeMilliseconds(123), Title: fileName, Extension: "ext", ThumbnailSmall: "ts",
                 ThumbnailLarge: "tl", Url: "url", UrlWQuery: "url?q=2", UrlWHost: "host2/url",
                 IsFolder: false, ParentId: "parent2", Size: 2048, TotalComments: 1, ResolvedComments: 0,
                 User: mockUser, Deleted: false, Orientation: null, Type: 2, Source: 2,

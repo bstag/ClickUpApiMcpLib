@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Responses.Attachments;
+using ClickUp.Api.Client.Models.ResponseModels.Attachments;
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
