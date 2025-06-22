@@ -27,11 +27,11 @@ This document outlines the testing strategy for the ClickUp API SDK, covering un
 
 - [ ] **1. Model (DTO) Serialization/Deserialization:**
     - [ ] For each DTO in `ClickUp.Api.Client.Models`:
-        - [ ] Verify correct serialization to JSON.
-        - [ ] Verify correct deserialization from sample JSON.
-        - [ ] Test edge cases.
+        - [x] Verify correct serialization to JSON. (Started with `MemberTests.cs`)
+        - [x] Verify correct deserialization from sample JSON. (Started with `MemberTests.cs`)
+        - [x] Test edge cases. (Null/missing properties covered in `MemberTests.cs`)
         - [ ] Test polymorphic DTOs.
-    *(Status: No specific model serialization tests found in `src/ClickUp.Api.Client.Tests/ServiceTests/` or a dedicated `Models/` test folder yet. This is a key area for expansion.)*
+    *(Status: `Models/Common/MemberTests.cs` added. This is a key area for ongoing expansion.)*
 
 - [x] **2. Service Implementations (`src/ClickUp.Api.Client/Services/`):**
     - [x] Some service tests exist (e.g., `AttachmentsServiceTests.cs`, `TaskServiceTests.cs`).
@@ -98,13 +98,13 @@ This document outlines the testing strategy for the ClickUp API SDK, covering un
 ## 4. Test Project Structure (`src/ClickUp.Api.Client.Tests/`)
 
 - [x] Project `src/ClickUp.Api.Client.Tests/` exists.
-- [ ] `Models/` folder for DTO tests - **Missing.**
+- [x] `Models/` folder for DTO tests - **Added.** (Contains `Common/MemberTests.cs`)
 - [x] `Services/` folder for service unit tests - Exists (`AttachmentsServiceTests.cs`, `TaskServiceTests.cs`).
-- [ ] `Http/` folder for `AuthenticationDelegatingHandler` tests etc. - **Missing.**
-- [ ] `Helpers/` folder for utility tests - **Missing.**
+- [x] `Http/` folder for `AuthenticationDelegatingHandler` tests etc. - **Added.** (Currently empty)
+- [x] `Helpers/` folder for utility tests - **Added.** (Currently empty)
 - [x] `Integration/` folder for integration tests - Exists (`IntegrationTestBase.cs`).
 - [ ] `TestInfrastructure/` for mocks, test data builders - **Partially exists with `IntegrationTestBase.cs`, could be expanded.**
-- [x] `ClickUp.Api.Client.Tests.csproj` - Exists.
+- [x] `ClickUp.Api.Client.Tests.csproj` - Exists. (Verified includes xUnit, Moq)
 - [ ] `appsettings.IntegrationTests.json` (gitignored) - Strategy to be confirmed, user secrets often preferred for API keys.
 
 ## 5. CI/CD Integration
