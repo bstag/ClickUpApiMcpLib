@@ -1,34 +1,35 @@
 ﻿using System;
-using System.IO; // Required for Stream
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities; // May not be needed if Attachment is not directly used
-using ClickUp.Api.Client.Models.Responses.Attachments; // Changed to use the new response DTO
+using ClickUp.Api.Client.Models.Responses.Attachments;
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Represents the Attachments operations in the ClickUp API.
+    /// Service interface for operations related to task attachments.
     /// </summary>
     /// <remarks>
-    /// Based on endpoints like:
-    /// - POST /v2/task/{task_id}/attachment
-    /// (Full API spec might include GET, DELETE operations for attachments as well)
+    /// This service allows for managing attachments linked to tasks within ClickUp.
+    /// Endpoints covered:
+    /// - `POST /task/{task_id}/attachment`: Uploads an attachment to a task.
+    /// Additional operations like listing or deleting attachments might be added in future versions if supported by the API.
     /// </remarks>
     public interface IAttachmentsService
     {
         /// <summary>
-        /// Uploads a file to a task as an attachment.
+        /// Uploads a file to a specified task as an attachment.
         /// </summary>
-        /// <param name="taskId">The ID of the task to attach the file to.</param>
-        /// <param name="fileStream">The stream containing the file content.</param>
-        /// <param name="fileName">The name of the file.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains details of the created attachment response <see cref="CreateTaskAttachmentResponse"/>.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/>, <paramref name="fileStream"/>, or <paramref name="fileName"/> is null or empty/whitespace.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails. Common derived types include <see cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException"/>, <see cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiRateLimitException"/>, or <see cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiRequestException"/>.</exception>
+        /// <param name="taskId">The unique identifier of the task to which the file will be attached.</param>
+        /// <param name="fileStream">The stream containing the content of the file to be uploaded.</param>
+        /// <param name="fileName">The desired name for the file once uploaded.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="CreateTaskAttachmentResponse"/> object with details of the uploaded attachment.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="taskId"/>, <paramref name="fileStream"/>, or <paramref name="fileName"/> is null or empty/whitespace.</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown if the API call fails. Common derived types include <see cref="Models.Exceptions.ClickUpApiNotFoundException"/> (if the task is not found), <see cref="Models.Exceptions.ClickUpApiRateLimitException"/> (if rate limits are exceeded), or <see cref="Models.Exceptions.ClickUpApiRequestException"/> (for other client-side request issues).</exception>
         Task<CreateTaskAttachmentResponse> CreateTaskAttachmentAsync(
             string taskId,
             Stream fileStream,
@@ -37,23 +38,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
             string? teamId = null,
             CancellationToken cancellationToken = default);
 
-        // Placeholder for GetTaskAttachmentsAsync if the API supports it
-        // /// <summary>
-        // /// Gets all attachments for a specific task.
-        // /// </summary>
-        // /// <param name="taskId">The ID of the task.</param>
-        // /// <param name="cancellationToken">Cancellation token.</param>
-        // /// <returns>A list of attachments for the task.</returns>
-        // CuTask<IEnumerable<Attachment>> GetTaskAttachmentsAsync(string taskId, CancellationToken cancellationToken = default);
-
-        // Placeholder for DeleteTaskAttachmentAsync if the API supports it
-        // /// <summary>
-        // /// Deletes an attachment from a task.
-        // /// </summary>
-        // /// <param name="taskId">The ID of the task.</param>
-        // /// <param name="attachmentId">The ID of the attachment to delete.</param>
-        // /// <param name="cancellationToken">Cancellation token.</param>
-        // /// <returns>An awaitable task representing the asynchronous operation.</returns>
-        // System.Threading.Tasks.CuTask DeleteTaskAttachmentAsync(string taskId, string attachmentId, CancellationToken cancellationToken = default);
+        // Future considerations (if API supports):
+        // GetTaskAttachmentsAsync(string taskId, CancellationToken cancellationToken = default);
+        // DeleteTaskAttachmentAsync(string taskId, string attachmentId, CancellationToken cancellationToken = default);
     }
 }

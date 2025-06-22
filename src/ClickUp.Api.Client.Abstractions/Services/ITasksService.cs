@@ -1,59 +1,64 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.Entities.Tasks; // Assuming CuTask DTO is here
-using ClickUp.Api.Client.Models.RequestModels.Tasks; // Assuming Request DTOs are here
-using ClickUp.Api.Client.Models.ResponseModels.Tasks; // Assuming Response DTOs are here
+using ClickUp.Api.Client.Models.Entities.Tasks;
+using ClickUp.Api.Client.Models.RequestModels.Tasks;
+using ClickUp.Api.Client.Models.ResponseModels.Tasks;
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Represents the Tasks operations in the ClickUp API.
+    /// Service interface for ClickUp Task operations.
     /// </summary>
     /// <remarks>
-    /// Based on endpoints like:
-    /// - GET /v2/list/{list_id}/task
-    /// - POST /v2/list/{list_id}/task
-    /// - GET /v2/task/{task_id}
-    /// - PUT /v2/task/{task_id}
-    /// - DELETE /v2/task/{task_id}
-    /// - GET /v2/team/{team_Id}/task
-    /// - POST /v2/task/{task_id}/merge
-    /// - GET /v2/task/{task_id}/time_in_status
-    /// - GET /v2/task/bulk_time_in_status/task_ids
-    /// - POST /v2/list/{list_id}/taskTemplate/{template_id}
+    /// This service provides comprehensive methods for managing Tasks, including CRUD operations,
+    /// filtering, merging, retrieving time in status, and creating Tasks from templates.
+    /// It also supports pagination for retrieving lists of Tasks.
+    /// Covered API Endpoints (non-exhaustive list):
+    /// - List Tasks: `GET /list/{list_id}/task`
+    /// - Create Task: `POST /list/{list_id}/task`
+    /// - Get Task: `GET /task/{task_id}`
+    /// - Update Task: `PUT /task/{task_id}`
+    /// - Delete Task: `DELETE /task/{task_id}`
+    /// - Get Filtered Workspace Tasks: `GET /team/{team_id}/task`
+    /// - Merge Tasks: `POST /task/{task_id}/merge` (Note: API endpoint might be different, this is based on typical patterns)
+    /// - Task Time in Status: `GET /task/{task_id}/time_in_status`
+    /// - Bulk Task Time in Status: `GET /task/bulk_time_in_status/task_ids`
+    /// - Create Task from Template: `POST /list/{list_id}/taskTemplate/{template_id}`
     /// </remarks>
     public interface ITasksService
     {
         /// <summary>
-        /// Retrieves tasks in a specific List.
+        /// Retrieves a paginated list of Tasks within a specific List, with various filtering and sorting options.
         /// </summary>
-        /// <param name="listId">The ID of the List.</param>
-        /// <param name="archived">Optional. Whether to include archived tasks.</param>
-        /// <param name="includeMarkdownDescription">Optional. Whether to return task descriptions in Markdown format.</param>
-        /// <param name="page">Optional. Page to fetch (starts at 0).</param>
-        /// <param name="orderBy">Optional. Field to order by (e.g., "created", "updated", "due_date").</param>
-        /// <param name="reverse">Optional. Whether to reverse the order.</param>
-        /// <param name="subtasks">Optional. Whether to include subtasks.</param>
-        /// <param name="statuses">Optional. Filter by statuses.</param>
-        /// <param name="includeClosed">Optional. Whether to include closed tasks.</param>
-        /// <param name="assignees">Optional. Filter by assignees (user IDs).</param>
-        /// <param name="watchers">Optional. Filter by watchers (user IDs).</param>
-        /// <param name="tags">Optional. Filter by tags.</param>
-        /// <param name="dueDateGreaterThan">Optional. Filter by due date greater than (Unix time ms).</param>
-        /// <param name="dueDateLessThan">Optional. Filter by due date less than (Unix time ms).</param>
-        /// <param name="dateCreatedGreaterThan">Optional. Filter by date created greater than (Unix time ms).</param>
-        /// <param name="dateCreatedLessThan">Optional. Filter by date created less than (Unix time ms).</param>
-        /// <param name="dateUpdatedGreaterThan">Optional. Filter by date updated greater than (Unix time ms).</param>
-        /// <param name="dateUpdatedLessThan">Optional. Filter by date updated less than (Unix time ms).</param>
-        /// <param name="dateDoneGreaterThan">Optional. Filter by date done greater than (Unix time ms).</param>
-        /// <param name="dateDoneLessThan">Optional. Filter by date done less than (Unix time ms).</param>
-        /// <param name="customFields">Optional. Filter by custom fields (JSON string representation of an array of objects).</param>
-        /// <param name="customItems">Optional. Filter by custom task types (integer IDs).</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A <see cref="GetTasksResponse"/> object containing a list of tasks and pagination details.</returns>
+        /// <param name="listId">The unique identifier of the List from which to retrieve Tasks.</param>
+        /// <param name="archived">Optional. If set to <c>true</c>, includes archived Tasks in the results. Defaults to <c>false</c>.</param>
+        /// <param name="includeMarkdownDescription">Optional. If set to <c>true</c>, returns Task descriptions in Markdown format. Defaults to <c>false</c>.</param>
+        /// <param name="page">Optional. The page number to fetch for pagination (0-indexed).</param>
+        /// <param name="orderBy">Optional. The field by which to order the Tasks (e.g., "created", "updated", "due_date").</param>
+        /// <param name="reverse">Optional. If set to <c>true</c>, reverses the sort order. Defaults to <c>false</c>.</param>
+        /// <param name="subtasks">Optional. If set to <c>true</c>, includes subtasks in the results. Defaults to <c>false</c>.</param>
+        /// <param name="statuses">Optional. An enumerable of status names or IDs to filter Tasks by.</param>
+        /// <param name="includeClosed">Optional. If set to <c>true</c>, includes closed Tasks in the results. Defaults to <c>false</c>.</param>
+        /// <param name="assignees">Optional. An enumerable of user IDs to filter Tasks by assignees.</param>
+        /// <param name="watchers">Optional. An enumerable of user IDs to filter Tasks by watchers.</param>
+        /// <param name="tags">Optional. An enumerable of tag names to filter Tasks by.</param>
+        /// <param name="dueDateGreaterThan">Optional. Filters for Tasks with a due date after this Unix timestamp (in milliseconds).</param>
+        /// <param name="dueDateLessThan">Optional. Filters for Tasks with a due date before this Unix timestamp (in milliseconds).</param>
+        /// <param name="dateCreatedGreaterThan">Optional. Filters for Tasks created after this Unix timestamp (in milliseconds).</param>
+        /// <param name="dateCreatedLessThan">Optional. Filters for Tasks created before this Unix timestamp (in milliseconds).</param>
+        /// <param name="dateUpdatedGreaterThan">Optional. Filters for Tasks updated after this Unix timestamp (in milliseconds).</param>
+        /// <param name="dateUpdatedLessThan">Optional. Filters for Tasks updated before this Unix timestamp (in milliseconds).</param>
+        /// <param name="dateDoneGreaterThan">Optional. Filters for Tasks completed after this Unix timestamp (in milliseconds).</param>
+        /// <param name="dateDoneLessThan">Optional. Filters for Tasks completed before this Unix timestamp (in milliseconds).</param>
+        /// <param name="customFields">Optional. A JSON string representing an array of custom field filters.</param>
+        /// <param name="customItems">Optional. An enumerable of custom item type IDs to filter Tasks by.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetTasksResponse"/> object with the list of Tasks and pagination details.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null or empty.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this List.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<GetTasksResponse> GetTasksAsync(
             string listId,
             bool? archived = null,
@@ -76,18 +81,23 @@ namespace ClickUp.Api.Client.Abstractions.Services
             long? dateDoneGreaterThan = null,
             long? dateDoneLessThan = null,
             string? customFields = null,
-            IEnumerable<long>? customItems = null, // Changed from IEnumerable<double> to IEnumerable<long> as custom item IDs are usually integers
+            IEnumerable<long>? customItems = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Creates a new task in a List.
+        /// Creates a new Task within a specified List.
         /// </summary>
-        /// <param name="listId">The ID of the List.</param>
-        /// <param name="createTaskRequest">Details of the task to create.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by its custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="CuTask"/> object.</returns>
+        /// <param name="listId">The unique identifier of the List where the new Task will be created.</param>
+        /// <param name="createTaskRequest">An object containing the details for the new Task, such as its name, description, assignees, and status.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the Task ID in the response and for related operations might be treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This may be required if <paramref name="customTaskIds"/> is <c>true</c> in certain contexts.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the created <see cref="CuTask"/> object.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> or <paramref name="createTaskRequest"/> is null.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided when required by the API for this combination.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create Tasks in this List.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<CuTask> CreateTaskAsync(
             string listId,
             CreateTaskRequest createTaskRequest,
@@ -96,15 +106,20 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves details of a specific task.
+        /// Retrieves the details of a specific Task by its ID.
         /// </summary>
-        /// <param name="taskId">The ID of the task.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="includeSubtasks">Optional. Whether to include subtasks.</param>
-        /// <param name="includeMarkdownDescription">Optional. Whether to return task description in Markdown format.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>Details of the <see cref="CuTask"/>.</returns>
+        /// <param name="taskId">The unique identifier of the Task to retrieve.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="includeSubtasks">Optional. If set to <c>true</c>, includes subtasks in the response. Defaults to <c>false</c>.</param>
+        /// <param name="includeMarkdownDescription">Optional. If set to <c>true</c>, returns the Task description in Markdown format. Defaults to <c>false</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the details of the requested <see cref="CuTask"/>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Task with the specified ID does not exist or is not accessible.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this Task.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<CuTask> GetTaskAsync(
             string taskId,
             bool? customTaskIds = null,
@@ -114,14 +129,19 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates a task.
+        /// Updates the properties of an existing Task.
         /// </summary>
-        /// <param name="taskId">The ID of the task.</param>
-        /// <param name="updateTaskRequest">Details for updating the task.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The updated <see cref="CuTask"/>.</returns>
+        /// <param name="taskId">The unique identifier of the Task to update.</param>
+        /// <param name="updateTaskRequest">An object containing the properties to update for the Task.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="CuTask"/> object.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="updateTaskRequest"/> is null.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Task with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to update this Task.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<CuTask> UpdateTaskAsync(
             string taskId,
             UpdateTaskRequest updateTaskRequest,
@@ -130,13 +150,18 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Deletes a task.
+        /// Deletes a specified Task.
         /// </summary>
-        /// <param name="taskId">The ID of the task to delete.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <param name="taskId">The unique identifier of the Task to delete.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Task with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this Task.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         System.Threading.Tasks.Task DeleteTaskAsync(
             string taskId,
             bool? customTaskIds = null,
@@ -144,32 +169,35 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves tasks from a Workspace (Team) based on specified filters.
+        /// Retrieves Tasks from a Workspace (Team) based on a comprehensive set of filters.
         /// </summary>
-        /// <param name="workspaceId">The ID of the Workspace (Team).</param>
-        /// <param name="page">Optional. Page to fetch (starts at 0).</param>
-        /// <param name="orderBy">Optional. Field to order by.</param>
-        /// <param name="reverse">Optional. Whether to reverse the order.</param>
-        /// <param name="subtasks">Optional. Whether to include subtasks.</param>
-        /// <param name="spaceIds">Optional. Filter by Space IDs.</param>
-        /// <param name="projectIds">Optional. Filter by Project IDs (Lists).</param>
-        /// <param name="listIds">Optional. Filter by List IDs.</param>
-        /// <param name="statuses">Optional. Filter by statuses.</param>
-        /// <param name="includeClosed">Optional. Whether to include closed tasks.</param>
-        /// <param name="assignees">Optional. Filter by assignees (user IDs).</param>
-        /// <param name="tags">Optional. Filter by tags.</param>
-        /// <param name="dueDateGreaterThan">Optional. Filter by due date greater than (Unix time ms).</param>
-        /// <param name="dueDateLessThan">Optional. Filter by due date less than (Unix time ms).</param>
-        /// <param name="dateCreatedGreaterThan">Optional. Filter by date created greater than (Unix time ms).</param>
-        /// <param name="dateCreatedLessThan">Optional. Filter by date created less than (Unix time ms).</param>
-        /// <param name="dateUpdatedGreaterThan">Optional. Filter by date updated greater than (Unix time ms).</param>
-        /// <param name="dateUpdatedLessThan">Optional. Filter by date updated less than (Unix time ms).</param>
-        /// <param name="customFields">Optional. Filter by custom fields (JSON string).</param>
-        /// <param name="customTaskIds">Optional. Export tasks with Custom CuTask IDs.</param>
-        /// <param name="teamIdForCustomTaskIds">Optional. Team ID, required if custom_task_ids is true.</param>
-        /// <param name="customItems">Optional. Filter by custom task types (long integer IDs).</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A <see cref="GetTasksResponse"/> object containing a list of tasks and pagination details.</returns>
+        /// <param name="workspaceId">The unique identifier of the Workspace (Team).</param>
+        /// <param name="page">Optional. The page number to fetch for pagination (0-indexed).</param>
+        /// <param name="orderBy">Optional. Field to order Tasks by.</param>
+        /// <param name="reverse">Optional. If true, reverses the sort order.</param>
+        /// <param name="subtasks">Optional. If true, includes subtasks in the results.</param>
+        /// <param name="spaceIds">Optional. An enumerable of Space IDs to filter by.</param>
+        /// <param name="projectIds">Optional. An enumerable of Project IDs (Folders) to filter by.</param>
+        /// <param name="listIds">Optional. An enumerable of List IDs to filter by.</param>
+        /// <param name="statuses">Optional. An enumerable of status names or IDs to filter by.</param>
+        /// <param name="includeClosed">Optional. If true, includes closed Tasks.</param>
+        /// <param name="assignees">Optional. An enumerable of user IDs to filter by assignees.</param>
+        /// <param name="tags">Optional. An enumerable of tag names to filter by.</param>
+        /// <param name="dueDateGreaterThan">Optional. Filters for Tasks with a due date after this Unix timestamp (ms).</param>
+        /// <param name="dueDateLessThan">Optional. Filters for Tasks with a due date before this Unix timestamp (ms).</param>
+        /// <param name="dateCreatedGreaterThan">Optional. Filters for Tasks created after this Unix timestamp (ms).</param>
+        /// <param name="dateCreatedLessThan">Optional. Filters for Tasks created before this Unix timestamp (ms).</param>
+        /// <param name="dateUpdatedGreaterThan">Optional. Filters for Tasks updated after this Unix timestamp (ms).</param>
+        /// <param name="dateUpdatedLessThan">Optional. Filters for Tasks updated before this Unix timestamp (ms).</param>
+        /// <param name="customFields">Optional. A JSON string representing an array of custom field filters.</param>
+        /// <param name="customTaskIds">Optional. If true, indicates that task IDs used in other filters (like projectIds, listIds if they can contain task IDs) are custom task IDs. Also affects how task IDs are exported/returned if applicable.</param>
+        /// <param name="teamIdForCustomTaskIds">Optional. The Workspace ID (team_id), required if <paramref name="customTaskIds"/> is true and custom task IDs are used in filters.</param>
+        /// <param name="customItems">Optional. An enumerable of custom item type IDs (long integers) to filter Tasks by.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetTasksResponse"/> object with the list of matching Tasks and pagination details.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this Workspace.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<GetTasksResponse> GetFilteredTeamTasksAsync(
             string workspaceId,
             int? page = null,
@@ -190,20 +218,25 @@ namespace ClickUp.Api.Client.Abstractions.Services
             long? dateUpdatedGreaterThan = null,
             long? dateUpdatedLessThan = null,
             string? customFields = null,
-            bool? customTaskIds = null, // This is for the query param "custom_task_ids" not the path param modifier
-            string? teamIdForCustomTaskIds = null, // This is for the query param "team_id" related to "custom_task_ids"
+            bool? customTaskIds = null,
+            string? teamIdForCustomTaskIds = null,
             IEnumerable<long>? customItems = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Merges tasks into a target task.
+        /// Merges a list of source Tasks into a single target Task. The source tasks will typically be deleted or closed after merging.
         /// </summary>
-        /// <param name="targetTaskId">ID of the target task that other tasks will be merged into.</param>
-        /// <param name="mergeTasksRequest">Contains the list of source task IDs to merge.</param>
-        /// <param name="customTaskIds">Optional. If true, references tasks by custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID, required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The updated target <see cref="CuTask"/>.</returns>
+        /// <param name="targetTaskId">The unique identifier of the target Task into which other Tasks will be merged.</param>
+        /// <param name="mergeTasksRequest">An object containing a list of source Task IDs to be merged into the target Task.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, all task IDs (target and source) are treated as custom task IDs. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the updated target <see cref="CuTask"/>, reflecting the merge.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="targetTaskId"/> or <paramref name="mergeTasksRequest"/> is null, or if the list of source task IDs in the request is null or empty.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the target Task or any of the source Tasks do not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to merge these Tasks.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<CuTask> MergeTasksAsync(
             string targetTaskId,
             MergeTasksRequest mergeTasksRequest,
@@ -213,13 +246,18 @@ namespace ClickUp.Api.Client.Abstractions.Services
 
 
         /// <summary>
-        /// Retrieves the time a task has spent in each status.
+        /// Retrieves the amount of time a specific Task has spent in each status.
         /// </summary>
-        /// <param name="taskId">The ID of the task.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by its custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns><see cref="TaskTimeInStatusResponse"/> object for the task.</returns>
+        /// <param name="taskId">The unique identifier of the Task.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="TaskTimeInStatusResponse"/> object with the time-in-status data for the Task.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Task with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information for the Task.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<TaskTimeInStatusResponse> GetTaskTimeInStatusAsync(
             string taskId,
             bool? customTaskIds = null,
@@ -227,68 +265,80 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves the time in status for multiple tasks.
+        /// Retrieves the time spent in each status for a bulk list of Tasks.
         /// </summary>
-        /// <param name="taskIds">A comma-separated list of task IDs. Max 100.</param>
-        /// <param name="customTaskIds">Optional. If true, references tasks by their custom task ids.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns><see cref="GetBulkTasksTimeInStatusResponse"/> object containing time in status for multiple tasks.</returns>
+        /// <param name="taskIds">An enumerable collection of Task IDs for which to retrieve time-in-status data. The API expects a comma-separated string of up to 100 task IDs.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the task IDs in <paramref name="taskIds"/> are treated as custom task IDs. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetBulkTasksTimeInStatusResponse"/> object with time-in-status data for the requested Tasks.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskIds"/> is null or empty.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided, or if the number of task IDs exceeds the API limit (e.g., 100).</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<GetBulkTasksTimeInStatusResponse> GetBulkTasksTimeInStatusAsync(
-            IEnumerable<string> taskIds, // API expects comma-separated string, but IEnumerable is more C#-friendly for input
+            IEnumerable<string> taskIds,
             bool? customTaskIds = null,
             string? teamId = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Creates a new task from a task template.
+        /// Creates a new Task from a specified Task Template within a List.
         /// </summary>
-        /// <param name="listId">The ID of the List where the task will be created.</param>
-        /// <param name="templateId">The ID of the task template.</param>
-        /// <param name="createTaskFromTemplateRequest">Details for creating the task from a template (e.g., new task name).</param>
-        /// <param name="customTaskIds">Optional. If true, references task by its custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="CuTask"/>.</returns>
+        /// <param name="listId">The unique identifier of the List where the new Task will be created.</param>
+        /// <param name="templateId">The unique identifier of the Task Template to use.</param>
+        /// <param name="createTaskFromTemplateRequest">An object containing details for creating the Task from the template, such as the new Task's name.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, affects how the new task's ID might be handled or if the template ID itself is custom. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This may be required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the created <see cref="CuTask"/> object.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/>, <paramref name="templateId"/>, or <paramref name="createTaskFromTemplateRequest"/> is null.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided when required.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List or Task Template with the specified IDs does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create Tasks in this List or use the specified template.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<CuTask> CreateTaskFromTemplateAsync(
             string listId,
             string templateId,
             CreateTaskFromTemplateRequest createTaskFromTemplateRequest,
             bool? customTaskIds = null,
-            string? teamId = null, // team_id is mentioned for custom_task_ids in other places, assuming it applies here too
+            string? teamId = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves all tasks in a specific List, automatically handling pagination.
+        /// Retrieves all Tasks within a specific List, automatically handling pagination using <see cref="IAsyncEnumerable{T}"/>.
         /// </summary>
-        /// <param name="listId">The ID of the List.</param>
-        /// <param name="archived">Optional. Whether to include archived tasks.</param>
-        /// <param name="includeMarkdownDescription">Optional. Whether to return task descriptions in Markdown format.</param>
-        /// <param name="orderBy">Optional. Field to order by (e.g., "created", "updated", "due_date").</param>
-        /// <param name="reverse">Optional. Whether to reverse the order.</param>
-        /// <param name="subtasks">Optional. Whether to include subtasks.</param>
-        /// <param name="statuses">Optional. Filter by statuses.</param>
-        /// <param name="includeClosed">Optional. Whether to include closed tasks.</param>
-        /// <param name="assignees">Optional. Filter by assignees (user IDs).</param>
-        /// <param name="watchers">Optional. Filter by watchers (user IDs).</param>
-        /// <param name="tags">Optional. Filter by tags.</param>
-        /// <param name="dueDateGreaterThan">Optional. Filter by due date greater than (Unix time ms).</param>
-        /// <param name="dueDateLessThan">Optional. Filter by due date less than (Unix time ms).</param>
-        /// <param name="dateCreatedGreaterThan">Optional. Filter by date created greater than (Unix time ms).</param>
-        /// <param name="dateCreatedLessThan">Optional. Filter by date created less than (Unix time ms).</param>
-        /// <param name="dateUpdatedGreaterThan">Optional. Filter by date updated greater than (Unix time ms).</param>
-        /// <param name="dateUpdatedLessThan">Optional. Filter by date updated less than (Unix time ms).</param>
-        /// <param name="dateDoneGreaterThan">Optional. Filter by date done greater than (Unix time ms).</param>
-        /// <param name="dateDoneLessThan">Optional. Filter by date done less than (Unix time ms).</param>
-        /// <param name="customFields">Optional. Filter by custom fields (JSON string representation of an array of objects).</param>
-        /// <param name="customItems">Optional. Filter by custom task types (integer IDs).</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An asynchronous stream of <see cref="CuTask"/> objects.</returns>
+        /// <param name="listId">The unique identifier of the List.</param>
+        /// <param name="archived">Optional. If set to <c>true</c>, includes archived Tasks. Defaults to <c>false</c>.</param>
+        /// <param name="includeMarkdownDescription">Optional. If set to <c>true</c>, returns Task descriptions in Markdown format. Defaults to <c>false</c>.</param>
+        /// <param name="orderBy">Optional. Field to order Tasks by.</param>
+        /// <param name="reverse">Optional. If true, reverses the sort order.</param>
+        /// <param name="subtasks">Optional. If true, includes subtasks.</param>
+        /// <param name="statuses">Optional. An enumerable of status names or IDs to filter by.</param>
+        /// <param name="includeClosed">Optional. If true, includes closed Tasks.</param>
+        /// <param name="assignees">Optional. An enumerable of user IDs to filter by assignees.</param>
+        /// <param name="watchers">Optional. An enumerable of user IDs to filter by watchers.</param>
+        /// <param name="tags">Optional. An enumerable of tag names to filter by.</param>
+        /// <param name="dueDateGreaterThan">Optional. Filters for Tasks with a due date after this Unix timestamp (ms).</param>
+        /// <param name="dueDateLessThan">Optional. Filters for Tasks with a due date before this Unix timestamp (ms).</param>
+        /// <param name="dateCreatedGreaterThan">Optional. Filters for Tasks created after this Unix timestamp (ms).</param>
+        /// <param name="dateCreatedLessThan">Optional. Filters for Tasks created before this Unix timestamp (ms).</param>
+        /// <param name="dateUpdatedGreaterThan">Optional. Filters for Tasks updated after this Unix timestamp (ms).</param>
+        /// <param name="dateUpdatedLessThan">Optional. Filters for Tasks updated before this Unix timestamp (ms).</param>
+        /// <param name="dateDoneGreaterThan">Optional. Filters for Tasks completed after this Unix timestamp (ms).</param>
+        /// <param name="dateDoneLessThan">Optional. Filters for Tasks completed before this Unix timestamp (ms).</param>
+        /// <param name="customFields">Optional. A JSON string representing an array of custom field filters.</param>
+        /// <param name="customItems">Optional. An enumerable of custom item type IDs to filter by.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation. This token will also be used by the <see cref="System.Runtime.CompilerServices.EnumeratorCancellationAttribute"/> for the async iterator.</param>
+        /// <returns>An asynchronous stream of <see cref="CuTask"/> objects from the specified List.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null or empty.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this List.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown if an API call fails during the pagination process.</exception>
         IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
             bool? archived = null,
             bool? includeMarkdownDescription = null,
-            // No 'page' parameter here
             string? orderBy = null,
             bool? reverse = null,
             bool? subtasks = null,
