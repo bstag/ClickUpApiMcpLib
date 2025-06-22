@@ -754,7 +754,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var mockUser = new User(0, "", "", "", null, "");
-            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = new Comment { Id = "1", User = mockUser } };
+            var expectedComment = new Comment
+            {
+                Id = "1",
+                User = mockUser,
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } },
+                CommentText = "Test",
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = "0",
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = expectedComment };
 
 
             _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
@@ -835,7 +846,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var mockUser = new User(0, "", "", "", null, "");
-            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = new Comment { Id = "1", User = mockUser } };
+            var expectedComment = new Comment
+            {
+                Id = "1",
+                User = mockUser,
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } },
+                CommentText = "Test",
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = "0",
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = expectedComment };
 
 
             _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
@@ -915,7 +937,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var mockUser = new User(0, "", "", "", null, "");
-            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = new Comment { Id = "1", User = mockUser } };
+            var expectedComment = new Comment
+            {
+                Id = "1",
+                User = mockUser,
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } },
+                CommentText = "Test",
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = "0",
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = expectedComment };
 
 
             _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
@@ -995,7 +1028,16 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var mockUser = new User(0, "", "", "", null, "");
-            var expectedResponse = new Comment { Id = commentId, User = mockUser };
+            var expectedResponse = new Comment {
+                Id = commentId,
+                User = mockUser,
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Updated" } },
+                CommentText = "Updated",
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = "0",
+                ReplyCount = "0"
+            };
 
 
             _mockApiConnection.Setup(api => api.PutAsync<UpdateCommentRequest, Comment>(
@@ -1112,7 +1154,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var mockUser = new User(0, "", "", "", null, "");
-            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = new Comment { Id = "1", User = mockUser } };
+            var expectedComment = new Comment
+            {
+                Id = "1",
+                User = mockUser,
+                CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } },
+                CommentText = "Test",
+                Resolved = false,
+                Reactions = new List<object>(),
+                Date = "0",
+                ReplyCount = "0"
+            };
+            var expectedResponse = new CreateCommentResponse { Id = "1", Comment = expectedComment };
 
             _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
                     It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), expectedToken))
