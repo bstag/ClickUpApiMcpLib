@@ -56,13 +56,14 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 
 ### 5. Expand Unit Test Coverage - Services
 - [ ] **Task:** For all service methods in `src/ClickUp.Api.Client/Services/`, ensure comprehensive unit tests covering:
-    - [ ] Verification of correct request construction (URL, query parameters, body serialization). *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService. TaskService reviewed.)*
-    - [ ] Simulation of API error cases (testing that appropriate `ClickUpApiException`s are thrown or propagated). *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService. TaskService reviewed.)*
+    - [x] Verification of correct request construction (URL, query parameters, body serialization). *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService, FoldersService, GoalsService, GuestsService. TaskService reviewed. TaskService ambiguity for GetFilteredTeamTasksAsync resolved.)*
+    - [x] Simulation of API error cases (testing that appropriate `ClickUpApiException`s are thrown or propagated). *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService, FoldersService, GoalsService, GuestsService. TaskService reviewed.)*
     - [x] Simulation of network errors and timeouts. *(Completed for AttachmentsService, CommentService, TaskService)*
     - [x] Verification of `CancellationToken` pass-through. *(Completed for AttachmentsService, CommentService, TaskService)*
     - *Files:* All files in `src/ClickUp.Api.Client.Tests/ServiceTests/`
     - *Why:* Ensures individual service method logic is correct and robust.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
+    - *Note:* A build error in `GuestsServiceTests.cs` (CS1739 due to incorrect parameter name for `InvitedByUserInfo` constructor) was fixed, unblocking further test development for this service and overall build stability. The `TaskService.GetFilteredTeamTasksAsync` overload ambiguity was also resolved by removing the older, non-interface version.
 
 ### 6. Develop Integration Tests
 - [x] **Task:** Define a strategy for Test Data Setup/Teardown for integration tests.
