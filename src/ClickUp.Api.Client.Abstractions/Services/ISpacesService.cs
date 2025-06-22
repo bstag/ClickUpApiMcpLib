@@ -1,98 +1,98 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.Entities.Spaces; // Assuming Space DTO is here
-using ClickUp.Api.Client.Models.RequestModels.Spaces; // Assuming Request DTOs are here
+using ClickUp.Api.Client.Models.Entities.Spaces;
+using ClickUp.Api.Client.Models.RequestModels.Spaces;
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Represents the Spaces operations in the ClickUp API.
+    /// Service interface for ClickUp Space operations.
     /// </summary>
     /// <remarks>
-    /// Based on endpoints like:
-    /// - GET /v2/team/{team_id}/space
-    /// - POST /v2/team/{team_id}/space
-    /// - GET /v2/space/{space_id}
-    /// - PUT /v2/space/{space_id}
-    /// - DELETE /v2/space/{space_id}
+    /// This service provides methods for managing Spaces within a Workspace (Team),
+    /// including creating, retrieving, updating, and deleting Spaces.
+    /// Covered API Endpoints:
+    /// - `GET /team/{team_id}/space`: Retrieves Spaces in a Workspace.
+    /// - `POST /team/{team_id}/space`: Creates a new Space in a Workspace.
+    /// - `GET /space/{space_id}`: Retrieves details of a specific Space.
+    /// - `PUT /space/{space_id}`: Updates an existing Space.
+    /// - `DELETE /space/{space_id}`: Deletes a Space.
     /// </remarks>
     public interface ISpacesService
     {
         /// <summary>
-        /// Retrieves Spaces available in a specific Workspace.
+        /// Retrieves all Spaces available within a specific Workspace (Team).
         /// </summary>
-        /// <param name="workspaceId">The ID of the Workspace (Team).</param>
-        /// <param name="archived">Optional. Whether to include archived Spaces.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="Space"/> objects in the Workspace.</returns>
+        /// <param name="workspaceId">The unique identifier of the Workspace (Team) from which to retrieve Spaces.</param>
+        /// <param name="archived">Optional. If set to <c>true</c>, includes archived Spaces in the results. Defaults to <c>false</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an enumerable collection of <see cref="Space"/> objects found in the Workspace.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the workspace with the specified ID is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access spaces in this workspace.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist or is not accessible.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Spaces in this Workspace.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
         Task<IEnumerable<Space>> GetSpacesAsync(
             string workspaceId,
             bool? archived = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Creates a new Space in a Workspace.
+        /// Creates a new Space within a specified Workspace (Team).
         /// </summary>
-        /// <param name="workspaceId">The ID of the Workspace (Team).</param>
-        /// <param name="createSpaceRequest">Details of the Space to create.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The created <see cref="Space"/>.</returns>
+        /// <param name="workspaceId">The unique identifier of the Workspace (Team) where the new Space will be created.</param>
+        /// <param name="createSpaceRequest">An object containing the details for the new Space, such as its name and enabled features.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the created <see cref="Space"/> object.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="createSpaceRequest"/> is null.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the workspace with the specified ID is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create spaces in this workspace.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create Spaces in this Workspace.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<Space> CreateSpaceAsync(
             string workspaceId,
             CreateSpaceRequest createSpaceRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves details of a specific Space.
+        /// Retrieves the details of a specific Space by its ID.
         /// </summary>
-        /// <param name="spaceId">The ID of the Space.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>Details of the <see cref="Space"/>.</returns>
+        /// <param name="spaceId">The unique identifier of the Space to retrieve.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the details of the requested <see cref="Space"/>.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this space.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist or is not accessible.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this Space.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<Space> GetSpaceAsync(
             string spaceId,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates a Space.
+        /// Updates the properties of an existing Space.
         /// </summary>
-        /// <param name="spaceId">The ID of the Space.</param>
-        /// <param name="updateSpaceRequest">Details for updating the Space.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The updated <see cref="Space"/>.</returns>
+        /// <param name="spaceId">The unique identifier of the Space to update.</param>
+        /// <param name="updateSpaceRequest">An object containing the properties to update for the Space.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="Space"/> object.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> or <paramref name="updateSpaceRequest"/> is null.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to update this space.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to update this Space.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<Space> UpdateSpaceAsync(
             string spaceId,
             UpdateSpaceRequest updateSpaceRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Deletes a Space.
+        /// Deletes a specified Space.
         /// </summary>
-        /// <param name="spaceId">The ID of the Space to delete.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <param name="spaceId">The unique identifier of the Space to delete.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this space.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this Space.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         System.Threading.Tasks.Task DeleteSpaceAsync(
             string spaceId,
             CancellationToken cancellationToken = default);

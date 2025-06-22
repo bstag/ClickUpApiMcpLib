@@ -1,29 +1,34 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.ResponseModels.Sharing; // Assuming SharedHierarchy DTO is in a general ResponseModels namespace or similar
+using ClickUp.Api.Client.Models.ResponseModels.Sharing;
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Represents the Shared Hierarchy operations in the ClickUp API.
+    /// Service interface for ClickUp Shared Hierarchy operations.
     /// </summary>
     /// <remarks>
-    /// Based on endpoints like:
-    /// - GET /v2/team/{team_id}/shared
+    /// This service provides methods to retrieve information about items (Tasks, Lists, Folders)
+    /// that have been shared with the authenticated user within a specific Workspace.
+    /// Covered API Endpoints:
+    /// - `GET /team/{team_id}/shared`: Retrieves the shared hierarchy for a Workspace.
     /// </remarks>
     public interface ISharedHierarchyService
     {
         /// <summary>
-        /// Retrieves the tasks, Lists, and Folders that have been shared with the authenticated user for a specific Workspace.
+        /// Retrieves a summary of Tasks, Lists, and Folders that have been shared with the currently authenticated user
+        /// within a specific Workspace (Team).
         /// </summary>
-        /// <param name="workspaceId">The ID of the Workspace (Team).</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A <see cref="SharedHierarchyResponse"/> object containing lists of shared tasks, lists, and folders.</returns>
+        /// <param name="workspaceId">The unique identifier of the Workspace (Team) for which to retrieve the shared hierarchy.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains a <see cref="SharedHierarchyResponse"/> object,
+        /// which includes lists of shared tasks, lists, and folders.
+        /// </returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the workspace with the specified ID is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access the shared hierarchy for this workspace.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist or is not accessible.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access the shared hierarchy for this Workspace.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
         Task<SharedHierarchyResponse> GetSharedHierarchyAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
