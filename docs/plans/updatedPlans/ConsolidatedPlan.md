@@ -9,7 +9,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *File:* `src/ClickUp.Api.Client/Services/TaskService.cs`
     - *Why:* Core functionality for fetching tasks at a workspace level. Currently throws `NotImplementedException`.
     - *Ref:* `docs/plans/updatedPlans/services/02-ServiceImplementations.md`
-- [ ] **Task:** Clarify ClickUp API mapping and then correctly implement the `MergeTasksAsync` overloads in `TaskService.cs` and `ITasksService.cs`.
+- [x] **Task:** Clarify ClickUp API mapping and then correctly implement the `MergeTasksAsync` overloads in `TaskService.cs` and `ITasksService.cs`.
     - *Files:* `src/ClickUp.Api.Client/Services/TaskService.cs`, `src/ClickUp.Api.Client.Abstractions/Services/ITasksService.cs`
     - *Why:* Ensure task merging functionality is correct and usable; current implementation notes ambiguity.
     - *Ref:* `docs/plans/updatedPlans/services/02-ServiceImplementations.md`

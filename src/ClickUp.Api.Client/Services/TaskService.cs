@@ -292,66 +292,10 @@ namespace ClickUp.Api.Client.Services
         public async Task<CuTask> MergeTasksAsync(
             string targetTaskId,
             MergeTasksRequest mergeTasksRequest,
-            bool? customTaskIds = null, // Applies to source_task_ids and targetTaskId if used as query params
-            string? teamId = null,      // Applies to source_task_ids and targetTaskId if used as query params
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Merging tasks into target task ID: {TargetTaskId}", targetTaskId);
-            // This overload maps to POST /v2/task/{task_id}/merge where task_id is the targetTaskId param
-            // and mergeTasksRequest.TargetTaskId is the actual target.
-            // The API is POST /task/{task_id}/merge with body { "target_task_id": "string" }
-            // The 'task_id' in the path is the source task.
-            // The prompt's naming of 'targetTaskId' for the path and MergeTasksRequest for body is a bit confusing.
-            // Let's assume targetTaskId is the source task_id for the path, and MergeTasksRequest contains the real target.
-            // This would make mergeTasksRequest.SourceTaskId the path {task_id} and targetTaskId the body.
-            // Re-interpreting based on common API patterns:
-            // POST /task/{source_task_id}/merge with body { "target_task_id": "string" }
-            // If targetTaskId is the one in the path, then mergeTasksRequest should contain the target.
-            // The interface is: MergeTasksAsync(string targetTaskId, MergeTasksRequest mergeTasksRequest, ...)
-            // Let's assume 'targetTaskId' in method signature is the SOURCE task to be merged from.
-            // And 'mergeTasksRequest' contains the actual target task ID.
-            // This means the endpoint should be /task/{targetTaskId}/merge (where targetTaskId is source)
-            // And the body mergeTasksRequest contains { "target_task_id": "actual_target_id" }
 
-            // The interface has `string targetTaskId` as the first param, and `MergeTasksRequest`
-            // Let's assume the `targetTaskId` parameter is the `task_id` in the path (the task being merged FROM)
-            // and `MergeTasksRequest` contains the actual target.
-            // So endpoint is /task/{targetTaskId}/merge
-            // Body is mergeTasksRequest (which should contain the *actual* target task id)
-            // This is confusing. The prompt for ITasksService was:
-            // MergeTasksAsync: Request MergeTasksRequest, response CuTask.
-            // Parameters: string targetTaskId, MergeTasksRequest mergeTasksRequest
-            // This implies `targetTaskId` is the task all sources from `mergeTasksRequest` are merged INTO.
-            // If so, the API endpoint POST /v2/task/{task_id}/merge is problematic because task_id in path is source.
-            // Let's assume the intent is that `targetTaskId` is the destination, and `mergeTasksRequest.TaskIds` are sources.
-            // This doesn't map directly to a single ClickUp v2 endpoint easily.
-            // ClickUp's "Merge Tasks" endpoint is POST /v2/task/{task_id}/merge where {task_id} is the source, and body contains target.
-            // ClickUp's "Merge CuTask Into" endpoint is POST /v2/task/{task_id}/merge_into/{target_task_id}
-            //
-            // Given the interface: CuTask<CuTask> MergeTasksAsync(string targetTaskId, MergeTasksRequest mergeTasksRequest, ...)
-            // The most logical mapping is that `targetTaskId` is the task where other tasks (specified in `mergeTasksRequest.TaskIds`) are merged INTO.
-            // This would require multiple calls to POST /task/{source_task_id}/merge_into/{target_task_id} or similar.
-            // Or, if there's a bulk merge endpoint, that would be it.
-            //
-            // Reverting to the refined interface's intent:
-            // "Merges tasks into a target task."
-            // - param name="targetTaskId">ID of the target task that other tasks will be merged into.
-            // - param name="mergeTasksRequest">Contains the list of source task IDs to merge.
-            // This implies `mergeTasksRequest.TaskIds` are merged into `targetTaskId`.
-            // This likely requires multiple API calls, one for each task in `mergeTasksRequest.TaskIds`.
-            // For a single source task in `mergeTasksRequest.TaskIds[0]`: POST /task/{mergeTasksRequest.TaskIds[0]}/merge_into/{targetTaskId}
-            // The API call POST /task/{task_id}/merge with body { "target_task_id": "string" } can be used.
-            // Here, {task_id} is the source, and target_task_id in body is destination.
-            // So, for each task_id in mergeTasksRequest.TaskIds, we'd call:
-            // POST /task/{task_id_from_request}/merge with body { "target_task_id": targetTaskId (from method param) }
-            // This is complex for a single method stub. For now, I'll assume it's merging ONE task specified in MergeTasksRequest into targetTaskId.
-            // Let's assume MergeTasksRequest has a SINGLE SourceTaskId.
-            // Endpoint: task/{mergeTasksRequest.SourceTaskId}/merge_into/{targetTaskId} (if this is what MergeTasksRequest implies)
-            // OR task/{mergeTasksRequest.SourceTaskId}/merge (with body {"target_task_id": targetTaskId})
-
-            // For simplicity of stubbing, I'll assume mergeTasksRequest has one source task ID and targetTaskId is the destination.
-            // This is a common pattern: POST /task/{source_id}/merge  Body: { "target_task_id": "dest_id" }
-            // Let's say mergeTasksRequest contains the source_id, and targetTaskId is the destination.
             if (string.IsNullOrWhiteSpace(targetTaskId))
             {
                 throw new ArgumentNullException(nameof(targetTaskId));
@@ -368,49 +312,44 @@ namespace ClickUp.Api.Client.Services
             CuTask? lastMergedTargetTask = null;
 
             // Iterate through each source task and merge it into the target task.
-            // The API documentation for "Merge Tasks" (POST /task/{task_id}/merge)
-            // states that {task_id} in the path is the source task ID,
-            // and the body contains { "target_task_id": "string" }.
+            // The ClickUp API endpoint for merging is POST /task/{source_task_id}/merge
+            // with a body like { "target_task_id": "the_actual_target_task_id" }.
             // The response is the updated target task.
+            // API documentation for this endpoint states "Custom Task IDs are not supported".
             foreach (var sourceTaskId in mergeTasksRequest.SourceTaskIds)
             {
                 if (string.IsNullOrWhiteSpace(sourceTaskId))
                 {
-                    // Optionally, log this or decide if the whole operation should fail.
-                    // For now, skipping invalid source task IDs.
+                    _logger.LogWarning("Skipping empty or whitespace source task ID during merge operation into target {TargetTaskId}.", targetTaskId);
                     continue;
                 }
 
                 var endpoint = $"task/{sourceTaskId}/merge";
-                var queryParams = new Dictionary<string, string?>();
-                if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-                if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-
-                string fullEndpoint = endpoint + BuildQueryString(queryParams);
+                // Query parameters for customTaskIds and teamId are removed as they are not supported by this API endpoint.
 
                 var payload = new { target_task_id = targetTaskId };
 
-                // The API returns the updated TARGET task after a successful merge.
-                var updatedTargetTask = await _apiConnection.PostAsync<object, CuTask>(fullEndpoint, payload, cancellationToken);
+                _logger.LogDebug("Attempting to merge source task {SourceTaskId} into target task {TargetTaskId} via endpoint {Endpoint}", sourceTaskId, targetTaskId, endpoint);
+                var updatedTargetTask = await _apiConnection.PostAsync<object, CuTask>(endpoint, payload, cancellationToken);
 
                 if (updatedTargetTask == null)
                 {
                     // If any merge operation fails to return the task, consider it an issue.
-                    // Depending on desired atomicity, one might choose to throw here or collect errors.
-                    // For now, throwing an exception indicating which merge failed.
+                    _logger.LogError("API connection returned null response when merging source task '{SourceTaskId}' into target task '{TargetTaskId}'.", sourceTaskId, targetTaskId);
                     throw new InvalidOperationException($"API connection returned null response when merging source task '{sourceTaskId}' into target task '{targetTaskId}'.");
                 }
                 lastMergedTargetTask = updatedTargetTask; // Keep track of the latest state of the target task.
+                _logger.LogInformation("Successfully merged source task {SourceTaskId} into target task {TargetTaskId}. Updated target task ID: {UpdatedTargetTaskId}", sourceTaskId, targetTaskId, updatedTargetTask.Id);
             }
 
             if (lastMergedTargetTask == null)
             {
-                // This would happen if SourceTaskIds was empty or contained only invalid IDs,
+                // This would happen if SourceTaskIds was empty or contained only invalid (empty/whitespace) IDs,
                 // and no merge operations were attempted or all skipped.
-                // Or if the loop completed but no task was returned from the last operation (should be caught above).
-                // It might be better to fetch the target task if no merges happened but that adds complexity.
-                // For now, if no merge was successfully performed and returned a task, throw.
-                throw new InvalidOperationException($"No merge operations were successfully performed, or the target task '{targetTaskId}' could not be retrieved after merging.");
+                _logger.LogWarning("No merge operations were successfully performed for target task '{TargetTaskId}'. This could be due to an empty or invalid list of source task IDs.", targetTaskId);
+                // Depending on strictness, we might throw or return a fetched version of targetTaskId.
+                // For now, if no merge actually happened and returned a task, it's an issue.
+                throw new InvalidOperationException($"No merge operations were successfully performed for target task '{targetTaskId}', or the target task could not be retrieved after attempting merges. Ensure SourceTaskIds are valid.");
             }
 
             return lastMergedTargetTask;
