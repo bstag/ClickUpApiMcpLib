@@ -56,6 +56,159 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
+        public async IAsyncEnumerable<Comment> GetListCommentsStreamAsync(
+            string listId,
+            long? start = null,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Streaming list comments for list ID: {ListId}, Start: {Start}", listId, start);
+            string? currentStartId = null;
+            bool hasMore = true;
+            long? currentStartTimestamp = start;
+
+            while (hasMore)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                _logger.LogDebug("Fetching next page of list comments for list ID: {ListId}, Start: {Start}, StartId: {StartId}", listId, currentStartTimestamp, currentStartId);
+
+                var commentsPage = await GetListCommentsAsync(
+                    listId,
+                    currentStartTimestamp,
+                    currentStartId,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (commentsPage == null || !commentsPage.Any())
+                {
+                    _logger.LogDebug("No more list comments found for list ID: {ListId}", listId);
+                    hasMore = false;
+                }
+                else
+                {
+                    Comment? lastComment = null;
+                    foreach (var comment in commentsPage)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        yield return comment;
+                        lastComment = comment;
+                    }
+                    currentStartId = lastComment?.Id;
+
+                    if (currentStartTimestamp.HasValue)
+                    {
+                        currentStartTimestamp = null;
+                    }
+                }
+            }
+            _logger.LogInformation("Finished streaming list comments for list ID: {ListId}", listId);
+        }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<Comment> GetChatViewCommentsStreamAsync(
+            string viewId,
+            long? start = null,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Streaming chat view comments for view ID: {ViewId}, Start: {Start}", viewId, start);
+            string? currentStartId = null;
+            bool hasMore = true;
+            long? currentStartTimestamp = start;
+
+            while (hasMore)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                _logger.LogDebug("Fetching next page of chat view comments for view ID: {ViewId}, Start: {Start}, StartId: {StartId}", viewId, currentStartTimestamp, currentStartId);
+
+                var commentsPage = await GetChatViewCommentsAsync(
+                    viewId,
+                    currentStartTimestamp,
+                    currentStartId,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (commentsPage == null || !commentsPage.Any())
+                {
+                    _logger.LogDebug("No more chat view comments found for view ID: {ViewId}", viewId);
+                    hasMore = false;
+                }
+                else
+                {
+                    Comment? lastComment = null;
+                    foreach (var comment in commentsPage)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        yield return comment;
+                        lastComment = comment;
+                    }
+                    currentStartId = lastComment?.Id;
+
+                    if (currentStartTimestamp.HasValue)
+                    {
+                        currentStartTimestamp = null;
+                    }
+                }
+            }
+            _logger.LogInformation("Finished streaming chat view comments for view ID: {ViewId}", viewId);
+        }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<Comment> GetTaskCommentsStreamAsync(
+            string taskId,
+            bool? customTaskIds = null,
+            string? teamId = null,
+            long? start = null,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Streaming task comments for task ID: {TaskId}, Start: {Start}", taskId, start);
+            string? currentStartId = null;
+            bool hasMore = true;
+
+            // The 'start' (timestamp) parameter is only used for the first request according to ClickUp docs.
+            // For subsequent pages, 'start_id' is used.
+            long? currentStartTimestamp = start;
+
+            while (hasMore)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                _logger.LogDebug("Fetching next page of task comments for task ID: {TaskId}, Start: {Start}, StartId: {StartId}", taskId, currentStartTimestamp, currentStartId);
+
+                var commentsPage = await GetTaskCommentsAsync(
+                    taskId,
+                    customTaskIds,
+                    teamId,
+                    currentStartTimestamp, // Use the current start timestamp
+                    currentStartId,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (commentsPage == null || !commentsPage.Any())
+                {
+                    _logger.LogDebug("No more comments found for task ID: {TaskId}", taskId);
+                    hasMore = false;
+                }
+                else
+                {
+                    Comment? lastComment = null;
+                    foreach (var comment in commentsPage)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        yield return comment;
+                        lastComment = comment;
+                    }
+                    currentStartId = lastComment?.Id; // Prepare for the next iteration using the ID of the last comment seen
+
+                    // After the first successful fetch, we should rely on start_id, not the initial 'start' timestamp.
+                    if (currentStartTimestamp.HasValue)
+                    {
+                        currentStartTimestamp = null;
+                    }
+
+                    // If the number of comments returned is less than a typical page limit (e.g. 100, though API doesn't specify page size for comments),
+                    // it might indicate the end, but the reliable way is an empty response.
+                    // For now, we continue as long as commentsPage has items.
+                }
+            }
+            _logger.LogInformation("Finished streaming task comments for task ID: {TaskId}", taskId);
+        }
+
+        /// <inheritdoc />
         public async Task<IEnumerable<Comment>> GetTaskCommentsAsync(
             string taskId,
             bool? customTaskIds = null,

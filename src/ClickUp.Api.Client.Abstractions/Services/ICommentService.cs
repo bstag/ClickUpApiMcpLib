@@ -46,6 +46,65 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Retrieves all comments associated with a specific task as an asynchronous stream.
+        /// This method handles pagination internally, yielding comments as they are fetched.
+        /// </summary>
+        /// <param name="taskId">The unique identifier of the task for which to retrieve comments.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="start">Optional. A Unix timestamp (in milliseconds) indicating the starting point from which to retrieve comments. Only comments created at or after this time will be returned for the initial page.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.
+        /// This token is also used by the <see cref="IAsyncEnumerable{T}"/> iteration.</param>
+        /// <returns>An <see cref="IAsyncEnumerable{T}"/> that yields <see cref="Comment"/> objects for the specified task.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task with the specified ID does not exist or is not accessible.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this task.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
+        IAsyncEnumerable<Comment> GetTaskCommentsStreamAsync(
+            string taskId,
+            bool? customTaskIds = null,
+            string? teamId = null,
+            long? start = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves all comments from a specific Chat view as an asynchronous stream.
+        /// This method handles pagination internally, yielding comments as they are fetched.
+        /// </summary>
+        /// <param name="viewId">The unique identifier of the Chat view for which to retrieve comments.</param>
+        /// <param name="start">Optional. A Unix timestamp (in milliseconds) indicating the starting point from which to retrieve comments for the initial page.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.
+        /// This token is also used by the <see cref="IAsyncEnumerable{T}"/> iteration.</param>
+        /// <returns>An <see cref="IAsyncEnumerable{T}"/> that yields <see cref="Comment"/> objects for the specified Chat view.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="viewId"/> is null or empty.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Chat view with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this view.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
+        IAsyncEnumerable<Comment> GetChatViewCommentsStreamAsync(
+            string viewId,
+            long? start = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves all comments associated with a specific List as an asynchronous stream.
+        /// This method handles pagination internally, yielding comments as they are fetched.
+        /// </summary>
+        /// <param name="listId">The unique identifier of the List for which to retrieve comments.</param>
+        /// <param name="start">Optional. A Unix timestamp (in milliseconds) indicating the starting point from which to retrieve comments for the initial page.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.
+        /// This token is also used by the <see cref="IAsyncEnumerable{T}"/> iteration.</param>
+        /// <returns>An <see cref="IAsyncEnumerable{T}"/> that yields <see cref="Comment"/> objects for the specified List.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null or empty.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this List.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
+        IAsyncEnumerable<Comment> GetListCommentsStreamAsync(
+            string listId,
+            long? start = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Adds a new comment to a specified task.
         /// </summary>
         /// <param name="taskId">The unique identifier of the task to which the comment will be added.</param>
