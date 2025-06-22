@@ -17,11 +17,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
     {
         private readonly Mock<IApiConnection> _mockApiConnection;
         private readonly AttachmentsService _attachmentsService;
+        private readonly Mock<Microsoft.Extensions.Logging.ILogger<AttachmentsService>> _mockLogger;
 
         public AttachmentsServiceTests()
         {
             _mockApiConnection = new Mock<IApiConnection>();
-            _attachmentsService = new AttachmentsService(_mockApiConnection.Object);
+            _mockLogger = new Mock<Microsoft.Extensions.Logging.ILogger<AttachmentsService>>();
+            _attachmentsService = new AttachmentsService(_mockApiConnection.Object, _mockLogger.Object);
         }
 
         [Fact]

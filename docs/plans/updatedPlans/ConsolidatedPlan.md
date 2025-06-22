@@ -5,7 +5,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 ## Phase 1: Core Service Functionality & Enhancements
 
 ### 1. Complete Core Service Method Implementations
-- [ ] **Task:** Implement `GetFilteredTeamTasksAsync` in `TaskService.cs`.
+- [x] **Task:** Implement `GetFilteredTeamTasksAsync` in `TaskService.cs`.
     - *File:* `src/ClickUp.Api.Client/Services/TaskService.cs`
     - *Why:* Core functionality for fetching tasks at a workspace level. Currently throws `NotImplementedException`.
     - *Ref:* `docs/plans/updatedPlans/services/02-ServiceImplementations.md`
