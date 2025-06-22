@@ -29,7 +29,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *Ref:* `docs/plans/updatedPlans/helpers/06-PaginationHelpers.md`
 
 ### 3. Refine Exception Handling
-- [ ] **Task:** Implement parsing of detailed validation errors into the `Errors` dictionary of `ClickUpApiValidationException` within `ApiConnection.HandleErrorResponseAsync`. This requires inspecting potential structures of ClickUp API error responses for 400/422 errors.
+- [x] **Task:** Implement parsing of detailed validation errors into the `Errors` dictionary of `ClickUpApiValidationException` within `ApiConnection.HandleErrorResponseAsync`. This requires inspecting potential structures of ClickUp API error responses for 400/422 errors.
     - *File:* `src/ClickUp.Api.Client/Http/ApiConnection.cs`
     - *Why:* Provides richer, field-specific error information to the caller for validation failures.
     - *Ref:* `docs/plans/updatedPlans/exceptions/04-ExceptionHandling.md`
