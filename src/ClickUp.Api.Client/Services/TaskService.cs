@@ -603,5 +603,107 @@ namespace ClickUp.Api.Client.Services
             }
             return response;
         }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(
+            string workspaceId,
+            string? orderBy = null,
+            bool? reverse = null,
+            bool? subtasks = null,
+            IEnumerable<string>? spaceIds = null,
+            IEnumerable<string>? projectIds = null,
+            IEnumerable<string>? listIds = null,
+            IEnumerable<string>? statuses = null,
+            bool? includeClosed = null,
+            IEnumerable<string>? assignees = null,
+            IEnumerable<string>? tags = null,
+            long? dueDateGreaterThan = null,
+            long? dueDateLessThan = null,
+            long? dateCreatedGreaterThan = null,
+            long? dateCreatedLessThan = null,
+            long? dateUpdatedGreaterThan = null,
+            long? dateUpdatedLessThan = null,
+            string? customFields = null,
+            bool? queryCustomTaskIds = null, // Parameter name from GetFilteredTeamTasksAsync
+            string? teamIdForQueryCustomTaskIds = null, // Parameter name from GetFilteredTeamTasksAsync
+            IEnumerable<long>? customItems = null,
+            long? dateDoneGreaterThan = null,
+            long? dateDoneLessThan = null,
+            string? parentTaskId = null,
+            bool? includeMarkdownDescription = null,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Getting filtered team tasks as an async enumerable for workspace ID: {WorkspaceId}", workspaceId);
+            if (string.IsNullOrWhiteSpace(workspaceId))
+            {
+                throw new ArgumentNullException(nameof(workspaceId));
+            }
+
+            int currentPage = 0;
+            bool lastPage;
+
+            do
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogDebug("Cancellation requested while getting filtered team tasks for workspace ID {WorkspaceId} via async enumerable.", workspaceId);
+                    yield break;
+                }
+
+                _logger.LogDebug("Fetching page {PageNumber} for filtered team tasks in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
+                var response = await GetFilteredTeamTasksAsync(
+                    workspaceId: workspaceId,
+                    page: currentPage,
+                    orderBy: orderBy,
+                    reverse: reverse,
+                    subtasks: subtasks,
+                    spaceIds: spaceIds,
+                    projectIds: projectIds,
+                    listIds: listIds,
+                    statuses: statuses,
+                    includeClosed: includeClosed,
+                    assignees: assignees,
+                    tags: tags,
+                    dueDateGreaterThan: dueDateGreaterThan,
+                    dueDateLessThan: dueDateLessThan,
+                    dateCreatedGreaterThan: dateCreatedGreaterThan,
+                    dateCreatedLessThan: dateCreatedLessThan,
+                    dateUpdatedGreaterThan: dateUpdatedGreaterThan,
+                    dateUpdatedLessThan: dateUpdatedLessThan,
+                    customFields: customFields,
+                    customTaskIds: queryCustomTaskIds, // Ensure mapping to the correct parameter name
+                    teamIdForCustomTaskIds: teamIdForQueryCustomTaskIds, // Ensure mapping
+                    customItems: customItems,
+                    dateDoneGreaterThan: dateDoneGreaterThan,
+                    dateDoneLessThan: dateDoneLessThan,
+                    parentTaskId: parentTaskId,
+                    includeMarkdownDescription: includeMarkdownDescription,
+                    cancellationToken: cancellationToken
+                ).ConfigureAwait(false);
+
+                if (response?.Tasks != null && response.Tasks.Any())
+                {
+                    foreach (var task in response.Tasks)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            yield break;
+                        }
+                        yield return task;
+                    }
+                    lastPage = response.LastPage == true;
+                }
+                else
+                {
+                    lastPage = true;
+                }
+
+                if (!lastPage)
+                {
+                    currentPage++;
+                }
+            } while (!lastPage);
+            _logger.LogInformation("Finished streaming filtered team tasks for workspace ID: {WorkspaceId}", workspaceId);
+        }
     }
 }

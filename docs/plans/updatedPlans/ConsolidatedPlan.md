@@ -23,7 +23,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *File:* `src/ClickUp.Api.Client/Services/CommentService.cs`
     - *Why:* Simplifies consumption of fully paginated comment streams for SDK users.
     - *Ref:* `docs/plans/updatedPlans/helpers/06-PaginationHelpers.md`
-- [ ] **Task:** Add an `IAsyncEnumerable<T>` wrapper for `GetFilteredTeamTasksAsync` in `TaskService.cs` (once the base method from step 1.1 is implemented).
+- [x] **Task:** Add an `IAsyncEnumerable<T>` wrapper for `GetFilteredTeamTasksAsync` in `TaskService.cs` (once the base method from step 1.1 is implemented).
     - *File:* `src/ClickUp.Api.Client/Services/TaskService.cs`
     - *Why:* Provides a consistent pagination pattern for users.
     - *Ref:* `docs/plans/updatedPlans/helpers/06-PaginationHelpers.md`
