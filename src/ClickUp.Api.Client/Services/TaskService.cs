@@ -644,11 +644,7 @@ namespace ClickUp.Api.Client.Services
 
             do
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    _logger.LogDebug("Cancellation requested while getting filtered team tasks for workspace ID {WorkspaceId} via async enumerable.", workspaceId);
-                    yield break;
-                }
+                cancellationToken.ThrowIfCancellationRequested(); // Check before API call
 
                 _logger.LogDebug("Fetching page {PageNumber} for filtered team tasks in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
                 var response = await GetFilteredTeamTasksAsync(
@@ -685,10 +681,7 @@ namespace ClickUp.Api.Client.Services
                 {
                     foreach (var task in response.Tasks)
                     {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            yield break;
-                        }
+                        cancellationToken.ThrowIfCancellationRequested(); // Check before yielding each item
                         yield return task;
                     }
                     lastPage = response.LastPage == true;

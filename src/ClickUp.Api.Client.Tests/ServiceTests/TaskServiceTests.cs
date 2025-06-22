@@ -11,6 +11,7 @@ using ClickUp.Api.Client.Models.Entities.UserGroups; // Added for UserGroup
 using ClickUp.Api.Client.Models.Entities.Users;
 using ClickUp.Api.Client.Models.Entities.Checklists; // For Checklist
 using ClickUp.Api.Client.Models.Entities.Tags;       // For Tag
+using ClickUp.Api.Client.Models.ResponseModels.Tasks; // Added for GetTasksResponse
 using ClickUp.Api.Client.Services;
 using Moq;
 using Xunit;
@@ -292,5 +293,165 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 _taskService.GetFilteredTeamTasksAsync(workspaceId, customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
             );
         }
+
+        // --- Start of tests for GetFilteredTeamTasksAsyncEnumerableAsync ---
+
+        private static List<CuTask> CreateSimpleTasks(int count, int pageNumForId)
+        {
+            var tasks = new List<CuTask>();
+            for (int i = 0; i < count; i++)
+            {
+                var taskId = $"task_p{pageNumForId}_{i}";
+                tasks.Add(new CuTask(
+                    Id: taskId,
+                    Name: $"Task {taskId}",
+                    CustomId: null, CustomItemId: null, TextContent: null, Description: null, MarkdownDescription: null,
+                    Status: null, OrderIndex: null, DateCreated: null, DateUpdated: null, DateClosed: null,
+                    Archived: null, Creator: null, Assignees: null, GroupAssignees: null, Watchers: null,
+                    Checklists: null, Tags: null, Parent: null, Priority: null, DueDate: null, StartDate: null,
+                    Points: null, TimeEstimate: null, TimeSpent: null, CustomFields: null, Dependencies: null,
+                    LinkedTasks: null, TeamId: null, Url: null, Sharing: null, PermissionLevel: null, List: null,
+                    Folder: null, Space: null, Project: null
+                ));
+            }
+            return tasks;
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsyncEnumerable_ReturnsAllTasks_WhenMultiplePages()
+        {
+            // Arrange
+            var workspaceId = "ws123";
+            var firstPageTasks = CreateSimpleTasks(2, 0); // Page 0, Tasks task_p0_0, task_p0_1
+            var secondPageTasks = CreateSimpleTasks(1, 1); // Page 1, Task task_p1_0
+
+            _mockApiConnection.SetupSequence(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetTasksResponse(firstPageTasks, false)) // Page 0, Not last page
+                .ReturnsAsync(new GetTasksResponse(secondPageTasks, true));  // Page 1, Last page
+
+            var allTasks = new List<CuTask>();
+
+            // Act
+            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, cancellationToken: CancellationToken.None))
+            {
+                allTasks.Add(task);
+            }
+
+            // Assert
+            Assert.Equal(3, allTasks.Count);
+            Assert.Contains(allTasks, t => t.Id == "task_p0_0");
+            Assert.Contains(allTasks, t => t.Id == "task_p0_1");
+            Assert.Contains(allTasks, t => t.Id == "task_p1_0");
+
+            _mockApiConnection.Verify(api => api.GetAsync<GetTasksResponse>(
+                It.Is<string>(s => s.Contains($"team/{workspaceId}/task") && s.Contains("page=0")),
+                It.IsAny<CancellationToken>()), Times.Once);
+            _mockApiConnection.Verify(api => api.GetAsync<GetTasksResponse>(
+                It.Is<string>(s => s.Contains($"team/{workspaceId}/task") && s.Contains("page=1")),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsyncEnumerable_ReturnsEmpty_WhenNoTasks()
+        {
+            // Arrange
+            var workspaceId = "ws_empty";
+            _mockApiConnection.Setup(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetTasksResponse(new List<CuTask>(), true)); // Empty list, is last page
+
+            var count = 0;
+
+            // Act
+            await foreach (var _ in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, cancellationToken: CancellationToken.None))
+            {
+                count++;
+            }
+
+            // Assert
+            Assert.Equal(0, count);
+            _mockApiConnection.Verify(api => api.GetAsync<GetTasksResponse>(
+                It.Is<string>(s => s.Contains($"team/{workspaceId}/task") && s.Contains("page=0")),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsyncEnumerable_ReturnsAllTasks_WhenSinglePage()
+        {
+            // Arrange
+            var workspaceId = "ws_single_page";
+            var tasks = CreateSimpleTasks(2, 0);
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetTasksResponse(tasks, true)); // Tasks, is last page
+
+            var allTasks = new List<CuTask>();
+
+            // Act
+            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, cancellationToken: CancellationToken.None))
+            {
+                allTasks.Add(task);
+            }
+
+            // Assert
+            Assert.Equal(2, allTasks.Count);
+            _mockApiConnection.Verify(api => api.GetAsync<GetTasksResponse>(
+                It.Is<string>(s => s.Contains($"team/{workspaceId}/task") && s.Contains("page=0")),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsyncEnumerable_HandlesCancellation()
+        {
+            // Arrange
+            var workspaceId = "ws_cancel";
+            var firstPageTasks = CreateSimpleTasks(2, 0);
+            var cts = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetTasksResponse(firstPageTasks, false)); // Not last page
+
+            var tasksProcessed = 0;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            {
+                await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, cancellationToken: cts.Token))
+                {
+                    tasksProcessed++;
+                    if (tasksProcessed == 1)
+                    {
+                        cts.Cancel();
+                    }
+                }
+            });
+
+            Assert.Equal(1, tasksProcessed);
+            _mockApiConnection.Verify(api => api.GetAsync<GetTasksResponse>(
+                It.Is<string>(s => s.Contains($"team/{workspaceId}/task") && s.Contains("page=0")),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetFilteredTeamTasksAsyncEnumerable_HandlesApiError()
+        {
+            // Arrange
+            var workspaceId = "ws_api_error";
+            _mockApiConnection.Setup(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API call failed"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            {
+                await foreach (var _ in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, cancellationToken: CancellationToken.None))
+                {
+                    // Should not reach here
+                }
+            });
+            _mockApiConnection.Verify(api => api.GetAsync<GetTasksResponse>(
+                It.Is<string>(s => s.Contains($"team/{workspaceId}/task") && s.Contains("page=0")),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        // --- End of tests for GetFilteredTeamTasksAsyncEnumerableAsync ---
     }
 }

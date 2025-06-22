@@ -45,11 +45,11 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *Files:* New test file in `src/ClickUp.Api.Client.Tests/Http/`
     - *Why:* Verifies correct authentication header manipulation.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
-- [ ] **Task:** Write unit tests for `ApiConnection.HandleErrorResponseAsync` by mocking `HttpResponseMessage` to simulate various error scenarios.
+- [x] **Task:** Write unit tests for `ApiConnection.HandleErrorResponseAsync` by mocking `HttpResponseMessage` to simulate various error scenarios.
     - *Files:* New/existing test file in `src/ClickUp.Api.Client.Tests/Http/`
     - *Why:* Ensures robust and correct error exception generation.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
-- [ ] **Task:** Write unit tests for pagination helper methods (`IAsyncEnumerable<T>`) in services, mocking underlying paged calls and testing different scenarios (no items, single/multiple pages, cancellation, errors).
+- [x] **Task:** Write unit tests for pagination helper methods (`IAsyncEnumerable<T>`) in services, mocking underlying paged calls and testing different scenarios (no items, single/multiple pages, cancellation, errors).
     - *Files:* `src/ClickUp.Api.Client.Tests/ServiceTests/TaskServiceTests.cs`, new tests in `src/ClickUp.Api.Client.Tests/ServiceTests/CommentServiceTests.cs`, etc.
     - *Why:* Ensures pagination logic is reliable.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
