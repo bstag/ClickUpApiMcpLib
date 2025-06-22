@@ -13,6 +13,8 @@ using ClickUp.Api.Client.Models.RequestModels.TaskRelationships; // AddDependenc
 // using ClickUp.Api.Client.Models.RequestModels.Tasks; // Not needed if AddDependencyRequest is in its own namespace
 using ClickUp.Api.Client.Models.ResponseModels;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks; // For GetTaskResponse
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -22,15 +24,18 @@ namespace ClickUp.Api.Client.Services
     public class TaskRelationshipsService : ITaskRelationshipsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<TaskRelationshipsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskRelationshipsService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public TaskRelationshipsService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public TaskRelationshipsService(IApiConnection apiConnection, ILogger<TaskRelationshipsService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<TaskRelationshipsService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -61,6 +66,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Adding dependency for task ID: {TaskId}, DependsOn: {DependsOn}, DependencyOf: {DependencyOf}", taskId, dependsOnTaskId, dependencyOfTaskId);
             if (string.IsNullOrWhiteSpace(dependsOnTaskId) && string.IsNullOrWhiteSpace(dependencyOfTaskId))
             {
                 throw new ArgumentException("Either dependsOnTaskId or dependencyOfTaskId must be provided.");
@@ -91,6 +97,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting dependency for task ID: {TaskId}, DependsOn: {DependsOn}, DependencyOf: {DependencyOf}", taskId, dependsOn, dependencyOf);
             // Per API docs, DELETE /v2/task/{task_id}/dependency uses query parameters:
             // depends_on (task_id) OR dependency_of (task_id)
             // The interface signature is (string taskId, string dependsOn, string dependencyOf, ...)
@@ -128,6 +135,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Adding task link from task ID: {TaskId} to task ID: {LinksToTaskId}", taskId, linksToTaskId);
             var endpoint = $"task/{taskId}/link/{linksToTaskId}";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -148,6 +156,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting task link from task ID: {TaskId} to task ID: {LinksToTaskId}", taskId, linksToTaskId);
             var endpoint = $"task/{taskId}/link/{linksToTaskId}";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();

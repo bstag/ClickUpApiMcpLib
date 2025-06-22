@@ -11,6 +11,8 @@ using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Spaces;
 using ClickUp.Api.Client.Models.RequestModels.Spaces;
 using ClickUp.Api.Client.Models.ResponseModels.Spaces; // Assuming GetSpacesResponse exists
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -20,15 +22,18 @@ namespace ClickUp.Api.Client.Services
     public class SpacesService : ISpacesService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<SpacesService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SpacesService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public SpacesService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public SpacesService(IApiConnection apiConnection, ILogger<SpacesService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<SpacesService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -56,6 +61,7 @@ namespace ClickUp.Api.Client.Services
             bool? archived = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting spaces for workspace ID: {WorkspaceId}, Archived: {Archived}", workspaceId, archived);
             var endpoint = $"team/{workspaceId}/space"; // team_id is workspaceId
             var queryParams = new Dictionary<string, string?>();
             if (archived.HasValue) queryParams["archived"] = archived.Value.ToString().ToLower();
@@ -71,6 +77,7 @@ namespace ClickUp.Api.Client.Services
             CreateSpaceRequest createSpaceRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating space in workspace ID: {WorkspaceId}, Name: {SpaceName}", workspaceId, createSpaceRequest.Name);
             var endpoint = $"team/{workspaceId}/space";
             var space = await _apiConnection.PostAsync<CreateSpaceRequest, Space>(endpoint, createSpaceRequest, cancellationToken);
             if (space == null)
@@ -85,6 +92,7 @@ namespace ClickUp.Api.Client.Services
             string spaceId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting space ID: {SpaceId}", spaceId);
             var endpoint = $"space/{spaceId}";
             var space = await _apiConnection.GetAsync<Space>(endpoint, cancellationToken);
             if (space == null)
@@ -100,6 +108,7 @@ namespace ClickUp.Api.Client.Services
             UpdateSpaceRequest updateSpaceRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Updating space ID: {SpaceId}, Name: {SpaceName}", spaceId, updateSpaceRequest.Name);
             var endpoint = $"space/{spaceId}";
             var space = await _apiConnection.PutAsync<UpdateSpaceRequest, Space>(endpoint, updateSpaceRequest, cancellationToken);
             if (space == null)
@@ -114,6 +123,7 @@ namespace ClickUp.Api.Client.Services
             string spaceId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting space ID: {SpaceId}", spaceId);
             var endpoint = $"space/{spaceId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }

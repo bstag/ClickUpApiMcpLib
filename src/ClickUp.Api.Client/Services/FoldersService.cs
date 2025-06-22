@@ -11,6 +11,8 @@ using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Folders;
 using ClickUp.Api.Client.Models.RequestModels.Folders;
 using ClickUp.Api.Client.Models.ResponseModels.Folders; // Assuming GetFoldersResponse exists
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -20,15 +22,18 @@ namespace ClickUp.Api.Client.Services
     public class FoldersService : IFoldersService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<FoldersService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FoldersService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public FoldersService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public FoldersService(IApiConnection apiConnection, ILogger<FoldersService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<FoldersService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -56,6 +61,7 @@ namespace ClickUp.Api.Client.Services
             bool? archived = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting folders for space ID: {SpaceId}, Archived: {Archived}", spaceId, archived);
             var endpoint = $"space/{spaceId}/folder";
             var queryParams = new Dictionary<string, string?>();
             if (archived.HasValue) queryParams["archived"] = archived.Value.ToString().ToLower();
@@ -71,6 +77,7 @@ namespace ClickUp.Api.Client.Services
             CreateFolderRequest createFolderRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating folder in space ID: {SpaceId}, Name: {FolderName}", spaceId, createFolderRequest.Name);
             var endpoint = $"space/{spaceId}/folder";
             var folder = await _apiConnection.PostAsync<CreateFolderRequest, Folder>(endpoint, createFolderRequest, cancellationToken);
             if (folder == null)
@@ -85,6 +92,7 @@ namespace ClickUp.Api.Client.Services
             string folderId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting folder ID: {FolderId}", folderId);
             var endpoint = $"folder/{folderId}";
             var folder = await _apiConnection.GetAsync<Folder>(endpoint, cancellationToken);
             if (folder == null)
@@ -100,6 +108,7 @@ namespace ClickUp.Api.Client.Services
             UpdateFolderRequest updateFolderRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Updating folder ID: {FolderId}, Name: {FolderName}", folderId, updateFolderRequest.Name);
             var endpoint = $"folder/{folderId}";
             var folder = await _apiConnection.PutAsync<UpdateFolderRequest, Folder>(endpoint, updateFolderRequest, cancellationToken);
             if (folder == null)
@@ -114,6 +123,7 @@ namespace ClickUp.Api.Client.Services
             string folderId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting folder ID: {FolderId}", folderId);
             var endpoint = $"folder/{folderId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
@@ -125,6 +135,7 @@ namespace ClickUp.Api.Client.Services
             CreateFolderFromTemplateRequest createFolderFromTemplateRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating folder from template ID: {TemplateId} in space ID: {SpaceId}, Name: {FolderName}", templateId, spaceId, createFolderFromTemplateRequest.Name);
             var endpoint = $"space/{spaceId}/folderTemplate/{templateId}"; // Corrected endpoint
             var folder = await _apiConnection.PostAsync<CreateFolderFromTemplateRequest, Folder>(endpoint, createFolderFromTemplateRequest, cancellationToken);
             if (folder == null)

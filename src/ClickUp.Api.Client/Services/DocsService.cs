@@ -13,6 +13,8 @@ using ClickUp.Api.Client.Models.RequestModels.Docs;
 using ClickUp.Api.Client.Models.ResponseModels.Docs;
 // Assuming a generic wrapper for single entity responses if API wraps them in "data"
 // For example: public class ClickUpV3DataResponse<T> { public T Data { get; set; } }
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -22,16 +24,19 @@ namespace ClickUp.Api.Client.Services
     public class DocsService : IDocsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<DocsService> _logger;
         private const string BaseEndpoint = "/v3/workspaces"; // Base for v3 Docs API
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DocsService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public DocsService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public DocsService(IApiConnection apiConnection, ILogger<DocsService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<DocsService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -59,6 +64,7 @@ namespace ClickUp.Api.Client.Services
             SearchDocsRequest searchDocsRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Searching docs in workspace ID: {WorkspaceId}, Query: {Query}", workspaceId, searchDocsRequest.Query);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs";
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(searchDocsRequest.Query)) queryParams["q"] = searchDocsRequest.Query;
@@ -77,6 +83,7 @@ namespace ClickUp.Api.Client.Services
             CreateDocRequest createDocRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating doc in workspace ID: {WorkspaceId}, Name: {DocName}", workspaceId, createDocRequest.Name);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs";
             var responseWrapper = await _apiConnection.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(endpoint, createDocRequest, cancellationToken);
             return responseWrapper?.Data ?? throw new InvalidOperationException("API response or its data was null for CreateDocAsync.");
@@ -88,6 +95,7 @@ namespace ClickUp.Api.Client.Services
             string docId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting doc ID: {DocId} in workspace ID: {WorkspaceId}", docId, workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}";
             var responseWrapper = await _apiConnection.GetAsync<ClickUpV3DataResponse<Doc>>(endpoint, cancellationToken);
             return responseWrapper?.Data ?? throw new InvalidOperationException($"API response or its data was null for GetDocAsync (Doc ID: {docId}).");
@@ -99,6 +107,7 @@ namespace ClickUp.Api.Client.Services
             SearchDocsRequest baseSearchDocsRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Searching all docs in workspace ID: {WorkspaceId}, Query: {Query}", workspaceId, baseSearchDocsRequest.Query);
             if (string.IsNullOrWhiteSpace(workspaceId)) throw new ArgumentNullException(nameof(workspaceId));
             if (baseSearchDocsRequest == null) throw new ArgumentNullException(nameof(baseSearchDocsRequest));
 
@@ -148,6 +157,7 @@ namespace ClickUp.Api.Client.Services
             int? maxPageDepth = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting doc page listing for doc ID: {DocId} in workspace ID: {WorkspaceId}", docId, workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}/pageListing";
             var queryParams = new Dictionary<string, string?>();
             if (maxPageDepth.HasValue) queryParams["max_page_depth"] = maxPageDepth.Value.ToString();
@@ -165,6 +175,7 @@ namespace ClickUp.Api.Client.Services
             string? contentFormat = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting doc pages for doc ID: {DocId} in workspace ID: {WorkspaceId}", docId, workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}/pages";
             var queryParams = new Dictionary<string, string?>();
             if (maxPageDepth.HasValue) queryParams["max_page_depth"] = maxPageDepth.Value.ToString();
@@ -182,6 +193,7 @@ namespace ClickUp.Api.Client.Services
             CreatePageRequest createPageRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating page in doc ID: {DocId}, workspace ID: {WorkspaceId}, Page Name: {PageName}", docId, workspaceId, createPageRequest.Name);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}/pages";
             var responseWrapper = await _apiConnection.PostAsync<CreatePageRequest, ClickUpV3DataResponse<Page>>(endpoint, createPageRequest, cancellationToken);
             return responseWrapper?.Data ?? throw new InvalidOperationException("API response or its data was null for CreatePageAsync.");
@@ -195,6 +207,7 @@ namespace ClickUp.Api.Client.Services
             string? contentFormat = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting page ID: {PageId} in doc ID: {DocId}, workspace ID: {WorkspaceId}", pageId, docId, workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}/pages/{pageId}";
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(contentFormat)) queryParams["content_format"] = contentFormat;
@@ -212,6 +225,7 @@ namespace ClickUp.Api.Client.Services
             EditPageRequest updatePageRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Editing page ID: {PageId} in doc ID: {DocId}, workspace ID: {WorkspaceId}", pageId, docId, workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}/pages/{pageId}";
             // API returns 200 with an empty object for this PUT.
             await _apiConnection.PutAsync(endpoint, updatePageRequest, cancellationToken);

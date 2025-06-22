@@ -9,6 +9,8 @@ using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.ResponseModels.Roles; // Assuming GetCustomRolesResponse exists
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -18,15 +20,18 @@ namespace ClickUp.Api.Client.Services
     public class RolesService : IRolesService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<RolesService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RolesService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public RolesService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public RolesService(IApiConnection apiConnection, ILogger<RolesService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<RolesService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -54,6 +59,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeMembers = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting custom roles for workspace ID: {WorkspaceId}, IncludeMembers: {IncludeMembers}", workspaceId, includeMembers);
             var endpoint = $"team/{workspaceId}/customroles"; // team_id is workspaceId
             var queryParams = new Dictionary<string, string?>();
             if (includeMembers.HasValue) queryParams["include_members"] = includeMembers.Value.ToString().ToLower();

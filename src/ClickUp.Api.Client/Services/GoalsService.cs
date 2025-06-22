@@ -12,6 +12,8 @@ using ClickUp.Api.Client.Models.Entities.Goals;
 using ClickUp.Api.Client.Models.RequestModels.Goals;
 using ClickUp.Api.Client.Models.ResponseModels.Goals;
 using ClickUp.Api.Client.Models.ResponseModels; // For potential generic wrappers if needed
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -21,15 +23,18 @@ namespace ClickUp.Api.Client.Services
     public class GoalsService : IGoalsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<GoalsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GoalsService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public GoalsService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public GoalsService(IApiConnection apiConnection, ILogger<GoalsService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<GoalsService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -57,6 +62,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeCompleted = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting goals for workspace ID: {WorkspaceId}, IncludeCompleted: {IncludeCompleted}", workspaceId, includeCompleted);
             var endpoint = $"team/{workspaceId}/goal"; // team_id is workspaceId
             var queryParams = new Dictionary<string, string?>();
             if (includeCompleted.HasValue) queryParams["include_completed"] = includeCompleted.Value.ToString().ToLower();
@@ -76,6 +82,7 @@ namespace ClickUp.Api.Client.Services
             CreateGoalRequest createGoalRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating goal in workspace ID: {WorkspaceId}, Name: {GoalName}", workspaceId, createGoalRequest.Name);
             var endpoint = $"team/{workspaceId}/goal";
             var responseWrapper = await _apiConnection.PostAsync<CreateGoalRequest, GetGoalResponse>(endpoint, createGoalRequest, cancellationToken);
             if (responseWrapper?.Goal == null)
@@ -90,6 +97,7 @@ namespace ClickUp.Api.Client.Services
             string goalId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting goal ID: {GoalId}", goalId);
             var endpoint = $"goal/{goalId}";
             var responseWrapper = await _apiConnection.GetAsync<GetGoalResponse>(endpoint, cancellationToken);
             if (responseWrapper?.Goal == null)
@@ -105,6 +113,7 @@ namespace ClickUp.Api.Client.Services
             UpdateGoalRequest updateGoalRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Updating goal ID: {GoalId}, Name: {GoalName}", goalId, updateGoalRequest.Name);
             var endpoint = $"goal/{goalId}";
             var responseWrapper = await _apiConnection.PutAsync<UpdateGoalRequest, GetGoalResponse>(endpoint, updateGoalRequest, cancellationToken);
             if (responseWrapper?.Goal == null)
@@ -119,6 +128,7 @@ namespace ClickUp.Api.Client.Services
             string goalId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting goal ID: {GoalId}", goalId);
             var endpoint = $"goal/{goalId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
@@ -129,6 +139,7 @@ namespace ClickUp.Api.Client.Services
             CreateKeyResultRequest createKeyResultRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating key result for goal ID: {GoalId}, Name: {KeyResultName}", goalId, createKeyResultRequest.Name);
             var endpoint = $"goal/{goalId}/key_result";
             var responseWrapper = await _apiConnection.PostAsync<CreateKeyResultRequest, CreateKeyResultResponse>(endpoint, createKeyResultRequest, cancellationToken);
             if (responseWrapper?.KeyResult == null)
@@ -144,6 +155,7 @@ namespace ClickUp.Api.Client.Services
             EditKeyResultRequest editKeyResultRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Editing key result ID: {KeyResultId}", keyResultId);
             var endpoint = $"key_result/{keyResultId}";
             var responseWrapper = await _apiConnection.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(endpoint, editKeyResultRequest, cancellationToken);
             if (responseWrapper?.KeyResult == null)
@@ -158,6 +170,7 @@ namespace ClickUp.Api.Client.Services
             string keyResultId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting key result ID: {KeyResultId}", keyResultId);
             var endpoint = $"key_result/{keyResultId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
