@@ -229,11 +229,46 @@ namespace ClickUp.Api.Client.Http
                     throw new ClickUpApiRateLimitException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent, retryAfterDelta, retryAfterDate);
                 case HttpStatusCode.BadRequest:
                 case HttpStatusCode.UnprocessableEntity: // Often used for validation errors
-                    // IReadOnlyDictionary<string, IReadOnlyList<string>>? validationErrors = null;
-                    // if (!string.IsNullOrWhiteSpace(rawErrorContent)) { /* Try to parse validationErrors */ }
-                    // Consider enhancing ClickUpApiValidationException to accept the ClickUpErrorResponse DTO directly
-                    // or parse specific validation error structures if the API provides them.
-                    throw new ClickUpApiValidationException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent, null /* validationErrors */);
+                    IReadOnlyDictionary<string, IReadOnlyList<string>>? validationErrors = null;
+                    if (!string.IsNullOrWhiteSpace(rawErrorContent))
+                    {
+                        try
+                        {
+                            // Attempt to deserialize into a structure that includes detailed errors
+                            var validationErrorDto = JsonSerializer.Deserialize<Models.ResponseModels.Shared.ClickUpValidationErrorDetail>(rawErrorContent, JsonSerializerOptionsHelper.Options);
+                            if (validationErrorDto?.DetailedErrors != null)
+                            {
+                                // Convert Dictionary<string, List<string>> to IReadOnlyDictionary<string, IReadOnlyList<string>>
+                                var tempErrors = new Dictionary<string, IReadOnlyList<string>>();
+                                foreach (var kvp in validationErrorDto.DetailedErrors)
+                                {
+                                    if (kvp.Value != null) // Ensure the list of errors is not null
+                                    {
+                                        tempErrors[kvp.Key] = kvp.Value.AsReadOnly();
+                                    }
+                                }
+                                validationErrors = tempErrors;
+
+                                // Optionally, update the main error message if the detailed one is more specific
+                                // and the original errorDto didn't provide a message (e.g. if it was just "Validation Error")
+                                if (errorDto != null && !string.IsNullOrWhiteSpace(validationErrorDto.ErrorMessage) &&
+                                    (string.IsNullOrWhiteSpace(errorDto.ErrorMessage) || errorDto.ErrorMessage.Contains("failed with status code"))) // be careful not to overwrite a good message
+                                {
+                                    errorMessage = validationErrorDto.ErrorMessage;
+                                }
+                                if (errorDto != null && !string.IsNullOrWhiteSpace(validationErrorDto.ErrorCode))
+                                {
+                                    apiErrorCode = validationErrorDto.ErrorCode;
+                                }
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // If deserialization into the detailed structure fails, proceed with no detailed errors.
+                            // The rawErrorContent is still available in the exception.
+                        }
+                    }
+                    throw new ClickUpApiValidationException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent, validationErrors);
                 case HttpStatusCode.InternalServerError:
                 case HttpStatusCode.BadGateway:
                 case HttpStatusCode.ServiceUnavailable:
