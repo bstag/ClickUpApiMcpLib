@@ -56,8 +56,8 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 
 ### 5. Expand Unit Test Coverage - Services
 - [ ] **Task:** For all service methods in `src/ClickUp.Api.Client/Services/`, ensure comprehensive unit tests covering:
-    - [ ] Verification of correct request construction (URL, query parameters, body serialization).
-    - [ ] Simulation of API error cases (testing that appropriate `ClickUpApiException`s are thrown or propagated).
+    - [x] Verification of correct request construction (URL, query parameters, body serialization). *(Completed for AttachmentsService and CommentService)*
+    - [x] Simulation of API error cases (testing that appropriate `ClickUpApiException`s are thrown or propagated). *(Completed for AttachmentsService and CommentService)*
     - [ ] Simulation of network errors and timeouts.
     - [ ] Verification of `CancellationToken` pass-through.
     - *Files:* All files in `src/ClickUp.Api.Client.Tests/ServiceTests/`
