@@ -223,7 +223,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetTasksResponse> GetFilteredTeamTasksAsync(
+        public async Task<GetTasksResponse> GetFilteredTeamTasksAsync_Old( // Renamed to avoid ambiguity
             string workspaceId,
             int? page = null,
             string? orderBy = null,

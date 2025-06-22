@@ -435,9 +435,6 @@ namespace ClickUp.Api.Client.Services
         }
         #endregion
 
-        // Temporary helper DTOs for v3 response unwrapping, assuming they are not part of the main Models project yet.
-        // These should be defined in the Models project if this is a consistent API pattern.
-        private class ClickUpV3DataResponse<T> { public T? Data { get; set; } }
-        // private class ClickUpV3DataListResponse<T> { public List<T>? Data { get; set; } } // Not used if specific Response DTOs handle list + cursor
+        // ClickUpV3DataResponse<T> is now in InternalDtos.cs
     }
 }

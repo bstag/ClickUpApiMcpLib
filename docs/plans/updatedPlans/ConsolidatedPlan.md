@@ -56,8 +56,8 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 
 ### 5. Expand Unit Test Coverage - Services
 - [ ] **Task:** For all service methods in `src/ClickUp.Api.Client/Services/`, ensure comprehensive unit tests covering:
-    - [x] Verification of correct request construction (URL, query parameters, body serialization). *(Completed for AttachmentsService and CommentService)*
-    - [x] Simulation of API error cases (testing that appropriate `ClickUpApiException`s are thrown or propagated). *(Completed for AttachmentsService and CommentService)*
+    - [ ] Verification of correct request construction (URL, query parameters, body serialization). *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService. TaskService reviewed.)*
+    - [ ] Simulation of API error cases (testing that appropriate `ClickUpApiException`s are thrown or propagated). *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService. TaskService reviewed.)*
     - [x] Simulation of network errors and timeouts. *(Completed for AttachmentsService, CommentService, TaskService)*
     - [x] Verification of `CancellationToken` pass-through. *(Completed for AttachmentsService, CommentService, TaskService)*
     - *Files:* All files in `src/ClickUp.Api.Client.Tests/ServiceTests/`
@@ -69,7 +69,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *Why:* Essential for reliable and repeatable integration tests.
     - *Ref:* `docs/testing/INTEGRATION_TEST_DATA_STRATEGY.md`
 - [ ] **Task:** Implement integration tests for:
-    - [ ] Authentication (`GetAuthorizedUserAsync` with valid/invalid tokens).
+    - [x] Authentication (`GetAuthorizedUserAsync` with valid/invalid tokens). *(Tests implemented in `AuthorizationServiceIntegrationTests.cs`; require external configuration of API token to pass).*
     - [ ] Core CRUD operations for major entities (e.g., Tasks, Lists, Comments).
     - [ ] Endpoints with complex query parameters or filtering.
     - [ ] Paginated methods and `IAsyncEnumerable<T>` helpers against the live API.

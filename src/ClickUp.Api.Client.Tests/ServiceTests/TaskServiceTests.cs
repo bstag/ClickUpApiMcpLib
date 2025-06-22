@@ -257,7 +257,17 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
-                _taskService.GetFilteredTeamTasksAsync(null!, customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
+                _taskService.GetFilteredTeamTasksAsync(
+                    workspaceId: null!,
+                    page: null, orderBy: null, reverse: null, subtasks: null,
+                    spaceIds: null, projectIds: null, listIds: null, statuses: null,
+                    includeClosed: null, assignees: null, tags: null,
+                    dueDateGreaterThan: null, dueDateLessThan: null,
+                    dateCreatedGreaterThan: null, dateCreatedLessThan: null,
+                    dateUpdatedGreaterThan: null, dateUpdatedLessThan: null,
+                    customFields: null, customTaskIds: null, teamIdForCustomTaskIds: null,
+                    customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null,
+                    parentTaskId: null, includeMarkdownDescription: null)
             );
         }
 
@@ -266,7 +276,17 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
-                _taskService.GetFilteredTeamTasksAsync("", customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
+                _taskService.GetFilteredTeamTasksAsync(
+                    workspaceId: "",
+                    page: null, orderBy: null, reverse: null, subtasks: null,
+                    spaceIds: null, projectIds: null, listIds: null, statuses: null,
+                    includeClosed: null, assignees: null, tags: null,
+                    dueDateGreaterThan: null, dueDateLessThan: null,
+                    dateCreatedGreaterThan: null, dateCreatedLessThan: null,
+                    dateUpdatedGreaterThan: null, dateUpdatedLessThan: null,
+                    customFields: null, customTaskIds: null, teamIdForCustomTaskIds: null,
+                    customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null,
+                    parentTaskId: null, includeMarkdownDescription: null)
             );
         }
 
@@ -275,7 +295,17 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
-                _taskService.GetFilteredTeamTasksAsync("   ", customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
+                _taskService.GetFilteredTeamTasksAsync(
+                    workspaceId: "   ",
+                    page: null, orderBy: null, reverse: null, subtasks: null,
+                    spaceIds: null, projectIds: null, listIds: null, statuses: null,
+                    includeClosed: null, assignees: null, tags: null,
+                    dueDateGreaterThan: null, dueDateLessThan: null,
+                    dateCreatedGreaterThan: null, dateCreatedLessThan: null,
+                    dateUpdatedGreaterThan: null, dateUpdatedLessThan: null,
+                    customFields: null, customTaskIds: null, teamIdForCustomTaskIds: null,
+                    customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null,
+                    parentTaskId: null, includeMarkdownDescription: null)
             );
         }
 
@@ -290,7 +320,17 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _taskService.GetFilteredTeamTasksAsync(workspaceId, customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null, parentTaskId: null, includeMarkdownDescription: null)
+                _taskService.GetFilteredTeamTasksAsync(
+                    workspaceId: workspaceId,
+                    page: null, orderBy: null, reverse: null, subtasks: null,
+                    spaceIds: null, projectIds: null, listIds: null, statuses: null,
+                    includeClosed: null, assignees: null, tags: null,
+                    dueDateGreaterThan: null, dueDateLessThan: null,
+                    dateCreatedGreaterThan: null, dateCreatedLessThan: null,
+                    dateUpdatedGreaterThan: null, dateUpdatedLessThan: null,
+                    customFields: null, customTaskIds: null, teamIdForCustomTaskIds: null,
+                    customItems: null, dateDoneGreaterThan: null, dateDoneLessThan: null,
+                    parentTaskId: null, includeMarkdownDescription: null)
             );
         }
 

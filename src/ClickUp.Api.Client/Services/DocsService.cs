@@ -232,8 +232,5 @@ namespace ClickUp.Api.Client.Services
         }
     }
 
-    // Helper DTOs assumed for v3 responses (these would ideally be in a Models/ResponseModels/Shared or similar)
-    // These are conceptual and would need to be properly defined if not already.
-    internal class ClickUpV3DataResponse<T> { public T? Data { get; set; } }
-    internal class ClickUpV3DataListResponse<T> { public List<T>? Data { get; set; } }
+    // Helper DTOs ClickUpV3DataResponse and ClickUpV3DataListResponse are now in InternalDtos.cs (or should be if used)
 }
