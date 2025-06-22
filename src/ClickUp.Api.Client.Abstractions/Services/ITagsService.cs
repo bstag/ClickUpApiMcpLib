@@ -1,70 +1,65 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.Entities.Tags; // Assuming Tag DTO is here
-using ClickUp.Api.Client.Models.RequestModels.Spaces; // Assuming Request DTOs are here
+using ClickUp.Api.Client.Models.Entities.Tags;
+using ClickUp.Api.Client.Models.RequestModels.Spaces; // Note: ModifyTagRequest might be better in a Tags specific namespace.
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Represents the Tags operations in the ClickUp API.
+    /// Service interface for ClickUp Tags operations.
     /// </summary>
     /// <remarks>
-    /// Based on endpoints like:
-    /// - GET /v2/space/{space_id}/tag
-    /// - POST /v2/space/{space_id}/tag
-    /// - PUT /v2/space/{space_id}/tag/{tag_name}
-    /// - DELETE /v2/space/{space_id}/tag/{tag_name}
-    /// - POST /v2/task/{task_id}/tag/{tag_name}
-    /// - DELETE /v2/task/{task_id}/tag/{tag_name}
+    /// This service provides methods for managing Tags within a Space and for applying or removing Tags from Tasks.
+    /// Covered API Endpoints:
+    /// - Space Tags: `GET /space/{space_id}/tag`, `POST /space/{space_id}/tag`, `PUT /space/{space_id}/tag/{tag_name}`, `DELETE /space/{space_id}/tag/{tag_name}`
+    /// - Task Tags: `POST /task/{task_id}/tag/{tag_name}`, `DELETE /task/{task_id}/tag/{tag_name}`
     /// </remarks>
     public interface ITagsService
     {
         /// <summary>
-        /// Retrieves task Tags available in a specific Space.
+        /// Retrieves all task Tags available within a specific Space.
         /// </summary>
-        /// <param name="spaceId">The ID of the Space.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A list of <see cref="Tag"/> objects in the Space.</returns>
+        /// <param name="spaceId">The unique identifier of the Space from which to retrieve Tags.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an enumerable collection of <see cref="Tag"/> objects defined in the Space.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access tags in this space.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist or is not accessible.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tags in this Space.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
         Task<IEnumerable<Tag>> GetSpaceTagsAsync(
             string spaceId,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Creates a new task Tag in a Space.
+        /// Creates a new task Tag within a specific Space.
         /// </summary>
-        /// <param name="spaceId">The ID of the Space.</param>
-        /// <param name="modifyTagRequest">Details of the Tag to create.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> or <paramref name="modifyTagRequest"/> is null, or if tag name in request is null/empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space with the specified ID is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiValidationException">Thrown if a tag with the same name already exists in the space.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create tags in this space.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <param name="spaceId">The unique identifier of the Space where the new Tag will be created.</param>
+        /// <param name="modifyTagRequest">An object containing the details for the new Tag, such as its name and color attributes.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The API typically returns the created Tag, but this method might be void or return a specific response object if needed.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> or <paramref name="modifyTagRequest"/> is null, or if the tag name within the request is null or empty.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiValidationException">Thrown if a Tag with the same name already exists in the Space or if the request is otherwise invalid.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create Tags in this Space.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         System.Threading.Tasks.Task CreateSpaceTagAsync(
             string spaceId,
             ModifyTagRequest modifyTagRequest,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates a task Tag in a Space. The tag is identified by its original name.
+        /// Updates an existing task Tag within a Space. The Tag to be updated is identified by its original name.
         /// </summary>
-        /// <param name="spaceId">The ID of the Space.</param>
-        /// <param name="tagName">The original name of the Tag to edit.</param>
-        /// <param name="modifyTagRequest">Details for updating the Tag (e.g., new name, colors).</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The updated <see cref="Tag"/> details.</returns>
+        /// <param name="spaceId">The unique identifier of the Space containing the Tag.</param>
+        /// <param name="tagName">The current name of the Tag to be edited. This name is case-sensitive.</param>
+        /// <param name="modifyTagRequest">An object containing the new details for the Tag, such as a new name or updated color attributes.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="Tag"/> object with its new details.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/>, <paramref name="tagName"/>, or <paramref name="modifyTagRequest"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space or the tag with the specified name is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to edit tags in this space.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space or the Tag with the specified name does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to edit Tags in this Space.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<Tag> EditSpaceTagAsync(
             string spaceId,
             string tagName,
@@ -72,34 +67,35 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Deletes a task Tag from a Space.
+        /// Deletes a task Tag from a specific Space.
         /// </summary>
-        /// <param name="spaceId">The ID of the Space.</param>
-        /// <param name="tagName">The name of the Tag to delete.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <param name="spaceId">The unique identifier of the Space from which the Tag will be deleted.</param>
+        /// <param name="tagName">The name of the Tag to delete. This name is case-sensitive.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> or <paramref name="tagName"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the space or the tag with the specified name is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete tags in this space.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space or the Tag with the specified name does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete Tags in this Space.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         System.Threading.Tasks.Task DeleteSpaceTagAsync(
             string spaceId,
             string tagName,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Adds a Tag to a task.
+        /// Adds an existing Tag to a specific task. The Tag must already exist within the Space of the task.
         /// </summary>
-        /// <param name="taskId">The ID of the task.</param>
-        /// <param name="tagName">The name of the Tag to add. The tag must already exist in the Space.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by its custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <param name="taskId">The unique identifier of the task to which the Tag will be added.</param>
+        /// <param name="tagName">The name of the Tag to add. The Tag must be predefined in the task's Space.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="tagName"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task or the tag (in the task's space) with the specified ID/name is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to add tags to this task.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task or the Tag (within the task's Space) with the specified ID/name does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to add Tags to this task.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         System.Threading.Tasks.Task AddTagToTaskAsync(
             string taskId,
             string tagName,
@@ -108,18 +104,19 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Removes a Tag from a task.
+        /// Removes an existing Tag from a specific task.
         /// </summary>
-        /// <param name="taskId">The ID of the task.</param>
-        /// <param name="tagName">The name of the Tag to remove.</param>
-        /// <param name="customTaskIds">Optional. If true, references task by its custom task id.</param>
-        /// <param name="teamId">Optional. Workspace ID (formerly team_id), required if customTaskIds is true.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>An awaitable task representing the asynchronous operation (void).</returns>
+        /// <param name="taskId">The unique identifier of the task from which the Tag will be removed.</param>
+        /// <param name="tagName">The name of the Tag to remove from the task.</param>
+        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
+        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="tagName"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task or the tag (on the task) with the specified ID/name is not found.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to remove tags from this task.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown if the API call fails for other reasons.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task does not exist, or if the Tag is not currently applied to the task.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to remove Tags from this task.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         System.Threading.Tasks.Task RemoveTagFromTaskAsync(
             string taskId,
             string tagName,
