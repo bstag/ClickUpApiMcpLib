@@ -12,6 +12,8 @@ using System.Net.Http;
 using System.Text; // For StringBuilder
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -21,16 +23,19 @@ namespace ClickUp.Api.Client.Services
     public class UsersService : IUsersService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<UsersService> _logger;
         private const string BaseWorkspaceEndpoint = "team"; // ClickUp v2 uses "team/{team_id}" for workspace context
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UsersService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public UsersService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public UsersService(IApiConnection apiConnection, ILogger<UsersService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<UsersService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -59,6 +64,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeShared = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting user ID: {UserId} from workspace ID: {WorkspaceId}", userId, workspaceId);
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/user/{userId}";
             var queryParams = new Dictionary<string, string?>();
             // 'includeShared' is not used as it's not standard for this endpoint.
@@ -106,6 +112,7 @@ namespace ClickUp.Api.Client.Services
             EditUserOnWorkspaceRequest editUserRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Editing user ID: {UserId} on workspace ID: {WorkspaceId}", userId, workspaceId);
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/user/{userId}";
             var response = await _apiConnection.PutAsync<EditUserOnWorkspaceRequest, GetUserResponse>(endpoint, editUserRequest, cancellationToken);
 
@@ -132,6 +139,7 @@ namespace ClickUp.Api.Client.Services
             string userId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Removing user ID: {UserId} from workspace ID: {WorkspaceId}", userId, workspaceId);
             var endpoint = $"{BaseWorkspaceEndpoint}/{workspaceId}/user/{userId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }

@@ -11,6 +11,8 @@ using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Users;
 using ClickUp.Api.Client.Models.RequestModels.Guests;
 using ClickUp.Api.Client.Models.ResponseModels.Guests; // Assuming GetGuestResponse etc.
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -20,15 +22,18 @@ namespace ClickUp.Api.Client.Services
     public class GuestsService : IGuestsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<GuestsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GuestsService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public GuestsService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public GuestsService(IApiConnection apiConnection, ILogger<GuestsService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<GuestsService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -56,6 +61,7 @@ namespace ClickUp.Api.Client.Services
             InviteGuestToWorkspaceRequest inviteGuestRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Inviting guest to workspace ID: {WorkspaceId}, Email: {GuestEmail}", workspaceId, inviteGuestRequest.Email);
             var endpoint = $"team/{workspaceId}/guest"; // team_id is workspaceId
             var response = await _apiConnection.PostAsync<InviteGuestToWorkspaceRequest, InviteGuestToWorkspaceResponse>(endpoint, inviteGuestRequest, cancellationToken);
             if (response == null)
@@ -75,6 +81,7 @@ namespace ClickUp.Api.Client.Services
             string guestId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting guest ID: {GuestId} for workspace ID: {WorkspaceId}", guestId, workspaceId);
             var endpoint = $"team/{workspaceId}/guest/{guestId}";
             var response = await _apiConnection.GetAsync<GetGuestResponse>(endpoint, cancellationToken);
             if (response == null) // The interface expects GetGuestResponse, which wraps Guest.
@@ -95,6 +102,7 @@ namespace ClickUp.Api.Client.Services
             EditGuestOnWorkspaceRequest updateGuestRequest, // Changed from UpdateGuestRequest
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Editing guest ID: {GuestId} on workspace ID: {WorkspaceId}", guestId, workspaceId);
             var endpoint = $"team/{workspaceId}/guest/{guestId}";
             var responseWrapper = await _apiConnection.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(endpoint, updateGuestRequest, cancellationToken);
             if (responseWrapper?.Guest == null)
@@ -110,6 +118,7 @@ namespace ClickUp.Api.Client.Services
             string guestId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Removing guest ID: {GuestId} from workspace ID: {WorkspaceId}", guestId, workspaceId);
             var endpoint = $"team/{workspaceId}/guest/{guestId}";
             // API returns a 'team' object, but for a DELETE, we often don't need it.
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
@@ -125,6 +134,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null, // This is workspaceId for the task context
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Adding guest ID: {GuestId} to task ID: {TaskId}", guestId, taskId);
             var endpoint = $"task/{taskId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
@@ -149,6 +159,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null, // This is workspaceId for the task context
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Removing guest ID: {GuestId} from task ID: {TaskId}", guestId, taskId);
             var endpoint = $"task/{taskId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
@@ -175,6 +186,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeShared = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Adding guest ID: {GuestId} to list ID: {ListId}", guestId, listId);
             var endpoint = $"list/{listId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
@@ -195,6 +207,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeShared = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Removing guest ID: {GuestId} from list ID: {ListId}", guestId, listId);
             var endpoint = $"list/{listId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
@@ -216,6 +229,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeShared = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Adding guest ID: {GuestId} to folder ID: {FolderId}", guestId, folderId);
             var endpoint = $"folder/{folderId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
@@ -236,6 +250,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeShared = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Removing guest ID: {GuestId} from folder ID: {FolderId}", guestId, folderId);
             var endpoint = $"folder/{folderId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();

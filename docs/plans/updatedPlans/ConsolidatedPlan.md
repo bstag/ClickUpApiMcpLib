@@ -13,7 +13,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *Files:* `src/ClickUp.Api.Client/Services/TaskService.cs`, `src/ClickUp.Api.Client.Abstractions/Services/ITasksService.cs`
     - *Why:* Ensure task merging functionality is correct and usable; current implementation notes ambiguity.
     - *Ref:* `docs/plans/updatedPlans/services/02-ServiceImplementations.md`
-- [ ] **Task:** Review all service implementations in `src/ClickUp.Api.Client/Services/` for consistent `ILogger<XxxService>` injection in constructors and basic usage (e.g., logging entry/exit or errors).
+- [x] **Task:** Review all service implementations in `src/ClickUp.Api.Client/Services/` for consistent `ILogger<XxxService>` injection in constructors and basic usage (e.g., logging entry/exit or errors).
     - *Files:* All service files in `src/ClickUp.Api.Client/Services/`
     - *Why:* Improves observability and maintainability, aligns with original plan for constructor dependencies.
     - *Ref:* `docs/plans/updatedPlans/services/02-ServiceImplementations.md`

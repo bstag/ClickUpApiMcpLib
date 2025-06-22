@@ -11,6 +11,8 @@ using ClickUp.Api.Client.Models.Entities.Checklists;
 using ClickUp.Api.Client.Models.RequestModels.Checklists;
 using ClickUp.Api.Client.Models.ResponseModels.Checklists; // For specific response DTOs
 using System.Linq; // For Enumerable.Empty (though not used in this specific refactor but good practice)
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -20,15 +22,18 @@ namespace ClickUp.Api.Client.Services
     public class TaskChecklistsService : ITaskChecklistsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<TaskChecklistsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskChecklistsService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public TaskChecklistsService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public TaskChecklistsService(IApiConnection apiConnection, ILogger<TaskChecklistsService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<TaskChecklistsService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -58,6 +63,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating checklist for task ID: {TaskId}, Name: {ChecklistName}", taskId, createChecklistRequest.Name);
             var endpoint = $"task/{taskId}/checklist";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -78,6 +84,7 @@ namespace ClickUp.Api.Client.Services
             EditChecklistRequest editChecklistRequest, // Changed from UpdateChecklistRequest
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Editing checklist ID: {ChecklistId}, Name: {ChecklistName}", checklistId, editChecklistRequest.Name);
             var endpoint = $"checklist/{checklistId}";
             await _apiConnection.PutAsync(endpoint, editChecklistRequest, cancellationToken); // Interface returns void
         }
@@ -87,6 +94,7 @@ namespace ClickUp.Api.Client.Services
             string checklistId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting checklist ID: {ChecklistId}", checklistId);
             var endpoint = $"checklist/{checklistId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
@@ -97,6 +105,7 @@ namespace ClickUp.Api.Client.Services
             CreateChecklistItemRequest createChecklistItemRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating checklist item in checklist ID: {ChecklistId}, Name: {ItemName}", checklistId, createChecklistItemRequest.Name);
             var endpoint = $"checklist/{checklistId}/checklist_item";
             var response = await _apiConnection.PostAsync<CreateChecklistItemRequest, CreateChecklistItemResponse>(endpoint, createChecklistItemRequest, cancellationToken);
             if (response?.Checklist == null)
@@ -113,6 +122,7 @@ namespace ClickUp.Api.Client.Services
             EditChecklistItemRequest editChecklistItemRequest, // Changed from UpdateChecklistItemRequest
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Editing checklist item ID: {ChecklistItemId} in checklist ID: {ChecklistId}, Name: {ItemName}", checklistItemId, checklistId, editChecklistItemRequest.Name);
             var endpoint = $"checklist/{checklistId}/checklist_item/{checklistItemId}";
             var response = await _apiConnection.PutAsync<EditChecklistItemRequest, EditChecklistItemResponse>(endpoint, editChecklistItemRequest, cancellationToken);
             if (response?.Checklist == null)
@@ -128,6 +138,7 @@ namespace ClickUp.Api.Client.Services
             string checklistItemId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting checklist item ID: {ChecklistItemId} from checklist ID: {ChecklistId}", checklistItemId, checklistId);
             var endpoint = $"checklist/{checklistId}/checklist_item/{checklistItemId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }

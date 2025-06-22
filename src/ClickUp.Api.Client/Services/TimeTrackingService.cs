@@ -10,6 +10,8 @@ using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.TimeTracking; // Specific import
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
 using ClickUp.Api.Client.Models.ResponseModels.TimeTracking;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -19,16 +21,19 @@ namespace ClickUp.Api.Client.Services
     public class TimeTrackingService : ITimeTrackingService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<TimeTrackingService> _logger;
         private const string BaseEndpoint = "team"; // ClickUp v2 uses "team/{team_id}" for workspace context
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TimeTrackingService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public TimeTrackingService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public TimeTrackingService(IApiConnection apiConnection, ILogger<TimeTrackingService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<TimeTrackingService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -62,6 +67,7 @@ namespace ClickUp.Api.Client.Services
             GetTimeEntriesRequest request, // This request DTO should contain all query parameters
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting time entries for workspace ID: {WorkspaceId}", workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries";
             var queryParams = new Dictionary<string, string?>();
 
@@ -91,6 +97,7 @@ namespace ClickUp.Api.Client.Services
             string? teamIdForCustomTaskIds = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating time entry in workspace ID: {WorkspaceId}, Description: {Description}", workspaceId, createTimeEntryRequest.Description);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -115,6 +122,7 @@ namespace ClickUp.Api.Client.Services
             bool? includeApprovalDetails = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting time entry ID: {TimerId} in workspace ID: {WorkspaceId}", timerId, workspaceId);
             // The endpoint for a single time entry is usually just /time_entries/{timer_id} or team/{team_id}/time_entries/{timer_id}
             // Let's assume team/{team_id}/time_entries/{timer_id}
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/{timerId}";
@@ -141,6 +149,7 @@ namespace ClickUp.Api.Client.Services
             string? teamIdForCustomTaskIds = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Updating time entry ID: {TimerId} in workspace ID: {WorkspaceId}", timerId, workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/{timerId}";
              var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -161,6 +170,7 @@ namespace ClickUp.Api.Client.Services
             string timerId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting time entry ID: {TimerId} in workspace ID: {WorkspaceId}", timerId, workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/{timerId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
@@ -171,6 +181,7 @@ namespace ClickUp.Api.Client.Services
             string timerId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting time entry history for timer ID: {TimerId} in workspace ID: {WorkspaceId}", timerId, workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/{timerId}/history";
             var response = await _apiConnection.GetAsync<GetTimeEntryHistoryResponse>(endpoint, cancellationToken);
             // Assuming GetTimeEntryHistoryResponse has a 'History' or 'Data' property that is IEnumerable<TimeEntryHistory>
@@ -183,6 +194,7 @@ namespace ClickUp.Api.Client.Services
             string? assigneeUserId = null, // This is a query param: assignee_user_id
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting running time entry for workspace ID: {WorkspaceId}, Assignee: {AssigneeUserId}", workspaceId, assigneeUserId);
             // Endpoint for current timer: GET /team/{team_id}/time_entries/current
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/current";
             var queryParams = new Dictionary<string, string?>();
@@ -201,6 +213,7 @@ namespace ClickUp.Api.Client.Services
             string? teamIdForCustomTaskIds = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Starting time entry in workspace ID: {WorkspaceId}, Task ID: {TaskId}", workspaceId, startTimeEntryRequest.TaskId);
             // Endpoint for starting timer: POST /team/{team_id}/time_entries/start
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/start";
              var queryParams = new Dictionary<string, string?>();
@@ -221,6 +234,7 @@ namespace ClickUp.Api.Client.Services
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Stopping time entry in workspace ID: {WorkspaceId}", workspaceId);
             // Endpoint for stopping timer: POST /team/{team_id}/time_entries/stop
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/stop";
             // This endpoint usually doesn't require a request body.
@@ -239,6 +253,7 @@ namespace ClickUp.Api.Client.Services
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting all time entry tags for workspace ID: {WorkspaceId}", workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/tags";
             var response = await _apiConnection.GetAsync<GetAllTimeEntryTagsResponse>(endpoint, cancellationToken);
             return response?.Data ?? Enumerable.Empty<TaskTag>();
@@ -250,6 +265,7 @@ namespace ClickUp.Api.Client.Services
             AddTagsFromTimeEntriesRequest addTagsRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Adding tags to time entries in workspace ID: {WorkspaceId}", workspaceId);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/tags";
             await _apiConnection.PostAsync(endpoint, addTagsRequest, cancellationToken);
         }
@@ -260,6 +276,7 @@ namespace ClickUp.Api.Client.Services
             RemoveTagsFromTimeEntriesRequest removeTagsRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Removing tags from time entries in workspace ID: {WorkspaceId}", workspaceId);
             // IApiConnection.DeleteAsync is void and doesn't take a body.
             // This requires a DeleteAsync<TRequest> or similar, or a custom SendAsync call.
             // For now, this specific method cannot be fully implemented with current IApiConnection.
@@ -282,6 +299,7 @@ namespace ClickUp.Api.Client.Services
             UpdateTimeEntryRequest changeTagNameRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Changing time entry tag name in workspace ID: {WorkspaceId}", workspaceId);
             // Endpoint: PUT /team/{team_id}/time_entries/tags
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/tags";
             await _apiConnection.PutAsync(endpoint, changeTagNameRequest, cancellationToken);
@@ -293,6 +311,7 @@ namespace ClickUp.Api.Client.Services
             GetTimeEntriesRequest request, // This DTO should not contain 'page'
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting time entries as async enumerable for workspace ID: {WorkspaceId}", workspaceId);
             int currentPage = 0;
             bool lastPageReached;
 

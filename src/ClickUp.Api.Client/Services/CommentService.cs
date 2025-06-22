@@ -11,6 +11,8 @@ using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Comments;
 using ClickUp.Api.Client.Models.RequestModels.Comments;
 using ClickUp.Api.Client.Models.ResponseModels.Comments; // For CreateCommentResponse and potential GetCommentsResponse
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -20,15 +22,18 @@ namespace ClickUp.Api.Client.Services
     public class CommentService : ICommentsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<CommentService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommentService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public CommentService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public CommentService(IApiConnection apiConnection, ILogger<CommentService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<CommentService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -59,6 +64,7 @@ namespace ClickUp.Api.Client.Services
             string? startId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting task comments for task ID: {TaskId}, Start: {Start}, StartId: {StartId}", taskId, start, startId);
             var endpoint = $"task/{taskId}/comment";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -79,6 +85,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating task comment for task ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}/comment";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -100,6 +107,7 @@ namespace ClickUp.Api.Client.Services
             string? startId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting chat view comments for view ID: {ViewId}, Start: {Start}, StartId: {StartId}", viewId, start, startId);
             var endpoint = $"view/{viewId}/comment";
             var queryParams = new Dictionary<string, string?>();
             if (start.HasValue) queryParams["start"] = start.Value.ToString();
@@ -116,6 +124,7 @@ namespace ClickUp.Api.Client.Services
             CreateCommentRequest createCommentRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating chat view comment for view ID: {ViewId}", viewId);
             var endpoint = $"view/{viewId}/comment";
             var response = await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
             if (response == null)
@@ -132,6 +141,7 @@ namespace ClickUp.Api.Client.Services
             string? startId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting list comments for list ID: {ListId}, Start: {Start}, StartId: {StartId}", listId, start, startId);
             var endpoint = $"list/{listId}/comment";
             var queryParams = new Dictionary<string, string?>();
             if (start.HasValue) queryParams["start"] = start.Value.ToString();
@@ -148,6 +158,7 @@ namespace ClickUp.Api.Client.Services
             CreateCommentRequest createCommentRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating list comment for list ID: {ListId}", listId);
             var endpoint = $"list/{listId}/comment";
             var response = await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
             if (response == null)
@@ -163,6 +174,7 @@ namespace ClickUp.Api.Client.Services
             UpdateCommentRequest updateCommentRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Updating comment ID: {CommentId}", commentId);
             var endpoint = $"comment/{commentId}";
             var comment = await _apiConnection.PutAsync<UpdateCommentRequest, Comment>(endpoint, updateCommentRequest, cancellationToken);
             if (comment == null)
@@ -177,6 +189,7 @@ namespace ClickUp.Api.Client.Services
             string commentId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting comment ID: {CommentId}", commentId);
             var endpoint = $"comment/{commentId}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
@@ -191,6 +204,7 @@ namespace ClickUp.Api.Client.Services
             string commentId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting threaded comments for comment ID: {CommentId}", commentId);
              // The API doc suggests "GET /v2/comment/{comment_id}/reply" but this is not standard.
              // More likely, one gets a comment and its 'replies' field, or this endpoint is a special case.
              // Let's assume it's a direct endpoint that returns a list of comments.
@@ -207,6 +221,7 @@ namespace ClickUp.Api.Client.Services
             CreateCommentRequest createCommentRequest,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating threaded comment for comment ID: {CommentId}", commentId);
             var endpoint = $"comment/{commentId}/reply";
             var response = await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
             if (response == null)

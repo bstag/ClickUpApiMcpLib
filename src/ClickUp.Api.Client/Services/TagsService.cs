@@ -12,6 +12,8 @@ using ClickUp.Api.Client.Models.RequestModels.Tags; // For ModifyTagRequest
 using ClickUp.Api.Client.Models.ResponseModels; // Assuming GetTagsResponse exists
 using System.Linq;
 using ClickUp.Api.Client.Models.ResponseModels.Spaces; // For Enumerable.Empty
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -21,15 +23,18 @@ namespace ClickUp.Api.Client.Services
     public class TagsService : ITagsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<TagsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TagsService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public TagsService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public TagsService(IApiConnection apiConnection, ILogger<TagsService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<TagsService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -56,6 +61,7 @@ namespace ClickUp.Api.Client.Services
             string spaceId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting space tags for space ID: {SpaceId}", spaceId);
             var endpoint = $"space/{spaceId}/tag";
             var response = await _apiConnection.GetAsync<GetSpaceTagsResponse>(endpoint, cancellationToken); // API returns {"tags": [...]}
             return response?.Tags ?? Enumerable.Empty<Tag>();
@@ -67,6 +73,7 @@ namespace ClickUp.Api.Client.Services
             ModifyTagRequest modifyTagRequest, // Changed from CreateTagRequest
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Creating space tag in space ID: {SpaceId}, Tag Name: {TagName}", spaceId, modifyTagRequest.Tag.Name);
             var endpoint = $"space/{spaceId}/tag";
             // Interface is void. The API might return the created tag, but we discard it.
             // If API requires specific response handling (even if just for success/fail), this might need adjustment.
@@ -81,6 +88,7 @@ namespace ClickUp.Api.Client.Services
             ModifyTagRequest modifyTagRequest, // Changed from UpdateTagRequest, this contains the new tag details
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Editing space tag in space ID: {SpaceId}, Original Tag Name: {OriginalTagName}, New Tag Name: {NewTagName}", spaceId, tagName, modifyTagRequest.Tag.Name);
             // Ensure tagName is URL encoded if it can contain special characters
             var encodedTagName = Uri.EscapeDataString(tagName);
             var endpoint = $"space/{spaceId}/tag/{encodedTagName}";
@@ -105,6 +113,7 @@ namespace ClickUp.Api.Client.Services
             string tagName, // This tagName is for identifying the tag to delete, part of the path
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Deleting space tag in space ID: {SpaceId}, Tag Name: {TagName}", spaceId, tagName);
             var encodedTagName = Uri.EscapeDataString(tagName);
             var endpoint = $"space/{spaceId}/tag/{encodedTagName}";
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
@@ -118,6 +127,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Adding tag {TagName} to task ID: {TaskId}", tagName, taskId);
             var encodedTagName = Uri.EscapeDataString(tagName);
             var endpoint = $"task/{taskId}/tag/{encodedTagName}";
             var queryParams = new Dictionary<string, string?>();
@@ -137,6 +147,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Removing tag {TagName} from task ID: {TaskId}", tagName, taskId);
             var encodedTagName = Uri.EscapeDataString(tagName);
             var endpoint = $"task/{taskId}/tag/{encodedTagName}";
             var queryParams = new Dictionary<string, string?>();

@@ -11,6 +11,8 @@ using ClickUp.Api.Client.Models.Entities.CustomFields; // For Field
 using ClickUp.Api.Client.Models.RequestModels.CustomFields;
 using ClickUp.Api.Client.Models.ResponseModels.CustomFields; // Assuming GetCustomFieldsResponse exists
 using System.Linq; // For Enumerable.Empty
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -20,15 +22,18 @@ namespace ClickUp.Api.Client.Services
     public class CustomFieldsService : ICustomFieldsService
     {
         private readonly IApiConnection _apiConnection;
+        private readonly ILogger<CustomFieldsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CustomFieldsService"/> class.
         /// </summary>
         /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection is null.</exception>
-        public CustomFieldsService(IApiConnection apiConnection)
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public CustomFieldsService(IApiConnection apiConnection, ILogger<CustomFieldsService> logger)
         {
             _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<CustomFieldsService>.Instance;
         }
 
         private string BuildQueryString(Dictionary<string, string?> queryParams)
@@ -55,6 +60,7 @@ namespace ClickUp.Api.Client.Services
             string listId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting accessible custom fields for list ID: {ListId}", listId);
             // This endpoint retrieves all fields accessible by a List, including those from parent Folders, Spaces, and the Workspace.
             var endpoint = $"list/{listId}/field";
             var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
@@ -66,6 +72,7 @@ namespace ClickUp.Api.Client.Services
             string folderId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting custom fields for folder ID: {FolderId}", folderId);
             var endpoint = $"folder/{folderId}/field";
             var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
             return response?.Fields ?? Enumerable.Empty<Field>();
@@ -76,6 +83,7 @@ namespace ClickUp.Api.Client.Services
             string spaceId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting custom fields for space ID: {SpaceId}", spaceId);
             var endpoint = $"space/{spaceId}/field";
             var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
             return response?.Fields ?? Enumerable.Empty<Field>();
@@ -86,6 +94,7 @@ namespace ClickUp.Api.Client.Services
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Getting custom fields for workspace ID: {WorkspaceId}", workspaceId);
             var endpoint = $"team/{workspaceId}/field"; // team_id is workspaceId
             var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
             return response?.Fields ?? Enumerable.Empty<Field>();
@@ -100,6 +109,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Setting custom field value for task ID: {TaskId}, Field ID: {FieldId}", taskId, fieldId);
             var endpoint = $"task/{taskId}/field/{fieldId}";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
@@ -118,6 +128,7 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Removing custom field value for task ID: {TaskId}, Field ID: {FieldId}", taskId, fieldId);
             var endpoint = $"task/{taskId}/field/{fieldId}";
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
