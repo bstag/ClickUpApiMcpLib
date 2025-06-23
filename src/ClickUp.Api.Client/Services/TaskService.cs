@@ -66,58 +66,38 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async Task<GetTasksResponse> GetTasksAsync(
             string listId,
-            bool? archived = null,
-            bool? includeMarkdownDescription = null,
-            int? page = null,
-            string? orderBy = null,
-            bool? reverse = null,
-            bool? subtasks = null,
-            IEnumerable<string>? statuses = null,
-            bool? includeClosed = null,
-            IEnumerable<string>? assignees = null,
-            IEnumerable<string>? watchers = null,
-            IEnumerable<string>? tags = null,
-            long? dueDateGreaterThan = null,
-            long? dueDateLessThan = null,
-            long? dateCreatedGreaterThan = null,
-            long? dateCreatedLessThan = null,
-            long? dateUpdatedGreaterThan = null,
-            long? dateUpdatedLessThan = null,
-            long? dateDoneGreaterThan = null,
-            long? dateDoneLessThan = null,
-            string? customFields = null,
-            IEnumerable<long>? customItems = null,
+            GetTasksRequest requestModel,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting tasks for list ID: {ListId}, Page: {Page}", listId, page);
+            _logger.LogInformation("Getting tasks for list ID: {ListId}, Page: {Page}", listId, requestModel.Page);
             var endpoint = $"list/{listId}/task";
             var queryParams = new Dictionary<string, string?>();
-            if (archived.HasValue) queryParams["archived"] = archived.Value.ToString().ToLower();
-            if (includeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = includeMarkdownDescription.Value.ToString().ToLower();
-            if (page.HasValue) queryParams["page"] = page.Value.ToString();
-            if (!string.IsNullOrEmpty(orderBy)) queryParams["order_by"] = orderBy;
-            if (reverse.HasValue) queryParams["reverse"] = reverse.Value.ToString().ToLower();
-            if (subtasks.HasValue) queryParams["subtasks"] = subtasks.Value.ToString().ToLower();
-            if (includeClosed.HasValue) queryParams["include_closed"] = includeClosed.Value.ToString().ToLower();
-            if (dueDateGreaterThan.HasValue) queryParams["due_date_gt"] = dueDateGreaterThan.Value.ToString();
-            if (dueDateLessThan.HasValue) queryParams["due_date_lt"] = dueDateLessThan.Value.ToString();
-            if (dateCreatedGreaterThan.HasValue) queryParams["date_created_gt"] = dateCreatedGreaterThan.Value.ToString();
-            if (dateCreatedLessThan.HasValue) queryParams["date_created_lt"] = dateCreatedLessThan.Value.ToString();
-            if (dateUpdatedGreaterThan.HasValue) queryParams["date_updated_gt"] = dateUpdatedGreaterThan.Value.ToString();
-            if (dateUpdatedLessThan.HasValue) queryParams["date_updated_lt"] = dateUpdatedLessThan.Value.ToString();
-            if (dateDoneGreaterThan.HasValue) queryParams["date_done_gt"] = dateDoneGreaterThan.Value.ToString();
-            if (dateDoneLessThan.HasValue) queryParams["date_done_lt"] = dateDoneLessThan.Value.ToString();
-            if (!string.IsNullOrEmpty(customFields)) queryParams["custom_fields"] = customFields;
+
+            if (requestModel.Archived.HasValue) queryParams["archived"] = requestModel.Archived.Value.ToString().ToLower();
+            if (requestModel.IncludeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = requestModel.IncludeMarkdownDescription.Value.ToString().ToLower();
+            if (requestModel.Page.HasValue) queryParams["page"] = requestModel.Page.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.OrderBy)) queryParams["order_by"] = requestModel.OrderBy;
+            if (requestModel.Reverse.HasValue) queryParams["reverse"] = requestModel.Reverse.Value.ToString().ToLower();
+            if (requestModel.Subtasks.HasValue) queryParams["subtasks"] = requestModel.Subtasks.Value.ToString().ToLower();
+            if (requestModel.IncludeClosed.HasValue) queryParams["include_closed"] = requestModel.IncludeClosed.Value.ToString().ToLower();
+            if (requestModel.DueDateGreaterThan.HasValue) queryParams["due_date_gt"] = requestModel.DueDateGreaterThan.Value.ToString();
+            if (requestModel.DueDateLessThan.HasValue) queryParams["due_date_lt"] = requestModel.DueDateLessThan.Value.ToString();
+            if (requestModel.DateCreatedGreaterThan.HasValue) queryParams["date_created_gt"] = requestModel.DateCreatedGreaterThan.Value.ToString();
+            if (requestModel.DateCreatedLessThan.HasValue) queryParams["date_created_lt"] = requestModel.DateCreatedLessThan.Value.ToString();
+            if (requestModel.DateUpdatedGreaterThan.HasValue) queryParams["date_updated_gt"] = requestModel.DateUpdatedGreaterThan.Value.ToString();
+            if (requestModel.DateUpdatedLessThan.HasValue) queryParams["date_updated_lt"] = requestModel.DateUpdatedLessThan.Value.ToString();
+            if (requestModel.DateDoneGreaterThan.HasValue) queryParams["date_done_gt"] = requestModel.DateDoneGreaterThan.Value.ToString();
+            if (requestModel.DateDoneLessThan.HasValue) queryParams["date_done_lt"] = requestModel.DateDoneLessThan.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.CustomFields)) queryParams["custom_fields"] = requestModel.CustomFields;
 
             var queryString = BuildQueryString(queryParams);
 
-            // Handle array parameters separately as they have a specific format (e.g., statuses[]=...&statuses[]=...)
             var arrayParams = new List<string>();
-            if (statuses != null && statuses.Any()) arrayParams.Add(BuildQueryStringFromArray("statuses", statuses));
-            if (assignees != null && assignees.Any()) arrayParams.Add(BuildQueryStringFromArray("assignees", assignees));
-            if (watchers != null && watchers.Any()) arrayParams.Add(BuildQueryStringFromArray("watchers", watchers));
-            if (tags != null && tags.Any()) arrayParams.Add(BuildQueryStringFromArray("tags", tags));
-            if (customItems != null && customItems.Any()) arrayParams.Add(BuildQueryStringFromArray("custom_items", customItems.Select(ci => ci.ToString())));
+            if (requestModel.Statuses != null && requestModel.Statuses.Any()) arrayParams.Add(BuildQueryStringFromArray("statuses", requestModel.Statuses));
+            if (requestModel.Assignees != null && requestModel.Assignees.Any()) arrayParams.Add(BuildQueryStringFromArray("assignees", requestModel.Assignees));
+            if (requestModel.Watchers != null && requestModel.Watchers.Any()) arrayParams.Add(BuildQueryStringFromArray("watchers", requestModel.Watchers));
+            if (requestModel.Tags != null && requestModel.Tags.Any()) arrayParams.Add(BuildQueryStringFromArray("tags", requestModel.Tags));
+            if (requestModel.CustomItems != null && requestModel.CustomItems.Any()) arrayParams.Add(BuildQueryStringFromArray("custom_items", requestModel.CustomItems.Select(ci => ci.ToString())));
 
             if (arrayParams.Any(p => !string.IsNullOrEmpty(p)))
             {
@@ -404,31 +384,31 @@ namespace ClickUp.Api.Client.Services
                 }
 
                 _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
-                var response = await GetTasksAsync( // Call the existing paged method
-                    listId: listId,
-                    archived: archived,
-                    includeMarkdownDescription: includeMarkdownDescription,
-                    page: currentPage, // Current page for this iteration
-                    orderBy: orderBy,
-                    reverse: reverse,
-                    subtasks: subtasks,
-                    statuses: statuses,
-                    includeClosed: includeClosed,
-                    assignees: assignees,
-                    watchers: watchers,
-                    tags: tags,
-                    dueDateGreaterThan: dueDateGreaterThan,
-                    dueDateLessThan: dueDateLessThan,
-                    dateCreatedGreaterThan: dateCreatedGreaterThan,
-                    dateCreatedLessThan: dateCreatedLessThan,
-                    dateUpdatedGreaterThan: dateUpdatedGreaterThan,
-                    dateUpdatedLessThan: dateUpdatedLessThan,
-                    dateDoneGreaterThan: dateDoneGreaterThan,
-                    dateDoneLessThan: dateDoneLessThan,
-                    customFields: customFields,
-                    customItems: customItems,
-                    cancellationToken: cancellationToken
-                ).ConfigureAwait(false);
+                var request = new GetTasksRequest
+                {
+                    Archived = archived,
+                    IncludeMarkdownDescription = includeMarkdownDescription,
+                    Page = currentPage, // Current page for this iteration
+                    OrderBy = orderBy,
+                    Reverse = reverse,
+                    Subtasks = subtasks,
+                    Statuses = statuses,
+                    IncludeClosed = includeClosed,
+                    Assignees = assignees,
+                    Watchers = watchers,
+                    Tags = tags,
+                    DueDateGreaterThan = dueDateGreaterThan,
+                    DueDateLessThan = dueDateLessThan,
+                    DateCreatedGreaterThan = dateCreatedGreaterThan,
+                    DateCreatedLessThan = dateCreatedLessThan,
+                    DateUpdatedGreaterThan = dateUpdatedGreaterThan,
+                    DateUpdatedLessThan = dateUpdatedLessThan,
+                    DateDoneGreaterThan = dateDoneGreaterThan,
+                    DateDoneLessThan = dateDoneLessThan,
+                    CustomFields = customFields,
+                    CustomItems = customItems
+                };
+                var response = await GetTasksAsync(listId, request, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Tasks != null && response.Tasks.Any())
                 {
