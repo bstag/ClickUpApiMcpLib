@@ -272,5 +272,245 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 $"task/{taskId}/field/{fieldId}",
                 expectedToken), Times.Once);
         }
+
+        // --- GetFolderCustomFieldsAsync Tests ---
+        [Fact]
+        public async Task GetFolderCustomFieldsAsync_ValidFolderId_BuildsCorrectUrlAndReturnsFields()
+        {
+            // Arrange
+            var folderId = "folder_456";
+            var expectedFields = new List<Field> { CreateSampleField("field_folder_1") };
+            var apiResponse = new GetAccessibleCustomFieldsResponse(expectedFields);
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>($"folder/{folderId}/field", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _customFieldsService.GetFolderCustomFieldsAsync(folderId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal("field_folder_1", result.First().Id);
+            _mockApiConnection.Verify(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                $"folder/{folderId}/field",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetFolderCustomFieldsAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var folderId = "folder_err";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _customFieldsService.GetFolderCustomFieldsAsync(folderId));
+        }
+
+        [Fact]
+        public async Task GetFolderCustomFieldsAsync_NullResponse_ReturnsEmptyList()
+        {
+            var folderId = "folder_null";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetAccessibleCustomFieldsResponse)null);
+
+            var result = await _customFieldsService.GetFolderCustomFieldsAsync(folderId);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetFolderCustomFieldsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var folderId = "folder_cancel_op";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _customFieldsService.GetFolderCustomFieldsAsync(folderId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetFolderCustomFieldsAsync_PassesCancellationTokenToApiConnection()
+        {
+            var folderId = "folder_ct_pass_fields";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<Field>());
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _customFieldsService.GetFolderCustomFieldsAsync(folderId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                $"folder/{folderId}/field",
+                expectedToken), Times.Once);
+        }
+
+        // --- GetSpaceCustomFieldsAsync Tests ---
+        [Fact]
+        public async Task GetSpaceCustomFieldsAsync_ValidSpaceId_BuildsCorrectUrlAndReturnsFields()
+        {
+            // Arrange
+            var spaceId = "space_789";
+            var expectedFields = new List<Field> { CreateSampleField("field_space_1") };
+            var apiResponse = new GetAccessibleCustomFieldsResponse(expectedFields);
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>($"space/{spaceId}/field", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _customFieldsService.GetSpaceCustomFieldsAsync(spaceId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal("field_space_1", result.First().Id);
+            _mockApiConnection.Verify(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                $"space/{spaceId}/field",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetSpaceCustomFieldsAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var spaceId = "space_err";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _customFieldsService.GetSpaceCustomFieldsAsync(spaceId));
+        }
+
+        [Fact]
+        public async Task GetSpaceCustomFieldsAsync_NullResponse_ReturnsEmptyList()
+        {
+            var spaceId = "space_null";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetAccessibleCustomFieldsResponse)null);
+
+            var result = await _customFieldsService.GetSpaceCustomFieldsAsync(spaceId);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetSpaceCustomFieldsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var spaceId = "space_cancel_op";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _customFieldsService.GetSpaceCustomFieldsAsync(spaceId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetSpaceCustomFieldsAsync_PassesCancellationTokenToApiConnection()
+        {
+            var spaceId = "space_ct_pass_fields";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<Field>());
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _customFieldsService.GetSpaceCustomFieldsAsync(spaceId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                $"space/{spaceId}/field",
+                expectedToken), Times.Once);
+        }
+
+        // --- GetWorkspaceCustomFieldsAsync Tests ---
+        [Fact]
+        public async Task GetWorkspaceCustomFieldsAsync_ValidWorkspaceId_BuildsCorrectUrlAndReturnsFields()
+        {
+            // Arrange
+            var workspaceId = "ws_001"; // team_id is workspaceId
+            var expectedFields = new List<Field> { CreateSampleField("field_ws_1") };
+            var apiResponse = new GetAccessibleCustomFieldsResponse(expectedFields);
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>($"team/{workspaceId}/field", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _customFieldsService.GetWorkspaceCustomFieldsAsync(workspaceId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal("field_ws_1", result.First().Id);
+            _mockApiConnection.Verify(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                $"team/{workspaceId}/field",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetWorkspaceCustomFieldsAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_err";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _customFieldsService.GetWorkspaceCustomFieldsAsync(workspaceId));
+        }
+
+        [Fact]
+        public async Task GetWorkspaceCustomFieldsAsync_NullResponse_ReturnsEmptyList()
+        {
+            var workspaceId = "ws_null";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetAccessibleCustomFieldsResponse)null);
+
+            var result = await _customFieldsService.GetWorkspaceCustomFieldsAsync(workspaceId);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetWorkspaceCustomFieldsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_cancel_op";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _customFieldsService.GetWorkspaceCustomFieldsAsync(workspaceId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetWorkspaceCustomFieldsAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_ct_pass_fields";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<Field>());
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _customFieldsService.GetWorkspaceCustomFieldsAsync(workspaceId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                $"team/{workspaceId}/field",
+                expectedToken), Times.Once);
+        }
     }
 }
