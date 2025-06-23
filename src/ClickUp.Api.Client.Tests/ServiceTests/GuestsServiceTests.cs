@@ -182,7 +182,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_edit_err";
             var guestId = "guest_edit_err";
-            var request = new EditGuestOnWorkspaceRequest(false, false, false, false, 0, false);
+            var request = new EditGuestOnWorkspaceRequest(CanEditTags: false, CanSeeTimeEstimated: false, CanSeeTimeSpent: false, CanCreateViews: false, CustomRoleId: 0, CanSeePointsEstimated: false);
             _mockApiConnection.Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>())).ThrowsAsync(new HttpRequestException("API error"));
             await Assert.ThrowsAsync<HttpRequestException>(() => _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request));
         }
@@ -192,7 +192,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_edit_null_api";
             var guestId = "guest_edit_null_api";
-            var request = new EditGuestOnWorkspaceRequest(false, false, false, false, 0, false);
+            var request = new EditGuestOnWorkspaceRequest(CanEditTags: false, CanSeeTimeEstimated: false, CanSeeTimeSpent: false, CanCreateViews: false, CustomRoleId: 0, CanSeePointsEstimated: false);
             _mockApiConnection.Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>())).ReturnsAsync((GetGuestResponse)null);
             await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request));
         }
@@ -202,7 +202,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_edit_null_guest";
             var guestId = "guest_edit_null_guest";
-            var request = new EditGuestOnWorkspaceRequest(false, false, false, false, 0, false);
+            var request = new EditGuestOnWorkspaceRequest(CanEditTags: false, CanSeeTimeEstimated: false, CanSeeTimeSpent: false, CanCreateViews: false, CustomRoleId: 0, CanSeePointsEstimated: false);
             _mockApiConnection.Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>())).ReturnsAsync(new GetGuestResponse { Guest = null! });
             await Assert.ThrowsAsync<InvalidOperationException>(() => _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request));
         }
@@ -526,7 +526,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_edit_cancel";
             var guestId = "guest_edit_cancel";
-            var request = new EditGuestOnWorkspaceRequest(false,false,false,false,0,false);
+            var request = new EditGuestOnWorkspaceRequest(CanEditTags: false, CanSeeTimeEstimated: false, CanSeeTimeSpent: false, CanCreateViews: false, CustomRoleId: 0, CanSeePointsEstimated: false);
             _mockApiConnection.Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>())).ThrowsAsync(new TaskCanceledException("API timeout"));
             await Assert.ThrowsAsync<TaskCanceledException>(() => _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request, new CancellationTokenSource().Token));
         }
@@ -536,7 +536,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_edit_ct";
             var guestId = "guest_edit_ct";
-            var request = new EditGuestOnWorkspaceRequest(false,false,false,false,0,false);
+            var request = new EditGuestOnWorkspaceRequest(CanEditTags: false, CanSeeTimeEstimated: false, CanSeeTimeSpent: false, CanCreateViews: false, CustomRoleId: 0, CanSeePointsEstimated: false);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedGuest = CreateSampleGuest(int.Parse(guestId.Replace("guest_edit_ct", "400")));
@@ -584,7 +584,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
         */
 
-        /*
+
         [Fact]
         public async Task AddGuestToTaskAsync_PassesCancellationTokenToApiConnection()
         {
@@ -593,19 +593,23 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new AddGuestToItemRequest { PermissionLevel = 1 };
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedGuest = CreateSampleGuest(int.Parse(guestId.Replace("guest_add_ct", "500")));
+            var expectedGuest = CreateSampleGuest(500); // Simplified guest creation
             _mockApiConnection
-                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(It.IsAny<string>(), request, expectedToken))
+                .Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(
+                    $"task/{taskId}/guest/{guestId}", // URL should be exact if no optional params are used
+                    request,
+                    expectedToken))
                 .ReturnsAsync(new GetGuestResponse { Guest = expectedGuest });
 
-            await _guestsService.AddGuestToTaskAsync(taskId, guestId, request, includeShared: null, customTaskIds: null, teamId: null, cancellationToken: expectedToken);
+            // Calling with null for all optional bool? and string? params
+            await _guestsService.AddGuestToTaskAsync(taskId, guestId, request, null, null, null, expectedToken);
 
             _mockApiConnection.Verify(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(
-                $"task/{taskId}/guest/{guestId}", // Basic URL, query params are handled by service method
+                $"task/{taskId}/guest/{guestId}",
                 request,
                 expectedToken), Times.Once);
         }
-        */
+
 
         // RemoveGuestFromTaskAsync
         /*
@@ -623,7 +627,6 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
         */
 
-        /*
         [Fact]
         public async Task RemoveGuestFromTaskAsync_PassesCancellationTokenToApiConnection()
         {
@@ -631,18 +634,21 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var guestId = "guest_rem_ct";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedGuest = CreateSampleGuest(int.Parse(guestId.Replace("guest_rem_ct", "600")));
+            var expectedGuest = CreateSampleGuest(600); // Simplified
             _mockApiConnection
-                .Setup(c => c.DeleteAsync<GetGuestResponse>(It.IsAny<string>(), expectedToken))
+                .Setup(c => c.DeleteAsync<GetGuestResponse>(
+                    $"task/{taskId}/guest/{guestId}", // URL should be exact
+                    expectedToken))
                 .ReturnsAsync(new GetGuestResponse { Guest = expectedGuest });
 
-            await _guestsService.RemoveGuestFromTaskAsync(taskId, guestId, includeShared: null, customTaskIds: null, teamId: null, cancellationToken: expectedToken);
+            // Calling with null for all optional bool? and string? params
+            await _guestsService.RemoveGuestFromTaskAsync(taskId, guestId, null, null, null, expectedToken);
 
             _mockApiConnection.Verify(c => c.DeleteAsync<GetGuestResponse>(
-                $"task/{taskId}/guest/{guestId}", // Basic URL, query params are handled by service method
+                $"task/{taskId}/guest/{guestId}",
                 expectedToken), Times.Once);
         }
-        */
+
 
         // AddGuestToListAsync
         [Fact]
