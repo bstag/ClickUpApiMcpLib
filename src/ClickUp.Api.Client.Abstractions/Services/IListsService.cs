@@ -207,7 +207,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
          /// </summary>
         /// <param name="spaceId">The unique identifier of the Space.</param>
         /// <param name="archived">Optional. If set to <c>true</c>, includes archived Lists in the results. Defaults to <c>false</c>.</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation. This token will also be used by the <see cref="System.Runtime.CompilerServices.EnumeratorCancellationAttribute"/> for the async iterator.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>An asynchronous stream of <see cref="ClickUpList"/> objects representing the Folderless Lists in the Space.</returns>
          /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="spaceId"/> is null or empty.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist.</exception>

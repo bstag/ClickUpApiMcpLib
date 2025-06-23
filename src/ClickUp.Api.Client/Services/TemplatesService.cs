@@ -71,9 +71,14 @@ namespace ClickUp.Api.Client.Services
             var response = await _apiConnection.GetAsync<GetTaskTemplatesResponse>(endpoint, cancellationToken);
             if (response == null)
             {
-                throw new InvalidOperationException($"API connection returned null response when getting task templates for workspace {workspaceId}.");
+                _logger.LogWarning("API call to get templates for workspace {WorkspaceId} returned null.", workspaceId);
+                throw new InvalidOperationException($"API call to get templates for workspace {workspaceId} returned null.");
             }
-            // The GetTaskTemplatesResponse contains the List<TaskTemplate> as "Templates"
+            if (response.Templates == null)
+            {
+                _logger.LogWarning("API call to get templates for workspace {WorkspaceId} returned a response with null Templates list. Normalizing to empty list.", workspaceId);
+                return new GetTaskTemplatesResponse(new List<TaskTemplate>());
+            }
             return response;
         }
     }

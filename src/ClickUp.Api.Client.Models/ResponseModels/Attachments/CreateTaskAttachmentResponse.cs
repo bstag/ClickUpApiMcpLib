@@ -1,10 +1,6 @@
 using System.Text.Json.Serialization;
-
 using ClickUp.Api.Client.Models.Entities.Users; // Assuming User10 is similar to existing User model
-
-
 using System.Collections.Generic; // For List if needed for properties like email_data
-using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Attachments
 {

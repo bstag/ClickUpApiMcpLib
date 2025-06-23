@@ -557,11 +557,12 @@ namespace ClickUp.Api.Client.Services
             long? dateCreatedLessThan = null,
             long? dateUpdatedGreaterThan = null,
             long? dateUpdatedLessThan = null,
+            // Removed duplicate dateDoneGreaterThan and dateDoneLessThan
             string? customFields = null,
-            bool? queryCustomTaskIds = null, // Parameter name from GetFilteredTeamTasksAsync
-            string? teamIdForQueryCustomTaskIds = null, // Parameter name from GetFilteredTeamTasksAsync
+            bool? queryCustomTaskIds = null,
+            string? teamIdForQueryCustomTaskIds = null,
             IEnumerable<long>? customItems = null,
-            long? dateDoneGreaterThan = null,
+            long? dateDoneGreaterThan = null, // Kept one set of these
             long? dateDoneLessThan = null,
             string? parentTaskId = null,
             bool? includeMarkdownDescription = null,

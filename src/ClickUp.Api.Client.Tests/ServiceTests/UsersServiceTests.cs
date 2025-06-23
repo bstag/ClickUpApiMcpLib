@@ -222,34 +222,35 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_edit_user";
-            var userId = "user_to_edit";
+            var userIdStringForUrl = "user_to_edit"; // This string ID is used in the URL path
+            var numericIdForDto = 123; // An arbitrary int for constructing the DTOs for the mock response
+
             var request = new EditUserOnWorkspaceRequest(
                 Username: "UpdatedUsername",
                 Admin: true,
-                CustomRoleId: 5 // Corrected from CustomRole to CustomRoleId
+                CustomRoleId: 5
             );
-            var updatedUserDto = CreateSampleActualUserDto(int.Parse(userId.Replace("user_","")), "UpdatedUsername"); // Assuming ID is part of userId string
-            var responseMember = CreateSampleGetUserResponseMember(int.Parse(userId.Replace("user_","")), "UpdatedUsername");
+            var updatedUserDto = CreateSampleActualUserDto(numericIdForDto, "UpdatedUsername");
+            var responseMember = CreateSampleGetUserResponseMember(numericIdForDto, "UpdatedUsername");
             var apiResponse = new GetUserResponse(responseMember);
 
 
             _mockApiConnection
                 .Setup(x => x.PutAsync<EditUserOnWorkspaceRequest, GetUserResponse>(
-                    $"team/{workspaceId}/user/{userId}",
+                    $"team/{workspaceId}/user/{userIdStringForUrl}", // Use string ID for URL
                     request,
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(apiResponse);
 
             // Act
-            var result = await _usersService.EditUserOnWorkspaceAsync(workspaceId, userId, request);
+            var result = await _usersService.EditUserOnWorkspaceAsync(workspaceId, userIdStringForUrl, request); // Use string ID for service call
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(updatedUserDto.Username, result.Username);
-            // Further assertions could be made if the service mapped IsAdmin or CustomRole back to the User model,
-            // but current User model doesn't have these. The test verifies the User object is returned.
+            Assert.Equal(numericIdForDto, result.Id); // Assuming User entity has an int Id that gets mapped
             _mockApiConnection.Verify(x => x.PutAsync<EditUserOnWorkspaceRequest, GetUserResponse>(
-                $"team/{workspaceId}/user/{userId}",
+                $"team/{workspaceId}/user/{userIdStringForUrl}",
                 request,
                 It.IsAny<CancellationToken>()), Times.Once);
         }

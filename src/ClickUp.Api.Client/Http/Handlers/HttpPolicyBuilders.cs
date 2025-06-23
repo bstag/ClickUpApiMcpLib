@@ -87,9 +87,10 @@ public static class HttpPolicyBuilders
                     }
                     return TimeSpan.FromSeconds(5); // Default fallback if header is malformed
                 },
-                onRetryAsync: async (response, timespan, retryAttempt, context) =>
+                onRetryAsync: (response, timespan, retryAttempt, context) =>
                 {
                     // Optional: Log the retry attempt
+                    return Task.CompletedTask;
                 });
     }
 }

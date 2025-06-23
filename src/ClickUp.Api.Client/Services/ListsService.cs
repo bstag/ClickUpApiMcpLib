@@ -241,32 +241,9 @@ namespace ClickUp.Api.Client.Services
 
             do
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    _logger.LogDebug("Cancellation requested for GetFolderlessListsAsyncEnumerableAsync for space ID {SpaceId}.", spaceId);
-                    yield break;
-                }
+                cancellationToken.ThrowIfCancellationRequested(); // Check for cancellation at the start of each iteration
 
                 _logger.LogDebug("Fetching page {PageNumber} for folderless lists in space ID {SpaceId} via async enumerable.", currentPage, spaceId);
-                // Note: The original GetFolderlessListsAsync in ListsService already calls
-                // _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken);
-                // and returns response?.Lists. We need to call that underlying mechanism or replicate it.
-                // For IAsyncEnumerable, we directly call the paged version of GetFolderlessListsAsync
-                // which takes 'page' as a parameter.
-                // The public IListsService.GetFolderlessListsAsync takes 'page' and 'archived'.
-                // However, the service implementation for GetFolderlessListsAsync itself will use _apiConnection.
-                // This async enumerable will call the *existing* GetFolderlessListsAsync that takes a page param.
-                // Let's refine this: the existing GetFolderlessListsAsync method should be the one that takes a page number.
-                // If it doesn't (i.e., if the interface method doesn't take page), we need to adjust.
-                // Looking at IListsService, GetFolderlessListsAsync(string spaceId, bool? archived, CancellationToken) does NOT take page.
-                // This means the *implementation* of GetFolderlessListsAsync in ListsService.cs must be what we call,
-                // and that implementation itself must be calling the API with a page.
-                // This is a bit circular. The `GetFolderlessListsAsync` on the service already returns `IEnumerable<ClickUpList>`.
-                // The paged version that `IAsyncEnumerable` should call is essentially the core logic.
-                // The current `GetFolderlessListsAsync` in `ListsService.cs` already fetches what seems like ALL lists.
-                // This implies the `page` parameter was not actually implemented in the service method for `GetFolderlessListsAsync`.
-                // Let's assume the ClickUp API for /space/{space_id}/list DOES support a page query param.
-                // We will construct the call to _apiConnection here directly.
 
                 var endpoint = $"space/{spaceId}/list";
                 var queryParams = new Dictionary<string, string?>();
@@ -280,10 +257,7 @@ namespace ClickUp.Api.Client.Services
                 {
                     foreach (var list in response.Lists)
                     {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            yield break;
-                        }
+                        cancellationToken.ThrowIfCancellationRequested(); // Check before yielding each item
                         yield return new ClickUpList
                         {
                             Id = list.Id,
@@ -292,15 +266,11 @@ namespace ClickUp.Api.Client.Services
                             Priority = list.Priority
                         };
                     }
-                    // We infer lastPage if the returned list is empty.
-                    // ClickUp's /space/{id}/list endpoint with 'page' might not return a 'last_page' field.
-                    lastPageReached = !response.Lists.Any();
-                    // A more robust way if the API guarantees to return less than requested items only on the last page:
-                    // if (response.Lists.Count < some_page_size_if_known_and_fixed) lastPageReached = true;
+                    lastPageReached = !response.Lists.Any(); // This logic remains: if we got items, there might be more
                 }
                 else
                 {
-                    lastPageReached = true;
+                    lastPageReached = true; // No items or null response means we are done
                 }
 
                 if (!lastPageReached)

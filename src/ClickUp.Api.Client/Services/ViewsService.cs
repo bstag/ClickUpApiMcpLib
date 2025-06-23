@@ -63,7 +63,17 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting workspace views for workspace ID: {WorkspaceId}", workspaceId);
             var endpoint = $"team/{workspaceId}/view"; // team_id is workspaceId
             var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for GetWorkspaceViewsAsync (Workspace ID: {workspaceId}).");
+            if (response == null)
+            {
+                _logger.LogWarning("API call to get views for workspace {WorkspaceId} returned null.", workspaceId);
+                throw new InvalidOperationException($"API call to get views for workspace {workspaceId} returned null.");
+            }
+            if (response.Views == null)
+            {
+                _logger.LogWarning("API call to get views for workspace {WorkspaceId} returned a response with null Views list. Normalizing to empty list.", workspaceId);
+                return response with { Views = new List<View>() };
+            }
+            return response;
         }
 
         /// <inheritdoc />
@@ -74,7 +84,6 @@ namespace ClickUp.Api.Client.Services
         {
             _logger.LogInformation("Creating workspace view in workspace ID: {WorkspaceId}, Name: {ViewName}", workspaceId, createViewRequest.Name);
             var endpoint = $"team/{workspaceId}/view";
-            // Assuming CreateTeamViewResponse is the correct wrapper, or if it's just View, adjust PostAsync generic type
             var response = await _apiConnection.PostAsync<CreateViewRequest, CreateTeamViewResponse>(endpoint, createViewRequest, cancellationToken);
             return response ?? throw new InvalidOperationException($"API response was null for CreateWorkspaceViewAsync (Workspace ID: {workspaceId}).");
         }
@@ -87,7 +96,17 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting space views for space ID: {SpaceId}", spaceId);
             var endpoint = $"space/{spaceId}/view";
             var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for GetSpaceViewsAsync (Space ID: {spaceId}).");
+            if (response == null)
+            {
+                _logger.LogWarning("API call to get views for space {SpaceId} returned null.", spaceId);
+                throw new InvalidOperationException($"API call to get views for space {spaceId} returned null.");
+            }
+            if (response.Views == null)
+            {
+                _logger.LogWarning("API call to get views for space {SpaceId} returned a response with null Views list. Normalizing to empty list.", spaceId);
+                return response with { Views = new List<View>() };
+            }
+            return response;
         }
 
         /// <inheritdoc />
@@ -110,7 +129,17 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting folder views for folder ID: {FolderId}", folderId);
             var endpoint = $"folder/{folderId}/view";
             var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for GetFolderViewsAsync (Folder ID: {folderId}).");
+            if (response == null)
+            {
+                _logger.LogWarning("API call to get views for folder {FolderId} returned null.", folderId);
+                throw new InvalidOperationException($"API call to get views for folder {folderId} returned null.");
+            }
+            if (response.Views == null)
+            {
+                _logger.LogWarning("API call to get views for folder {FolderId} returned a response with null Views list. Normalizing to empty list.", folderId);
+                return response with { Views = new List<View>() };
+            }
+            return response;
         }
 
         /// <inheritdoc />
@@ -133,7 +162,17 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting list views for list ID: {ListId}", listId);
             var endpoint = $"list/{listId}/view";
             var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for GetListViewsAsync (List ID: {listId}).");
+            if (response == null)
+            {
+                _logger.LogWarning("API call to get views for list {ListId} returned null.", listId);
+                throw new InvalidOperationException($"API call to get views for list {listId} returned null.");
+            }
+            if (response.Views == null)
+            {
+                _logger.LogWarning("API call to get views for list {ListId} returned a response with null Views list. Normalizing to empty list.", listId);
+                return response with { Views = new List<View>() };
+            }
+            return response;
         }
 
         /// <inheritdoc />
@@ -198,8 +237,5 @@ namespace ClickUp.Api.Client.Services
             var response = await _apiConnection.GetAsync<GetViewTasksResponse>(endpoint, cancellationToken);
             return response ?? throw new InvalidOperationException($"API response was null for GetViewTasksAsync (View ID: {viewId}, Page: {page}).");
         }
-
-        // Removed redundant explicit interface implementations that were throwing NotImplementedException.
-        // The public methods above with matching signatures implicitly implement the interface.
     }
 }

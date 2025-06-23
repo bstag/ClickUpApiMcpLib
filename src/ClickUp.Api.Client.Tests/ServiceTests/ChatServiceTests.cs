@@ -6,13 +6,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Models.Entities.Chat;
-using ClickUp.Api.Client.Models.Entities.Users; // Added for User model
+using ClickUp.Api.Client.Models.Entities.Users;
 using ClickUp.Api.Client.Models.RequestModels.Chat;
 using ClickUp.Api.Client.Models.ResponseModels.Chat;
 using ClickUp.Api.Client.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using ClickUp.Api.Client.Models.Entities.Chat.Enums;
+using ClickUp.Api.Client.Models.ResponseModels.Shared;
 
 namespace ClickUp.Api.Client.Tests.ServiceTests
 {
@@ -29,27 +31,29 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             _chatService = new ChatService(_mockApiConnection.Object, _mockLogger.Object);
         }
 
-        private User CreateSampleUser(int id = 1) => new User(id, $"user{id}", $"user{id}@example.com", "#FFFFFF", "http://example.com/pic.jpg", $"U{id}"); // Removed role, will use positional or default
-        private ChatSimpleUser CreateSampleChatSimpleUser(string id = "user_1") => new ChatSimpleUser(Email: $"user{id}@example.com", Id: id, Initials: "SU", Name: $"Simple User {id}", Username: $"simpleuser{id}", ProfilePicture: null);
+        private User CreateSampleUser(int id = 1) => new User(id, $"user{id}", $"user{id}@example.com", "#FFFFFF", $"http://example.com/pic{id}.jpg", $"U{id}");
+        private ChatSimpleUser CreateSampleChatSimpleUser(string id = "user_1_id", string email = "user1@example.com", string initials = "U1", string name = "User One", string username = "userone", string? profilePicture = null)
+            => new ChatSimpleUser(Id: id, Email: email, Initials: initials, Name: name, Username: username, ProfilePicture: profilePicture);
 
-        private ChatMessage CreateSampleChatMessage(string id = "msg_1", string channelId = "ch_1", string teamId = "team_1") => new ChatMessage(
+
+        private ChatMessage CreateSampleChatMessage(string id = "msg_1", string channelId = "ch_1", string teamId = "team_1", string content = "Sample Message") => new ChatMessage(
             Id: id,
             Type: "comment",
             User: CreateSampleUser(),
             Date: DateTimeOffset.UtcNow,
             GroupId: "group_1",
-            TeamId: teamId, // Use parameter
+            TeamId: teamId,
             ChannelId: channelId,
             Deleted: false,
             Edited: false
-        ) { TextContent = "Sample Message" };
+        ) { TextContent = content };
 
         private ChatChannel CreateSampleChannel(string id = "channel_1", string teamId = "ws_1") => new ChatChannel(
             Id: id,
             Name: $"Sample Channel {id}",
             UnreadCount: 0,
             LastMessageAt: DateTimeOffset.UtcNow.AddMinutes(-5),
-            TeamId: teamId, // This is correct as per ChatChannel constructor
+            TeamId: teamId,
             CreatedAt: DateTimeOffset.UtcNow.AddHours(-1),
             UpdatedAt: DateTimeOffset.UtcNow,
             IsPrivate: false,
@@ -60,20 +64,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             IsReadOnly: false,
             IsSystem: false,
             IsGroupChannel: false,
-            Type: ClickUp.Api.Client.Models.Entities.Chat.Enums.ChatRoomType.Channel,
-            Visibility: ClickUp.Api.Client.Models.Entities.Chat.Enums.ChatRoomVisibility.Public,
+            Type: ChatRoomType.Channel,
+            Visibility: ChatRoomVisibility.Public,
             IsAiEnabled: false
         )
         {
-            // These are init-only properties, not part of the primary constructor
             LastMessageId = "last_comment_1",
             Members = new List<User> { CreateSampleUser(2) }
-            // Location and Followers are not direct properties of ChatChannel model
         };
 
-        private ClickUpV3DataResponse<ChatChannel> CreateV3DataResponse(ChatChannel channel)
+        private ClickUpV3DataResponse<T> CreateV3DataResponse<T>(T data) where T : class
         {
-            return new ClickUpV3DataResponse<ChatChannel> { Data = channel };
+            return new ClickUpV3DataResponse<T> { Data = data };
         }
 
 
@@ -83,7 +85,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws_test";
             var sampleChannel = CreateSampleChannel(teamId: workspaceId);
-            var expectedResponse = new ChatChannelPaginatedResponse("next_cursor", new List<ChatChannel> { sampleChannel } );
+            var expectedResponse = new ChatChannelPaginatedResponse("next_cursor", new List<ChatChannel> { sampleChannel });
             _mockApiConnection
                 .Setup(c => c.GetAsync<ChatChannelPaginatedResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
@@ -100,7 +102,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedResponse.Data.First().Id, result.Data.First().Id); // Corrected to access Data property
+            Assert.Equal(expectedResponse.Data.First().Id, result.Data.First().Id);
             _mockApiConnection.Verify(c => c.GetAsync<ChatChannelPaginatedResponse>(
                 $"/v3/workspaces/{workspaceId}/channels?description_format=html&cursor=prev_cursor&limit=10&is_follower=true&include_hidden=false&with_comment_since=1234567890&room_types[]={Uri.EscapeDataString("public_channel")}&room_types[]={Uri.EscapeDataString("private_channel")}",
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -116,12 +118,12 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 Name: "New Channel",
                 Topic: "General",
                 UserIds: new List<string> { "1", "2" },
-                Visibility: ClickUp.Api.Client.Models.Entities.Chat.Enums.ChatRoomVisibility.Public,
-                WorkspaceId: workspaceId // This param seems redundant if workspaceId is already in path
+                Visibility: ChatRoomVisibility.Public,
+                WorkspaceId: workspaceId
             );
             var expectedChannel = CreateSampleChannel("new_channel_1", workspaceId);
             _mockApiConnection
-                .Setup(c => c.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>( // Changed type reference
+                .Setup(c => c.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(
                     It.IsAny<string>(),
                     request,
                     It.IsAny<CancellationToken>()))
@@ -133,7 +135,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Assert
             Assert.NotNull(result);
             Assert.Equal(expectedChannel.Id, result.Id);
-            _mockApiConnection.Verify(c => c.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>( // Changed type reference
+            _mockApiConnection.Verify(c => c.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(
                 $"/v3/workspaces/{workspaceId}/channels",
                 request,
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -146,7 +148,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_test";
             var channelId = "ch_error";
             _mockApiConnection
-                .Setup(c => c.GetAsync<ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), It.IsAny<CancellationToken>())) // Changed type reference
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
 
             // Act & Assert
@@ -161,8 +163,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_test";
             var channelId = "ch_null_data";
             _mockApiConnection
-                .Setup(c => c.GetAsync<ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), It.IsAny<CancellationToken>())) // Changed type reference
-                .ReturnsAsync(new ClickUpV3DataResponse<ChatChannel> { Data = null }); // Null Data property
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ClickUpV3DataResponse<ChatChannel> { Data = null });
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -186,7 +188,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatChannelAsync_ApiError_ThrowsHttpRequestException()
         {
             var workspaceId = "ws_create_channel_error";
-            var request = new ChatCreateChatChannelRequest("Desc", "Name", "Topic", new List<string>(), ClickUp.Api.Client.Models.Entities.Chat.Enums.ChatRoomVisibility.Public, workspaceId);
+            var request = new ChatCreateChatChannelRequest("Desc", "Name", "Topic", new List<string>(), ChatRoomVisibility.Public, workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
@@ -214,8 +216,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_channels_null_data";
             _mockApiConnection
                 .Setup(c => c.GetAsync<ChatChannelPaginatedResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ChatChannelPaginatedResponse("next", null!)); // Data is null
+                .ReturnsAsync(new ChatChannelPaginatedResponse("next", null!));
 
+            // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _chatService.GetChatChannelsAsync(workspaceId));
         }
@@ -224,7 +227,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatChannelAsync_NullResponse_ThrowsInvalidOperationException()
         {
             var workspaceId = "ws_create_null_resp";
-             var request = new ChatCreateChatChannelRequest("Desc", "Name", "Topic", new List<string>(), ClickUp.Api.Client.Models.Entities.Chat.Enums.ChatRoomVisibility.Public, workspaceId);
+            var request = new ChatCreateChatChannelRequest("Desc", "Name", "Topic", new List<string>(), ChatRoomVisibility.Public, workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUpV3DataResponse<ChatChannel>)null);
@@ -237,10 +240,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatChannelAsync_NullDataInResponse_ThrowsInvalidOperationException()
         {
             var workspaceId = "ws_create_null_data";
-            var request = new ChatCreateChatChannelRequest("Desc", "Name", "Topic", new List<string>(), ClickUp.Api.Client.Models.Entities.Chat.Enums.ChatRoomVisibility.Public, workspaceId);
+            var request = new ChatCreateChatChannelRequest("Desc", "Name", "Topic", new List<string>(), ChatRoomVisibility.Public, workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ClickUpV3DataResponse<ChatChannel> { Data = null }); // Data is null
+                .ReturnsAsync(new ClickUpV3DataResponse<ChatChannel> { Data = null });
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _chatService.CreateChatChannelAsync(workspaceId, request));
@@ -275,7 +278,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await _chatService.GetChatChannelsAsync(workspaceId, cancellationToken: expectedToken);
 
             _mockApiConnection.Verify(c => c.GetAsync<ChatChannelPaginatedResponse>(
-                $"/v3/workspaces/{workspaceId}/channels", // Basic URL without optional params
+                $"/v3/workspaces/{workspaceId}/channels",
                 expectedToken), Times.Once);
         }
 
@@ -284,7 +287,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatChannelAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var workspaceId = "ws_create_cancel";
-            var request = new ChatCreateChatChannelRequest("D", "N", "T", new List<string>(), ClickUp.Api.Client.Models.Entities.Chat.Enums.ChatRoomVisibility.Public, workspaceId);
+            var request = new ChatCreateChatChannelRequest("D", "N", "T", new List<string>(), ChatRoomVisibility.Public, workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
@@ -297,7 +300,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatChannelAsync_PassesCancellationTokenToApiConnection()
         {
             var workspaceId = "ws_create_ct_pass";
-            var request = new ChatCreateChatChannelRequest("D", "N", "T", new List<string>(), ClickUp.Api.Client.Models.Entities.Chat.Enums.ChatRoomVisibility.Public, workspaceId);
+            var request = new ChatCreateChatChannelRequest("D", "N", "T", new List<string>(), ChatRoomVisibility.Public, workspaceId);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedChannel = CreateSampleChannel("new_ch", workspaceId);
@@ -358,9 +361,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws_loc_create";
             var request = new ChatCreateLocationChatChannelRequest(
-                Location: new ChatChannelLocation("space_123", "space"),
                 Name: "Location Channel",
-                UserIds: new List<string> { "user_1" }
+                Description: "Channel for location",
+                UserIds: new List<string> { "user_1" },
+                Visibility: ChatRoomVisibility.Public,
+                Location: new ChatChannelLocation("space_123", "space"),
+                WorkspaceId: workspaceId,
+                Topic: "Some Topic" // Added Topic as it's a positional param
             );
             var expectedChannel = CreateSampleChannel("loc_ch_1", workspaceId);
             _mockApiConnection
@@ -386,7 +393,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateLocationChatChannelAsync_ApiError_ThrowsHttpRequestException()
         {
             var workspaceId = "ws_loc_create_err";
-            var request = new ChatCreateLocationChatChannelRequest(new ChatChannelLocation("s", "s"), "N", new List<string>());
+            var request = new ChatCreateLocationChatChannelRequest("D", "T", new List<string>(), ChatRoomVisibility.Private, new ChatChannelLocation("s", "s"), "N", workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateLocationChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
@@ -399,7 +406,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateLocationChatChannelAsync_NullResponse_ThrowsInvalidOperationException()
         {
             var workspaceId = "ws_loc_create_null";
-            var request = new ChatCreateLocationChatChannelRequest(new ChatChannelLocation("s", "s"), "N", new List<string>());
+            var request = new ChatCreateLocationChatChannelRequest("D", "T", new List<string>(), ChatRoomVisibility.Private, new ChatChannelLocation("s", "s"), "N", workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateLocationChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUpV3DataResponse<ChatChannel>)null);
@@ -412,7 +419,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateLocationChatChannelAsync_NullDataInResponse_ThrowsInvalidOperationException()
         {
             var workspaceId = "ws_loc_create_null_data";
-            var request = new ChatCreateLocationChatChannelRequest(new ChatChannelLocation("s", "s"), "N", new List<string>());
+            var request = new ChatCreateLocationChatChannelRequest("D", "T", new List<string>(), ChatRoomVisibility.Private, new ChatChannelLocation("s", "s"), "N", workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateLocationChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ClickUpV3DataResponse<ChatChannel> { Data = null });
@@ -425,7 +432,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateLocationChatChannelAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var workspaceId = "ws_loc_create_cancel";
-            var request = new ChatCreateLocationChatChannelRequest(new ChatChannelLocation("s", "s"), "N", new List<string>());
+            var request = new ChatCreateLocationChatChannelRequest("D", "T", new List<string>(), ChatRoomVisibility.Private, new ChatChannelLocation("s", "s"), "N", workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateLocationChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
@@ -438,7 +445,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateLocationChatChannelAsync_PassesCancellationTokenToApiConnection()
         {
             var workspaceId = "ws_loc_create_ct";
-            var request = new ChatCreateLocationChatChannelRequest(new ChatChannelLocation("s", "s"), "N", new List<string>());
+            var request = new ChatCreateLocationChatChannelRequest("D", "T", new List<string>(), ChatRoomVisibility.Private, new ChatChannelLocation("s", "s"), "N", workspaceId);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedChannel = CreateSampleChannel("loc_ch_ct", workspaceId);
@@ -461,9 +468,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws_dm_create";
             var request = new ChatCreateDirectMessageChatChannelRequest(
-                UserIds: new List<string> { "user_1", "user_2" }
+                UserIds: new List<string> { "user_1", "user_2" },
+                WorkspaceId: workspaceId
             );
-            var expectedChannel = CreateSampleChannel("dm_ch_1", workspaceId); // Assuming DM channels are still ChatChannel
+            var expectedChannel = CreateSampleChannel("dm_ch_1", workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateDirectMessageChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(
                     $"/v3/workspaces/{workspaceId}/channels/dm",
@@ -487,7 +495,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateDirectMessageChatChannelAsync_ApiError_ThrowsHttpRequestException()
         {
             var workspaceId = "ws_dm_create_err";
-            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" });
+            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" }, workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateDirectMessageChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
@@ -500,7 +508,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateDirectMessageChatChannelAsync_NullResponse_ThrowsInvalidOperationException()
         {
             var workspaceId = "ws_dm_create_null";
-            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" });
+            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" }, workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateDirectMessageChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUpV3DataResponse<ChatChannel>)null);
@@ -513,7 +521,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateDirectMessageChatChannelAsync_NullDataInResponse_ThrowsInvalidOperationException()
         {
             var workspaceId = "ws_dm_create_null_data";
-            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" });
+            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" }, workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateDirectMessageChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ClickUpV3DataResponse<ChatChannel> { Data = null });
@@ -526,7 +534,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateDirectMessageChatChannelAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var workspaceId = "ws_dm_create_cancel";
-            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" });
+            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" }, workspaceId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<ChatCreateDirectMessageChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
@@ -539,7 +547,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateDirectMessageChatChannelAsync_PassesCancellationTokenToApiConnection()
         {
             var workspaceId = "ws_dm_create_ct";
-            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" });
+            var request = new ChatCreateDirectMessageChatChannelRequest(new List<string> { "u1" }, workspaceId);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedChannel = CreateSampleChannel("dm_ch_ct", workspaceId);
@@ -565,10 +573,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new ChatUpdateChatChannelRequest(
                 Name: "Updated Channel Name",
                 Topic: "Updated Topic",
-                Description: "Updated Description"
+                Description: "Updated Description",
+                Location: null,
+                ContentFormat: "html",
+                Visibility: ChatRoomVisibility.Private,
+                Archived: false
             );
             var updatedChannel = CreateSampleChannel(channelId, workspaceId);
-            updatedChannel.Name = request.Name!; // Assume update is reflected
+            updatedChannel = updatedChannel with { Name = request.Name! };
+
             _mockApiConnection
                 .Setup(c => c.PutAsync<ChatUpdateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(
                     $"/v3/workspaces/{workspaceId}/channels/{channelId}",
@@ -593,7 +606,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_update_ch_err";
             var channelId = "ch_update_err";
-            var request = new ChatUpdateChatChannelRequest(Name: "N");
+            var request = new ChatUpdateChatChannelRequest(ContentFormat: "text", Description: "Err desc", Location: null, Name: "N", Topic: null, Visibility: null, Archived: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<ChatUpdateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
@@ -607,7 +620,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_update_ch_null";
             var channelId = "ch_update_null";
-            var request = new ChatUpdateChatChannelRequest(Name: "N");
+            var request = new ChatUpdateChatChannelRequest(ContentFormat: "text", Description: "Null desc", Location: null, Name: "N", Topic: null, Visibility: null, Archived: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<ChatUpdateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUpV3DataResponse<ChatChannel>)null);
@@ -621,7 +634,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_update_ch_null_data";
             var channelId = "ch_update_null_data";
-            var request = new ChatUpdateChatChannelRequest(Name: "N");
+            var request = new ChatUpdateChatChannelRequest(ContentFormat: "text", Description: "Null data desc", Location: null, Name: "N", Topic: null, Visibility: null, Archived: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<ChatUpdateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ClickUpV3DataResponse<ChatChannel> { Data = null });
@@ -635,7 +648,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_update_ch_cancel";
             var channelId = "ch_update_cancel";
-            var request = new ChatUpdateChatChannelRequest(Name: "N");
+            var request = new ChatUpdateChatChannelRequest(ContentFormat: "text", Description: "Cancel desc", Location: null, Name: "N", Topic: null, Visibility: null, Archived: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<ChatUpdateChatChannelRequest, ClickUpV3DataResponse<ChatChannel>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
@@ -649,7 +662,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_update_ch_ct";
             var channelId = "ch_update_ct";
-            var request = new ChatUpdateChatChannelRequest(Name: "N");
+            var request = new ChatUpdateChatChannelRequest(ContentFormat: "text", Description: "CT desc", Location: null, Name: "N", Topic: null, Visibility: null, Archived: null);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var updatedChannel = CreateSampleChannel(channelId, workspaceId);
@@ -740,7 +753,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var channelId = "ch_followers";
             var cursor = "next_cursor_val";
             var limit = 20;
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser> { new ChatUser("user_abc", "User ABC", null) }, "next_page_cursor");
+            var expectedResponse = new GetChatUsersResponse(
+                Data: new List<ChatSimpleUser> { CreateSampleChatSimpleUser("user_abc") },
+                Meta: new GetChatUsersResponse.ResponseMeta(NextCursor: "next_page_cursor", PreviousCursor: null)
+            );
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(
                     $"/v3/workspaces/{workspaceId}/channels/{channelId}/followers?cursor={cursor}&limit={limit}",
@@ -752,7 +768,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedResponse.NextPage, result.NextPage);
+            Assert.Equal(expectedResponse.Meta.NextCursor, result.Meta.NextCursor);
             _mockApiConnection.Verify(c => c.GetAsync<GetChatUsersResponse>(
                 $"/v3/workspaces/{workspaceId}/channels/{channelId}/followers?cursor={cursor}&limit={limit}",
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -764,7 +780,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws_followers_min";
             var channelId = "ch_followers_min";
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser>(), null);
+            var expectedResponse = new GetChatUsersResponse(
+                Data: new List<ChatSimpleUser>(),
+                Meta: new GetChatUsersResponse.ResponseMeta(NextCursor: null, PreviousCursor: null)
+            );
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(
                     $"/v3/workspaces/{workspaceId}/channels/{channelId}/followers",
@@ -828,7 +847,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var channelId = "ch_followers_ct";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser>(), null);
+            var expectedResponse = new GetChatUsersResponse(new List<ChatSimpleUser>(), new GetChatUsersResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
@@ -849,7 +868,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var channelId = "ch_members";
             var cursor = "cursor_val_members";
             var limit = 15;
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser> { new ChatUser("user_xyz", "User XYZ", null) }, "next_members_cursor");
+            var expectedResponse = new GetChatUsersResponse(
+                Data: new List<ChatSimpleUser> { CreateSampleChatSimpleUser("user_xyz") },
+                Meta: new GetChatUsersResponse.ResponseMeta(NextCursor: "next_members_cursor", PreviousCursor: null)
+            );
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(
                     $"/v3/workspaces/{workspaceId}/channels/{channelId}/members?cursor={cursor}&limit={limit}",
@@ -861,7 +883,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedResponse.NextPage, result.NextPage);
+            Assert.Equal(expectedResponse.Meta.NextCursor, result.Meta.NextCursor);
             _mockApiConnection.Verify(c => c.GetAsync<GetChatUsersResponse>(
                 $"/v3/workspaces/{workspaceId}/channels/{channelId}/members?cursor={cursor}&limit={limit}",
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -873,7 +895,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws_members_min";
             var channelId = "ch_members_min";
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser>(), null);
+            var expectedResponse = new GetChatUsersResponse(new List<ChatSimpleUser>(), new GetChatUsersResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(
                     $"/v3/workspaces/{workspaceId}/channels/{channelId}/members",
@@ -936,7 +958,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var channelId = "ch_members_ct";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser>(), null);
+            var expectedResponse = new GetChatUsersResponse(new List<ChatSimpleUser>(), new GetChatUsersResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
@@ -959,7 +981,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var limit = 25;
             var contentFormat = "html";
             var sampleMessage = CreateSampleChatMessage("msg_123", channelId, workspaceId);
-            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage> { sampleMessage }, "next_msg_cursor");
+            var expectedResponse = new GetChatMessagesResponse(
+                Data: new List<ChatMessage> { sampleMessage },
+                Meta: new GetChatMessagesResponse.ResponseMeta(NextCursor: "next_msg_cursor", PreviousCursor: null)
+            );
 
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatMessagesResponse>(
@@ -973,7 +998,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Assert
             Assert.NotNull(result);
             Assert.Single(result.Data);
-            Assert.Equal(expectedResponse.NextPage, result.NextPage);
+            Assert.Equal(expectedResponse.Meta.NextCursor, result.Meta.NextCursor);
             _mockApiConnection.Verify(c => c.GetAsync<GetChatMessagesResponse>(
                 $"/v3/workspaces/{workspaceId}/channels/{channelId}/messages?cursor={cursor}&limit={limit}&content_format={contentFormat}",
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -985,7 +1010,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws_msgs_min";
             var channelId = "ch_msgs_min";
-            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage>(), null);
+            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage>(), new GetChatMessagesResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatMessagesResponse>(
                     $"/v3/workspaces/{workspaceId}/channels/{channelId}/messages",
@@ -1048,7 +1073,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var channelId = "ch_msgs_ct";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage>(), null);
+            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage>(), new GetChatMessagesResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatMessagesResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
@@ -1065,10 +1090,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatMessageAsync_ValidRequest_CallsPostAndReturnsMessage()
         {
             // Arrange
-            var workspaceId = "ws_create_msg";
-            var channelId = "ch_create_msg";
-            var request = new CommentCreateChatMessageRequest(TextContent: "Hello world!");
-            var expectedMessage = CreateSampleChatMessage("new_msg_1", channelId, workspaceId);
+            var workspaceId = "ws_create_msg"; // This is for URL, not DTO
+            var channelId = "ch_create_msg";   // This is for URL, not DTO
+            var request = new CommentCreateChatMessageRequest(
+                Assignee: null, GroupAssignee: null, TriagedAction: null, TriagedObjectId: null, TriagedObjectType: null,
+                Type: "message", Content: "Hello world!", Reactions: null, Followers: null, ContentFormat: null,
+                PostData: null, ParentMessageId: null
+            );
+            var expectedMessage = CreateSampleChatMessage("new_msg_1", channelId, workspaceId, request.Content);
 
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(
@@ -1094,7 +1123,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_create_msg_err";
             var channelId = "ch_create_msg_err";
-            var request = new CommentCreateChatMessageRequest("Error message");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "Error message", null, null, null, null, null);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
@@ -1108,7 +1137,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_create_msg_null";
             var channelId = "ch_create_msg_null";
-            var request = new CommentCreateChatMessageRequest("Null response message");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "Null response message", null, null, null, null, null);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUpV3DataResponse<ChatMessage>)null);
@@ -1122,7 +1151,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_create_msg_null_data";
             var channelId = "ch_create_msg_null_data";
-            var request = new CommentCreateChatMessageRequest("Null data message");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "Null data message", null, null, null, null, null);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ClickUpV3DataResponse<ChatMessage> { Data = null });
@@ -1136,7 +1165,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_create_msg_cancel";
             var channelId = "ch_create_msg_cancel";
-            var request = new CommentCreateChatMessageRequest("Cancel message");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "Cancel message", null, null, null, null, null);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
@@ -1150,7 +1179,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var workspaceId = "ws_create_msg_ct";
             var channelId = "ch_create_msg_ct";
-            var request = new CommentCreateChatMessageRequest("CT message");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "CT message", null, null, null, null, null);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedMessage = CreateSampleChatMessage("msg_ct_1", channelId, workspaceId);
@@ -1171,25 +1200,31 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task UpdateChatMessageAsync_ValidRequest_CallsPutAndReturnsMessage()
         {
             // Arrange
-            // string workspaceId is not used in the service method's endpoint construction for this one.
-            var messageId = "msg_to_update";
-            var request = new CommentPatchChatMessageRequest(TextContent: "Updated text");
-            var updatedMessage = CreateSampleChatMessage(messageId, "ch_irrelevant", "ws_irrelevant");
-            updatedMessage.TextContent = request.TextContent;
+            var messageId = "msg_to_update"; // For URL
+            var request = new CommentPatchChatMessageRequest(
+                Content: "Updated text",
+                Assignee: null,
+                GroupAssignee: null,
+                ContentFormat: null,
+                PostData: null,
+                Resolved: null,
+                ParentMessageId: null
+            );
+            var updatedMessage = CreateSampleChatMessage(messageId, "ch_irrelevant", "ws_irrelevant") with { TextContent = request.Content }; // Use TextContent for assertion
 
             _mockApiConnection
                 .Setup(c => c.PutAsync<CommentPatchChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(
-                    $"/v3/chat/messages/{messageId}", // Endpoint does not use workspaceId
+                    $"/v3/chat/messages/{messageId}",
                     request,
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(CreateV3DataResponse(updatedMessage));
 
             // Act
-            var result = await _chatService.UpdateChatMessageAsync("ws_ignored", messageId, request);
+            var result = await _chatService.UpdateChatMessageAsync("ws_ignored", messageId, request); // workspaceId here is ignored by service method
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(updatedMessage.TextContent, result.TextContent);
+            Assert.Equal(updatedMessage.TextContent, result.TextContent); // Use TextContent for assertion
             _mockApiConnection.Verify(c => c.PutAsync<CommentPatchChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(
                 $"/v3/chat/messages/{messageId}",
                 request,
@@ -1200,7 +1235,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task UpdateChatMessageAsync_ApiError_ThrowsHttpRequestException()
         {
             var messageId = "msg_update_err";
-            var request = new CommentPatchChatMessageRequest("Error update");
+            var request = new CommentPatchChatMessageRequest(Content: "Error update", Assignee: null, GroupAssignee: null, ContentFormat: null, PostData: null, Resolved: null, ParentMessageId: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<CommentPatchChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
@@ -1213,7 +1248,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task UpdateChatMessageAsync_NullResponse_ThrowsInvalidOperationException()
         {
             var messageId = "msg_update_null";
-            var request = new CommentPatchChatMessageRequest("Null update");
+            var request = new CommentPatchChatMessageRequest(Content: "Null update", Assignee: null, GroupAssignee: null, ContentFormat: null, PostData: null, Resolved: null, ParentMessageId: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<CommentPatchChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUpV3DataResponse<ChatMessage>)null);
@@ -1226,7 +1261,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task UpdateChatMessageAsync_NullDataInResponse_ThrowsInvalidOperationException()
         {
             var messageId = "msg_update_null_data";
-            var request = new CommentPatchChatMessageRequest("Null data update");
+            var request = new CommentPatchChatMessageRequest(Content: "Null data update", Assignee: null, GroupAssignee: null, ContentFormat: null, PostData: null, Resolved: null, ParentMessageId: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<CommentPatchChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ClickUpV3DataResponse<ChatMessage> { Data = null });
@@ -1239,7 +1274,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task UpdateChatMessageAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var messageId = "msg_update_cancel";
-            var request = new CommentPatchChatMessageRequest("Cancel update");
+            var request = new CommentPatchChatMessageRequest(Content: "Cancel update", Assignee: null, GroupAssignee: null, ContentFormat: null, PostData: null, Resolved: null, ParentMessageId: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<CommentPatchChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
@@ -1252,7 +1287,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task UpdateChatMessageAsync_PassesCancellationTokenToApiConnection()
         {
             var messageId = "msg_update_ct";
-            var request = new CommentPatchChatMessageRequest("CT update");
+            var request = new CommentPatchChatMessageRequest(Content: "CT update", Assignee: null, GroupAssignee: null, ContentFormat: null, PostData: null, Resolved: null, ParentMessageId: null);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var updatedMessage = CreateSampleChatMessage(messageId, "ch_irrelevant", "ws_irrelevant");
@@ -1274,7 +1309,6 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var messageId = "msg_to_delete";
-            // workspaceId is ignored by the service method for this endpoint
             _mockApiConnection
                 .Setup(c => c.DeleteAsync(
                     $"/v3/chat/messages/{messageId}",
@@ -1337,9 +1371,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var parentMessageId = "parent_msg_1";
-            var request = new CommentCreateChatMessageRequest(TextContent: "This is a reply");
+            var request = new CommentCreateChatMessageRequest(
+                Content: "This is a reply", ParentMessageId: parentMessageId, Type: "message",
+                Assignee: null, GroupAssignee: null, TriagedAction: null, TriagedObjectId: null, TriagedObjectType: null, Reactions: null, Followers: null, ContentFormat: null, PostData: null
+            );
             var expectedReplyMessage = CreateSampleChatMessage("reply_msg_1", "ch_irrelevant", "ws_irrelevant");
-            // workspaceId is ignored by the service method for this endpoint
 
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(
@@ -1364,7 +1400,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateReplyMessageAsync_ApiError_ThrowsHttpRequestException()
         {
             var parentMessageId = "parent_reply_err";
-            var request = new CommentCreateChatMessageRequest("Error reply");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "Error reply", null, null, null, null, parentMessageId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
@@ -1377,7 +1413,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateReplyMessageAsync_NullResponse_ThrowsInvalidOperationException()
         {
             var parentMessageId = "parent_reply_null";
-            var request = new CommentCreateChatMessageRequest("Null reply");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "Null reply", null, null, null, null, parentMessageId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUpV3DataResponse<ChatMessage>)null);
@@ -1390,7 +1426,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateReplyMessageAsync_NullDataInResponse_ThrowsInvalidOperationException()
         {
             var parentMessageId = "parent_reply_null_data";
-            var request = new CommentCreateChatMessageRequest("Null data reply");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "Null data reply", null, null, null, null, parentMessageId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ClickUpV3DataResponse<ChatMessage> { Data = null });
@@ -1403,7 +1439,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateReplyMessageAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var parentMessageId = "parent_reply_cancel";
-            var request = new CommentCreateChatMessageRequest("Cancel reply");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "Cancel reply", null, null, null, null, parentMessageId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CommentCreateChatMessageRequest, ClickUpV3DataResponse<ChatMessage>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
@@ -1416,7 +1452,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateReplyMessageAsync_PassesCancellationTokenToApiConnection()
         {
             var parentMessageId = "parent_reply_ct";
-            var request = new CommentCreateChatMessageRequest("CT reply");
+            var request = new CommentCreateChatMessageRequest(null, null, null, null, null, "message", "CT reply", null, null, null, null, parentMessageId);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedReplyMessage = CreateSampleChatMessage("reply_ct_1", "ch_irrelevant", "ws_irrelevant");
@@ -1442,8 +1478,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var limit = 10;
             var contentFormat = "text";
             var sampleReply = CreateSampleChatMessage("reply_1", "ch_irrelevant", "ws_irrelevant");
-            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage> { sampleReply }, "next_reply_cursor");
-            // workspaceId is ignored by the service method for this endpoint
+            var expectedResponse = new GetChatMessagesResponse(
+                Data: new List<ChatMessage> { sampleReply },
+                Meta: new GetChatMessagesResponse.ResponseMeta(NextCursor: "next_reply_cursor", PreviousCursor: null)
+            );
 
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatMessagesResponse>(
@@ -1457,7 +1495,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Assert
             Assert.NotNull(result);
             Assert.Single(result.Data);
-            Assert.Equal(expectedResponse.NextPage, result.NextPage);
+            Assert.Equal(expectedResponse.Meta.NextCursor, result.Meta.NextCursor);
             _mockApiConnection.Verify(c => c.GetAsync<GetChatMessagesResponse>(
                 $"/v3/chat/messages/{parentMessageId}/messages?cursor={cursor}&limit={limit}&content_format={contentFormat}",
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -1468,7 +1506,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var parentMessageId = "parent_msg_replies_min";
-            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage>(), null);
+            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage>(), new GetChatMessagesResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatMessagesResponse>(
                     $"/v3/chat/messages/{parentMessageId}/messages",
@@ -1527,7 +1565,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var parentMessageId = "parent_replies_ct";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage>(), null);
+            var expectedResponse = new GetChatMessagesResponse(new List<ChatMessage>(), new GetChatMessagesResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatMessagesResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
@@ -1547,9 +1585,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var messageId = "msg_reactions";
             var cursor = "reaction_cursor";
             var limit = 5;
-            var sampleReaction = new ChatReaction("👍", DateTimeOffset.UtcNow, CreateSampleChatSimpleUser());
-            var expectedResponse = new GetChatReactionsResponse(new List<ChatReaction> { sampleReaction }, "next_reaction_cursor");
-            // workspaceId is ignored
+            var sampleReaction = new ChatReaction(DateTimeOffset.UtcNow, "👍", "user_id_string");
+            var expectedResponse = new GetChatReactionsResponse(
+                Data: new List<ChatReaction> { sampleReaction },
+                Meta: new GetChatReactionsResponse.ResponseMeta(NextCursor: "next_reaction_cursor", PreviousCursor: null)
+            );
 
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatReactionsResponse>(
@@ -1563,7 +1603,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Assert
             Assert.NotNull(result);
             Assert.Single(result.Data);
-            Assert.Equal(expectedResponse.NextPage, result.NextPage);
+            Assert.Equal(expectedResponse.Meta.NextCursor, result.Meta.NextCursor);
             _mockApiConnection.Verify(c => c.GetAsync<GetChatReactionsResponse>(
                 $"/v3/chat/messages/{messageId}/reactions?cursor={cursor}&limit={limit}",
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -1574,7 +1614,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var messageId = "msg_reactions_min";
-            var expectedResponse = new GetChatReactionsResponse(new List<ChatReaction>(), null);
+            var expectedResponse = new GetChatReactionsResponse(new List<ChatReaction>(), new GetChatReactionsResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatReactionsResponse>(
                     $"/v3/chat/messages/{messageId}/reactions",
@@ -1633,7 +1673,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var messageId = "msg_reactions_ct";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetChatReactionsResponse(new List<ChatReaction>(), null);
+            var expectedResponse = new GetChatReactionsResponse(new List<ChatReaction>(), new GetChatReactionsResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatReactionsResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
@@ -1651,9 +1691,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var messageId = "msg_create_reaction";
-            var request = new CreateChatReactionRequest("🚀");
-            var expectedReaction = new ChatReaction(request.Reaction, DateTimeOffset.UtcNow, CreateSampleChatSimpleUser("react_user"));
-            // workspaceId is ignored
+            var request = new CreateChatReactionRequest { Reaction = "🚀", UserId = 1 }; // Assuming UserId is int
+            var expectedReaction = new ChatReaction(DateTimeOffset.UtcNow, request.Reaction, request.UserId.ToString());
 
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateChatReactionRequest, ClickUpV3DataResponse<ChatReaction>>(
@@ -1667,7 +1706,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedReaction.Emoji, result.Emoji);
+            Assert.Equal(expectedReaction.Reaction, result.Reaction); // DTO uses Reaction, not Emoji
             _mockApiConnection.Verify(c => c.PostAsync<CreateChatReactionRequest, ClickUpV3DataResponse<ChatReaction>>(
                 $"/v3/chat/messages/{messageId}/reactions",
                 request,
@@ -1678,7 +1717,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatReactionAsync_ApiError_ThrowsHttpRequestException()
         {
             var messageId = "msg_react_err";
-            var request = new CreateChatReactionRequest("👎");
+            var request = new CreateChatReactionRequest { Reaction = "👎", UserId = 2 };
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateChatReactionRequest, ClickUpV3DataResponse<ChatReaction>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Down"));
@@ -1691,7 +1730,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatReactionAsync_NullResponse_ThrowsInvalidOperationException()
         {
             var messageId = "msg_react_null";
-            var request = new CreateChatReactionRequest("😀");
+            var request = new CreateChatReactionRequest { Reaction = "😀", UserId = 3 };
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateChatReactionRequest, ClickUpV3DataResponse<ChatReaction>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUpV3DataResponse<ChatReaction>)null);
@@ -1704,7 +1743,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatReactionAsync_NullDataInResponse_ThrowsInvalidOperationException()
         {
             var messageId = "msg_react_null_data";
-            var request = new CreateChatReactionRequest("😂");
+            var request = new CreateChatReactionRequest { Reaction = "😂", UserId = 4 };
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateChatReactionRequest, ClickUpV3DataResponse<ChatReaction>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ClickUpV3DataResponse<ChatReaction> { Data = null });
@@ -1717,7 +1756,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatReactionAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var messageId = "msg_react_cancel";
-            var request = new CreateChatReactionRequest("🤔");
+            var request = new CreateChatReactionRequest { Reaction = "🤔", UserId = 5 };
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateChatReactionRequest, ClickUpV3DataResponse<ChatReaction>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
@@ -1730,10 +1769,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateChatReactionAsync_PassesCancellationTokenToApiConnection()
         {
             var messageId = "msg_react_ct";
-            var request = new CreateChatReactionRequest("💡");
+            var request = new CreateChatReactionRequest { Reaction = "💡", UserId = 6 };
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedReaction = new ChatReaction(request.Reaction, DateTimeOffset.UtcNow, CreateSampleChatSimpleUser("react_user_ct"));
+            var expectedReaction = new ChatReaction(DateTimeOffset.UtcNow, request.Reaction, request.UserId.ToString());
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateChatReactionRequest, ClickUpV3DataResponse<ChatReaction>>(It.IsAny<string>(), request, expectedToken))
                 .ReturnsAsync(CreateV3DataResponse(expectedReaction));
@@ -1752,9 +1791,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var messageId = "msg_delete_reaction";
-            var reactionEmoji = "👍"; // Raw emoji
+            var reactionEmoji = "👍";
             var encodedReaction = Uri.EscapeDataString(reactionEmoji);
-            // workspaceId is ignored
 
             _mockApiConnection
                 .Setup(c => c.DeleteAsync(
@@ -1824,9 +1862,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var messageId = "msg_tagged_users";
             var cursor = "tagged_cursor";
             var limit = 7;
-            var sampleUser = new ChatUser("tagged_user_1", "Tagged User One", null);
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser> { sampleUser }, "next_tagged_cursor");
-            // workspaceId is ignored
+            var sampleUser = CreateSampleChatSimpleUser("tagged_user_1");
+            var expectedResponse = new GetChatUsersResponse(
+                Data: new List<ChatSimpleUser> { sampleUser },
+                Meta: new GetChatUsersResponse.ResponseMeta(NextCursor: "next_tagged_cursor", PreviousCursor: null)
+            );
 
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(
@@ -1840,7 +1880,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Assert
             Assert.NotNull(result);
             Assert.Single(result.Data);
-            Assert.Equal(expectedResponse.NextPage, result.NextPage);
+            Assert.Equal(expectedResponse.Meta.NextCursor, result.Meta.NextCursor);
             _mockApiConnection.Verify(c => c.GetAsync<GetChatUsersResponse>(
                 $"/v3/chat/messages/{messageId}/tagged_users?cursor={cursor}&limit={limit}",
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -1851,7 +1891,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var messageId = "msg_tagged_users_min";
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser>(), null);
+            var expectedResponse = new GetChatUsersResponse(new List<ChatSimpleUser>(), new GetChatUsersResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(
                     $"/v3/chat/messages/{messageId}/tagged_users",
@@ -1910,7 +1950,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var messageId = "msg_tagged_ct";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetChatUsersResponse(new List<ChatUser>(), null);
+            var expectedResponse = new GetChatUsersResponse(new List<ChatSimpleUser>(), new GetChatUsersResponse.ResponseMeta(null, null));
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetChatUsersResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
