@@ -58,7 +58,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 - [ ] **Task:** For all service methods in `src/ClickUp.Api.Client/Services/`, ensure comprehensive unit tests covering:
     - [x] Verification of correct request construction (URL, query parameters, body serialization).
     - [x] Simulation of API error cases (e.g., `HttpRequestException`, specific `ClickUpApiException`s).
-    - [ ] Handling of null or unexpected API responses.
+    - [x] Handling of null or unexpected API responses.
     - [x] Happy path scenarios for all public methods.
     - [x] Simulation of network errors and timeouts. *(Completed for AttachmentsService, CommentService, TaskService. FoldersService, GoalsService, GuestsService also covered as per user update)*
     - [x] Verification of `CancellationToken` pass-through. *(Completed for AttachmentsService, CommentService, TaskService. FoldersService, GoalsService, GuestsService also covered as per user update)*

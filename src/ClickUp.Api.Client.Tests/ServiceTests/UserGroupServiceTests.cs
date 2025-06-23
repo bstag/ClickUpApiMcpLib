@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
+using ClickUp.Api.Client.Models.Common; // Added for Member
 using ClickUp.Api.Client.Models.Entities.UserGroups; // For UserGroup
 using ClickUp.Api.Client.Models.Entities.Users; // For User (if part of UserGroup)
 using ClickUp.Api.Client.Models.RequestModels.UserGroups; // For request DTOs
@@ -19,31 +20,37 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
     public class UserGroupServiceTests
     {
         private readonly Mock<IApiConnection> _mockApiConnection;
-        private readonly UserGroupsService _userGroupsService; // Corrected service name
-        private readonly Mock<ILogger<UserGroupsService>> _mockLogger; // Corrected logger type
+        private readonly UserGroupsService _userGroupsService;
+        private readonly Mock<ILogger<UserGroupsService>> _mockLogger;
 
         public UserGroupServiceTests()
         {
             _mockApiConnection = new Mock<IApiConnection>();
-            _mockLogger = new Mock<ILogger<UserGroupsService>>(); // Corrected logger type
-            _userGroupsService = new UserGroupsService(_mockApiConnection.Object, _mockLogger.Object); // Corrected service name
+            _mockLogger = new Mock<ILogger<UserGroupsService>>();
+            _userGroupsService = new UserGroupsService(_mockApiConnection.Object, _mockLogger.Object);
         }
 
-        private User CreateSampleUser(long id = 1, string username = "Group Member")
+        private User CreateSampleUser(long id = 1, string username = "Group Member", string emailSuffix = "@example.com", string color = "#456", string profilePicture = null, string initials = "GM")
         {
-            return new User(id, username, $"{username.Replace(" ", "")}@example.com", "#456", null, "GM");
+            return new User((int)id, username, $"{username.Replace(" ", "")}{emailSuffix}", color, profilePicture, initials);
         }
 
-        private UserGroup CreateSampleUserGroup(string id = "ug_1", string name = "Developers")
+        private Member CreateSampleMember(long userId = 1, string username = "Group Member", string role = null, string permissionLevel = null)
+        {
+            return new Member(User: CreateSampleUser(userId, username), Role: role, PermissionLevel: permissionLevel);
+        }
+
+        private UserGroup CreateSampleUserGroup(string id = "ug_1", string name = "Developers", int creatorUserId = 99)
         {
             return new UserGroup(
                 Id: id,
                 TeamId: "ws_abc", // Example workspace ID
+                UserId: creatorUserId, // Added UserId
                 Name: name,
                 Handle: name.ToLower().Replace(" ", "_"),
                 DateCreated: DateTimeOffset.UtcNow.AddDays(-10).ToUnixTimeMilliseconds().ToString(),
                 Initials: name.Substring(0, Math.Min(name.Length, 3)).ToUpper(),
-                Members: new List<User> { CreateSampleUser() },
+                Members: new List<Member> { CreateSampleMember(1, "Member One"), CreateSampleMember(2, "Member Two") }, // Changed to List<Member>
                 Avatar: null
             );
         }
@@ -232,8 +239,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_create_ug";
             var request = new CreateUserGroupRequest(
                 Name: "New User Group",
-                WorkspaceId: workspaceId, // Or TeamId depending on DTO
-                MemberIds: new List<long> { 1, 2 }
+                Handle: "new_user_group_handle", // Added optional handle
+                Members: new List<int> { 1, 2 } // Changed MemberIds to Members, type to List<int>
             );
             var expectedGroup = CreateSampleUserGroup("ug_new", "New User Group");
 
@@ -262,7 +269,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_create_ug_null_api";
-            var request = new CreateUserGroupRequest("Null UG", workspaceId, new List<long>());
+            // Removed workspaceId from DTO, ensuring Members is List<int>
+            var request = new CreateUserGroupRequest("Null UG", "null_ug_handle", new List<int>());
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((UserGroup)null);
@@ -278,7 +286,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_create_ug_http_ex";
-            var request = new CreateUserGroupRequest("HTTP UG", workspaceId, new List<long>());
+            var request = new CreateUserGroupRequest("HTTP UG", "http_ug_handle", new List<int>());
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API call failed"));
@@ -294,7 +302,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_create_ug_cancel_ex";
-            var request = new CreateUserGroupRequest("Cancel UG", workspaceId, new List<long>());
+            var request = new CreateUserGroupRequest("Cancel UG", "cancel_ug_handle", new List<int>());
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API call timed out"));
@@ -310,7 +318,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_create_ug_ct_pass";
-            var request = new CreateUserGroupRequest("CT UG", workspaceId, new List<long>());
+            var request = new CreateUserGroupRequest("CT UG", "ct_ug_handle", new List<int>());
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedGroup = CreateSampleUserGroup("ug_ct_new", "CT UG");
@@ -339,15 +347,23 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_1";
+            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 3, 4 }, Rem: null);
             var request = new UpdateUserGroupRequest(
                 Name: "Updated Group Name",
                 Handle: "updated_handle",
-                MemberIds: new List<long> { 3, 4 }
+                Members: membersUpdate
             );
-            var expectedGroup = CreateSampleUserGroup(groupId, "Updated Group Name");
+            var expectedGroup = CreateSampleUserGroup(groupId, "Updated Group Name", creatorUserId: 123); // Assuming a creator ID
             // Simulate the update in the expected object for assertion
-            expectedGroup = expectedGroup with { Handle = "updated_handle", Members = new List<User> { CreateSampleUser(3), CreateSampleUser(4) } };
-
+            expectedGroup = expectedGroup with
+            {
+                Handle = "updated_handle",
+                // Assuming the API returns the full member list after update,
+                // and that members with ID 3 and 4 are now part of the group.
+                // For simplicity, we're creating new Member objects.
+                // In a real scenario, you might need more sophisticated logic if the API only returns changed fields.
+                Members = new List<Member> { CreateSampleMember(3, "User Three"), CreateSampleMember(4, "User Four") }
+            };
 
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(
@@ -374,7 +390,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_null_api";
-            var request = new UpdateUserGroupRequest("Update Null", "upd_null", new List<long>());
+            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 5 }, Rem: null);
+            var request = new UpdateUserGroupRequest("Update Null", "upd_null", membersUpdate);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((UserGroup)null);
@@ -390,7 +407,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_http_ex";
-            var request = new UpdateUserGroupRequest("Update HTTP", "upd_http", new List<long>());
+            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 6 }, Rem: null);
+            var request = new UpdateUserGroupRequest("Update HTTP", "upd_http", membersUpdate);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API call failed"));
@@ -406,7 +424,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_cancel_ex";
-            var request = new UpdateUserGroupRequest("Update Cancel", "upd_cancel", new List<long>());
+            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 7 }, Rem: null);
+            var request = new UpdateUserGroupRequest("Update Cancel", "upd_cancel", membersUpdate);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API call timed out"));
@@ -422,7 +441,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_ct_pass";
-            var request = new UpdateUserGroupRequest("Update CT", "upd_ct", new List<long>());
+            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 8 }, Rem: null);
+            var request = new UpdateUserGroupRequest("Update CT", "upd_ct", membersUpdate);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedGroup = CreateSampleUserGroup(groupId, "Update CT");

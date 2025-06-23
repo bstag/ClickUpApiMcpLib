@@ -106,12 +106,12 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_all_params";
-            var startDate = DateTimeOffset.UtcNow.AddDays(-7).ToUnixTimeMilliseconds();
-            var endDate = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long startDateUnix = DateTimeOffset.UtcNow.AddDays(-7).ToUnixTimeMilliseconds();
+            long endDateUnix = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var request = new GetTimeEntriesRequest
             {
-                StartDate = DateTimeOffset.FromUnixTimeMilliseconds(startDate),
-                EndDate = DateTimeOffset.FromUnixTimeMilliseconds(endDate),
+                StartDate = DateTimeOffset.FromUnixTimeMilliseconds(startDateUnix),
+                EndDate = DateTimeOffset.FromUnixTimeMilliseconds(endDateUnix),
                 Assignee = "123,456",
                 IncludeTaskTags = true,
                 IncludeLocationNames = false,
@@ -130,7 +130,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await _timeTrackingService.GetTimeEntriesAsync(workspaceId, request);
 
             // Assert
-            var expectedUrl = $"team/{workspaceId}/time_entries?start_date={startDate}&end_date={endDate}&assignee=123%2c456&include_task_tags=true&include_location_names=false&space_id=space_x&folder_id=folder_y&list_id=list_z&task_id=task_abc";
+            // Use the original long values for assertion as the service converts DateTimeOffset back to Unix ms for the URL
+            var expectedUrl = $"team/{workspaceId}/time_entries?start_date={startDateUnix}&end_date={endDateUnix}&assignee=123%2c456&include_task_tags=true&include_location_names=false&space_id=space_x&folder_id=folder_y&list_id=list_z&task_id=task_abc";
             _mockApiConnection.Verify(x => x.GetAsync<GetTimeEntriesResponse>(
                 expectedUrl,
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -1782,16 +1783,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task GetTimeEntriesAsyncEnumerableAsync_WithRequestParams_BuildsCorrectUrl()
         {
             var workspaceId = "ws_te_enum_params";
-            var startDate = DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeMilliseconds();
-            var request = new GetTimeEntriesRequest { StartDate = startDate, Assignee = "user1" };
+            long startDateUnix = DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeMilliseconds();
+            // Correctly assign DateTimeOffset to the request DTO
+            var request = new GetTimeEntriesRequest { StartDate = DateTimeOffset.FromUnixTimeMilliseconds(startDateUnix), Assignee = "user1" };
 
             _mockApiConnection.Setup(api => api.GetAsync<GetTimeEntriesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GetTimeEntriesResponse(new List<TimeEntry>(), 0, null)); // Empty to terminate
 
             await foreach (var _ in _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(workspaceId, request, CancellationToken.None)) { }
 
+            // Use the original long value for assertion
             _mockApiConnection.Verify(api => api.GetAsync<GetTimeEntriesResponse>(
-                It.Is<string>(s => s.Contains($"team/{workspaceId}/time_entries") && s.Contains($"start_date={startDate}") && s.Contains("assignee=user1") && s.Contains("page=0")),
+                It.Is<string>(s => s.Contains($"team/{workspaceId}/time_entries") && s.Contains($"start_date={startDateUnix}") && s.Contains("assignee=user1") && s.Contains("page=0")),
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
