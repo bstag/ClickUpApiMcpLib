@@ -124,5 +124,312 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _docsService.CreatePageAsync(workspaceId, docId, request));
         }
+
+        // --- GetDocAsync Tests ---
+        [Fact]
+        public async Task GetDocAsync_ValidRequest_ReturnsDoc()
+        {
+            // Arrange
+            var workspaceId = "ws_get_doc";
+            var docId = "doc_get_valid";
+            var expectedDoc = CreateSampleDoc(docId, workspaceId: workspaceId);
+            var apiResponse = new ClickUpV3DataResponse<Doc> { Data = expectedDoc };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(
+                    $"v3/workspaces/{workspaceId}/docs/{docId}", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _docsService.GetDocAsync(workspaceId, docId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedDoc.Id, result.Id);
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetDocAsync_NullResponse_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var workspaceId = "ws_get_doc_null_resp";
+            var docId = "doc_get_null_resp";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((ClickUpV3DataResponse<Doc>)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _docsService.GetDocAsync(workspaceId, docId));
+        }
+
+        [Fact]
+        public async Task GetDocAsync_NullDataInResponse_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var workspaceId = "ws_get_doc_null_data";
+            var docId = "doc_get_null_data";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ClickUpV3DataResponse<Doc> { Data = null });
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _docsService.GetDocAsync(workspaceId, docId));
+        }
+
+        [Fact]
+        public async Task GetDocAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_get_doc_cancel";
+            var docId = "doc_get_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _docsService.GetDocAsync(workspaceId, docId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetDocAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_get_doc_ct";
+            var docId = "doc_get_ct";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedDoc = CreateSampleDoc(docId, workspaceId: workspaceId);
+            var apiResponse = new ClickUpV3DataResponse<Doc> { Data = expectedDoc };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(apiResponse);
+
+            await _docsService.GetDocAsync(workspaceId, docId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}",
+                expectedToken), Times.Once);
+        }
+
+        // --- UpdateDocAsync Tests (Placeholder - Service method not fully implemented) ---
+        // Add tests when UpdateDocAsync is implemented in DocsService.cs
+
+        // --- DeleteDocAsync Tests (Placeholder - Service method not fully implemented) ---
+        // Add tests when DeleteDocAsync is implemented in DocsService.cs
+
+        // --- GetPagesAsync Tests (Placeholder - Service method not fully implemented) ---
+        // Add tests when GetPagesAsync is implemented in DocsService.cs
+
+        // --- CreatePageAsync (Add missing tests) ---
+        [Fact]
+        public async Task CreatePageAsync_ValidRequest_ReturnsPage()
+        {
+            // Arrange
+            var workspaceId = "ws_create_page";
+            var docId = "doc_for_page";
+            var request = new CreatePageRequest(null, "New Page Title", null, "<p>Content</p>", "text/html", null, null, null);
+            var expectedPage = CreateSamplePage("new_page_1", docId, "New Page Title");
+            var apiResponse = new ClickUpV3DataResponse<Page> { Data = expectedPage };
+
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreatePageRequest, ClickUpV3DataResponse<Page>>(
+                    $"v3/workspaces/{workspaceId}/docs/{docId}/pages", request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _docsService.CreatePageAsync(workspaceId, docId, request);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedPage.Id, result.Id);
+            _mockApiConnection.Verify();
+        }
+
+        [Fact]
+        public async Task CreatePageAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_cp_err";
+            var docId = "doc_cp_err";
+            var request = new CreatePageRequest(null, "Error Page", null, "Content", "text/plain", null, null, null);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreatePageRequest, ClickUpV3DataResponse<Page>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _docsService.CreatePageAsync(workspaceId, docId, request));
+        }
+
+        [Fact]
+        public async Task CreatePageAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_cp_cancel";
+            var docId = "doc_cp_cancel";
+            var request = new CreatePageRequest(null, "Cancel Page", null, "Content", "text/plain", null, null, null);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreatePageRequest, ClickUpV3DataResponse<Page>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _docsService.CreatePageAsync(workspaceId, docId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task CreatePageAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_cp_ct";
+            var docId = "doc_cp_ct";
+            var request = new CreatePageRequest(null, "CT Page", null, "Content", "text/plain", null, null, null);
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedPage = CreateSamplePage("page_cp_ct", docId);
+            var apiResponse = new ClickUpV3DataResponse<Page> { Data = expectedPage };
+
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreatePageRequest, ClickUpV3DataResponse<Page>>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(apiResponse);
+
+            await _docsService.CreatePageAsync(workspaceId, docId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PostAsync<CreatePageRequest, ClickUpV3DataResponse<Page>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages",
+                request,
+                expectedToken), Times.Once);
+        }
+
+
+        // --- SearchDocsAsync (Add missing tests) ---
+        [Fact]
+        public async Task SearchDocsAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_search_err";
+            var request = new SearchDocsRequest { Query = "error" };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _docsService.SearchDocsAsync(workspaceId, request));
+        }
+
+        [Fact]
+        public async Task SearchDocsAsync_NullResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_search_null";
+            var request = new SearchDocsRequest { Query = "null" };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((SearchDocsResponse)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _docsService.SearchDocsAsync(workspaceId, request));
+        }
+
+        [Fact]
+        public async Task SearchDocsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_search_cancel";
+            var request = new SearchDocsRequest { Query = "cancel" };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _docsService.SearchDocsAsync(workspaceId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task SearchDocsAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_search_ct";
+            var request = new SearchDocsRequest { Query = "ct_query" };
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new SearchDocsResponse(new List<Doc>(), null, 0, true);
+            _mockApiConnection
+                .Setup(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _docsService.SearchDocsAsync(workspaceId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<SearchDocsResponse>(
+                $"/v3/workspaces/{workspaceId}/docs?q={Uri.EscapeDataString(request.Query)}", // Basic URL with query
+                expectedToken), Times.Once);
+        }
+
+        // --- CreateDocAsync (Add missing tests) ---
+        [Fact]
+        public async Task CreateDocAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_create_doc_err";
+            var request = new CreateDocRequest("Error Doc", null, "private", false, null, null);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _docsService.CreateDocAsync(workspaceId, request));
+        }
+
+        [Fact]
+        public async Task CreateDocAsync_NullResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_create_doc_null_resp";
+            var request = new CreateDocRequest("Null Resp Doc", null, "private", false, null, null);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((ClickUpV3DataResponse<Doc>)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _docsService.CreateDocAsync(workspaceId, request));
+        }
+
+        [Fact]
+        public async Task CreateDocAsync_NullDataInResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_create_doc_null_data";
+            var request = new CreateDocRequest("Null Data Doc", null, "private", false, null, null);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ClickUpV3DataResponse<Doc> { Data = null });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _docsService.CreateDocAsync(workspaceId, request));
+        }
+
+        [Fact]
+        public async Task CreateDocAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_create_doc_cancel";
+            var request = new CreateDocRequest("Cancel Doc", null, "private", false, null, null);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _docsService.CreateDocAsync(workspaceId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task CreateDocAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_create_doc_ct";
+            var request = new CreateDocRequest("CT Doc", null, "private", false, null, null);
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedDoc = CreateSampleDoc("doc_create_ct", workspaceId: workspaceId);
+            var apiResponse = new ClickUpV3DataResponse<Doc> { Data = expectedDoc };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(apiResponse);
+
+            await _docsService.CreateDocAsync(workspaceId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(
+                $"/v3/workspaces/{workspaceId}/docs",
+                request,
+                expectedToken), Times.Once);
+        }
     }
 }

@@ -561,5 +561,269 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             await Assert.ThrowsAsync<HttpRequestException>(() => _goalsService.DeleteKeyResultAsync(keyResultId));
         }
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through ---
+
+        // GetGoalsAsync
+        [Fact]
+        public async Task GetGoalsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetGoalsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _goalsService.GetGoalsAsync(workspaceId, cancellationToken: new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetGoalsAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetGoalsResponse(new List<Goal>(), new List<GoalFolder>());
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetGoalsResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _goalsService.GetGoalsAsync(workspaceId, cancellationToken: expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<GetGoalsResponse>(
+                $"team/{workspaceId}/goal", // Basic URL
+                expectedToken), Times.Once);
+        }
+
+        // CreateGoalAsync
+        [Fact]
+        public async Task CreateGoalAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_create_cancel";
+            var request = new CreateGoalRequest("Cancel Goal", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "D", false, new List<int>(), "#fff", workspaceId, null);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateGoalRequest, GetGoalResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _goalsService.CreateGoalAsync(workspaceId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task CreateGoalAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_create_ct_pass";
+            var request = new CreateGoalRequest("CT Goal", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "D", false, new List<int>(), "#fff", workspaceId, null);
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedGoal = CreateSampleGoal("new_goal_ct", teamId: workspaceId);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateGoalRequest, GetGoalResponse>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(new GetGoalResponse(expectedGoal));
+
+            await _goalsService.CreateGoalAsync(workspaceId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PostAsync<CreateGoalRequest, GetGoalResponse>(
+                $"team/{workspaceId}/goal",
+                request,
+                expectedToken), Times.Once);
+        }
+
+        // GetGoalAsync
+        [Fact]
+        public async Task GetGoalAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var goalId = "goal_get_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetGoalResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _goalsService.GetGoalAsync(goalId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetGoalAsync_PassesCancellationTokenToApiConnection()
+        {
+            var goalId = "goal_get_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedGoal = CreateSampleGoal(goalId);
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetGoalResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(new GetGoalResponse(expectedGoal));
+
+            await _goalsService.GetGoalAsync(goalId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<GetGoalResponse>(
+                $"goal/{goalId}",
+                expectedToken), Times.Once);
+        }
+
+        // UpdateGoalAsync
+        [Fact]
+        public async Task UpdateGoalAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var goalId = "goal_update_cancel";
+            var request = new UpdateGoalRequest(Name: "Cancel Update", DueDate: null, Description: null, RemoveOwners: null, AddOwners: null, Color: null, Archived: null);
+            _mockApiConnection
+                .Setup(c => c.PutAsync<UpdateGoalRequest, GetGoalResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _goalsService.UpdateGoalAsync(goalId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task UpdateGoalAsync_PassesCancellationTokenToApiConnection()
+        {
+            var goalId = "goal_update_ct_pass";
+            var request = new UpdateGoalRequest(Name: "CT Update", DueDate: null, Description: null, RemoveOwners: null, AddOwners: null, Color: null, Archived: null);
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedGoal = CreateSampleGoal(goalId, "CT Update");
+            _mockApiConnection
+                .Setup(c => c.PutAsync<UpdateGoalRequest, GetGoalResponse>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(new GetGoalResponse(expectedGoal));
+
+            await _goalsService.UpdateGoalAsync(goalId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PutAsync<UpdateGoalRequest, GetGoalResponse>(
+                $"goal/{goalId}",
+                request,
+                expectedToken), Times.Once);
+        }
+
+        // DeleteGoalAsync
+        [Fact]
+        public async Task DeleteGoalAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var goalId = "goal_delete_cancel";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _goalsService.DeleteGoalAsync(goalId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task DeleteGoalAsync_PassesCancellationTokenToApiConnection()
+        {
+            var goalId = "goal_delete_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), expectedToken))
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            await _goalsService.DeleteGoalAsync(goalId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.DeleteAsync(
+                $"goal/{goalId}",
+                expectedToken), Times.Once);
+        }
+
+        // CreateKeyResultAsync
+        [Fact]
+        public async Task CreateKeyResultAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var goalId = "goal_kr_create_cancel";
+            var request = new CreateKeyResultRequest("Cancel KR", new List<int>(), "type", 0, 0, "unit", new List<string>(), new List<string>(), goalId);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateKeyResultRequest, CreateKeyResultResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _goalsService.CreateKeyResultAsync(goalId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task CreateKeyResultAsync_PassesCancellationTokenToApiConnection()
+        {
+            var goalId = "goal_kr_create_ct_pass";
+            var request = new CreateKeyResultRequest("CT KR", new List<int>(), "type", 0, 0, "unit", new List<string>(), new List<string>(), goalId);
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedKeyResult = CreateSampleKeyResult("new_kr_ct", goalId);
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateKeyResultRequest, CreateKeyResultResponse>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(new CreateKeyResultResponse(expectedKeyResult));
+
+            await _goalsService.CreateKeyResultAsync(goalId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PostAsync<CreateKeyResultRequest, CreateKeyResultResponse>(
+                $"goal/{goalId}/key_result",
+                request,
+                expectedToken), Times.Once);
+        }
+
+        // EditKeyResultAsync
+        [Fact]
+        public async Task EditKeyResultAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var keyResultId = "kr_edit_cancel";
+            var request = new EditKeyResultRequest(StepsCurrent: null, Note: "Cancel Edit KR", Name: null, Owners: null, AddOwners: null, RemoveOwners: null, TaskIds: null, ListIds: null, Archived: null);
+            _mockApiConnection
+                .Setup(c => c.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _goalsService.EditKeyResultAsync(keyResultId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task EditKeyResultAsync_PassesCancellationTokenToApiConnection()
+        {
+            var keyResultId = "kr_edit_ct_pass";
+            var request = new EditKeyResultRequest(StepsCurrent: null, Note: "CT Edit KR", Name: null, Owners: null, AddOwners: null, RemoveOwners: null, TaskIds: null, ListIds: null, Archived: null);
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedKeyResult = CreateSampleKeyResult(keyResultId);
+             if (expectedKeyResult.LastAction != null)
+            {
+                expectedKeyResult = expectedKeyResult with { LastAction = expectedKeyResult.LastAction with { Note = "CT Edit KR" } };
+            }
+            _mockApiConnection
+                .Setup(c => c.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(new EditKeyResultResponse(expectedKeyResult));
+
+            await _goalsService.EditKeyResultAsync(keyResultId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(
+                $"key_result/{keyResultId}",
+                request,
+                expectedToken), Times.Once);
+        }
+
+        // DeleteKeyResultAsync
+        [Fact]
+        public async Task DeleteKeyResultAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var keyResultId = "kr_delete_cancel";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _goalsService.DeleteKeyResultAsync(keyResultId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task DeleteKeyResultAsync_PassesCancellationTokenToApiConnection()
+        {
+            var keyResultId = "kr_delete_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), expectedToken))
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            await _goalsService.DeleteKeyResultAsync(keyResultId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.DeleteAsync(
+                $"key_result/{keyResultId}",
+                expectedToken), Times.Once);
+        }
     }
 }

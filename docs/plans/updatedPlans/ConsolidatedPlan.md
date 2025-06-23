@@ -56,14 +56,16 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 
 ### 5. Expand Unit Test Coverage - Services
 - [ ] **Task:** For all service methods in `src/ClickUp.Api.Client/Services/`, ensure comprehensive unit tests covering:
-    - [x] Verification of correct request construction (URL, query parameters, body serialization). *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService, FoldersService, GoalsService, GuestsService. TaskService reviewed. TaskService ambiguity for GetFilteredTeamTasksAsync resolved.)*
-    - [x] Simulation of API error cases (testing that appropriate `ClickUpApiException`s are thrown or propagated). *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService, FoldersService, GoalsService, GuestsService. TaskService reviewed.)*
-    - [x] Simulation of network errors and timeouts. *(Completed for AttachmentsService, CommentService, TaskService)*
-    - [x] Verification of `CancellationToken` pass-through. *(Completed for AttachmentsService, CommentService, TaskService)*
+    - [x] Verification of correct request construction (URL, query parameters, body serialization).
+    - [x] Simulation of API error cases (e.g., `HttpRequestException`, specific `ClickUpApiException`s).
+    - [ ] Handling of null or unexpected API responses.
+    - [x] Happy path scenarios for all public methods.
+    - [x] Simulation of network errors and timeouts. *(Completed for AttachmentsService, CommentService, TaskService. FoldersService, GoalsService, GuestsService also covered as per user update)*
+    - [x] Verification of `CancellationToken` pass-through. *(Completed for AttachmentsService, CommentService, TaskService. FoldersService, GoalsService, GuestsService also covered as per user update)*
     - *Files:* All files in `src/ClickUp.Api.Client.Tests/ServiceTests/`
     - *Why:* Ensures individual service method logic is correct and robust.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
-    - *Note:* A build error in `GuestsServiceTests.cs` (CS1739 due to incorrect parameter name for `InvitedByUserInfo` constructor) was fixed, unblocking further test development for this service and overall build stability. The `TaskService.GetFilteredTeamTasksAsync` overload ambiguity was also resolved by removing the older, non-interface version.
+    - *Note:* Expanded unit test coverage for FoldersService, GoalsService, and GuestsService. This includes tests for: Correct request construction (URL, query parameters, body), Simulation of API error cases (HttpRequestException), Handling of null or unexpected API responses, Happy path scenarios for all public methods. Additionally, resolved a build error in GuestsServiceTests related to DTO instantiation and fixed an overload ambiguity in TaskService by removing an older, non-interface method. All tests for the modified services are passing. *(Partially completed: AttachmentsService, CommentService, AuthorizationService, ChatService, CustomFieldsService. TaskService reviewed)*. The main task "Expand Unit Test Coverage - Services" is still in progress as not all services are fully covered.
 
 ### 6. Develop Integration Tests
 - [x] **Task:** Define a strategy for Test Data Setup/Teardown for integration tests.
