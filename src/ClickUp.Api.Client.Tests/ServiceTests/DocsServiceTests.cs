@@ -431,5 +431,603 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 request,
                 expectedToken), Times.Once);
         }
+
+        // --- GetDocPageListingAsync Tests ---
+        [Fact]
+        public async Task GetDocPageListingAsync_ValidRequest_BuildsUrlAndReturnsListing()
+        {
+            // Arrange
+            var workspaceId = "ws_page_list";
+            var docId = "doc_for_listing";
+            var maxDepth = 2;
+            var expectedListing = new List<DocPageListingItem> { new DocPageListingItem("page_item_1", "Page Item 1", new List<DocPageListingItem>()) };
+            var apiResponse = new ClickUpV3DataListResponse<DocPageListingItem> { Data = expectedListing };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(
+                    $"v3/workspaces/{workspaceId}/docs/{docId}/pageListing?max_page_depth={maxDepth}", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _docsService.GetDocPageListingAsync(workspaceId, docId, maxDepth);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal("page_item_1", result.First().Id);
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pageListing?max_page_depth={maxDepth}",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetDocPageListingAsync_MinimalRequest_BuildsUrlAndReturnsListing()
+        {
+            // Arrange
+            var workspaceId = "ws_page_list_min";
+            var docId = "doc_for_listing_min";
+            var expectedListing = new List<DocPageListingItem> { new DocPageListingItem("page_item_min", "Page Item Min", null) };
+            var apiResponse = new ClickUpV3DataListResponse<DocPageListingItem> { Data = expectedListing };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(
+                    $"v3/workspaces/{workspaceId}/docs/{docId}/pageListing", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _docsService.GetDocPageListingAsync(workspaceId, docId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pageListing",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetDocPageListingAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_pl_err";
+            var docId = "doc_pl_err";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _docsService.GetDocPageListingAsync(workspaceId, docId));
+        }
+
+        [Fact]
+        public async Task GetDocPageListingAsync_NullResponse_ReturnsEmptyEnumerable()
+        {
+            var workspaceId = "ws_pl_null";
+            var docId = "doc_pl_null";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((ClickUpV3DataListResponse<DocPageListingItem>)null);
+
+            var result = await _docsService.GetDocPageListingAsync(workspaceId, docId);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDocPageListingAsync_NullDataInResponse_ReturnsEmptyEnumerable()
+        {
+            var workspaceId = "ws_pl_null_data";
+            var docId = "doc_pl_null_data";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ClickUpV3DataListResponse<DocPageListingItem>{ Data = null });
+
+            var result = await _docsService.GetDocPageListingAsync(workspaceId, docId);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDocPageListingAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_pl_cancel";
+            var docId = "doc_pl_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _docsService.GetDocPageListingAsync(workspaceId, docId, cancellationToken: new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetDocPageListingAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_pl_ct";
+            var docId = "doc_pl_ct";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var apiResponse = new ClickUpV3DataListResponse<DocPageListingItem> { Data = new List<DocPageListingItem>() };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(apiResponse);
+
+            await _docsService.GetDocPageListingAsync(workspaceId, docId, cancellationToken: expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pageListing",
+                expectedToken), Times.Once);
+        }
+
+        // --- GetDocPagesAsync Tests ---
+        [Fact]
+        public async Task GetDocPagesAsync_ValidRequest_BuildsUrlAndReturnsPages()
+        {
+            // Arrange
+            var workspaceId = "ws_get_pages";
+            var docId = "doc_for_pages";
+            var maxDepth = 1;
+            var contentFormat = "html";
+            var expectedPages = new List<Page> { CreateSamplePage("page_abc", docId) };
+            var apiResponse = new ClickUpV3DataListResponse<Page> { Data = expectedPages };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(
+                    $"v3/workspaces/{workspaceId}/docs/{docId}/pages?max_page_depth={maxDepth}&content_format={contentFormat}", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _docsService.GetDocPagesAsync(workspaceId, docId, maxDepth, contentFormat);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal("page_abc", result.First().Id);
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages?max_page_depth={maxDepth}&content_format={contentFormat}",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetDocPagesAsync_MinimalRequest_BuildsUrlAndReturnsPages()
+        {
+            var workspaceId = "ws_get_pages_min";
+            var docId = "doc_for_pages_min";
+            var expectedPages = new List<Page> { CreateSamplePage("page_min_1", docId) };
+            var apiResponse = new ClickUpV3DataListResponse<Page> { Data = expectedPages };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(
+                    $"v3/workspaces/{workspaceId}/docs/{docId}/pages", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            var result = await _docsService.GetDocPagesAsync(workspaceId, docId);
+
+            Assert.NotNull(result);
+            Assert.Single(result);
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetDocPagesAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_gp_err";
+            var docId = "doc_gp_err";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _docsService.GetDocPagesAsync(workspaceId, docId));
+        }
+
+        [Fact]
+        public async Task GetDocPagesAsync_NullResponse_ReturnsEmptyEnumerable()
+        {
+            var workspaceId = "ws_gp_null";
+            var docId = "doc_gp_null";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((ClickUpV3DataListResponse<Page>)null);
+
+            var result = await _docsService.GetDocPagesAsync(workspaceId, docId);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDocPagesAsync_NullDataInResponse_ReturnsEmptyEnumerable()
+        {
+            var workspaceId = "ws_gp_null_data";
+            var docId = "doc_gp_null_data";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ClickUpV3DataListResponse<Page>{ Data = null });
+
+            var result = await _docsService.GetDocPagesAsync(workspaceId, docId);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDocPagesAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_gp_cancel";
+            var docId = "doc_gp_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _docsService.GetDocPagesAsync(workspaceId, docId, cancellationToken: new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetDocPagesAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_gp_ct";
+            var docId = "doc_gp_ct";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var apiResponse = new ClickUpV3DataListResponse<Page> { Data = new List<Page>() };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(apiResponse);
+
+            await _docsService.GetDocPagesAsync(workspaceId, docId, cancellationToken: expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages",
+                expectedToken), Times.Once);
+        }
+
+        // --- GetPageAsync Tests ---
+        [Fact]
+        public async Task GetPageAsync_ValidRequest_BuildsUrlAndReturnsPage()
+        {
+            // Arrange
+            var workspaceId = "ws_get_page";
+            var docId = "doc_for_get_page";
+            var pageId = "page_to_get";
+            var contentFormat = "markdown";
+            var expectedPage = CreateSamplePage(pageId, docId);
+            var apiResponse = new ClickUpV3DataResponse<Page> { Data = expectedPage };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(
+                    $"v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId}?content_format={contentFormat}", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _docsService.GetPageAsync(workspaceId, docId, pageId, contentFormat);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedPage.Id, result.Id);
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataResponse<Page>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId}?content_format={contentFormat}",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetPageAsync_MinimalRequest_BuildsUrlAndReturnsPage()
+        {
+            var workspaceId = "ws_get_page_min";
+            var docId = "doc_for_get_page_min";
+            var pageId = "page_to_get_min";
+            var expectedPage = CreateSamplePage(pageId, docId);
+            var apiResponse = new ClickUpV3DataResponse<Page> { Data = expectedPage };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(
+                    $"v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId}", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            var result = await _docsService.GetPageAsync(workspaceId, docId, pageId);
+
+            Assert.NotNull(result);
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataResponse<Page>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId}",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetPageAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_gpage_err";
+            var docId = "doc_gpage_err";
+            var pageId = "page_gpage_err";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _docsService.GetPageAsync(workspaceId, docId, pageId));
+        }
+
+        [Fact]
+        public async Task GetPageAsync_NullResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_gpage_null";
+            var docId = "doc_gpage_null";
+            var pageId = "page_gpage_null";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((ClickUpV3DataResponse<Page>)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _docsService.GetPageAsync(workspaceId, docId, pageId));
+        }
+
+        [Fact]
+        public async Task GetPageAsync_NullDataInResponse_ThrowsInvalidOperationException()
+        {
+            var workspaceId = "ws_gpage_null_data";
+            var docId = "doc_gpage_null_data";
+            var pageId = "page_gpage_null_data";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ClickUpV3DataResponse<Page>{ Data = null });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _docsService.GetPageAsync(workspaceId, docId, pageId));
+        }
+
+        [Fact]
+        public async Task GetPageAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_gpage_cancel";
+            var docId = "doc_gpage_cancel";
+            var pageId = "page_gpage_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _docsService.GetPageAsync(workspaceId, docId, pageId, cancellationToken: new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetPageAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_gpage_ct";
+            var docId = "doc_gpage_ct";
+            var pageId = "page_gpage_ct";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var apiResponse = new ClickUpV3DataResponse<Page> { Data = CreateSamplePage(pageId, docId) };
+            _mockApiConnection
+                .Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(apiResponse);
+
+            await _docsService.GetPageAsync(workspaceId, docId, pageId, cancellationToken: expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<ClickUpV3DataResponse<Page>>(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId}",
+                expectedToken), Times.Once);
+        }
+
+        // --- EditPageAsync Tests ---
+        [Fact]
+        public async Task EditPageAsync_ValidRequest_CallsPutAsync()
+        {
+            // Arrange
+            var workspaceId = "ws_edit_page";
+            var docId = "doc_for_edit";
+            var pageId = "page_to_edit";
+            var request = new EditPageRequest(Name: "Updated Page Name", Content: "<p>New Content</p>");
+
+            _mockApiConnection
+                .Setup(c => c.PutAsync($"v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId}", request, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _docsService.EditPageAsync(workspaceId, docId, pageId, request);
+
+            // Assert
+            _mockApiConnection.Verify(c => c.PutAsync(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId}",
+                request,
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task EditPageAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var workspaceId = "ws_epage_err";
+            var docId = "doc_epage_err";
+            var pageId = "page_epage_err";
+            var request = new EditPageRequest("Error Page Edit", "Error content");
+            _mockApiConnection
+                .Setup(c => c.PutAsync(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _docsService.EditPageAsync(workspaceId, docId, pageId, request));
+        }
+
+        [Fact]
+        public async Task EditPageAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var workspaceId = "ws_epage_cancel";
+            var docId = "doc_epage_cancel";
+            var pageId = "page_epage_cancel";
+            var request = new EditPageRequest("Cancel Page Edit", "Cancel content");
+            _mockApiConnection
+                .Setup(c => c.PutAsync(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _docsService.EditPageAsync(workspaceId, docId, pageId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task EditPageAsync_PassesCancellationTokenToApiConnection()
+        {
+            var workspaceId = "ws_epage_ct";
+            var docId = "doc_epage_ct";
+            var pageId = "page_epage_ct";
+            var request = new EditPageRequest("CT Page Edit", "CT content");
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            _mockApiConnection
+                .Setup(c => c.PutAsync(It.IsAny<string>(), request, expectedToken))
+                .Returns(Task.CompletedTask);
+
+            await _docsService.EditPageAsync(workspaceId, docId, pageId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PutAsync(
+                $"v3/workspaces/{workspaceId}/docs/{docId}/pages/{pageId}",
+                request,
+                expectedToken), Times.Once);
+        }
+
+        // --- SearchAllDocsAsync Tests ---
+        [Fact]
+        public async Task SearchAllDocsAsync_NoResults_ReturnsEmpty()
+        {
+            // Arrange
+            var workspaceId = "ws_search_all_empty";
+            var request = new SearchDocsRequest { Query = "empty_query" };
+            var apiResponse = new SearchDocsResponse(new List<Doc>(), null, 0, false); // No next page
+
+            _mockApiConnection
+                .Setup(c => c.GetAsync<SearchDocsResponse>(
+                    $"/v3/workspaces/{workspaceId}/docs?q={Uri.EscapeDataString(request.Query)}", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var results = new List<Doc>();
+            await foreach (var doc in _docsService.SearchAllDocsAsync(workspaceId, request, CancellationToken.None))
+            {
+                results.Add(doc);
+            }
+
+            // Assert
+            Assert.Empty(results);
+            _mockApiConnection.Verify(c => c.GetAsync<SearchDocsResponse>(
+                It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once); // Called once for the first page
+        }
+
+        [Fact]
+        public async Task SearchAllDocsAsync_SinglePageOfResults_ReturnsAllItems()
+        {
+            // Arrange
+            var workspaceId = "ws_search_all_single";
+            var request = new SearchDocsRequest { Query = "single_page_query" };
+            var docs = new List<Doc> { CreateSampleDoc("doc1"), CreateSampleDoc("doc2") };
+            var apiResponse = new SearchDocsResponse(docs, null, docs.Count, false); // No next page
+
+            _mockApiConnection
+                .Setup(c => c.GetAsync<SearchDocsResponse>(
+                    $"/v3/workspaces/{workspaceId}/docs?q={Uri.EscapeDataString(request.Query)}", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var results = new List<Doc>();
+            await foreach (var doc in _docsService.SearchAllDocsAsync(workspaceId, request, CancellationToken.None))
+            {
+                results.Add(doc);
+            }
+
+            // Assert
+            Assert.Equal(2, results.Count);
+            Assert.Contains(results, d => d.Id == "doc1");
+            Assert.Contains(results, d => d.Id == "doc2");
+            _mockApiConnection.Verify(c => c.GetAsync<SearchDocsResponse>(
+                It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SearchAllDocsAsync_MultiplePagesOfResults_ReturnsAllItems()
+        {
+            // Arrange
+            var workspaceId = "ws_search_all_multi";
+            var request = new SearchDocsRequest { Query = "multi_page_query" };
+            var docsPage1 = new List<Doc> { CreateSampleDoc("doc_page1_1"), CreateSampleDoc("doc_page1_2") };
+            var docsPage2 = new List<Doc> { CreateSampleDoc("doc_page2_1") };
+
+            var apiResponsePage1 = new SearchDocsResponse(docsPage1, "cursor_page2", docsPage1.Count, true);
+            var apiResponsePage2 = new SearchDocsResponse(docsPage2, null, docsPage2.Count, false); // Last page
+
+            _mockApiConnection
+                .SetupSequence(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponsePage1)
+                .ReturnsAsync(apiResponsePage2);
+
+            // Act
+            var results = new List<Doc>();
+            await foreach (var doc in _docsService.SearchAllDocsAsync(workspaceId, request, CancellationToken.None))
+            {
+                results.Add(doc);
+            }
+
+            // Assert
+            Assert.Equal(3, results.Count);
+            Assert.Contains(results, d => d.Id == "doc_page1_1");
+            Assert.Contains(results, d => d.Id == "doc_page1_2");
+            Assert.Contains(results, d => d.Id == "doc_page2_1");
+            _mockApiConnection.Verify(c => c.GetAsync<SearchDocsResponse>(
+                 $"/v3/workspaces/{workspaceId}/docs?q={Uri.EscapeDataString(request.Query)}", It.IsAny<CancellationToken>()), Times.Once);
+            _mockApiConnection.Verify(c => c.GetAsync<SearchDocsResponse>(
+                $"/v3/workspaces/{workspaceId}/docs?q={Uri.EscapeDataString(request.Query)}&cursor=cursor_page2", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SearchAllDocsAsync_ApiConnectionThrowsException_PropagatesException()
+        {
+            // Arrange
+            var workspaceId = "ws_search_all_err";
+            var request = new SearchDocsRequest { Query = "error_query" };
+            var apiException = new HttpRequestException("Network error");
+
+            _mockApiConnection
+                .Setup(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(apiException);
+
+            // Act & Assert
+            var iterator = _docsService.SearchAllDocsAsync(workspaceId, request, CancellationToken.None).GetAsyncEnumerator();
+            await Assert.ThrowsAsync<HttpRequestException>(async () => await iterator.MoveNextAsync());
+        }
+
+        [Fact]
+        public async Task SearchAllDocsAsync_CancellationRequested_StopsIteration()
+        {
+            // Arrange
+            var workspaceId = "ws_search_all_cancel";
+            var request = new SearchDocsRequest { Query = "cancel_query" };
+            var docsPage1 = new List<Doc> { CreateSampleDoc("doc_cancel1") };
+            var apiResponsePage1 = new SearchDocsResponse(docsPage1, "cursor_cancel2", docsPage1.Count, true);
+
+            using var cts = new CancellationTokenSource();
+
+            _mockApiConnection
+                .Setup(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponsePage1)
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (url.Contains("cursor_cancel2")) // Simulate cancellation before fetching second page
+                    {
+                        cts.Cancel();
+                        token.ThrowIfCancellationRequested();
+                    }
+                });
+
+            // Act
+            var results = new List<Doc>();
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            {
+                await foreach (var doc in _docsService.SearchAllDocsAsync(workspaceId, request, cts.Token))
+                {
+                    results.Add(doc);
+                }
+            });
+
+            // Assert
+            Assert.Single(results); // Only first page items should be processed
+             _mockApiConnection.Verify(c => c.GetAsync<SearchDocsResponse>(
+                 $"/v3/workspaces/{workspaceId}/docs?q={Uri.EscapeDataString(request.Query)}", It.IsAny<CancellationToken>()), Times.Once);
+            // Depending on exact timing, the second call might start or not. If it starts and token is checked early, it's fine.
+            // For this test, we ensure at least the first call happens and cancellation stops further processing.
+        }
     }
 }
