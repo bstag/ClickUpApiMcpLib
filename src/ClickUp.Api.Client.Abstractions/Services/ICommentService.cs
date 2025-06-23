@@ -37,12 +37,8 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task with the specified ID does not exist or is not accessible.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this task.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-        Task<IEnumerable<Comment>> GetTaskCommentsAsync(
-            string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
-            long? start = null,
-            string? startId = null,
+        Task<IEnumerable<Comment>> GetTaskCommentsAsync( // Keep return type as per interface for now
+            GetTaskCommentsRequest requestModel,         // Change to accept request object
             CancellationToken cancellationToken = default);
 
         /// <summary>

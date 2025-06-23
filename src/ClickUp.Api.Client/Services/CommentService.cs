@@ -170,13 +170,14 @@ namespace ClickUp.Api.Client.Services
                 cancellationToken.ThrowIfCancellationRequested();
                 _logger.LogDebug("Fetching next page of task comments for task ID: {TaskId}, Start: {Start}, StartId: {StartId}", taskId, currentStartTimestamp, currentStartId);
 
-                var commentsPage = await GetTaskCommentsAsync(
-                    taskId,
-                    customTaskIds,
-                    teamId,
-                    currentStartTimestamp, // Use the current start timestamp
-                    currentStartId,
-                    cancellationToken).ConfigureAwait(false);
+                var request = new GetTaskCommentsRequest(taskId)
+                {
+                    CustomTaskIds = customTaskIds,
+                    TeamId = teamId,
+                    Start = currentStartTimestamp, // Use the current start timestamp
+                    StartId = currentStartId
+                };
+                var commentsPage = await GetTaskCommentsAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (commentsPage == null || !commentsPage.Any())
                 {
@@ -210,24 +211,23 @@ namespace ClickUp.Api.Client.Services
 
         /// <inheritdoc />
         public async Task<IEnumerable<Comment>> GetTaskCommentsAsync(
-            string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
-            long? start = null,
-            string? startId = null,
+            GetTaskCommentsRequest requestModel,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting task comments for task ID: {TaskId}, Start: {Start}, StartId: {StartId}", taskId, start, startId);
-            var endpoint = $"task/{taskId}/comment";
+            _logger.LogInformation("Getting task comments for task ID: {TaskId}, Start: {Start}, StartId: {StartId}", requestModel.TaskId, requestModel.Start, requestModel.StartId);
+            var endpoint = $"task/{requestModel.TaskId}/comment";
             var queryParams = new Dictionary<string, string?>();
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            if (start.HasValue) queryParams["start"] = start.Value.ToString();
-            if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
+            if (requestModel.Start.HasValue) queryParams["start"] = requestModel.Start.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.StartId)) queryParams["start_id"] = requestModel.StartId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetTaskCommentsResponse>(endpoint, cancellationToken);
-            return response?.Comments ?? Enumerable.Empty<Comment>();
+            // The interface ICommentsService.GetTaskCommentsAsync returns Task<IEnumerable<Comment>>
+            // but the actual API call might return a wrapper like GetTaskCommentsResponse which contains a list of comments.
+            // Assuming _apiConnection.GetAsync correctly deserializes to GetTaskCommentsResponse.
+            var responseWrapper = await _apiConnection.GetAsync<GetTaskCommentsResponse>(endpoint, cancellationToken);
+            return responseWrapper?.Comments ?? Enumerable.Empty<Comment>();
         }
 
         /// <inheritdoc />

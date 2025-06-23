@@ -113,22 +113,22 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *Ref:* `docs/plans/updatedPlans/http/03-HttpClientAndHelpers.md`
 
 ### 8. Develop Example Projects
-- [ ] **Task:** Add configuration options to examples for Workspace IDs, List IDs, etc., as needed for demonstrating more scenarios.
+- [x] **Task:** Add configuration options to examples for Workspace IDs, List IDs, etc., as needed for demonstrating more scenarios.
     - *Files:* `appsettings.template.json` and `Program.cs`/`App.cs` in example projects.
     - *Ref:* `docs/plans/updatedPlans/examples/09-ExampleProjects.md`
-- [ ] **Task:** Implement remaining scenarios in `examples/ClickUp.Api.Client.Console`: Basic CRUD, listing resources, pagination demo, error handling, specific service methods.
+- [x] **Task:** Implement remaining scenarios in `examples/ClickUp.Api.Client.Console`: Basic CRUD, listing resources, pagination demo, error handling, specific service methods.
     - *Files:* `examples/ClickUp.Api.Client.Console/`
     - *Why:* Provide clear, runnable demonstrations of SDK features.
     - *Ref:* `docs/plans/updatedPlans/examples/09-ExampleProjects.md`
-- [ ] **Task:** Implement `AddClickUpClient` DI setup in `examples/ClickUp.Api.Client.Worker/Program.cs`.
+- [x] **Task:** Implement `AddClickUpClient` DI setup in `examples/ClickUp.Api.Client.Worker/Program.cs`.
     - *File:* `examples/ClickUp.Api.Client.Worker/Program.cs`
     - *Why:* Essential for worker to use the SDK.
     - *Ref:* `docs/plans/updatedPlans/examples/09-ExampleProjects.md`
-- [ ] **Task:** Implement scenarios in `examples/ClickUp.Api.Client.Worker`: Periodic polling, full `CancellationToken` usage.
+- [x] **Task:** Implement scenarios in `examples/ClickUp.Api.Client.Worker`: Periodic polling, full `CancellationToken` usage.
     - *Files:* `examples/ClickUp.Api.Client.Worker/Worker.cs` and potentially new services.
     - *Why:* Showcases SDK in background service scenarios.
     - *Ref:* `docs/plans/updatedPlans/examples/09-ExampleProjects.md`
-- [ ] **Task:** Update READMEs for example projects with expected outputs once scenarios are implemented.
+- [x] **Task:** Update READMEs for example projects with expected outputs once scenarios are implemented.
     - *Files:* `examples/ClickUp.Api.Client.Console/README.md`, `examples/ClickUp.Api.Client.Worker/README.md`
     - *Ref:* `docs/plans/updatedPlans/examples/09-ExampleProjects.md`
 

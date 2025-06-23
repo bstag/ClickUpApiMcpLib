@@ -688,7 +688,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _commentService.GetTaskCommentsAsync(taskId, null, null, null, null, CancellationToken.None));
+                _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(taskId), CancellationToken.None));
         }
 
         [Fact]
@@ -875,7 +875,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                _commentService.GetTaskCommentsAsync(taskId, null, null, null, null, cts.Token));
+                _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(taskId), cts.Token));
         }
 
         [Fact]
@@ -892,7 +892,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            await _commentService.GetTaskCommentsAsync(taskId, null, null, null, null, expectedToken);
+            await _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(taskId), expectedToken);
 
             // Assert
             _mockApiConnection.Verify(api => api.GetAsync<GetTaskCommentsResponse>(

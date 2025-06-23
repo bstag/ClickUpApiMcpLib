@@ -61,27 +61,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<GetTasksResponse> GetTasksAsync(
             string listId,
-            bool? archived = null,
-            bool? includeMarkdownDescription = null,
-            int? page = null,
-            string? orderBy = null,
-            bool? reverse = null,
-            bool? subtasks = null,
-            IEnumerable<string>? statuses = null,
-            bool? includeClosed = null,
-            IEnumerable<string>? assignees = null,
-            IEnumerable<string>? watchers = null,
-            IEnumerable<string>? tags = null,
-            long? dueDateGreaterThan = null,
-            long? dueDateLessThan = null,
-            long? dateCreatedGreaterThan = null,
-            long? dateCreatedLessThan = null,
-            long? dateUpdatedGreaterThan = null,
-            long? dateUpdatedLessThan = null,
-            long? dateDoneGreaterThan = null,
-            long? dateDoneLessThan = null,
-            string? customFields = null,
-            IEnumerable<long>? customItems = null,
+            GetTasksRequest requestModel,
             CancellationToken cancellationToken = default);
 
         /// <summary>
