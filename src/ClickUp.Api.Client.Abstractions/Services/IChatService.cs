@@ -155,7 +155,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="cursor">Optional. The cursor for pagination.</param>
         /// <param name="limit">Optional. The maximum number of followers to return per page.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetChatUsersResponse"/> object with the list of followers (<see cref="ChatUser"/>) and pagination information.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetChatUsersResponse"/> object with the list of followers (<see cref="Models.Entities.Chat.ChatSimpleUser"/>) and pagination information.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="channelId"/> is null or empty.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information.</exception>
@@ -175,7 +175,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="cursor">Optional. The cursor for pagination.</param>
         /// <param name="limit">Optional. The maximum number of members to return per page.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetChatUsersResponse"/> object with the list of members (<see cref="ChatUser"/>) and pagination information.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetChatUsersResponse"/> object with the list of members (<see cref="Models.Entities.Chat.ChatSimpleUser"/>) and pagination information.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="channelId"/> is null or empty.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information.</exception>
@@ -369,7 +369,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="cursor">Optional. The cursor for pagination.</param>
         /// <param name="limit">Optional. The maximum number of tagged users to return per page.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetChatUsersResponse"/> object with the list of tagged users (<see cref="ChatUser"/>) and pagination information.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetChatUsersResponse"/> object with the list of tagged users (<see cref="Models.Entities.Chat.ChatSimpleUser"/>) and pagination information.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="messageId"/> is null or empty.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the message with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information.</exception>

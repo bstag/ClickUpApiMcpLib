@@ -2,17 +2,15 @@ using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.Entities.Views;
 
-/// <summary>
-/// Represents a single column's settings in a View (typically for List or Table views).
-/// </summary>
 public record ViewColumnField(
-    /// <summary>
-    /// ID of the field this column represents (e.g., "name", "status", "assignees", "due_date", or a custom field ID).
-    /// </summary>
     [property: JsonPropertyName("id")]
     string Id
 )
 {
+    /// <summary>
+    /// Represents a single column's settings in a View (typically for List or Table views).
+    /// </summary>
+    /// <param name="Id">ID of the field this column represents (e.g., "name", "status", "assignees", "due_date", or a custom field ID).</param>
     /// <summary>
     /// The specific field instance or sub-field if applicable. Often same as 'id' for standard fields.
     /// </summary>

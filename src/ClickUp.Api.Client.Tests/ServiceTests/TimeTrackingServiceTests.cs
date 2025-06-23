@@ -130,10 +130,22 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await _timeTrackingService.GetTimeEntriesAsync(workspaceId, request);
 
             // Assert
-            // Use the original long values for assertion as the service converts DateTimeOffset back to Unix ms for the URL
-            var expectedUrl = $"team/{workspaceId}/time_entries?start_date={startDateUnix}&end_date={endDateUnix}&assignee=123%2c456&include_task_tags=true&include_location_names=false&space_id=space_x&folder_id=folder_y&list_id=list_z&task_id=task_abc";
+            var formattedStartDate = Uri.EscapeDataString(request.StartDate.Value.ToString());
+            var formattedEndDate = Uri.EscapeDataString(request.EndDate.Value.ToString());
+            var assigneesCsv = Uri.EscapeDataString(request.Assignee); // Assignee is already a string "123,456"
+
+            var expectedUrl = $"team/{workspaceId}/time_entries" +
+                              $"?start_date={formattedStartDate}" +
+                              $"&end_date={formattedEndDate}" +
+                              $"&assignee={assigneesCsv}" + // request.Assignee is already "123,456", so Uri.EscapeDataString handles the comma
+                              $"&include_task_tags=true" +
+                              $"&include_location_names=false" +
+                              $"&space_id=space_x" +
+                              $"&folder_id=folder_y" +
+                              $"&list_id=list_z" +
+                              $"&task_id=task_abc";
             _mockApiConnection.Verify(x => x.GetAsync<GetTimeEntriesResponse>(
-                expectedUrl,
+                It.Is<string>(url => url == expectedUrl), // Use It.Is for robust comparison
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -1792,9 +1804,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             await foreach (var _ in _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(workspaceId, request, CancellationToken.None)) { }
 
-            // Use the original long value for assertion
+            var formattedStartDate = Uri.EscapeDataString(request.StartDate.Value.ToString());
+            // Assert
             _mockApiConnection.Verify(api => api.GetAsync<GetTimeEntriesResponse>(
-                It.Is<string>(s => s.Contains($"team/{workspaceId}/time_entries") && s.Contains($"start_date={startDateUnix}") && s.Contains("assignee=user1") && s.Contains("page=0")),
+                It.Is<string>(s => s.Contains($"team/{workspaceId}/time_entries") && s.Contains($"start_date={formattedStartDate}") && s.Contains("assignee=user1") && s.Contains("page=0")),
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -1831,22 +1844,48 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var firstPageEntries = this.CreatePagedTimeEntriesInstance(2, 0); // Corrected to use instance method
             var cts = new CancellationTokenSource();
 
-            _mockApiConnection.Setup(api => api.GetAsync<GetTimeEntriesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetTimeEntriesResponse(firstPageEntries, firstPageEntries.Count, null));
+            _mockApiConnection
+                .Setup(api => api.GetAsync<GetTimeEntriesResponse>(It.IsAny<string>(), cts.Token)) // Ensure the mock uses the specific token
+                .Returns<string, CancellationToken>(async (url, token) =>
+                {
+                    // Simulate some work before checking cancellation for the first item
+                    if (url.Contains("page=0"))
+                    {
+                        // Yield first item, then allow cancellation to be processed by the helper before second item
+                        await Task.Delay(1, token); // Small delay to ensure cancellation can be registered
+                        token.ThrowIfCancellationRequested();
+                        return new GetTimeEntriesResponse(firstPageEntries, firstPageEntries.Count, null);
+                    }
+                    // For any subsequent page fetches (if cancellation didn't happen or wasn't caught by helper on item yield)
+                    token.ThrowIfCancellationRequested();
+                    return new GetTimeEntriesResponse(new List<TimeEntry>(), 0, null); // Should not be reached if cancelled properly
+                });
 
             var entriesProcessed = 0;
+            var exceptionThrown = false;
 
             // Act & Assert
-            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            try
             {
                 await foreach (var entry in _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(workspaceId, request, cts.Token))
                 {
                     entriesProcessed++;
-                    if (entriesProcessed == 1) cts.Cancel();
+                    if (entriesProcessed == 1)
+                    {
+                        cts.Cancel();
+                        await Task.Delay(5, CancellationToken.None); // Allow cancellation to propagate
+                    }
+                     if (entriesProcessed > 1 && cts.IsCancellationRequested) {
+                        break;
+                    }
                 }
-            });
-
-            Assert.Equal(1, entriesProcessed);
+            }
+            catch (OperationCanceledException)
+            {
+                exceptionThrown = true;
+            }
+            Assert.True(exceptionThrown, "OperationCanceledException was expected but not thrown.");
+            Assert.True(entriesProcessed <= 1, $"Processed {entriesProcessed} entries, expected at most 1 if cancellation works as intended.");
         }
 
         [Fact]

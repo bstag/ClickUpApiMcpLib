@@ -11,11 +11,11 @@ public class ClickUpErrorResponse
     /// Gets or sets the error message.
     /// </summary>
     [JsonPropertyName("err")]
-    public string ErrorMessage { get; set; }
+    public required string ErrorMessage { get; set; }
 
     /// <summary>
     /// Gets or sets the error code.
     /// </summary>
     [JsonPropertyName("ECODE")]
-    public string ErrorCode { get; set; }
+    public required string ErrorCode { get; set; }
 }

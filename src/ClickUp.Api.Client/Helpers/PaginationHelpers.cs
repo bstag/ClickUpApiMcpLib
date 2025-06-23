@@ -29,16 +29,15 @@ public static class PaginationHelpers
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default) where TResponse : class
     {
         string? currentCursor = null;
-        bool firstCall = true;
 
         // Validate TResponse structure once using reflection (or use an interface)
         var responseType = typeof(TResponse);
-        var nextCursorProp = responseType.GetProperty("NextCursor");
+        var nextCursorProp = responseType.GetProperty("NextCursor") ?? responseType.GetProperty("NextPageId"); // Added NextPageId
         var dataProp = responseType.GetProperty("Data") ?? responseType.GetProperty("Items") ?? responseType.GetProperty(typeof(TItem).Name + "s"); // Common naming conventions
 
         if (nextCursorProp == null || nextCursorProp.PropertyType != typeof(string))
         {
-            throw new ArgumentException($"Type {responseType.Name} must have a public string property named 'NextCursor'.");
+            throw new ArgumentException($"Type {responseType.Name} must have a public string property named 'NextCursor' or 'NextPageId'.");
         }
 
         if (dataProp == null || !typeof(IEnumerable<TItem>).IsAssignableFrom(dataProp.PropertyType))
@@ -67,7 +66,6 @@ public static class PaginationHelpers
             }
 
             currentCursor = nextCursorProp.GetValue(response) as string;
-            firstCall = false;
 
         } while (!string.IsNullOrEmpty(currentCursor));
     }

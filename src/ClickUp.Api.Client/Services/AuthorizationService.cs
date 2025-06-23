@@ -36,7 +36,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetAccessTokenResponse?> GetAccessTokenAsync(
+        public async Task<GetAccessTokenResponse> GetAccessTokenAsync(
             string clientId,
             string clientSecret,
             string code,
@@ -45,25 +45,29 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting access token for Client ID: {ClientId}", clientId);
             var endpoint = "oauth/token";
             var payload = new GetAccessTokenRequest(clientId, clientSecret, code);
-            return await _apiConnection.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(endpoint, payload, cancellationToken);
+            var response = await _apiConnection.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(endpoint, payload, cancellationToken);
+            if (response == null) throw new InvalidOperationException("API returned null for GetAccessTokenAsync.");
+            return response;
         }
 
         /// <inheritdoc />
-        public async Task<User?> GetAuthorizedUserAsync(CancellationToken cancellationToken = default)
+        public async Task<User> GetAuthorizedUserAsync(CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting authorized user");
             var endpoint = "user";
             var response = await _apiConnection.GetAsync<GetAuthorizedUserResponse>(endpoint, cancellationToken);
-            return response?.User;
+            if (response?.User == null) throw new InvalidOperationException("API returned null or no user for GetAuthorizedUserAsync.");
+            return response.User;
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<ClickUpWorkspace>?> GetAuthorizedWorkspacesAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<ClickUpWorkspace>> GetAuthorizedWorkspacesAsync(CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting authorized workspaces");
             var endpoint = "team";
             var response = await _apiConnection.GetAsync<GetAuthorizedWorkspacesResponse>(endpoint, cancellationToken);
-            return response?.Workspaces; // Changed from Teams to Workspaces to match DTO property name
+            if (response?.Workspaces == null) throw new InvalidOperationException("API returned null or no workspaces for GetAuthorizedWorkspacesAsync.");
+            return response.Workspaces;
         }
     }
 }

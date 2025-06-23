@@ -15,12 +15,9 @@ public record class LinkedTask
     string LinkId,
 
     [property: JsonPropertyName("date_created")]
+    [property: JsonConverter(typeof(UnixEpochDateTimeOffsetConverter))]
     DateTimeOffset DateCreated,
 
     [property: JsonPropertyName("userid")]
     string UserId
-)
-{
-    [JsonConverter(typeof(UnixEpochDateTimeOffsetConverter))]
-    public DateTimeOffset DateCreated { get; init; } = DateCreated;
-}
+);

@@ -99,7 +99,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await _userGroupsService.GetUserGroupsAsync(workspaceId, groupIds);
 
             // Assert
-            var expectedUrl = $"team/{workspaceId}/group?group_ids={string.Join(",", groupIds)}";
+            var expectedUrl = $"team/{workspaceId}/group?group_ids={Uri.EscapeDataString(string.Join(",", groupIds))}";
             _mockApiConnection.Verify(x => x.GetAsync<GetUserGroupsResponse>(
                 expectedUrl,
                 It.IsAny<CancellationToken>()), Times.Once);

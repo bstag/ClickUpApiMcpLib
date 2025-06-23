@@ -42,7 +42,7 @@ namespace ClickUp.Api.Client.Models.Serialization.Converters
     }
 
     /// <summary>
-    /// Converts a nullable Unix epoch time (in milliseconds) to/from <see cref="DateTimeOffset?"/>.
+    /// Converts a nullable Unix epoch time (in milliseconds) to/from <see cref="Nullable{DateTimeOffset}"/>.
     /// Handles null values and cases where the timestamp might be "0" or an empty string for null-like values.
     /// </summary>
     public class NullableUnixEpochDateTimeOffsetConverter : JsonConverter<DateTimeOffset?>

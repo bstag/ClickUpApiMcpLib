@@ -91,33 +91,26 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async System.Threading.Tasks.Task DeleteDependencyAsync(
             string taskId,
-            string dependsOn,
-            string dependencyOf, // The interface made both non-optional. API uses one or the other.
+            string? dependsOnTaskId = null,
+            string? dependencyOfTaskId = null,
             bool? customTaskIds = null,
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Deleting dependency for task ID: {TaskId}, DependsOn: {DependsOn}, DependencyOf: {DependencyOf}", taskId, dependsOn, dependencyOf);
-            // Per API docs, DELETE /v2/task/{task_id}/dependency uses query parameters:
-            // depends_on (task_id) OR dependency_of (task_id)
-            // The interface signature is (string taskId, string dependsOn, string dependencyOf, ...)
-            // This is problematic as only one of dependsOn or dependencyOf should be used.
-            // For now, let's assume the caller provides only one of them as a non-empty string,
-            // and we prioritize 'dependsOn' if both are somehow passed, or throw.
-            // A better interface would take an enum for type and a single ID.
+            _logger.LogInformation("Deleting dependency for task ID: {TaskId}, DependsOn: {DependsOn}, DependencyOf: {DependencyOf}", taskId, dependsOnTaskId, dependencyOfTaskId);
 
             var endpoint = $"task/{taskId}/dependency";
             var queryParams = new Dictionary<string, string?>();
 
-            if (!string.IsNullOrWhiteSpace(dependsOn) && !string.IsNullOrWhiteSpace(dependencyOf))
+            if (!string.IsNullOrWhiteSpace(dependsOnTaskId) && !string.IsNullOrWhiteSpace(dependencyOfTaskId))
             {
-                 throw new ArgumentException("Provide either 'dependsOn' or 'dependencyOf', but not both for deleting a dependency.");
+                 throw new ArgumentException("Provide either 'dependsOnTaskId' or 'dependencyOfTaskId', but not both for deleting a dependency.");
             }
-            if (!string.IsNullOrWhiteSpace(dependsOn)) queryParams["depends_on"] = dependsOn;
-            else if (!string.IsNullOrWhiteSpace(dependencyOf)) queryParams["dependency_of"] = dependencyOf;
+            if (!string.IsNullOrWhiteSpace(dependsOnTaskId)) queryParams["depends_on"] = dependsOnTaskId;
+            else if (!string.IsNullOrWhiteSpace(dependencyOfTaskId)) queryParams["dependency_of"] = dependencyOfTaskId;
             else
             {
-                throw new ArgumentException("Either 'dependsOn' or 'dependencyOf' must be specified to delete a dependency.");
+                throw new ArgumentException("Either 'dependsOnTaskId' or 'dependencyOfTaskId' must be specified to delete a dependency.");
             }
 
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();

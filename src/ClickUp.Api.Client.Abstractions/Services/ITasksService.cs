@@ -333,7 +333,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="dateDoneLessThan">Optional. Filters for Tasks completed before this Unix timestamp (ms).</param>
         /// <param name="customFields">Optional. A JSON string representing an array of custom field filters.</param>
         /// <param name="customItems">Optional. An enumerable of custom item type IDs to filter by.</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation. This token will also be used by the <see cref="System.Runtime.CompilerServices.EnumeratorCancellationAttribute"/> for the async iterator.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>An asynchronous stream of <see cref="CuTask"/> objects from the specified List.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null or empty.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
@@ -392,7 +392,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="dateDoneLessThan">Optional. Filters for Tasks completed before this Unix timestamp (in milliseconds).</param>
         /// <param name="parentTaskId">Optional. Filters for subtasks of a specific parent Task ID.</param>
         /// <param name="includeMarkdownDescription">Optional. If set to <c>true</c>, returns Task descriptions in Markdown format. Defaults to <c>false</c>.</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation. This token will also be used by the <see cref="System.Runtime.CompilerServices.EnumeratorCancellationAttribute"/> for the async iterator.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>An asynchronous stream of <see cref="CuTask"/> objects from the specified Workspace matching the filters.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this Workspace.</exception>

@@ -100,7 +100,15 @@ namespace ClickUp.Api.Client.Services
             var result = await _apiConnection.GetAsync<ChatChannelPaginatedResponse>($"{endpoint}{queryString}", cancellationToken);
             if (result == null)
             {
+                _logger.LogWarning("API call to get chat channels for workspace {WorkspaceId} returned null. Throwing exception.", workspaceId);
                 throw new InvalidOperationException($"Failed to get chat channels for workspace {workspaceId} or API returned an unexpected null response.");
+            }
+            // The test GetChatChannelsAsync_NullDataInResponse_ThrowsInvalidOperationException asserts that an exception is thrown
+            // if the Data property of the response is null.
+            if (result.Data == null)
+            {
+                _logger.LogWarning("API call to get chat channels for workspace {WorkspaceId} returned null Data. Throwing exception as per test expectation.", workspaceId);
+                throw new InvalidOperationException($"API call to get chat channels for workspace {workspaceId} returned null Data in response.");
             }
             return result;
         }

@@ -253,7 +253,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="workspaceId">The unique identifier of the Workspace (Team).</param>
         /// <param name="request">A <see cref="GetTimeEntriesRequest"/> object containing filter criteria (excluding pagination parameters like 'page').</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation. This token will also be used by the <see cref="System.Runtime.CompilerServices.EnumeratorCancellationAttribute"/> for the async iterator.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>An asynchronous stream (<see cref="IAsyncEnumerable{TimeEntry}"/>) of <see cref="TimeEntry"/> objects matching the criteria.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="request"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access time entries.</exception>

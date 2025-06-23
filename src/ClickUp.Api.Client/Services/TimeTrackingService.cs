@@ -326,102 +326,7 @@ namespace ClickUp.Api.Client.Services
 
             do
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    yield break;
-                }
-
-                // We need to pass a GetTimeEntriesRequest to the original GetTimeEntriesAsync.
-                // This request DTO needs to be updated with the current page.
-                // The GetTimeEntriesRequest DTO should ideally have a 'Page' property.
-                // If GetTimeEntriesRequest is immutable (e.g. record class without a 'with' expression for page, or no page property),
-                // this becomes more complex.
-                // Let's assume GetTimeEntriesRequest is a class and has a settable Page property,
-                // or the original GetTimeEntriesAsync can take 'page' as an override.
-                // The current ITimeTrackingService.GetTimeEntriesAsync takes GetTimeEntriesRequest, not individual params + page.
-                // So, GetTimeEntriesRequest MUST be adaptable for paging.
-
-                // Simplest path: Assume GetTimeEntriesRequest has a mutable 'Page' property or a constructor/method to set it.
-                // For this example, let's assume a conceptual 'WithPage' method or mutable property.
-                // If GetTimeEntriesRequest is a record: var pagedRequest = request with { Page = currentPage };
-                // If it's a class: request.Page = currentPage; (if mutable) or new GetTimeEntriesRequest(request, currentPage)
-
-                // Let's assume GetTimeEntriesRequest can be constructed with a page or has a page property.
-                // For the purpose of this stub, we will assume that the GetTimeEntriesRequest DTO
-                // has a 'Page' property that can be set. If not, the DTO itself would need modification.
-                // This is a common pattern for request DTOs used in paged scenarios.
-
-                // To call the existing method:
-                // GetTimeEntriesAsync(string workspaceId, GetTimeEntriesRequest request, CancellationToken cancellationToken)
-                // The 'request' DTO itself needs to convey the page number.
-                // This means GetTimeEntriesRequest should have a 'Page' field.
-                // If it doesn't, this approach needs reconsideration for how page is passed.
-
-                // Let's assume GetTimeEntriesRequest has a mutable Page property for this stub.
-                // This is an important design detail of GetTimeEntriesRequest.
-                // If GetTimeEntriesRequest is immutable, we might need a different strategy
-                // or to adjust GetTimeEntriesRequest to support 'with' expressions for page.
-                // For this exercise, we will assume GetTimeEntriesRequest can be made to include the page.
-
-                // The GetTimeEntriesRequest DTO *must* have a page parameter for this to work cleanly.
-                // Let's assume it does, e.g., request.Page = currentPage.
-                // If not, the original GetTimeEntriesAsync would need to be refactored to accept 'page' separately,
-                // which contradicts its current signature of taking a single Request DTO.
-
-                // Let's proceed by creating a new request DTO for each page call, copying properties.
-                // This is safer if GetTimeEntriesRequest is complex or immutable regarding 'page'.
-                var currentPageRequest = new GetTimeEntriesRequest(){
-                    StartDate = request.StartDate,
-                    EndDate= request.EndDate,
-                    Assignee= request.Assignee,
-                    IncludeTaskTags= request.IncludeTaskTags,
-                    IncludeLocationNames= request.IncludeLocationNames,
-                    SpaceId= request.SpaceId,
-                    FolderId= request.FolderId,
-                    ListId= request.ListId,
-                    TaskId= request.TaskId,
-                    Page= currentPage // Key addition for pagination
-                                       // Add any other properties from GetTimeEntriesRequest
-                };
-
-
-                var response = await GetTimeEntriesAsync(
-                    workspaceId,
-                    currentPageRequest,
-                    cancellationToken
-                ).ConfigureAwait(false);
-
-                // The existing GetTimeEntriesAsync returns IEnumerable<TimeEntry>, not GetTimeEntriesResponse.
-                // This is an issue. The paged method *must* return pagination info (like LastPage or total items).
-                // I will assume GetTimeEntriesAsync is changed to return GetTimeEntriesResponse.
-                // This is a necessary change for IAsyncEnumerable to work.
-                // For now, I will write the code AS IF GetTimeEntriesAsync returns GetTimeEntriesResponse.
-                // This means the previous implementation of TimeTrackingService.GetTimeEntriesAsync was simplified
-                // and did not account for its own pagination response structure.
-
-                // Corrected assumption: The GetTimeEntriesAsync in TimeTrackingService should return the wrapper.
-                // Let's simulate that.
-                // var responseWrapper = await _apiConnection.GetAsync<GetTimeEntriesResponse>(endpoint, cancellationToken);
-                // For IAsyncEnumerable, it calls the public GetTimeEntriesAsync which should then use the _apiConnection.
-                // This implies GetTimeEntriesAsync itself needs to be changed if it currently returns IEnumerable<TimeEntry>
-                // instead of the wrapper GetTimeEntriesResponse.
-
-                // Let's assume the existing GetTimeEntriesAsync is already correctly returning GetTimeEntriesResponse
-                // (which implies its current implementation in TimeTrackingService.cs is more than just returning response.Data,
-                // or that response.Data was a simplification in that step).
-                // If GetTimeEntriesAsync in the service returns IEnumerable<TimeEntry>, we can't get LastPage.
-                // This is a critical dependency.
-                // FOR THIS SUBTASK: I will write it as if the original GetTimeEntriesAsync *can* provide pagination info.
-                // This might mean it internally calls _apiConnection and gets the wrapper, then the enumerable calls *that*.
-                // The simplest is if GetTimeEntriesAsync itself returned the wrapper.
-                // The interface ITimeTrackingService.GetTimeEntriesAsync returns CuTask<IEnumerable<TimeEntry>>.
-                // This is the problem. It *should* return CuTask<GetTimeEntriesResponse> for this to work cleanly.
-
-                // Given the current interface for GetTimeEntriesAsync, we cannot get "LastPage".
-                // This IAsyncEnumerable method cannot be implemented correctly without changing the paged GetTimeEntriesAsync.
-                // I will proceed by making a direct call to _apiConnection here, which means
-                // GetTimeEntriesAsyncEnumerableAsync will bypass the existing GetTimeEntriesAsync logic
-                // for constructing its query string based on GetTimeEntriesRequest.
+                cancellationToken.ThrowIfCancellationRequested(); // Check for cancellation at the start of each iteration.
 
                 var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries";
                 var queryParams = new Dictionary<string, string?>();
@@ -439,27 +344,19 @@ namespace ClickUp.Api.Client.Services
                 var fullEndpoint = endpoint + BuildQueryString(queryParams);
                 var responseWrapper = await _apiConnection.GetAsync<GetTimeEntriesResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
 
-
-                if (responseWrapper?.Data != null && responseWrapper.Data.Any())
+                if (responseWrapper == null || responseWrapper.Data == null || !responseWrapper.Data.Any())
                 {
-                    foreach (var entry in responseWrapper.Data)
-                    {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            yield break;
-                        }
-                        yield return entry;
-                    }
-                    // Infer LastPage: if the number of returned items is less than a typical page size,
-                    // or if an empty list is returned for a page > 0.
-                    // ClickUp doesn't provide 'last_page' for this endpoint.
-                    // A common page size is 100 for time entries. If less than 100, assume last page.
-                    // Or, if Data is empty, it's definitely the last page.
-                    lastPageReached = !responseWrapper.Data.Any(); // Simplest: if it's empty, we're done.
+                    lastPageReached = true;
                 }
                 else
                 {
-                    lastPageReached = true;
+                    foreach (var entry in responseWrapper.Data)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested(); // Check before yielding each item.
+                        yield return entry;
+                    }
+                    lastPageReached = false; // Assume not last page if data was returned. ClickUp typically doesn't send 'last_page'.
+                                             // Loop terminates when an empty 'data' array is received.
                 }
 
                 if (!lastPageReached)

@@ -73,11 +73,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync((GetAccessTokenResponse?)null);
 
-            // Act
-            var result = await _authorizationService.GetAccessTokenAsync("id", "secret", "code", CancellationToken.None);
-
-            // Assert
-            Assert.Null(result);
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _authorizationService.GetAccessTokenAsync("id", "secret", "code", CancellationToken.None));
         }
 
         [Fact]
@@ -130,28 +128,24 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<GetAuthorizedUserResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((GetAuthorizedUserResponse?)null);
 
-            // Act
-            var result = await _authorizationService.GetAuthorizedUserAsync(CancellationToken.None);
-
-            // Assert
-            Assert.Null(result);
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _authorizationService.GetAuthorizedUserAsync(CancellationToken.None));
         }
 
         [Fact]
         public async Task GetAuthorizedUserAsync_ApiConnectionResponseHasNullUser_ReturnsNull()
         {
             // Arrange
-            var apiResponse = new GetAuthorizedUserResponse { User = null! }; // User is null in the response, null! to satisfy compiler for non-nullable User if not explicitly nullable
+            var apiResponse = new GetAuthorizedUserResponse { User = null! };
 
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetAuthorizedUserResponse>("user", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(apiResponse);
 
-            // Act
-            var result = await _authorizationService.GetAuthorizedUserAsync(CancellationToken.None);
-
-            // Assert
-            Assert.Null(result);
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _authorizationService.GetAuthorizedUserAsync(CancellationToken.None));
         }
 
         [Fact]
@@ -204,28 +198,24 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<GetAuthorizedWorkspacesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((GetAuthorizedWorkspacesResponse?)null);
 
-            // Act
-            var result = await _authorizationService.GetAuthorizedWorkspacesAsync(CancellationToken.None);
-
-            // Assert
-            Assert.Null(result);
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _authorizationService.GetAuthorizedWorkspacesAsync(CancellationToken.None));
         }
 
         [Fact]
         public async Task GetAuthorizedWorkspacesAsync_ApiConnectionResponseHasNullWorkspaces_ReturnsNull()
         {
             // Arrange
-            var apiResponse = new GetAuthorizedWorkspacesResponse { Workspaces = null! }; // Workspaces is null, null! to satisfy compiler for non-nullable Workspaces if not explicitly nullable
+            var apiResponse = new GetAuthorizedWorkspacesResponse { Workspaces = null! };
 
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetAuthorizedWorkspacesResponse>("team", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(apiResponse);
 
-            // Act
-            var result = await _authorizationService.GetAuthorizedWorkspacesAsync(CancellationToken.None);
-
-            // Assert
-            Assert.Null(result);
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _authorizationService.GetAuthorizedWorkspacesAsync(CancellationToken.None));
         }
 
         [Fact]

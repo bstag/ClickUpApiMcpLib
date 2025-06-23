@@ -151,7 +151,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fieldId = "field_set_err";
             var request = new ConcreteSetCustomFieldValueRequest { Value = "Error Value" };
             _mockApiConnection
-                .Setup(c => c.PostAsync(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .Setup(c => c.PostAsync<SetCustomFieldValueRequest>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetCustomFieldValueRequest>(),
+                    It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API Error"));
 
             await Assert.ThrowsAsync<HttpRequestException>(() =>
@@ -212,7 +215,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fieldId = "field_set_cancel";
             var request = new ConcreteSetCustomFieldValueRequest { Value = "Cancel Value" };
             _mockApiConnection
-                .Setup(c => c.PostAsync(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .Setup(c => c.PostAsync<SetCustomFieldValueRequest>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetCustomFieldValueRequest>(),
+                    It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
 
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
