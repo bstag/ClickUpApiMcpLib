@@ -243,5 +243,105 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             );
             Assert.Equal(apiException.Message, actualException.Message);
         }
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through ---
+
+        // GetAccessTokenAsync
+        [Fact]
+        public async Task GetAccessTokenAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            _mockApiConnection
+                .Setup(x => x.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(It.IsAny<string>(), It.IsAny<GetAccessTokenRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _authorizationService.GetAccessTokenAsync("id", "secret", "code", new CancellationTokenSource().Token)
+            );
+        }
+
+        [Fact]
+        public async Task GetAccessTokenAsync_PassesCancellationTokenToApiConnection()
+        {
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetAccessTokenResponse("test_token");
+
+            _mockApiConnection
+                .Setup(x => x.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(It.IsAny<string>(), It.IsAny<GetAccessTokenRequest>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _authorizationService.GetAccessTokenAsync("id", "secret", "code", expectedToken);
+
+            _mockApiConnection.Verify(x => x.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(
+                "oauth/token",
+                It.IsAny<GetAccessTokenRequest>(),
+                expectedToken), Times.Once);
+        }
+
+        // GetAuthorizedUserAsync
+        [Fact]
+        public async Task GetAuthorizedUserAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            _mockApiConnection
+                .Setup(x => x.GetAsync<GetAuthorizedUserResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _authorizationService.GetAuthorizedUserAsync(new CancellationTokenSource().Token)
+            );
+        }
+
+        [Fact]
+        public async Task GetAuthorizedUserAsync_PassesCancellationTokenToApiConnection()
+        {
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var mockUser = new User(1, "Test", "t@e.com", "#fff", null, "T");
+            var expectedResponse = new GetAuthorizedUserResponse { User = mockUser };
+
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<GetAuthorizedUserResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _authorizationService.GetAuthorizedUserAsync(expectedToken);
+
+            _mockApiConnection.Verify(x => x.GetAsync<GetAuthorizedUserResponse>(
+                "user",
+                expectedToken), Times.Once);
+        }
+
+        // GetAuthorizedWorkspacesAsync
+        [Fact]
+        public async Task GetAuthorizedWorkspacesAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            _mockApiConnection
+                .Setup(x => x.GetAsync<GetAuthorizedWorkspacesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _authorizationService.GetAuthorizedWorkspacesAsync(new CancellationTokenSource().Token)
+            );
+        }
+
+        [Fact]
+        public async Task GetAuthorizedWorkspacesAsync_PassesCancellationTokenToApiConnection()
+        {
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var mockWorkspace = new ClickUpWorkspace { Id = "ws1", Name = "WS1", Color = "#000", Members = new List<Member>() };
+            var expectedResponse = new GetAuthorizedWorkspacesResponse { Workspaces = new List<ClickUpWorkspace> { mockWorkspace } };
+
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<GetAuthorizedWorkspacesResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _authorizationService.GetAuthorizedWorkspacesAsync(expectedToken);
+
+            _mockApiConnection.Verify(x => x.GetAsync<GetAuthorizedWorkspacesResponse>(
+                "team",
+                expectedToken), Times.Once);
+        }
     }
 }

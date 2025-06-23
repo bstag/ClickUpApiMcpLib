@@ -142,5 +142,135 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             Assert.NotNull(result);
             Assert.Empty(result);
         }
+
+        // --- Tests for API Error Cases (HttpRequestException) ---
+        [Fact]
+        public async Task SetCustomFieldValueAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var taskId = "task_set_err";
+            var fieldId = "field_set_err";
+            var request = new ConcreteSetCustomFieldValueRequest { Value = "Error Value" };
+            _mockApiConnection
+                .Setup(c => c.PostAsync(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _customFieldsService.SetCustomFieldValueAsync(taskId, fieldId, request));
+        }
+
+        [Fact]
+        public async Task RemoveCustomFieldValueAsync_ApiError_ThrowsHttpRequestException()
+        {
+            var taskId = "task_remove_err";
+            var fieldId = "field_remove_err";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("API Error"));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _customFieldsService.RemoveCustomFieldValueAsync(taskId, fieldId));
+        }
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through ---
+
+        // GetAccessibleCustomFieldsAsync
+        [Fact]
+        public async Task GetAccessibleCustomFieldsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var listId = "list_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _customFieldsService.GetAccessibleCustomFieldsAsync(listId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetAccessibleCustomFieldsAsync_PassesCancellationTokenToApiConnection()
+        {
+            var listId = "list_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<Field>());
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _customFieldsService.GetAccessibleCustomFieldsAsync(listId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                $"list/{listId}/field",
+                expectedToken), Times.Once);
+        }
+
+        // SetCustomFieldValueAsync
+        [Fact]
+        public async Task SetCustomFieldValueAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var taskId = "task_set_cancel";
+            var fieldId = "field_set_cancel";
+            var request = new ConcreteSetCustomFieldValueRequest { Value = "Cancel Value" };
+            _mockApiConnection
+                .Setup(c => c.PostAsync(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _customFieldsService.SetCustomFieldValueAsync(taskId, fieldId, request, cancellationToken: new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task SetCustomFieldValueAsync_PassesCancellationTokenToApiConnection()
+        {
+            var taskId = "task_set_ct_pass";
+            var fieldId = "field_set_ct_pass";
+            var request = new ConcreteSetCustomFieldValueRequest { Value = "CT Pass Value" };
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+
+            _mockApiConnection
+                .Setup(c => c.PostAsync(It.IsAny<string>(), request, expectedToken))
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            await _customFieldsService.SetCustomFieldValueAsync(taskId, fieldId, request, cancellationToken: expectedToken);
+
+            _mockApiConnection.Verify(c => c.PostAsync<SetCustomFieldValueRequest>(
+                $"task/{taskId}/field/{fieldId}",
+                request,
+                expectedToken), Times.Once);
+        }
+
+        // RemoveCustomFieldValueAsync
+        [Fact]
+        public async Task RemoveCustomFieldValueAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var taskId = "task_remove_cancel";
+            var fieldId = "field_remove_cancel";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _customFieldsService.RemoveCustomFieldValueAsync(taskId, fieldId, cancellationToken: new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task RemoveCustomFieldValueAsync_PassesCancellationTokenToApiConnection()
+        {
+            var taskId = "task_remove_ct_pass";
+            var fieldId = "field_remove_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), expectedToken))
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            await _customFieldsService.RemoveCustomFieldValueAsync(taskId, fieldId, cancellationToken: expectedToken);
+
+            _mockApiConnection.Verify(c => c.DeleteAsync(
+                $"task/{taskId}/field/{fieldId}",
+                expectedToken), Times.Once);
+        }
     }
 }

@@ -346,5 +346,208 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _foldersService.CreateFolderFromTemplateAsync(spaceId, templateId, request));
         }
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through ---
+
+        // GetFoldersAsync
+        [Fact]
+        public async Task GetFoldersAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var spaceId = "space_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetFoldersResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _foldersService.GetFoldersAsync(spaceId, cancellationToken: new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetFoldersAsync_PassesCancellationTokenToApiConnection()
+        {
+            var spaceId = "space_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedResponse = new GetFoldersResponse(new List<Folder>());
+            _mockApiConnection
+                .Setup(c => c.GetAsync<GetFoldersResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedResponse);
+
+            await _foldersService.GetFoldersAsync(spaceId, cancellationToken: expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<GetFoldersResponse>(
+                $"space/{spaceId}/folder", // Assuming archived is null by default
+                expectedToken), Times.Once);
+        }
+
+        // CreateFolderAsync
+        [Fact]
+        public async Task CreateFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var spaceId = "space_create_cancel";
+            var request = new CreateFolderRequest("Cancel Folder");
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateFolderRequest, Folder>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _foldersService.CreateFolderAsync(spaceId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task CreateFolderAsync_PassesCancellationTokenToApiConnection()
+        {
+            var spaceId = "space_create_ct_pass";
+            var request = new CreateFolderRequest("CT Pass Folder");
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedFolder = CreateSampleFolder("new_folder_ct");
+
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateFolderRequest, Folder>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(expectedFolder);
+
+            await _foldersService.CreateFolderAsync(spaceId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PostAsync<CreateFolderRequest, Folder>(
+                $"space/{spaceId}/folder",
+                request,
+                expectedToken), Times.Once);
+        }
+
+        // GetFolderAsync
+        [Fact]
+        public async Task GetFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var folderId = "folder_get_cancel";
+            _mockApiConnection
+                .Setup(c => c.GetAsync<Folder>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _foldersService.GetFolderAsync(folderId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetFolderAsync_PassesCancellationTokenToApiConnection()
+        {
+            var folderId = "folder_get_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedFolder = CreateSampleFolder(folderId);
+
+            _mockApiConnection
+                .Setup(c => c.GetAsync<Folder>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(expectedFolder);
+
+            await _foldersService.GetFolderAsync(folderId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.GetAsync<Folder>(
+                $"folder/{folderId}",
+                expectedToken), Times.Once);
+        }
+
+        // UpdateFolderAsync
+        [Fact]
+        public async Task UpdateFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var folderId = "folder_update_cancel";
+            var request = new UpdateFolderRequest("Cancel Update");
+            _mockApiConnection
+                .Setup(c => c.PutAsync<UpdateFolderRequest, Folder>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _foldersService.UpdateFolderAsync(folderId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task UpdateFolderAsync_PassesCancellationTokenToApiConnection()
+        {
+            var folderId = "folder_update_ct_pass";
+            var request = new UpdateFolderRequest("CT Pass Update");
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedFolder = CreateSampleFolder(folderId, "CT Pass Update");
+
+            _mockApiConnection
+                .Setup(c => c.PutAsync<UpdateFolderRequest, Folder>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(expectedFolder);
+
+            await _foldersService.UpdateFolderAsync(folderId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PutAsync<UpdateFolderRequest, Folder>(
+                $"folder/{folderId}",
+                request,
+                expectedToken), Times.Once);
+        }
+
+        // DeleteFolderAsync
+        [Fact]
+        public async Task DeleteFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var folderId = "folder_delete_cancel";
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _foldersService.DeleteFolderAsync(folderId, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task DeleteFolderAsync_PassesCancellationTokenToApiConnection()
+        {
+            var folderId = "folder_delete_ct_pass";
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+
+            _mockApiConnection
+                .Setup(c => c.DeleteAsync(It.IsAny<string>(), expectedToken))
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            await _foldersService.DeleteFolderAsync(folderId, expectedToken);
+
+            _mockApiConnection.Verify(c => c.DeleteAsync(
+                $"folder/{folderId}",
+                expectedToken), Times.Once);
+        }
+
+        // CreateFolderFromTemplateAsync
+        [Fact]
+        public async Task CreateFolderFromTemplateAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            var spaceId = "space_tpl_cancel";
+            var templateId = "tpl_cancel";
+            var request = new CreateFolderFromTemplateRequest { Name = "Cancel Template Folder" };
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateFolderFromTemplateRequest, Folder>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API timeout"));
+
+            await Assert.ThrowsAsync<TaskCanceledException>(() =>
+                _foldersService.CreateFolderFromTemplateAsync(spaceId, templateId, request, new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task CreateFolderFromTemplateAsync_PassesCancellationTokenToApiConnection()
+        {
+            var spaceId = "space_tpl_ct_pass";
+            var templateId = "tpl_ct_pass";
+            var request = new CreateFolderFromTemplateRequest { Name = "CT Pass Template Folder" };
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            var expectedFolder = CreateSampleFolder("tpl_folder_ct");
+
+            _mockApiConnection
+                .Setup(c => c.PostAsync<CreateFolderFromTemplateRequest, Folder>(It.IsAny<string>(), request, expectedToken))
+                .ReturnsAsync(expectedFolder);
+
+            await _foldersService.CreateFolderFromTemplateAsync(spaceId, templateId, request, expectedToken);
+
+            _mockApiConnection.Verify(c => c.PostAsync<CreateFolderFromTemplateRequest, Folder>(
+                $"space/{spaceId}/folderTemplate/{templateId}",
+                request,
+                expectedToken), Times.Once);
+        }
     }
 }

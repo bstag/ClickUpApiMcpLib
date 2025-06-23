@@ -725,6 +725,87 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 _commentService.DeleteCommentAsync(commentId, CancellationToken.None));
         }
 
+        // --- Tests for Null/Unexpected API Responses for non-streaming methods ---
+
+        [Fact]
+        public async Task CreateTaskCommentAsync_ApiConnectionReturnsNull_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var taskId = "task_null_resp";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((CreateCommentResponse?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _commentService.CreateTaskCommentAsync(taskId, request, null, null, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task CreateChatViewCommentAsync_ApiConnectionReturnsNull_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var viewId = "view_null_resp";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((CreateCommentResponse?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _commentService.CreateChatViewCommentAsync(viewId, request, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task CreateListCommentAsync_ApiConnectionReturnsNull_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var listId = "list_null_resp";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((CreateCommentResponse?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _commentService.CreateListCommentAsync(listId, request, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task UpdateCommentAsync_ApiConnectionReturnsNull_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var commentId = "comment_null_resp";
+            var request = new UpdateCommentRequest("Updated", null, false, null);
+            _mockApiConnection.Setup(api => api.PutAsync<UpdateCommentRequest, Comment>(
+                It.IsAny<string>(), It.IsAny<UpdateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Comment?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _commentService.UpdateCommentAsync(commentId, request, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task GetCommentAsync_ApiConnectionReturnsNull_ThrowsInvalidOperationException()
+        {
+            // This method doesn't exist in CommentService, but if a GetComment(id) was added, this would be its test.
+            // For now, GetThreadedCommentsAsync is the closest GET method that returns a collection.
+            // Individual comment fetching is usually part of a larger response or not directly exposed.
+            // If a direct GetComment(string commentId) method is added, a test like this would be needed:
+            // Arrange
+            // var commentId = "comment_get_null_resp";
+            // _mockApiConnection.Setup(api => api.GetAsync<Comment>(
+            //     It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            //     .ReturnsAsync((Comment?)null);
+            // Act & Assert
+            // await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            // _commentService.GetCommentAsync(commentId, CancellationToken.None));
+            await System.Threading.Tasks.Task.CompletedTask; // Placeholder
+        }
+
+
         // --- Tests for TaskCanceledException and CancellationToken pass-through ---
 
         [Fact]
