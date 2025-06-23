@@ -405,7 +405,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var linksToTaskId = "task_link_to_null";
             _mockApiConnection
                 .Setup(x => x.PostAsync<object, ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTaskResponse>(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTaskResponse)null);
+                .ReturnsAsync((ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTaskResponse?)null);
 
             // Act
             var result = await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId);

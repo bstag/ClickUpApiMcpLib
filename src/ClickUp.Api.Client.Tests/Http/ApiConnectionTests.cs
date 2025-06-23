@@ -16,8 +16,8 @@ namespace ClickUp.Api.Client.Tests.Http
 {
     public class ApiConnectionTests
     {
-        private Mock<HttpMessageHandler> _mockHttpMessageHandler;
-        private ApiConnection _apiConnection;
+        private Mock<HttpMessageHandler> _mockHttpMessageHandler = null!; // Initialize with null forgiving operator
+        private ApiConnection _apiConnection = null!; // Initialize with null forgiving operator
 
         // Helper method to setup ApiConnection with a mocked HttpMessageHandler
         private void SetupApiConnection(HttpResponseMessage responseMessage)

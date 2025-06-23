@@ -361,7 +361,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
             long? dateDoneLessThan = null,
             string? customFields = null,
             IEnumerable<long>? customItems = null,
-            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default
+            CancellationToken cancellationToken = default
         );
 
         /// <summary>
@@ -423,7 +423,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
             long? dateDoneLessThan = null,
             string? parentTaskId = null,
             bool? includeMarkdownDescription = null,
-            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default
+            CancellationToken cancellationToken = default
         );
     }
 }

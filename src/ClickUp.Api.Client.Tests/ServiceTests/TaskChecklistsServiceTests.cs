@@ -105,7 +105,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateChecklistRequest(Name: "Null API Resp Checklist"); // Corrected
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateChecklistRequest, CreateChecklistResponse>(It.IsAny<string>(), It.IsAny<CreateChecklistRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CreateChecklistResponse)null);
+                .ReturnsAsync((CreateChecklistResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -410,7 +410,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateChecklistItemRequest(Name: "Null API Resp Item", Assignee: null); // Corrected
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateChecklistItemRequest, CreateChecklistItemResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CreateChecklistItemResponse)null);
+                .ReturnsAsync((CreateChecklistItemResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -524,6 +524,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Assert
             Assert.NotNull(result);
             Assert.NotNull(result.Checklist);
+            Assert.NotNull(result.Checklist.Items);
             var editedItemInResponse = result.Checklist.Items.FirstOrDefault(item => item.Id == checklistItemId);
             Assert.NotNull(editedItemInResponse);
             Assert.Equal("Updated Item Name", editedItemInResponse.Name);
@@ -543,7 +544,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new EditChecklistItemRequest(Name: "Edit Null API Item", Assignee: null, Resolved: null, Parent: null); // Corrected
             _mockApiConnection
                 .Setup(x => x.PutAsync<EditChecklistItemRequest, EditChecklistItemResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((EditChecklistItemResponse)null);
+                .ReturnsAsync((EditChecklistItemResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

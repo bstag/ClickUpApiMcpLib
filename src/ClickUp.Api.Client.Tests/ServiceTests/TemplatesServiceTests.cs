@@ -96,7 +96,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var page = 0;
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetTaskTemplatesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTaskTemplatesResponse)null);
+                .ReturnsAsync((GetTaskTemplatesResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

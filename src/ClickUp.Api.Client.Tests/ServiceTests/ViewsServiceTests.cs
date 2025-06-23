@@ -93,7 +93,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task GetWorkspaceViewsAsync_ApiReturnsNull_ThrowsInvalidOperationException()
         {
             var workspaceId = "ws_null_resp";
-            _mockApiConnection.Setup(x => x.GetAsync<GetViewsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((GetViewsResponse)null);
+            _mockApiConnection.Setup(x => x.GetAsync<GetViewsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((GetViewsResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.GetWorkspaceViewsAsync(workspaceId));
         }
@@ -121,7 +121,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task GetSpaceViewsAsync_ApiReturnsNull_ThrowsInvalidOperationException()
         {
             var spaceId = "space_null_resp";
-            _mockApiConnection.Setup(x => x.GetAsync<GetViewsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((GetViewsResponse)null);
+            _mockApiConnection.Setup(x => x.GetAsync<GetViewsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((GetViewsResponse?)null);
             await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.GetSpaceViewsAsync(spaceId));
         }
 
@@ -179,7 +179,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task GetFolderViewsAsync_ApiReturnsNull_ThrowsInvalidOperationException()
         {
             var folderId = "folder_null_resp";
-            _mockApiConnection.Setup(x => x.GetAsync<GetViewsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((GetViewsResponse)null);
+            _mockApiConnection.Setup(x => x.GetAsync<GetViewsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((GetViewsResponse?)null);
             await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.GetFolderViewsAsync(folderId));
         }
 
@@ -206,7 +206,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task GetListViewsAsync_ApiReturnsNull_ThrowsInvalidOperationException()
         {
             var listId = "list_null_resp";
-            _mockApiConnection.Setup(x => x.GetAsync<GetViewsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((GetViewsResponse)null);
+            _mockApiConnection.Setup(x => x.GetAsync<GetViewsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((GetViewsResponse?)null);
             await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.GetListViewsAsync(listId));
         }
 
@@ -244,7 +244,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateViewRequest, CreateSpaceViewResponse>(
                     It.IsAny<string>(), It.IsAny<CreateViewRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CreateSpaceViewResponse)null);
+                .ReturnsAsync((CreateSpaceViewResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.CreateSpaceViewAsync(spaceId, request));
         }
@@ -282,7 +282,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateViewRequest, UpdateViewResponse>(
                     It.IsAny<string>(), It.IsAny<UpdateViewRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((UpdateViewResponse)null);
+                .ReturnsAsync((UpdateViewResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.UpdateViewAsync(viewId, request));
         }
@@ -339,7 +339,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var viewId = "view_get_null";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetViewResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetViewResponse)null);
+                .ReturnsAsync((GetViewResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.GetViewAsync(viewId));
         }
@@ -366,7 +366,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             Assert.NotNull(result.Tasks);
             // Adjusted assertion: Count will be 0 if we pass an empty list.
             // If sample CuTasks were created, this would match their count.
-            Assert.Equal(0, result.Tasks.Count);
+            Assert.Empty(result.Tasks);
             Assert.False(result.LastPage);
             _mockApiConnection.Verify(x => x.GetAsync<GetViewTasksResponse>(
                 $"view/{viewId}/task?page={page}", It.IsAny<CancellationToken>()), Times.Once);
@@ -379,7 +379,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var page = 0;
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetViewTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetViewTasksResponse)null);
+                .ReturnsAsync((GetViewTasksResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.GetViewTasksAsync(viewId, page));
         }

@@ -2,15 +2,20 @@ using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.Entities.Views;
 
-public record ViewColumnField(
-    [property: JsonPropertyName("id")]
-    string Id
-)
+public record ViewColumnField
 {
     /// <summary>
     /// Represents a single column's settings in a View (typically for List or Table views).
     /// </summary>
-    /// <param name="Id">ID of the field this column represents (e.g., "name", "status", "assignees", "due_date", or a custom field ID).</param>
+    /// <param name="id">ID of the field this column represents (e.g., "name", "status", "assignees", "due_date", or a custom field ID).</param>
+    public ViewColumnField(string id)
+    {
+        Id = id;
+    }
+
+    [JsonPropertyName("id")]
+    public string Id { get; }
+
     /// <summary>
     /// The specific field instance or sub-field if applicable. Often same as 'id' for standard fields.
     /// </summary>

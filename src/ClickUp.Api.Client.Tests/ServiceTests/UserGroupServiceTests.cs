@@ -30,14 +30,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             _userGroupsService = new UserGroupsService(_mockApiConnection.Object, _mockLogger.Object);
         }
 
-        private User CreateSampleUser(long id = 1, string username = "Group Member", string emailSuffix = "@example.com", string color = "#456", string profilePicture = null, string initials = "GM")
+        private User CreateSampleUser(long id = 1, string username = "Group Member", string emailSuffix = "@example.com", string color = "#456", string? profilePicture = null, string initials = "GM")
         {
             return new User((int)id, username, $"{username.Replace(" ", "")}{emailSuffix}", color, profilePicture, initials);
         }
 
-        private Member CreateSampleMember(long userId = 1, string username = "Group Member", string role = null, string permissionLevel = null)
+        private Member CreateSampleMember(long userId = 1, string username = "Group Member", string? role = null, string? permissionLevel = null)
         {
-            return new Member(User: CreateSampleUser(userId, username), Role: role, PermissionLevel: permissionLevel);
+            return new Member(User: CreateSampleUser(userId, username), Role: role ?? string.Empty, PermissionLevel: permissionLevel ?? string.Empty);
         }
 
         private UserGroup CreateSampleUserGroup(string id = "ug_1", string name = "Developers", int creatorUserId = 99)
@@ -152,7 +152,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_ug_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetUserGroupsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetUserGroupsResponse)null);
+                .ReturnsAsync((GetUserGroupsResponse?)null);
 
             // Act
             var result = await _userGroupsService.GetUserGroupsAsync(workspaceId);
@@ -273,7 +273,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateUserGroupRequest("Null UG", "null_ug_handle", new List<int>());
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((UserGroup)null);
+                .ReturnsAsync((UserGroup?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -394,7 +394,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new UpdateUserGroupRequest("Update Null", "upd_null", membersUpdate);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((UserGroup)null);
+                .ReturnsAsync((UserGroup?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

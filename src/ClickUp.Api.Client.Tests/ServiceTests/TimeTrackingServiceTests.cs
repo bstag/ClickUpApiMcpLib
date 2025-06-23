@@ -157,7 +157,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new GetTimeEntriesRequest();
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetTimeEntriesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntriesResponse)null);
+                .ReturnsAsync((GetTimeEntriesResponse?)null);
 
             // Act
             var result = await _timeTrackingService.GetTimeEntriesAsync(workspaceId, request);
@@ -314,7 +314,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateTimeEntryRequest(null, null, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), 0, null, null, "t", null);
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateTimeEntryRequest, GetTimeEntryResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntryResponse)null);
+                .ReturnsAsync((GetTimeEntryResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -456,7 +456,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var timerId = "te_get_null_api";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetTimeEntryResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntryResponse)null);
+                .ReturnsAsync((GetTimeEntryResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -616,7 +616,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new UpdateTimeEntryRequest(null, null, null, null, null, null, null, null, null, null);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateTimeEntryRequest, GetTimeEntryResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntryResponse)null);
+                .ReturnsAsync((GetTimeEntryResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -851,7 +851,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var timerId = "te_hist_null_api";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetTimeEntryHistoryResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntryHistoryResponse)null);
+                .ReturnsAsync((GetTimeEntryHistoryResponse?)null);
 
             // Act
             var result = await _timeTrackingService.GetTimeEntryHistoryAsync(workspaceId, timerId);
@@ -1011,7 +1011,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_running_te_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetTimeEntryResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntryResponse)null); // Entire response object is null
+                .ReturnsAsync((GetTimeEntryResponse?)null); // Entire response object is null
 
             // Act
             var result = await _timeTrackingService.GetRunningTimeEntryAsync(workspaceId);
@@ -1145,7 +1145,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new StartTimeEntryRequest(null, null, "t", null, workspaceId, null, null);
             _mockApiConnection
                 .Setup(x => x.PostAsync<StartTimeEntryRequest, GetTimeEntryResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntryResponse)null);
+                .ReturnsAsync((GetTimeEntryResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -1266,7 +1266,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_stop_te_null_api";
             _mockApiConnection
                 .Setup(x => x.PostAsync<object, GetTimeEntryResponse>(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntryResponse)null);
+                .ReturnsAsync((GetTimeEntryResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -1385,7 +1385,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_get_tags_null_api";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetAllTimeEntryTagsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetAllTimeEntryTagsResponse)null);
+                .ReturnsAsync((GetAllTimeEntryTagsResponse?)null);
 
             // Act
             var result = await _timeTrackingService.GetAllTimeEntryTagsAsync(workspaceId);
@@ -1910,7 +1910,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_te_enum_null_resp";
             var request = new GetTimeEntriesRequest();
             _mockApiConnection.Setup(api => api.GetAsync<GetTimeEntriesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetTimeEntriesResponse)null);
+                .ReturnsAsync((GetTimeEntriesResponse?)null);
 
             var count = 0;
             await foreach(var _ in _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(workspaceId, request)) { count++; }

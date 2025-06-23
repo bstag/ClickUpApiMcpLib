@@ -93,7 +93,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetSpaceTagsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetSpaceTagsResponse)null);
+                .ReturnsAsync((GetSpaceTagsResponse?)null);
             var result = await _tagsService.GetSpaceTagsAsync(spaceId);
             Assert.NotNull(result);
             Assert.Empty(result);
@@ -249,7 +249,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new ModifyTagRequest(payload);
             _mockApiConnection
                 .Setup(x => x.PutAsync<ModifyTagRequest, Tag>(It.IsAny<string>(), It.IsAny<ModifyTagRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Tag)null);
+                .ReturnsAsync((Tag?)null);
             await Assert.ThrowsAsync<InvalidOperationException>(() => _tagsService.EditSpaceTagAsync(spaceId, tagName, request));
         }
 

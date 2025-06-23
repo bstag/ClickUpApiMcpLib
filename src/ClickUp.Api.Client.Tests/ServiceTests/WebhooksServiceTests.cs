@@ -85,7 +85,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_wh_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetWebhooksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetWebhooksResponse)null);
+                .ReturnsAsync((GetWebhooksResponse?)null);
 
             // Act
             var result = await _webhooksService.GetWebhooksAsync(workspaceId);
@@ -211,7 +211,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateWebhookRequest("https://example.com/null", new List<string>(), null, null, null, null, null);
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateWebhookRequest, CreateWebhookResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CreateWebhookResponse)null);
+                .ReturnsAsync((CreateWebhookResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -346,7 +346,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new UpdateWebhookRequest("https://example.com/update-null", new List<string>(), "inactive", null);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateWebhookRequest, UpdateWebhookResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((UpdateWebhookResponse)null);
+                .ReturnsAsync((UpdateWebhookResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

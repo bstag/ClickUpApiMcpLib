@@ -89,7 +89,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var taskId = "task_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetMembersResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetMembersResponse)null);
+                .ReturnsAsync((GetMembersResponse?)null);
 
             // Act
             var result = await _membersService.GetTaskMembersAsync(taskId);
@@ -203,7 +203,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var listId = "list_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetMembersResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetMembersResponse)null);
+                .ReturnsAsync((GetMembersResponse?)null);
 
             // Act
             var result = await _membersService.GetListMembersAsync(listId);

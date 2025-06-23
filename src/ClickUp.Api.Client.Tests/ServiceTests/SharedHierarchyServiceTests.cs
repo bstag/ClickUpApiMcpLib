@@ -107,7 +107,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<SharedHierarchyResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((SharedHierarchyResponse)null);
+                .ReturnsAsync((SharedHierarchyResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

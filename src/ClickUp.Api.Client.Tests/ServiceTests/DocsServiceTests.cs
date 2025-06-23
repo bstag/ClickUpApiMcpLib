@@ -160,7 +160,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var docId = "doc_get_null_resp";
             _mockApiConnection
                 .Setup(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpV3DataResponse<Doc>)null);
+                .ReturnsAsync((ClickUpV3DataResponse<Doc>?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -323,7 +323,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new SearchDocsRequest { Query = "null" };
             _mockApiConnection
                 .Setup(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((SearchDocsResponse)null);
+                .ReturnsAsync((SearchDocsResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _docsService.SearchDocsAsync(workspaceId, request));
@@ -382,7 +382,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateDocRequest("Null Resp Doc", null, "private", false, null, null);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpV3DataResponse<Doc>)null);
+                .ReturnsAsync((ClickUpV3DataResponse<Doc>?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _docsService.CreateDocAsync(workspaceId, request));
@@ -506,7 +506,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var docId = "doc_pl_null";
             _mockApiConnection
                 .Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpV3DataListResponse<DocPageListingItem>)null);
+                .ReturnsAsync((ClickUpV3DataListResponse<DocPageListingItem>?)null);
 
             var result = await _docsService.GetDocPageListingAsync(workspaceId, docId);
 
@@ -630,7 +630,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var docId = "doc_gp_null";
             _mockApiConnection
                 .Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpV3DataListResponse<Page>)null);
+                .ReturnsAsync((ClickUpV3DataListResponse<Page>?)null);
 
             var result = await _docsService.GetDocPagesAsync(workspaceId, docId);
 
@@ -755,7 +755,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var pageId = "page_gpage_null";
             _mockApiConnection
                 .Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpV3DataResponse<Page>)null);
+                .ReturnsAsync((ClickUpV3DataResponse<Page>?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _docsService.GetPageAsync(workspaceId, docId, pageId));

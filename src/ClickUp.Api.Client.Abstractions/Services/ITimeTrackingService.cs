@@ -261,7 +261,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         IAsyncEnumerable<TimeEntry> GetTimeEntriesAsyncEnumerableAsync(
             string workspaceId,
             GetTimeEntriesRequest request,
-            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default
+            CancellationToken cancellationToken = default
         );
     }
 }

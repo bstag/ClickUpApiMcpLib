@@ -104,7 +104,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new UpdateFolderRequest("Updated Name");
             _mockApiConnection
                 .Setup(c => c.PutAsync<UpdateFolderRequest, Folder>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Folder)null);
+                .ReturnsAsync((Folder?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -163,7 +163,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space_null_resp";
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetFoldersResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetFoldersResponse)null);
+                .ReturnsAsync((GetFoldersResponse?)null);
 
             var result = await _foldersService.GetFoldersAsync(spaceId);
 
@@ -203,7 +203,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateFolderRequest("Null Folder");
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateFolderRequest, Folder>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Folder)null);
+                .ReturnsAsync((Folder?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _foldersService.CreateFolderAsync(spaceId, request));
         }
@@ -233,7 +233,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var folderId = "folder_get_null";
             _mockApiConnection
                 .Setup(c => c.GetAsync<Folder>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Folder)null);
+                .ReturnsAsync((Folder?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _foldersService.GetFolderAsync(folderId));
         }
@@ -342,7 +342,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateFolderFromTemplateRequest { Name = "Null Templated Folder" };
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateFolderFromTemplateRequest, Folder>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Folder)null);
+                .ReturnsAsync((Folder?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _foldersService.CreateFolderFromTemplateAsync(spaceId, templateId, request));
         }

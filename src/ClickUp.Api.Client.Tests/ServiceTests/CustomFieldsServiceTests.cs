@@ -133,7 +133,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var listId = "list_null_response";
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetAccessibleCustomFieldsResponse)null);
+                .ReturnsAsync((GetAccessibleCustomFieldsResponse?)null);
 
             // Act
             var result = await _customFieldsService.GetAccessibleCustomFieldsAsync(listId);
@@ -321,7 +321,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var folderId = "folder_null";
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetAccessibleCustomFieldsResponse)null);
+                .ReturnsAsync((GetAccessibleCustomFieldsResponse?)null);
 
             var result = await _customFieldsService.GetFolderCustomFieldsAsync(folderId);
 
@@ -401,7 +401,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space_null";
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetAccessibleCustomFieldsResponse)null);
+                .ReturnsAsync((GetAccessibleCustomFieldsResponse?)null);
 
             var result = await _customFieldsService.GetSpaceCustomFieldsAsync(spaceId);
 
@@ -481,7 +481,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_null";
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetAccessibleCustomFieldsResponse)null);
+                .ReturnsAsync((GetAccessibleCustomFieldsResponse?)null);
 
             var result = await _customFieldsService.GetWorkspaceCustomFieldsAsync(workspaceId);
 
