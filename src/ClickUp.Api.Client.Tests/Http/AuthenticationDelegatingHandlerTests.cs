@@ -24,9 +24,9 @@ namespace ClickUp.Api.Client.Tests.Http
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
-        public void Constructor_WithInvalidApiKey_ShouldThrowArgumentNullException(string invalidApiKey)
+        public void Constructor_WithInvalidApiKey_ShouldThrowArgumentNullException(string? invalidApiKey)
         {
-            Assert.Throws<ArgumentNullException>(() => new AuthenticationDelegatingHandler(invalidApiKey));
+            Assert.Throws<ArgumentNullException>(() => new AuthenticationDelegatingHandler(invalidApiKey!));
         }
 
         [Fact]

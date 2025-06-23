@@ -216,7 +216,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
          IAsyncEnumerable<ClickUpList> GetFolderlessListsAsyncEnumerableAsync(
              string spaceId,
              bool? archived = null,
-             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default
+             CancellationToken cancellationToken = default
          );
      }
 

@@ -133,7 +133,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var folderId = "folder_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetListsResponse)null);
+                .ReturnsAsync((GetListsResponse?)null);
 
             // Act
             var result = await _listsService.GetListsInFolderAsync(folderId);
@@ -249,7 +249,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateListRequest("Null Resp List", null, null, null, null, null, null, null);
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateListRequest, ClickUpList>(It.IsAny<string>(), It.IsAny<CreateListRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpList)null);
+                .ReturnsAsync((ClickUpList?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -368,7 +368,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space_fl_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetListsResponse)null);
+                .ReturnsAsync((GetListsResponse?)null);
 
             // Act
             var result = await _listsService.GetFolderlessListsAsync(spaceId);
@@ -484,7 +484,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateListRequest("Null Resp FL List", null, null, null, null, null, null, null);
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateListRequest, ClickUpList>(It.IsAny<string>(), It.IsAny<CreateListRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpList)null);
+                .ReturnsAsync((ClickUpList?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -584,7 +584,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var listId = "list_get_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<ClickUpList>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpList)null);
+                .ReturnsAsync((ClickUpList?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -684,7 +684,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new UpdateListRequest("Update Null Resp", null, null, null, null, null, null, null, null);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateListRequest, ClickUpList>(It.IsAny<string>(), It.IsAny<UpdateListRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpList)null);
+                .ReturnsAsync((ClickUpList?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -1027,7 +1027,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateListFromTemplateRequest { Name = "Null Resp Template List Folder" };
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateListFromTemplateRequest, ClickUpList>(It.IsAny<string>(), It.IsAny<CreateListFromTemplateRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpList)null);
+                .ReturnsAsync((ClickUpList?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -1136,7 +1136,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateListFromTemplateRequest { Name = "Null Resp Template List Space" };
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateListFromTemplateRequest, ClickUpList>(It.IsAny<string>(), It.IsAny<CreateListFromTemplateRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUpList)null);
+                .ReturnsAsync((ClickUpList?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -1378,7 +1378,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var spaceId = "space_page_null_resp";
             _mockApiConnection.Setup(api => api.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetListsResponse)null); // Null response
+                .ReturnsAsync((GetListsResponse?)null); // Null response
 
             var count = 0;
             // Act

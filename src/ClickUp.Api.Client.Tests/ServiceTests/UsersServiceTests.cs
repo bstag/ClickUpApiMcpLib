@@ -111,7 +111,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var userId = "user_null_api";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetUserResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetUserResponse)null);
+                .ReturnsAsync((GetUserResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -264,7 +264,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new EditUserOnWorkspaceRequest("NewName", false, 0); // CustomRole changed from null to 0
             _mockApiConnection
                 .Setup(x => x.PutAsync<EditUserOnWorkspaceRequest, GetUserResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetUserResponse)null);
+                .ReturnsAsync((GetUserResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

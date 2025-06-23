@@ -82,7 +82,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_seats_null_api";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetWorkspaceSeatsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetWorkspaceSeatsResponse)null);
+                .ReturnsAsync((GetWorkspaceSeatsResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -188,7 +188,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_plan_null_api";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetWorkspacePlanResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetWorkspacePlanResponse)null);
+                .ReturnsAsync((GetWorkspacePlanResponse?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

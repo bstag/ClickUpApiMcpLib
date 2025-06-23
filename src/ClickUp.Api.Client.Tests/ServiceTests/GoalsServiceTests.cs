@@ -236,7 +236,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_null_resp";
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetGoalsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetGoalsResponse)null);
+                .ReturnsAsync((GetGoalsResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _goalsService.GetGoalsAsync(workspaceId));
         }
@@ -285,7 +285,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateGoalRequest("Null Resp Goal", DateTimeOffset.UtcNow.AddDays(10).ToUnixTimeMilliseconds(), "Desc", false, new List<int> { 1 }, "#FFFFFF", workspaceId, null);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateGoalRequest, GetGoalResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetGoalResponse)null); // Null response
+                .ReturnsAsync((GetGoalResponse?)null); // Null response
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _goalsService.CreateGoalAsync(workspaceId, request));
         }
@@ -326,7 +326,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var goalId = "goal_get_null_resp";
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetGoalResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetGoalResponse)null); // Null response
+                .ReturnsAsync((GetGoalResponse?)null); // Null response
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _goalsService.GetGoalAsync(goalId));
         }
@@ -384,7 +384,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new UpdateGoalRequest(Name: "Null Resp Update Goal", DueDate: null, Description: null, RemoveOwners: null, AddOwners: null, Color: null, Archived: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<UpdateGoalRequest, GetGoalResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetGoalResponse)null); // Null Response
+                .ReturnsAsync((GetGoalResponse?)null); // Null Response
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _goalsService.UpdateGoalAsync(goalId, request));
         }
@@ -456,7 +456,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateKeyResultRequest("Null Resp KR", new List<int> { 1 }, "number", 0, 100, "units", new List<string>(), new List<string>(), goalId);
             _mockApiConnection
                 .Setup(c => c.PostAsync<CreateKeyResultRequest, CreateKeyResultResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CreateKeyResultResponse)null);
+                .ReturnsAsync((CreateKeyResultResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _goalsService.CreateKeyResultAsync(goalId, request));
         }
@@ -491,7 +491,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var result = await _goalsService.EditKeyResultAsync(keyResultId, request);
 
             Assert.NotNull(result);
-            Assert.Equal(expectedKeyResult.LastAction.Note, result.LastAction.Note);
+            Assert.NotNull(result.LastAction);
+            Assert.Equal(expectedKeyResult.LastAction?.Note, result.LastAction.Note);
             _mockApiConnection.Verify(c => c.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(
                 $"key_result/{keyResultId}",
                 request,
@@ -529,7 +530,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new EditKeyResultRequest(StepsCurrent: null, Note: "Null Resp KR Update", Name: null, Owners: null, AddOwners: null, RemoveOwners: null, TaskIds: null, ListIds: null, Archived: null);
             _mockApiConnection
                 .Setup(c => c.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((EditKeyResultResponse)null); // Null Response
+                .ReturnsAsync((EditKeyResultResponse?)null); // Null Response
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _goalsService.EditKeyResultAsync(keyResultId, request));
         }
@@ -788,7 +789,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(c => c.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(It.IsAny<string>(), request, expectedToken))
                 .ReturnsAsync(new EditKeyResultResponse(expectedKeyResult));
 
-            await _goalsService.EditKeyResultAsync(keyResultId, request, expectedToken);
+            var result = await _goalsService.EditKeyResultAsync(keyResultId, request, expectedToken); // Store the result
+
+            // Add assertions for the result, similar to other tests
+            Assert.NotNull(result);
+            Assert.NotNull(result.LastAction);
+            Assert.Equal(expectedKeyResult.LastAction?.Note, result.LastAction.Note);
+
 
             _mockApiConnection.Verify(c => c.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(
                 $"key_result/{keyResultId}",

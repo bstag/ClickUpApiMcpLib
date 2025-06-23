@@ -136,7 +136,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetSpacesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetSpacesResponse)null);
+                .ReturnsAsync((GetSpacesResponse?)null);
 
             // Act
             var result = await _spacesService.GetSpacesAsync(workspaceId);
@@ -154,7 +154,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var apiResponse = new GetSpacesResponse(null!); // Spaces property is null
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetSpacesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(apiResponse);
+                .ReturnsAsync((GetSpacesResponse?)null);
 
             // Act
             var result = await _spacesService.GetSpacesAsync(workspaceId);
@@ -272,7 +272,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new CreateSpaceRequest("Null Resp Space", false, null);
             _mockApiConnection
                 .Setup(x => x.PostAsync<CreateSpaceRequest, Space>(It.IsAny<string>(), It.IsAny<CreateSpaceRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Space)null);
+                .ReturnsAsync((Space?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -372,7 +372,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space_get_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<Space>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Space)null);
+                .ReturnsAsync((Space?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -483,7 +483,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var request = new UpdateSpaceRequest(Name: "Update Null Resp", Color: null, Private: null, AdminCanManage: null, MultipleAssignees: null, Features: null, Archived: null);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateSpaceRequest, Space>(It.IsAny<string>(), It.IsAny<UpdateSpaceRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Space)null);
+                .ReturnsAsync((Space?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

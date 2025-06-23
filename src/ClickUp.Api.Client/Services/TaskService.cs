@@ -321,6 +321,10 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting bulk tasks time in status for task IDs: {TaskIdsCount}", taskIds?.Count());
             var endpoint = $"task/bulk_time_in_status/task_ids"; // Path doesn't take task_ids directly
             var queryParams = new Dictionary<string, string?>();
+            if (taskIds == null || !taskIds.Any())
+            {
+                throw new ArgumentException("Task IDs collection cannot be null or empty.", nameof(taskIds));
+            }
             queryParams["task_ids"] = string.Join(",", taskIds); // Comma-separated list
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;

@@ -2,6 +2,13 @@ using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.Entities.Chat;
 
+/// <summary>
+/// Represents the default view settings for a chat room.
+/// Corresponds to #/components/schemas/ChatRoom_default_view
+/// </summary>
+/// <param name="Type">Type of the view. Example: "list"</param>
+/// <param name="Id">ID of the view.</param>
+/// <param name="Name">Name of the view.</param>
 public record ChatDefaultViewDTO(
     [property: JsonPropertyName("type")]
     string Type,
@@ -18,11 +25,3 @@ public record ChatDefaultViewDTO(
     [JsonPropertyName("view_settings")]
     public string? ViewSettings { get; init; }
 }
-
-/// <summary>
-/// Represents the default view settings for a chat room.
-/// Corresponds to #/components/schemas/ChatRoom_default_view
-/// </summary>
-/// <param name="Type">Type of the view. Example: "list"</param>
-/// <param name="Id">ID of the view.</param>
-/// <param name="Name">Name of the view.</param>

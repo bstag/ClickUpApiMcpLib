@@ -4,18 +4,25 @@ using System.Collections.Generic;
 
 namespace ClickUp.Api.Client.Models.Entities.Views;
 
-public record ViewFilterField(
-    [property: JsonPropertyName("id")]
-    string Id,
-    [property: JsonPropertyName("operator")]
-    string Operator
-)
+public record ViewFilterField
 {
     /// <summary>
     /// Represents a single filter field criterion in a View.
     /// </summary>
-    /// <param name="Id">ID of the field to filter by (e.g., "status", "assignees", "priority", "tags", "due_date", or a custom field ID).</param>
-    /// <param name="Operator">The filter operator. Examples: "IS NULL", "IS NOT NULL", "EQUALS", "NOT EQUALS", "GT", "LT", "ANY", "ALL".</param>
+    /// <param name="id">ID of the field to filter by (e.g., "status", "assignees", "priority", "tags", "due_date", or a custom field ID).</param>
+    /// <param name="operator">The filter operator. Examples: "IS NULL", "IS NOT NULL", "EQUALS", "NOT EQUALS", "GT", "LT", "ANY", "ALL".</param>
+    public ViewFilterField(string id, string @operator)
+    {
+        Id = id;
+        Operator = @operator;
+    }
+
+    [JsonPropertyName("id")]
+    public string Id { get; }
+
+    [JsonPropertyName("operator")]
+    public string Operator { get; }
+
     /// <summary>
     /// The specific field instance or sub-field if applicable (e.g. for custom fields).
     /// </summary>

@@ -152,7 +152,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_null_api_resp";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetCustomRolesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetCustomRolesResponse)null);
+                .ReturnsAsync((GetCustomRolesResponse?)null);
 
             // Act
             var result = await _rolesService.GetCustomRolesAsync(workspaceId);
