@@ -393,7 +393,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var taskId = "task123";
-            var request = new CreateCommentRequest { CommentText = "Test comment", Assignee = 123, NotifyAll = null };
+            var request = new CreateTaskCommentRequest(CommentText: "Test comment", Assignee: 123, GroupAssignee: null, NotifyAll: false);
             var mockUser = new User(1, "User", "user@example.com", "#fff", null, "U");
             var expectedComment = new Comment
             {
@@ -408,9 +408,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             };
             var expectedResponse = new CreateCommentResponse { Id = "comment_1", Comment = expectedComment };
 
-            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
                     It.IsAny<string>(),
-                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CreateTaskCommentRequest>(), // Changed generic type
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
@@ -420,7 +420,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Assert
             Assert.NotNull(result);
             Assert.Equal(expectedResponse.Id, result.Id);
-            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+            _mockApiConnection.Verify(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
                 $"task/{taskId}/comment",
                 request,
                 CancellationToken.None), Times.Once);
@@ -431,7 +431,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var taskId = "custom-task-id";
-            var request = new CreateCommentRequest { CommentText = "Test comment", Assignee = 123, NotifyAll = null };
+            var request = new CreateTaskCommentRequest(CommentText: "Test comment", Assignee: 123, GroupAssignee: null, NotifyAll: false);
             var customTaskIds = true;
             var teamId = "team-123";
             var mockUser = new User(2, "User2", "user2@example.com", "#000", null, "U2");
@@ -448,9 +448,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             };
             var expectedResponse = new CreateCommentResponse { Id = "comment_2", Comment = expectedComment };
 
-            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
                     It.IsAny<string>(),
-                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CreateTaskCommentRequest>(), // Changed generic type
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
@@ -458,7 +458,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await _commentService.CreateTaskCommentAsync(taskId, request, customTaskIds, teamId, CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+            _mockApiConnection.Verify(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
                 $"task/{taskId}/comment?custom_task_ids=true&team_id={teamId}",
                 request,
                 CancellationToken.None), Times.Once);
@@ -662,11 +662,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var taskId = "task123";
-            var request = new CreateCommentRequest { CommentText = "Test comment", Assignee = 123, NotifyAll = null };
+            var request = new CreateTaskCommentRequest(CommentText: "Test comment", Assignee: 123, GroupAssignee: null, NotifyAll: false);
 
-            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
                     It.IsAny<string>(),
-                    It.IsAny<CreateCommentRequest>(),
+                    It.IsAny<CreateTaskCommentRequest>(), // Changed generic type
                     It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API call failed"));
 
@@ -732,9 +732,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var taskId = "task_null_resp";
-            var request = new CreateCommentRequest { CommentText = "Test" };
-            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
-                It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+            var request = new CreateTaskCommentRequest(CommentText: "Test", Assignee: null, GroupAssignee: null, NotifyAll: false);
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
+                It.IsAny<string>(), It.IsAny<CreateTaskCommentRequest>(), It.IsAny<CancellationToken>())) // Changed generic type
                 .ReturnsAsync((CreateCommentResponse?)null);
 
             // Act & Assert
@@ -813,12 +813,12 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var taskId = "task_cancel_ex";
-            var request = new CreateCommentRequest { CommentText = "Test" };
+            var request = new CreateTaskCommentRequest(CommentText: "Test", Assignee: null, GroupAssignee: null, NotifyAll: false);
             var cts = new CancellationTokenSource();
             cts.Cancel(); // Simulate timeout/cancellation
 
-            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
-                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
+                    It.IsAny<string>(), It.IsAny<CreateTaskCommentRequest>(), It.IsAny<CancellationToken>())) // Changed generic type
                 .ThrowsAsync(new TaskCanceledException("Simulated timeout"));
 
             // Act & Assert
@@ -831,7 +831,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var taskId = "task_ct_pass";
-            var request = new CreateCommentRequest { CommentText = "Test" };
+            var request = new CreateTaskCommentRequest(CommentText: "Test", Assignee: null, GroupAssignee: null, NotifyAll: false);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var mockUser = new User(0, "", "", "", null, "");
@@ -849,15 +849,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var expectedResponse = new CreateCommentResponse { Id = "1", Comment = expectedComment };
 
 
-            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
-                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), expectedToken))
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
+                    It.IsAny<string>(), It.IsAny<CreateTaskCommentRequest>(), expectedToken)) // Changed generic type
                 .ReturnsAsync(expectedResponse);
 
             // Act
             await _commentService.CreateTaskCommentAsync(taskId, request, null, null, expectedToken);
 
             // Assert
-            _mockApiConnection.Verify(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+            _mockApiConnection.Verify(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
                 $"task/{taskId}/comment", request, expectedToken), Times.Once);
         }
 

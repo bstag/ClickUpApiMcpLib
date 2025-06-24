@@ -116,7 +116,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<CreateCommentResponse> CreateTaskCommentAsync(
             string taskId,
-            CreateCommentRequest createCommentRequest,
+            CreateTaskCommentRequest createCommentRequest, // Changed to CreateTaskCommentRequest
             bool? customTaskIds = null,
             string? teamId = null,
             CancellationToken cancellationToken = default);

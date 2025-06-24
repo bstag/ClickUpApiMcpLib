@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Abstractions.Services.Folders;
-using ClickUp.Api.Client.Abstractions.Services.Spaces;
+// Removed incorrect using ClickUp.Api.Client.Abstractions.Services.Folders;
+// Removed incorrect using ClickUp.Api.Client.Abstractions.Services.Spaces;
 using ClickUp.Api.Client.IntegrationTests.TestInfrastructure;
 using ClickUp.Api.Client.Models;
 using ClickUp.Api.Client.Models.RequestModels.Folders;
@@ -143,7 +143,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             Assert.False(string.IsNullOrWhiteSpace(_testFolderId), "TestFolderId must be available. Check InitializeAsync.");
             var listName = $"My Test List in Folder - {Guid.NewGuid()}";
-            var createListRequest = new CreateListRequest(listName);
+            var createListRequest = new CreateListRequest(
+                Name: listName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null
+            );
 
             _output.LogInformation($"Attempting to create list '{listName}' in folder '{_testFolderId}'.");
             ClickUpList createdList = null;
@@ -173,7 +175,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             Assert.False(string.IsNullOrWhiteSpace(_testSpaceId), "TestSpaceId must be available. Check InitializeAsync.");
             var listName = $"My Folderless Test List - {Guid.NewGuid()}";
-            var createListRequest = new CreateListRequest(listName);
+            var createListRequest = new CreateListRequest(
+                Name: listName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null
+            );
 
             _output.LogInformation($"Attempting to create folderless list '{listName}' in space '{_testSpaceId}'.");
             ClickUpList createdList = null;
@@ -204,7 +208,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             Assert.False(string.IsNullOrWhiteSpace(_testFolderId), "TestFolderId must be available.");
             var listName = $"My List To Get - {Guid.NewGuid()}";
-            var createdList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(listName));
+            var createdList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(
+                Name: listName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null
+            ));
             RegisterCreatedList(createdList.Id);
             _output.LogInformation($"List created for Get test. ID: {createdList.Id}");
 
@@ -221,12 +227,17 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             Assert.False(string.IsNullOrWhiteSpace(_testFolderId), "TestFolderId must be available.");
             var initialName = $"Initial List Name - {Guid.NewGuid()}";
-            var createdList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(initialName));
+            var createdList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(
+                Name: initialName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null
+            ));
             RegisterCreatedList(createdList.Id);
             _output.LogInformation($"List created for Update test. ID: {createdList.Id}, Name: {createdList.Name}");
 
             var updatedName = $"Updated List Name - {Guid.NewGuid()}";
-            // Corrected UpdateListRequest instantiation
+            // UpdateListRequest constructor is: UpdateListRequest(string Name, string? Content, string? MarkdownContent, DateTimeOffset? DueDate, bool? DueDateTime, int? Priority, int? Assignee, string? Status, bool? UnsetStatus)
+            // The existing call was correct based on the latest model definition (which includes UnsetStatus).
+            // If UpdateListRequest model was different before, this would need change. Assuming it's:
+            // Name, Content, MarkdownContent, DueDate, DueDateTime, Priority, Assignee, Status
             var updateListRequest = new UpdateListRequest(
                 Name: updatedName,
                 Content: null,
@@ -256,7 +267,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             Assert.False(string.IsNullOrWhiteSpace(_testFolderId), "TestFolderId must be available.");
             var listName = $"List To Delete - {Guid.NewGuid()}";
-            var createdList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(listName));
+            var createdList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(
+                Name: listName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null
+            ));
             // Do NOT register for auto-cleanup, this test handles deletion.
             _output.LogInformation($"List created for Delete test. ID: {createdList.Id}");
 
@@ -267,6 +280,51 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 () => _listService.GetListAsync(createdList.Id)
             );
             _output.LogInformation($"Verified list {createdList.Id} is deleted (GetListAsync threw NotFound).");
+        }
+
+        [Fact]
+        public async Task GetListAsync_WithNonExistentListId_ShouldThrowNotFoundException()
+        {
+            var nonExistentListId = "0"; // Or any ID that's guaranteed not to exist
+            _output.LogInformation($"Attempting to get non-existent list with ID: {nonExistentListId}");
+
+            var exception = await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(
+                () => _listService.GetListAsync(nonExistentListId)
+            );
+
+            _output.LogInformation($"Received expected ClickUpApiNotFoundException: {exception.Message}");
+            Assert.NotNull(exception);
+        }
+
+        [Fact]
+        public async Task UpdateListAsync_WithNonExistentListId_ShouldThrowNotFoundException()
+        {
+            var nonExistentListId = "0";
+            var updateRequest = new UpdateListRequest(
+                Name: "Attempt to update non-existent list", Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null, UnsetStatus: null
+            );
+            _output.LogInformation($"Attempting to update non-existent list with ID: {nonExistentListId}");
+
+            var exception = await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(
+                () => _listService.UpdateListAsync(nonExistentListId, updateRequest)
+            );
+
+            _output.LogInformation($"Received expected ClickUpApiNotFoundException: {exception.Message}");
+            Assert.NotNull(exception);
+        }
+
+        [Fact]
+        public async Task DeleteListAsync_WithNonExistentListId_ShouldThrowNotFoundException()
+        {
+            var nonExistentListId = "0";
+            _output.LogInformation($"Attempting to delete non-existent list with ID: {nonExistentListId}");
+
+            var exception = await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(
+                () => _listService.DeleteListAsync(nonExistentListId)
+            );
+
+            _output.LogInformation($"Received expected ClickUpApiNotFoundException: {exception.Message}");
+            Assert.NotNull(exception);
         }
     }
 }

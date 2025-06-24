@@ -233,7 +233,7 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async Task<CreateCommentResponse> CreateTaskCommentAsync(
             string taskId,
-            CreateCommentRequest createCommentRequest,
+            CreateTaskCommentRequest createCommentRequest, // Changed to CreateTaskCommentRequest
             bool? customTaskIds = null,
             string? teamId = null,
             CancellationToken cancellationToken = default)
@@ -245,7 +245,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.PostAsync<CreateCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken);
+            var response = await _apiConnection.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken); // Changed generic type
             if (response == null)
             {
                 throw new InvalidOperationException($"API connection returned null response for creating task comment on task {taskId}.");
