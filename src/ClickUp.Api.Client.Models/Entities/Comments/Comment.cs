@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.Entities.Users; // Assuming User model exists here
+using ClickUp.Api.Client.Models.Entities.Users;
 using System.Collections.Generic;
+using System.Text.Json.Serialization; // Ensured it's present once
 
 namespace ClickUp.Api.Client.Models.Entities.Comments
 {
@@ -29,6 +29,12 @@ namespace ClickUp.Api.Client.Models.Entities.Comments
         public required string Id { get; set; }
 
         /// <summary>
+        /// Optional: Historical identifier for the comment, if provided by the API.
+        /// </summary>
+        [JsonPropertyName("hist_id")]
+        public string? HistoryId { get; set; }
+
+        /// <summary>
         /// Gets or sets the list of text entries that make up the comment's content.
         /// </summary>
         [JsonPropertyName("comment")]
@@ -50,7 +56,7 @@ namespace ClickUp.Api.Client.Models.Entities.Comments
         /// Gets or sets a value indicating whether the comment has been resolved.
         /// </summary>
         [JsonPropertyName("resolved")]
-        public required bool Resolved { get; set; }
+        public bool Resolved { get; set; } // Assuming false by default if not present
 
         /// <summary>
         /// Gets or sets the user to whom the comment is assigned, if any.
@@ -66,22 +72,30 @@ namespace ClickUp.Api.Client.Models.Entities.Comments
 
         /// <summary>
         /// Gets or sets the list of reactions to the comment.
-        /// The structure of objects in this list might need a more specific type (e.g., a Reaction model).
         /// </summary>
         [JsonPropertyName("reactions")]
-        public required List<object> Reactions { get; set; }
+        public List<ReactionEntry> Reactions { get; set; } = new List<ReactionEntry>(); // Initialize to avoid null
 
         /// <summary>
-        /// Gets or sets the date the comment was posted, as a string (e.g., Unix timestamp in milliseconds).
+        /// Gets or sets the date the comment was posted.
+        /// The API specifies this as a string (Unix timestamp in milliseconds) but sometimes sends a number.
         /// </summary>
         [JsonPropertyName("date")]
+        [JsonConverter(typeof(ClickUp.Api.Client.Models.Serialization.Converters.JsonStringOrNumberConverter))]
         public required string Date { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of replies to this comment, as a string.
-        /// Consider changing to int if the API consistently provides a numerical value.
+        /// Gets or sets the number of replies to this comment.
+        /// The API specifies this as a string but sometimes sends a number.
         /// </summary>
         [JsonPropertyName("reply_count")]
+        [JsonConverter(typeof(ClickUp.Api.Client.Models.Serialization.Converters.JsonStringOrNumberConverter))]
         public required string ReplyCount {get; set; }
+
+        /// <summary>
+        /// Optional: Source of the comment, if provided by the API (e.g., "task_comment").
+        /// </summary>
+        [JsonPropertyName("source")]
+        public string? Source { get; set; }
     }
 }

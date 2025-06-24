@@ -46,6 +46,12 @@ This file contains specific notes, conventions, and information Jules needs to r
 - Install .NET 9: `utilities/dotnet-install.sh --channel 9.0` (run from the repository root)
 - Build: `dotnet build src/ClickUp.Api.sln --nologo` (run from the repository root, or `dotnet build ClickUp.Api.sln --nologo` from the `src` folder)
 - Test: `dotnet test src/ClickUp.Api.sln` (run from the repository root, or `dotnet test` from the `src` folder if the context is already there)
+- Integration Test Modes: Controlled by `CLICKUP_SDK_TEST_MODE` environment variable:
+    - `Passthrough` (Default): Live API calls.
+    - `Record`: Live API calls, saves responses to JSON.
+    - `Playback`: Uses saved JSON responses, no live API calls.
+- Recorded Response JSON Path: `src/ClickUp.Api.Client.IntegrationTests/test-data/recorded-responses/{ServiceName}/{MethodName}/{ScenarioName}_{queryhash_for_get}.json`
+    - See `docs/testing/INTEGRATION_TEST_DATA_STRATEGY.md` for full details on the recorded response testing strategy.
 
 ## Notes on `geminiPlan.md`:
 The `geminiPlan.md` is the primary source for architectural principles, including:

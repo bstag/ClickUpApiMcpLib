@@ -25,11 +25,17 @@ public class CreateCommentResponse
     [JsonPropertyName("comment")]
     public Comment Comment { get; set; } = null!;
 
-    // Additional properties like hist_id and date might be present at the root level for some comment creation responses.
+    /// <summary>
+    /// Optional: Historical identifier for the comment creation event, if provided by the API
+    /// at the root level of the response.
+    /// </summary>
+    [JsonPropertyName("hist_id")]
+    public string? HistoryId { get; set; }
+
+    // A top-level 'date' is sometimes present in API responses but usually refers to the
+    // 'date' within the nested 'Comment' object for consistency.
+    // If a distinct top-level date needs to be captured, it can be added here.
     // Example:
-    // [JsonPropertyName("hist_id")]
-    // public string HistId { get; set; }
-    //
     // [JsonPropertyName("date")]
-    // public long Date { get; set; }
+    // public long? RootDate { get; set; }
 }

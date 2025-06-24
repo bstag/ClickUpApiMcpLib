@@ -44,7 +44,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     CommentText = commentText,
                     User = new User(Id: i, Username: $"User {i}", Email: $"user{i}@example.com", Color: "#000000", ProfilePicture: "url", Initials: "U" + i),
                     Resolved = false,
-                    Reactions = new List<object>(),
+                    Reactions = new List<ReactionEntry>(), // Changed from List<object>
                     Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
                     ReplyCount = "0",
                     Assignee = null, // Optional
@@ -402,15 +402,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentText = "Test comment",
                 User = mockUser,
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
                 ReplyCount = "0"
             };
             var expectedResponse = new CreateCommentResponse { Id = "comment_1", Comment = expectedComment };
 
-            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>(
                     It.IsAny<string>(),
-                    It.IsAny<CreateTaskCommentRequest>(), // Changed generic type
+                    It.IsAny<CreateTaskCommentRequest>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
@@ -442,15 +442,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentText = "Test comment",
                 User = mockUser,
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
                 ReplyCount = "0"
             };
             var expectedResponse = new CreateCommentResponse { Id = "comment_2", Comment = expectedComment };
 
-            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>(
                     It.IsAny<string>(),
-                    It.IsAny<CreateTaskCommentRequest>(), // Changed generic type
+                    It.IsAny<CreateTaskCommentRequest>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
@@ -478,7 +478,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentText = "Test comment",
                 User = mockUser,
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
                 ReplyCount = "0"
             };
@@ -516,7 +516,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentText = "Test comment",
                 User = mockUser,
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
                 ReplyCount = "0"
             };
@@ -554,7 +554,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Updated comment" } },
                 User = mockUser,
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = "",
                 ReplyCount = "0"
             };
@@ -633,7 +633,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentText = "Threaded comment",
                 User = mockUser,
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
                 ReplyCount = "0"
             };
@@ -842,15 +842,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } },
                 CommentText = "Test",
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = "0",
                 ReplyCount = "0"
             };
             var expectedResponse = new CreateCommentResponse { Id = "1", Comment = expectedComment };
 
 
-            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>( // Changed generic type
-                    It.IsAny<string>(), It.IsAny<CreateTaskCommentRequest>(), expectedToken)) // Changed generic type
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateTaskCommentRequest>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
 
             // Act
@@ -934,7 +934,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } },
                 CommentText = "Test",
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = "0",
                 ReplyCount = "0"
             };
@@ -1025,7 +1025,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } },
                 CommentText = "Test",
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = "0",
                 ReplyCount = "0"
             };
@@ -1115,7 +1115,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Updated" } },
                 CommentText = "Updated",
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = "0",
                 ReplyCount = "0"
             };
@@ -1242,7 +1242,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } },
                 CommentText = "Test",
                 Resolved = false,
-                Reactions = new List<object>(),
+                Reactions = new List<ReactionEntry>(), // Changed
                 Date = "0",
                 ReplyCount = "0"
             };

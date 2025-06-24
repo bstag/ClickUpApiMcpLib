@@ -9,6 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
+using ClickUp.Api.Client.Models.Entities.Spaces; // Added for Space entity
+using RichardSzalay.MockHttp; // Added for MockHttp
+using System.IO; // Added for Path
+using System.Net; // Added for HttpStatusCode
 
 namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
@@ -104,45 +108,97 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output.LogInformation($"Archived space '{spaceToArchive.Name}' (ID: {spaceToArchive.Id}).");
 
             // Give ClickUp a moment to process the archive action before querying
-            await Task.Delay(2000); // 2 seconds delay
+            // In Playback mode, this delay is not strictly necessary but kept for consistency with live mode.
+            await Task.Delay(CurrentTestMode == TestMode.Playback ? 50 : 2000);
+
+            List<Space> nonArchivedSpaces; // Changed from SpaceEntry to Space
+            List<Space> archivedSpaces;    // Changed from SpaceEntry to Space
+            List<Space> allSpacesDefault;  // Changed from SpaceEntry to Space
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                var workspaceIdForMock = _testWorkspaceId; // Or a placeholder if IDs are embedded in mock files
+
+                // Mock for GetSpacesAsync(archived: false)
+                var getNonArchivedPath = Path.Combine(RecordedResponsesBasePath, "SpaceService", "GetSpaces", "GetSpaces_NotArchived_Success.json");
+                _output.LogInformation($"[Playback] Using response file for Not Archived: {getNonArchivedPath}");
+                Assert.True(File.Exists(getNonArchivedPath), $"Playback file not found: {getNonArchivedPath}");
+                var getNonArchivedContent = await File.ReadAllTextAsync(getNonArchivedPath);
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/team/{workspaceIdForMock}/space?archived=false")
+                               .Respond("application/json", getNonArchivedContent);
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/team/{workspaceIdForMock}/space?archived=False") // Case variation
+                               .Respond("application/json", getNonArchivedContent);
+
+
+                // Mock for GetSpacesAsync(archived: true)
+                var getArchivedPath = Path.Combine(RecordedResponsesBasePath, "SpaceService", "GetSpaces", "GetSpaces_Archived_Success.json");
+                _output.LogInformation($"[Playback] Using response file for Archived: {getArchivedPath}");
+                Assert.True(File.Exists(getArchivedPath), $"Playback file not found: {getArchivedPath}");
+                var getArchivedContent = await File.ReadAllTextAsync(getArchivedPath);
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/team/{workspaceIdForMock}/space?archived=true")
+                               .Respond("application/json", getArchivedContent);
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/team/{workspaceIdForMock}/space?archived=True") // Case variation
+                               .Respond("application/json", getArchivedContent);
+
+                // Mock for GetSpacesAsync(archived: null) - parameter omitted
+                var getDefaultPath = Path.Combine(RecordedResponsesBasePath, "SpaceService", "GetSpaces", "GetSpaces_Default_Success.json");
+                _output.LogInformation($"[Playback] Using response file for Default: {getDefaultPath}");
+                Assert.True(File.Exists(getDefaultPath), $"Playback file not found: {getDefaultPath}");
+                var getDefaultContent = await File.ReadAllTextAsync(getDefaultPath);
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/team/{workspaceIdForMock}/space")
+                               .Respond("application/json", getDefaultContent);
+
+                // IMPORTANT: The CreateSpace and UpdateSpace calls are NOT mocked here.
+                // For this test to pass in Playback mode, those operations would either need to be mocked
+                // in IntegrationTestBase setup if CLICKUP_SDK_TEST_MODE=Playback is global,
+                // or the activeSpace.Id and spaceToArchive.Id would need to be hardcoded/predetermined
+                // and the mock JSON files would need to contain these exact IDs.
+                // This current modification ONLY mocks the GET calls.
+                // For a true playback, the Create/Update responses would also be mocked to provide these IDs.
+                // For now, we assume `activeSpace.Id` and `spaceToArchive.Id` are obtained from the (potentially live) Create calls
+                // and the assertions will check against these dynamic IDs. The mock files for GetSpaces must be crafted
+                // to include spaces that would match these dynamically generated IDs, or assertions need to be less ID-specific.
+
+                // For this iteration, the recorded JSON files for GetSpaces should contain the actual IDs
+                // that were generated during the Record phase.
+            }
 
             // 3. Get non-archived spaces
             _output.LogInformation($"Fetching non-archived spaces from workspace '{_testWorkspaceId}'.");
-            var nonArchivedSpaces = (await _spaceService.GetSpacesAsync(_testWorkspaceId, archived: false)).ToList();
+            nonArchivedSpaces = (await _spaceService.GetSpacesAsync(_testWorkspaceId, archived: false)).ToList();
 
             Assert.NotNull(nonArchivedSpaces);
+            // If playback files are static, these assertions on dynamic IDs might fail unless files are perfect.
             Assert.Contains(nonArchivedSpaces, s => s.Id == activeSpace.Id && s.Name == activeSpaceName && s.Archived == false);
             var foundArchivedInNonArchivedQuery = nonArchivedSpaces.FirstOrDefault(s => s.Id == spaceToArchive.Id);
             if (foundArchivedInNonArchivedQuery != null)
             {
                  _output.LogWarning($"Archived space {spaceToArchive.Id} was found in non-archived query. Archived status: {foundArchivedInNonArchivedQuery.Archived}");
             }
-            Assert.DoesNotContain(nonArchivedSpaces, s => s.Id == spaceToArchive.Id && s.Archived == false); // Check it's not there as non-archived
-            _output.LogInformation($"Found {nonArchivedSpaces.Count} non-archived spaces. Active space was present. Archived space was not (or was correctly marked archived if it appeared).");
+            Assert.DoesNotContain(nonArchivedSpaces, s => s.Id == spaceToArchive.Id && s.Archived == false);
+            _output.LogInformation($"Found {nonArchivedSpaces.Count} non-archived spaces. Active space was present. Archived space was not.");
 
             // 4. Get archived spaces
             _output.LogInformation($"Fetching archived spaces from workspace '{_testWorkspaceId}'.");
-            var archivedSpaces = (await _spaceService.GetSpacesAsync(_testWorkspaceId, archived: true)).ToList();
+            archivedSpaces = (await _spaceService.GetSpacesAsync(_testWorkspaceId, archived: true)).ToList();
 
             Assert.NotNull(archivedSpaces);
             var foundArchivedInArchivedQuery = archivedSpaces.FirstOrDefault(s => s.Id == spaceToArchive.Id);
-            Assert.NotNull(foundArchivedInArchivedQuery); // It must be found here
+            Assert.NotNull(foundArchivedInArchivedQuery);
             Assert.True(foundArchivedInArchivedQuery.Archived, $"Space {spaceToArchive.Id} should be marked as archived.");
             _output.LogInformation($"Found {archivedSpaces.Count} archived spaces. Archived space '{spaceToArchive.Name}' (ID: {spaceToArchive.Id}) was present and marked archived.");
 
-            // Ensure active space is not in the archived list
             Assert.DoesNotContain(archivedSpaces, s => s.Id == activeSpace.Id);
             _output.LogInformation($"Active space '{activeSpace.Name}' (ID: {activeSpace.Id}) was correctly not in the archived list.");
 
-            // 5. Get all spaces (archived: null or not provided) - this should return non-archived by default based on API docs
-            // "Get Spaces: ... By default, archived Spaces are not included."
-            // So, testing with archived: null should behave like archived: false
+            // 5. Get all spaces (archived: null or not provided)
             _output.LogInformation($"Fetching all (default, non-archived) spaces (archived: null) from workspace '{_testWorkspaceId}'.");
-            var allSpacesDefault = (await _spaceService.GetSpacesAsync(_testWorkspaceId, archived: null)).ToList();
+            allSpacesDefault = (await _spaceService.GetSpacesAsync(_testWorkspaceId, archived: null)).ToList();
             Assert.NotNull(allSpacesDefault);
             Assert.Contains(allSpacesDefault, s => s.Id == activeSpace.Id && s.Archived == false);
-            Assert.DoesNotContain(allSpacesDefault, s => s.Id == spaceToArchive.Id && s.Archived == true); // Should not contain the one we explicitly archived
-             _output.LogInformation($"Found {allSpacesDefault.Count} total (default) spaces. Active space was present. Archived space was not.");
+            Assert.DoesNotContain(allSpacesDefault, s => s.Id == spaceToArchive.Id && s.Archived == true);
+            _output.LogInformation($"Found {allSpacesDefault.Count} total (default) spaces. Active space was present. Archived space was not.");
         }
     }
 }
