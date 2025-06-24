@@ -159,11 +159,12 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 ## Phase 4: Documentation & Advanced SDK Features (Continued)
 
 ### 9. Set Up and Generate API Documentation (DocFX)
-- [ ] **Task:** Install DocFX, initialize the DocFX project in `docs/docfx/`.
-- [ ] **Task:** Configure `docfx.json` (metadata, build sections).
-- [ ] **Task:** Create root `toc.yml` and `index.md` for the documentation site.
-- [ ] **Task:** Write conceptual articles for `docs/docfx/articles/`: `intro.md`, `getting-started.md`, `authentication.md` (including OAuth), `error-handling.md`, `pagination.md`, `rate-limiting.md` (Polly policies).
-- [ ] **Task:** Establish a process/workflow for building and serving/deploying documentation (e.g., GitHub Actions).
+- [x] **Task:** Install DocFX, initialize the DocFX project in `docs/docfx/`. *(DocFX installed, basic docfx.json created manually as `docfx init` failed in environment)*
+- [x] **Task:** Configure `docfx.json` (metadata, build sections). *(Configured with project paths, global metadata, content, and resource settings)*
+- [x] **Task:** Create root `toc.yml` and `index.md` for the documentation site. *(Created `toc.yml`, `index.md`, and placeholder article/api/images directories and files)*
+- [x] **Task:** Write conceptual articles for `docs/docfx/articles/`: `intro.md`, `getting-started.md`, `authentication.md` (including OAuth), `error-handling.md`, `pagination.md`, `rate-limiting.md` (Polly policies). *(Initial drafts completed for these core articles)*
+- [x] **Task:** Establish a process/workflow for building and serving/deploying documentation (e.g., GitHub Actions). *(Conceptual workflow documented in `docs/docfx/articles/workflow.md` and added to `toc.yml`)*
+- [ ] **Task:** Build and review documentation locally. *(Attempted build, failed due to environment issues with `docfx build`. Configuration and content appear correct based on manual review. Full visual review pending successful build in a suitable environment.)*
 - *Files:* New files/folders under `docs/docfx/`, potentially `.github/workflows/`.
 - *Why:* Provides comprehensive and browsable documentation for SDK users.
 - *Ref:* `docs/plans/updatedPlans/documentation/08-ApiDocumentation.md`

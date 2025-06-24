@@ -1,0 +1,21 @@
+- name: Introduction
+  href: articles/intro.md
+- name: Getting Started
+  href: articles/getting-started.md
+- name: Authentication
+  href: articles/authentication.md
+- name: Error Handling
+  href: articles/error-handling.md
+- name: Pagination
+  href: articles/pagination.md
+- name: Rate Limiting & Resilience
+  href: articles/rate-limiting.md
+- name: Webhooks
+  href: articles/webhooks.md
+- name: Semantic Kernel Integration
+  href: articles/semantic-kernel-integration.md
+- name: Documentation Workflow
+  href: articles/workflow.md
+- name: API Reference
+  href: api/
+  topicHref: api/index.md

@@ -1,0 +1,68 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "../../src/ClickUp.Api.Client.Abstractions/ClickUp.Api.Client.Abstractions.csproj",
+            "../../src/ClickUp.Api.Client.Models/ClickUp.Api.Client.Models.csproj",
+            "../../src/ClickUp.Api.Client/ClickUp.Api.Client.csproj"
+          ],
+          "src": "../../"
+        }
+      ],
+      "dest": "api",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/index.md"
+        ]
+      },
+      {
+        "files": [
+          "articles/**.md",
+          "toc.yml",
+          "*.md"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ],
+        "exclude": [
+          "obj/**",
+          "_site/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appTitle": "ClickUp.Api.Client SDK Documentation",
+      "_appName": "ClickUp.Api.Client",
+      "_appLogoPath": "images/logo.png",
+      "_appFaviconPath": "images/favicon.ico",
+      "_appFooter": "© 2024 Your Company Name. All rights reserved.",
+      "_gitContribute": {
+        "repo": "https://github.com/example/clickup-api-client-dotnet"
+      },
+      "_enableSearch": true,
+      "disableGitFeatures": false
+    },
+    "globalMetadataFiles": [],
+    "fileMetadataFiles": [],
+    "postProcessors": [],
+    "keepFileLink": false
+  }
+}
