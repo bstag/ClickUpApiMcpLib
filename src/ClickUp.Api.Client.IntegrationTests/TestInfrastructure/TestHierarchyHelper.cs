@@ -38,6 +38,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var space = await spacesService.CreateSpaceAsync(workspaceId, createSpaceReq);
             context.SpaceId = space.Id;
             output.LogInformation($"[HierarchyHelper] Test space created. Space ID: {context.SpaceId}");
+            await Task.Delay(500); // Delay after space creation
 
             // 2. Create Folder
             var folderName = $"{baseName}_Folder_{Guid.NewGuid()}";
@@ -46,6 +47,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var folder = await foldersService.CreateFolderAsync(context.SpaceId, createFolderReq);
             context.FolderId = folder.Id;
             output.LogInformation($"[HierarchyHelper] Test folder created. Folder ID: {context.FolderId}");
+            await Task.Delay(500); // Delay after folder creation
 
             // 3. Create List
             var listName = $"{baseName}_List_{Guid.NewGuid()}";
@@ -62,6 +64,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var list = await listsService.CreateListInFolderAsync(context.FolderId, createListReq);
             context.ListId = list.Id;
             output.LogInformation($"[HierarchyHelper] Test list created. List ID: {context.ListId}");
+            await Task.Delay(500); // Delay after list creation
 
             // 4. Create Task
             var taskName = $"{baseName}_Task_{Guid.NewGuid()}";
@@ -89,6 +92,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var task = await tasksService.CreateTaskAsync(context.ListId, createTaskReq);
             context.TaskId = task.Id;
             output.LogInformation($"[HierarchyHelper] Test task created. Task ID: {context.TaskId}");
+            // No delay needed after the last creation step in this helper method
 
             return context;
         }
@@ -109,6 +113,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var space = await spacesService.CreateSpaceAsync(workspaceId, createSpaceReq);
             context.SpaceId = space.Id;
             output.LogInformation($"[HierarchyHelper] Test space created. Space ID: {context.SpaceId}");
+            await Task.Delay(500); // Delay after space creation
 
             var folderName = $"{baseName}_Folder_{Guid.NewGuid()}";
             output.LogInformation($"[HierarchyHelper] Creating test folder: {folderName} in Space ID: {context.SpaceId}");
@@ -116,6 +121,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var folder = await foldersService.CreateFolderAsync(context.SpaceId, createFolderReq);
             context.FolderId = folder.Id;
             output.LogInformation($"[HierarchyHelper] Test folder created. Folder ID: {context.FolderId}");
+            await Task.Delay(500); // Delay after folder creation
 
             var listName = $"{baseName}_List_{Guid.NewGuid()}";
             output.LogInformation($"[HierarchyHelper] Creating test list: {listName} in Folder ID: {context.FolderId}");
@@ -131,6 +137,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var list = await listsService.CreateListInFolderAsync(context.FolderId, createListReq);
             context.ListId = list.Id;
             output.LogInformation($"[HierarchyHelper] Test list created. List ID: {context.ListId}");
+            // No delay needed after the last creation step in this helper method as it's the end of this specific helper.
 
             return context;
         }

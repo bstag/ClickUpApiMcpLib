@@ -1,13 +1,16 @@
 using System;
+using System.IO; // Added for Path
 using System.Linq;
+using System.Net; // Added for HttpStatusCode
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Services;
+using RichardSzalay.MockHttp; // Added for MockHttp extension methods
 using ClickUp.Api.Client.Models.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ClickUp.Api.Client.Extensions; // Added for AddClickUpClient
 using Xunit.Abstractions; // Required for ITestOutputHelper
-using ClickUp.Api.Client.IntegrationTests.TestInfrastructure; // Added for ITestOutputHelper extensions
+using ClickUp.Api.Client.IntegrationTests.TestInfrastructure; // Added for ITestOutputHelper extensions and TestMode
 
 namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
@@ -18,17 +21,33 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         private readonly ITestOutputHelper _output;
 
         public AuthorizationServiceIntegrationTests(ITestOutputHelper output) // Inject ITestOutputHelper
+            : base() // Ensure base constructor is called
         {
             _output = output; // Store it
             _authorizationService = ServiceProvider.GetRequiredService<IAuthorizationService>();
-            _output.LogInformation($"API Token Used: {(string.IsNullOrWhiteSpace(ClientOptions.PersonalAccessToken) ? "NOT SET" : ClientOptions.PersonalAccessToken.Substring(0, Math.Min(ClientOptions.PersonalAccessToken.Length, 7)) + "...")}");
+
+            if (CurrentTestMode != TestMode.Playback) // Only log token if not in playback to avoid issues if token is not set for playback
+            {
+                 _output.LogInformation($"API Token Used: {(string.IsNullOrWhiteSpace(ClientOptions.PersonalAccessToken) ? "NOT SET" : ClientOptions.PersonalAccessToken.Substring(0, Math.Min(ClientOptions.PersonalAccessToken.Length, 7)) + "...")}");
+            }
         }
 
         [Fact]
         public async Task GetAuthorizedUserAsync_WithValidToken_ReturnsUser()
         {
             // Arrange
-            // Token is configured in IntegrationTestBase
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler); // Ensure MockHttpHandler is available in Playback mode
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "AuthorizationService", "GetAuthorizedUser", "Success.json");
+                _output.LogInformation($"[Playback] Using response file: {responsePath}");
+                Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
+                var responseContent = await File.ReadAllTextAsync(responsePath);
+
+                MockHttpHandler.When("https://api.clickup.com/api/v2/user")
+                               .Respond(HttpStatusCode.OK, "application/json", responseContent);
+            }
+            // In Record or Passthrough mode, this test will hit the live API. Token is configured in IntegrationTestBase.
 
             // Act
             var user = await _authorizationService.GetAuthorizedUserAsync();
@@ -71,7 +90,18 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         public async Task GetAuthorizedWorkspacesAsync_WithValidToken_ReturnsWorkspaces()
         {
             // Arrange
-            // Token is configured in IntegrationTestBase
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "AuthorizationService", "GetAuthorizedTeams", "Success.json"); // Note: Original name was GetAuthorizedTeams
+                _output.LogInformation($"[Playback] Using response file: {responsePath}");
+                Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
+                var responseContent = await File.ReadAllTextAsync(responsePath);
+
+                MockHttpHandler.When("https://api.clickup.com/api/v2/team") // This is the endpoint for "teams" which are workspaces
+                               .Respond(HttpStatusCode.OK, "application/json", responseContent);
+            }
+            // In Record or Passthrough mode, this test will hit the live API.
 
             // Act
             var workspaces = await _authorizationService.GetAuthorizedWorkspacesAsync();

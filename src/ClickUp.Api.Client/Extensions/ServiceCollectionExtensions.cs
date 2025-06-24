@@ -26,10 +26,10 @@ namespace ClickUp.Api.Client.Extensions
         /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
         /// <param name="configureClientOptions">An <see cref="Action{ClickUpClientOptions}"/> to configure the provided <see cref="ClickUpClientOptions"/>.</param>
         /// <param name="configurePollyOptions">An optional <see cref="Action{ClickUpPollyOptions}"/> to configure Polly resilience policies.</param>
-        /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+        /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration of the primary <see cref="HttpClient"/> used by ClickUp services.</returns>
         /// <exception cref="ArgumentNullException">Thrown if services or configureClientOptions is null.</exception>
         /// <exception cref="InvalidOperationException">Thrown if PersonalAccessToken or BaseAddress is not configured in ClickUpClientOptions.</exception>
-        public static IServiceCollection AddClickUpClient(
+        public static IHttpClientBuilder AddClickUpClient(
             this IServiceCollection services,
             Action<ClickUpClientOptions> configureClientOptions,
             Action<ClickUpPollyOptions>? configurePollyOptions = null)
@@ -63,7 +63,7 @@ namespace ClickUp.Api.Client.Extensions
 
             var jitterer = new Random(); // For jitter in retry policy
 
-            services.AddHttpClient<IApiConnection, ApiConnection>((sp, client) =>
+            var httpClientBuilder = services.AddHttpClient<IApiConnection, ApiConnection>((sp, client) =>
             {
                 var clientOptions = sp.GetRequiredService<IOptions<ClickUpClientOptions>>().Value;
                 if (string.IsNullOrWhiteSpace(clientOptions.BaseAddress))
@@ -105,7 +105,7 @@ namespace ClickUp.Api.Client.Extensions
             services.AddTransient<IWorkspacesService, WorkspacesService>();
             services.AddTransient<IUserGroupsService, UserGroupsService>();
 
-            return services;
+            return httpClientBuilder;
         }
 
         private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, Random jitterer)
