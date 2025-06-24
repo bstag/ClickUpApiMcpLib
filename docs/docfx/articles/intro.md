@@ -1,6 +1,6 @@
 # Introduction
 
-Welcome to the official .NET SDK for the ClickUp API! This library, `ClickUp.Api.Client`, is designed to provide .NET developers with a modern, intuitive, and resilient way to interact with the rich features of ClickUp.
+Welcome to the unofficial .NET SDK for the ClickUp API! This library, `ClickUp.Api.Client`, is designed to provide .NET developers with a modern, intuitive, and resilient way to interact with the rich features of ClickUp.
 
 ## What is ClickUp?
 
