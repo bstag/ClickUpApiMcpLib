@@ -3,42 +3,59 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using ClickUp.Api.Client.Abstractions.Options;
 
 namespace ClickUp.Api.Client.Http.Handlers
 {
     /// <summary>
-    /// A <see cref="DelegatingHandler"/> that adds the ClickUp Personal API Token to outgoing requests.
+    /// A <see cref="DelegatingHandler"/> that adds the ClickUp API authentication header to requests,
+    /// supporting either Personal Access Token or OAuth 2.0 Bearer Token.
     /// </summary>
     public class AuthenticationDelegatingHandler : DelegatingHandler
     {
-        private readonly string _apiKey;
+        private readonly IOptions<ClickUpClientOptions> _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthenticationDelegatingHandler"/> class.
         /// </summary>
-        /// <param name="apiKey">The ClickUp Personal API Token.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the API key is null or whitespace.</exception>
-        public AuthenticationDelegatingHandler(string apiKey)
+        /// <param name="options">The ClickUp client options containing authentication details.</param>
+        /// <exception cref="ArgumentNullException">Thrown if options is null.</exception>
+        public AuthenticationDelegatingHandler(IOptions<ClickUpClientOptions> options)
         {
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                throw new ArgumentNullException(nameof(apiKey), "API key cannot be null or whitespace.");
-            }
-            _apiKey = apiKey;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         /// <summary>
-        /// Sends an HTTP request with the API key added to the Authorization header.
+        /// Sends an HTTP request with the appropriate authentication header.
+        /// Prioritizes OAuth Access Token if available, otherwise uses Personal Access Token.
         /// </summary>
-        /// <param name="request">The HTTP request message to send to the server.</param>
+        /// <param name="request">The HTTP request message to send.</param>
         /// <param name="cancellationToken">A cancellation token to cancel operation.</param>
-        /// <returns>The <see cref="HttpResponseMessage"/>.</returns>
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        /// <returns>The HTTP response message.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if neither OAuth nor Personal Access Token is configured.</exception>
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            // As per ClickUp API documentation for Personal API Token, the token itself is the header value.
-            // No "Bearer" or other scheme is prefixed.
-            request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
-            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var currentOptions = _options.Value;
+
+            if (!string.IsNullOrWhiteSpace(currentOptions.OAuthAccessToken))
+            {
+                // OAuth 2.0 uses Bearer token scheme
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", currentOptions.OAuthAccessToken);
+            }
+            else if (!string.IsNullOrWhiteSpace(currentOptions.PersonalAccessToken))
+            {
+                // Personal Access Token is used directly as the header value
+                request.Headers.Authorization = new AuthenticationHeaderValue(currentOptions.PersonalAccessToken);
+            }
+            else
+            {
+                // This case should ideally be prevented by checks in ServiceCollectionExtensions or by the application configuration
+                throw new InvalidOperationException(
+                    "Authentication token not configured. Please provide either an OAuthAccessToken or a PersonalAccessToken in ClickUpClientOptions.");
+            }
+
+            return base.SendAsync(request, cancellationToken);
         }
     }
 }
