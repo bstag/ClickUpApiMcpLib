@@ -24,7 +24,8 @@ namespace ClickUp.Api.Client.Helpers
                 {
                     new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower), // Assumes enums are also snake_case in API
                     new Models.Serialization.Converters.UnixEpochDateTimeOffsetConverter(),
-                    new Models.Serialization.Converters.NullableUnixEpochDateTimeOffsetConverter()
+                    new Models.Serialization.Converters.NullableUnixEpochDateTimeOffsetConverter(),
+                    new Models.Serialization.Converters.JsonStringOrNumberConverter() // Added the new converter
                 }
             };
 
