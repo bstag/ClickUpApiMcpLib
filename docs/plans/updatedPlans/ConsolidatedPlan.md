@@ -76,7 +76,7 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - [ ] Core CRUD operations for major entities (e.g., Tasks, Lists, Comments).
     - [ ] Endpoints with complex query parameters or filtering.
     - [ ] Paginated methods and `IAsyncEnumerable<T>` helpers against the live API.
-    - [ ] Triggering and verifying specific API error responses (404, 401/403, etc.) where safe and possible.
+    - [x] Triggering and verifying specific API error responses (404, 401/403, etc.) where safe and possible. *(Completed for TaskService, ListService, CommentService for 404 NotFound errors)*
     - *Files:* New test files in `src/ClickUp.Api.Client.Tests/Integration/`
     - *Why:* Verifies the SDK's interaction with the live ClickUp API.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`

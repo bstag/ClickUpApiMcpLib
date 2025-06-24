@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Abstractions.Services.Folders;
-using ClickUp.Api.Client.Abstractions.Services.Spaces;
+// Removed incorrect using ClickUp.Api.Client.Abstractions.Services.Folders;
+// Removed incorrect using ClickUp.Api.Client.Abstractions.Services.Spaces;
 using ClickUp.Api.Client.IntegrationTests.TestInfrastructure;
 using ClickUp.Api.Client.Models.RequestModels.Comments;
 using ClickUp.Api.Client.Models.RequestModels.Folders;
@@ -24,7 +24,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
     public class CommentServiceIntegrationTests : IntegrationTestBase, IAsyncLifetime
     {
         private readonly ITestOutputHelper _output;
-        private readonly ICommentService _commentService;
+        private readonly ICommentsService _commentService; // Corrected interface name
         private readonly ITasksService _taskService;
         private readonly IListsService _listService;
         private readonly IFoldersService _folderService;
@@ -41,7 +41,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         public CommentServiceIntegrationTests(ITestOutputHelper output) : base()
         {
             _output = output;
-            _commentService = ServiceProvider.GetRequiredService<ICommentService>();
+            _commentService = ServiceProvider.GetRequiredService<ICommentsService>(); // Corrected here
             _taskService = ServiceProvider.GetRequiredService<ITasksService>();
             _listService = ServiceProvider.GetRequiredService<IListsService>();
             _folderService = ServiceProvider.GetRequiredService<IFoldersService>();
@@ -74,13 +74,18 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 _output.LogInformation($"Test folder created: {_testFolderId}");
 
                 var listName = $"TestList_Comments_{Guid.NewGuid()}";
-                var createListReq = new CreateListRequest(listName, null, null, null, null, null, null, null, null);
+                var createListReq = new CreateListRequest(
+                    Name: listName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null
+                );
                 var list = await _listService.CreateListInFolderAsync(_testFolderId, createListReq);
                 _testListId = list.Id;
                 _output.LogInformation($"Test list created: {_testListId}");
 
                 var taskName = $"TestTask_Comments_{Guid.NewGuid()}";
-                var createTaskReq = new CreateTaskRequest(taskName);
+                var createTaskReq = new CreateTaskRequest(
+                    Name: taskName, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null,
+                    DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null,
+                    LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null);
                 var task = await _taskService.CreateTaskAsync(_testListId, createTaskReq);
                 _testTaskId = task.Id;
                 _output.LogInformation($"Test task created: {_testTaskId}");
@@ -141,8 +146,16 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 createdCommentInfo = await _commentService.CreateTaskCommentAsync(_testTaskId, createCommentRequest);
                 if (createdCommentInfo != null)
                 {
-                    RegisterCreatedComment(createdCommentInfo.Id);
-                    _output.LogInformation($"Comment created. ID: {createdCommentInfo.Id}, Date: {createdCommentInfo.Date}");
+                    // Assuming createdCommentInfo.Id is a string that can be parsed to long for RegisterCreatedComment
+                    if (long.TryParse(createdCommentInfo.Id, out var commentIdLong))
+                    {
+                        RegisterCreatedComment(commentIdLong);
+                    }
+                    else
+                    {
+                        _output.LogWarning($"Could not parse comment ID '{createdCommentInfo.Id}' to long for registration.");
+                    }
+                    _output.LogInformation($"Comment created. ID: {createdCommentInfo.Id}, Date from nested comment: {createdCommentInfo.Comment?.Date}");
                 }
             }
             catch (Exception ex)
@@ -152,14 +165,14 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             Assert.NotNull(createdCommentInfo);
-            Assert.True(createdCommentInfo.Id > 0);
-            Assert.True(createdCommentInfo.Date > 0); // Date is a long (timestamp)
+            Assert.False(string.IsNullOrWhiteSpace(createdCommentInfo.Id)); // Check if ID is not empty
+            Assert.NotNull(createdCommentInfo.Comment); // Ensure nested comment object exists
+            Assert.False(string.IsNullOrWhiteSpace(createdCommentInfo.Comment.Date)); // Check if Date string is not empty
 
             // Fetch the comment to verify its content (GetTaskCommentsAsync)
-            // Corrected: GetTaskCommentsRequest constructor needs taskId.
-            // The service method GetTaskCommentsAsync(GetTaskCommentsRequest requestModel, ...) expects the request model.
             var commentsResponse = await _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(_testTaskId));
-            var retrievedComment = commentsResponse.Comments.FirstOrDefault(c => c.Id == createdCommentInfo.Id.ToString());
+            // commentsResponse is IEnumerable<Comment>, no .Comments property
+            var retrievedComment = commentsResponse.FirstOrDefault(c => c.Id == createdCommentInfo.Id);
             Assert.NotNull(retrievedComment);
             Assert.Equal(commentText, retrievedComment.CommentText);
         }
@@ -172,19 +185,18 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             var commentText2 = $"Comment 2 for get test - {Guid.NewGuid()}";
 
             var comment1Info = await _commentService.CreateTaskCommentAsync(_testTaskId, new CreateTaskCommentRequest(commentText1, null, null, false));
-            RegisterCreatedComment(comment1Info.Id);
+            if (long.TryParse(comment1Info.Id, out var id1)) RegisterCreatedComment(id1);
             var comment2Info = await _commentService.CreateTaskCommentAsync(_testTaskId, new CreateTaskCommentRequest(commentText2, null, null, false));
-            RegisterCreatedComment(comment2Info.Id);
+            if (long.TryParse(comment2Info.Id, out var id2)) RegisterCreatedComment(id2);
             _output.LogInformation($"Created comments {comment1Info.Id}, {comment2Info.Id} for GetTaskCommentsAsync test.");
 
-            var commentsResponse = await _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(_testTaskId));
+            var commentsEnumerable = await _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(_testTaskId));
 
-            Assert.NotNull(commentsResponse);
-            Assert.NotNull(commentsResponse.Comments);
-            Assert.True(commentsResponse.Comments.Count() >= 2);
+            Assert.NotNull(commentsEnumerable);
+            Assert.True(commentsEnumerable.Count() >= 2);
 
-            var c1 = commentsResponse.Comments.FirstOrDefault(c => c.Id == comment1Info.Id.ToString());
-            var c2 = commentsResponse.Comments.FirstOrDefault(c => c.Id == comment2Info.Id.ToString());
+            var c1 = commentsEnumerable.FirstOrDefault(c => c.Id == comment1Info.Id);
+            var c2 = commentsEnumerable.FirstOrDefault(c => c.Id == comment2Info.Id);
 
             Assert.NotNull(c1);
             Assert.Equal(commentText1, c1.CommentText);
@@ -198,19 +210,19 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Assert.False(string.IsNullOrWhiteSpace(_testTaskId), "TestTaskId must be available.");
             var initialCommentText = $"Initial comment for update - {Guid.NewGuid()}";
             var createdCommentInfo = await _commentService.CreateTaskCommentAsync(_testTaskId, new CreateTaskCommentRequest(initialCommentText, null, null, false));
-            RegisterCreatedComment(createdCommentInfo.Id);
+            if (long.TryParse(createdCommentInfo.Id, out var id)) RegisterCreatedComment(id);
+            else _output.LogWarning($"Could not parse ID for RegisterCreatedComment: {createdCommentInfo.Id}");
             _output.LogInformation($"Comment created for Update test. ID: {createdCommentInfo.Id}");
 
             var updatedCommentText = $"Updated comment text - {Guid.NewGuid()}";
-            // Corrected: UpdateCommentRequest(string CommentText, int? Assignee = null, bool? Resolved = null, bool? NotifyAll = null)
             var updateCommentRequest = new UpdateCommentRequest(CommentText: updatedCommentText, Assignee: null, Resolved: false, NotifyAll: null);
 
             _output.LogInformation($"Attempting to update comment '{createdCommentInfo.Id}'.");
-            await _commentService.UpdateCommentAsync(createdCommentInfo.Id.ToString(), updateCommentRequest); // Pass ID as string
+            await _commentService.UpdateCommentAsync(createdCommentInfo.Id, updateCommentRequest); // Pass ID as string
             _output.LogInformation($"Comment updated.");
 
-            var commentsResponse = await _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(_testTaskId));
-            var updatedComment = commentsResponse.Comments.FirstOrDefault(c => c.Id == createdCommentInfo.Id.ToString());
+            var commentsEnumerable = await _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(_testTaskId));
+            var updatedComment = commentsEnumerable.FirstOrDefault(c => c.Id == createdCommentInfo.Id);
 
             Assert.NotNull(updatedComment);
             Assert.Equal(updatedCommentText, updatedComment.CommentText);
@@ -225,11 +237,11 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             // Do NOT register for auto-cleanup here.
             _output.LogInformation($"Comment created for Delete test. ID: {createdCommentInfo.Id}");
 
-            await _commentService.DeleteCommentAsync(createdCommentInfo.Id.ToString()); // Pass ID as string
+            await _commentService.DeleteCommentAsync(createdCommentInfo.Id); // Pass ID as string
             _output.LogInformation($"DeleteCommentAsync called for comment ID: {createdCommentInfo.Id}.");
 
-            var commentsResponse = await _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(_testTaskId));
-            var deletedComment = commentsResponse.Comments.FirstOrDefault(c => c.Id == createdCommentInfo.Id.ToString());
+            var commentsEnumerable = await _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(_testTaskId));
+            var deletedComment = commentsEnumerable.FirstOrDefault(c => c.Id == createdCommentInfo.Id);
 
             Assert.Null(deletedComment); // The comment should no longer be in the list
             _output.LogInformation($"Verified comment {createdCommentInfo.Id} is deleted.");
@@ -253,7 +265,14 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 var createdCommentInfo = await _commentService.CreateTaskCommentAsync(_testTaskId, createReq);
                 // Don't register these for individual cleanup as the task itself will be cleaned.
                 // But we need their API IDs if we want to verify them later.
-                createdCommentApiIds.Add(createdCommentInfo.Id);
+                if (long.TryParse(createdCommentInfo.Id, out var commentIdLong))
+                {
+                    createdCommentApiIds.Add(commentIdLong);
+                }
+                else
+                {
+                    _output.LogWarning($"Could not parse comment ID '{createdCommentInfo.Id}' to long in stream test.");
+                }
                 _output.LogInformation($"Created comment {i+1}/{commentsToCreate}, API ID: {createdCommentInfo.Id}");
                 await Task.Delay(200); // Small delay to avoid hitting rate limits rapidly if API is sensitive
             }
@@ -277,11 +296,41 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Assert.Equal(commentsToCreate, retrievedComments.Count);
 
             // Verify that all created comments were retrieved (order might vary depending on API default)
-            foreach (var createdId in createdCommentApiIds)
+            foreach (var createdIdLong in createdCommentApiIds)
             {
-                Assert.Contains(retrievedComments, rc => rc.Id == createdId.ToString());
+                Assert.Contains(retrievedComments, rc => rc.Id == createdIdLong.ToString());
             }
              _output.LogInformation($"All {commentsToCreate} created comments were found in the streamed results.");
+        }
+
+        [Fact]
+        public async Task UpdateCommentAsync_WithNonExistentCommentId_ShouldThrowNotFoundException()
+        {
+            var nonExistentCommentId = "0"; // ClickUp comment IDs are numeric, "0" is unlikely to exist
+            var updateRequest = new UpdateCommentRequest(CommentText: "Attempt to update non-existent comment");
+            _output.LogInformation($"Attempting to update non-existent comment with ID: {nonExistentCommentId}");
+
+            // Assuming comment IDs are passed as strings to the service method, matching DeleteCommentAsync
+            var exception = await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(
+                () => _commentService.UpdateCommentAsync(nonExistentCommentId, updateRequest)
+            );
+
+            _output.LogInformation($"Received expected ClickUpApiNotFoundException for UpdateCommentAsync: {exception.Message}");
+            Assert.NotNull(exception);
+        }
+
+        [Fact]
+        public async Task DeleteCommentAsync_WithNonExistentCommentId_ShouldThrowNotFoundException()
+        {
+            var nonExistentCommentId = "0";
+            _output.LogInformation($"Attempting to delete non-existent comment with ID: {nonExistentCommentId}");
+
+            var exception = await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(
+                () => _commentService.DeleteCommentAsync(nonExistentCommentId)
+            );
+
+            _output.LogInformation($"Received expected ClickUpApiNotFoundException for DeleteCommentAsync: {exception.Message}");
+            Assert.NotNull(exception);
         }
     }
 }

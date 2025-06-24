@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ClickUp.Api.Client.Extensions; // Added for AddClickUpClient
 using Xunit.Abstractions; // Required for ITestOutputHelper
+using ClickUp.Api.Client.IntegrationTests.TestInfrastructure; // Added for ITestOutputHelper extensions
 
 namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
