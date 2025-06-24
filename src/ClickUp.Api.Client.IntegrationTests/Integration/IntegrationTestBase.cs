@@ -4,7 +4,7 @@ using ClickUp.Api.Client.Abstractions.Options;
 using ClickUp.Api.Client.Extensions; // For AddClickUpClient
 using System;
 
-namespace ClickUp.Api.Client.Tests.Integration
+namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
     public abstract class IntegrationTestBase : IDisposable
     {

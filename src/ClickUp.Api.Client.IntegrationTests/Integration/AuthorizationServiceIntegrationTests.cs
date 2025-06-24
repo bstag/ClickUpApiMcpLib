@@ -8,7 +8,7 @@ using Xunit;
 using ClickUp.Api.Client.Extensions; // Added for AddClickUpClient
 using Xunit.Abstractions; // Required for ITestOutputHelper
 
-namespace ClickUp.Api.Client.Tests.Integration
+namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
     [Trait("Category", "Integration")]
     public class AuthorizationServiceIntegrationTests : IntegrationTestBase
