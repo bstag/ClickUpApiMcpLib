@@ -31,17 +31,18 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         private readonly ISpacesService _spaceService;
 
         private string _testWorkspaceId;
-        private string _testSpaceId;
-        private string _testFolderId;
-        private string _testListId;
-        private string _testTaskId;
+        private string _testSpaceId = null!;
+        private string _testFolderId = null!;
+        private string _testListId = null!;
+        private string _testTaskId = null!;
 
         private List<long> _createdCommentIds = new List<long>(); // Comments have numeric IDs
+        private TestHierarchyContext _hierarchyContext = null!;
 
         public CommentServiceIntegrationTests(ITestOutputHelper output) : base()
         {
             _output = output;
-            _commentService = ServiceProvider.GetRequiredService<ICommentsService>(); // Corrected here
+            _commentService = ServiceProvider.GetRequiredService<ICommentsService>();
             _taskService = ServiceProvider.GetRequiredService<ITasksService>();
             _listService = ServiceProvider.GetRequiredService<IListsService>();
             _folderService = ServiceProvider.GetRequiredService<IFoldersService>();
@@ -58,73 +59,43 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
         public async Task InitializeAsync()
         {
-            _output.LogInformation("Starting CommentServiceIntegrationTests class initialization: Creating shared test resources (Space, Folder, List, Task).");
+            _output.LogInformation("Starting CommentServiceIntegrationTests class initialization using TestHierarchyHelper.");
             try
             {
-                var spaceName = $"TestSpace_Comments_{Guid.NewGuid()}";
-                var createSpaceReq = new CreateSpaceRequest(spaceName, null, null);
-                var space = await _spaceService.CreateSpaceAsync(_testWorkspaceId, createSpaceReq);
-                _testSpaceId = space.Id;
-                _output.LogInformation($"Test space created: {_testSpaceId}");
+                _hierarchyContext = await TestHierarchyHelper.CreateFullTestHierarchyAsync(
+                    _spaceService, _folderService, _listService, _taskService,
+                    _testWorkspaceId, "CommentsTest", _output);
 
-                var folderName = $"TestFolder_Comments_{Guid.NewGuid()}";
-                var createFolderReq = new CreateFolderRequest(folderName);
-                var folder = await _folderService.CreateFolderAsync(_testSpaceId, createFolderReq);
-                _testFolderId = folder.Id;
-                _output.LogInformation($"Test folder created: {_testFolderId}");
+                _testSpaceId = _hierarchyContext.SpaceId;
+                _testFolderId = _hierarchyContext.FolderId;
+                _testListId = _hierarchyContext.ListId;
+                _testTaskId = _hierarchyContext.TaskId;
 
-                var listName = $"TestList_Comments_{Guid.NewGuid()}";
-                var createListReq = new CreateListRequest(
-                    Name: listName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null
-                );
-                var list = await _listService.CreateListInFolderAsync(_testFolderId, createListReq);
-                _testListId = list.Id;
-                _output.LogInformation($"Test list created: {_testListId}");
-
-                var taskName = $"TestTask_Comments_{Guid.NewGuid()}";
-                var createTaskReq = new CreateTaskRequest(
-                    Name: taskName, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null,
-                    DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null,
-                    LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null);
-                var task = await _taskService.CreateTaskAsync(_testListId, createTaskReq);
-                _testTaskId = task.Id;
-                _output.LogInformation($"Test task created: {_testTaskId}");
+                _output.LogInformation($"Hierarchy created: SpaceId={_testSpaceId}, FolderId={_testFolderId}, ListId={_testListId}, TaskId={_testTaskId}");
             }
             catch (Exception ex)
             {
-                _output.LogError($"Error during InitializeAsync: {ex.Message}", ex);
-                await CleanupLingeringResourcesAsync();
-                throw;
+                _output.LogError($"Error during InitializeAsync using TestHierarchyHelper: {ex.Message}", ex);
+                if (_hierarchyContext != null) // Attempt cleanup even if hierarchy creation was partial
+                {
+                    await TestHierarchyHelper.TeardownHierarchyAsync(_spaceService, _hierarchyContext, _output);
+                }
+                throw; // Re-throw to fail the test class setup
             }
         }
 
         public async Task DisposeAsync()
         {
-            _output.LogInformation("Starting CommentServiceIntegrationTests class disposal: Cleaning up comments and shared resources.");
-            // Comments are deleted when their task/list is deleted. Explicit deletion can be tested separately if needed.
-            // We don't need to explicitly delete comments if their parent task will be deleted.
-            // The hierarchical delete should take care of it when the space is deleted.
-            _createdCommentIds.Clear(); // Still clear the list
-
-            await CleanupLingeringResourcesAsync();
+            _output.LogInformation("Starting CommentServiceIntegrationTests class disposal using TestHierarchyHelper.");
+            _createdCommentIds.Clear();
+            if (_hierarchyContext != null)
+            {
+                await TestHierarchyHelper.TeardownHierarchyAsync(_spaceService, _hierarchyContext, _output);
+            }
             _output.LogInformation("CommentServiceIntegrationTests class disposal complete.");
         }
 
-        private async Task CleanupLingeringResourcesAsync()
-        {
-            // Task deletion is handled by List/Folder/Space deletion.
-            // List deletion is handled by Folder/Space deletion.
-            if (!string.IsNullOrWhiteSpace(_testFolderId))
-            {
-                try { await _folderService.DeleteFolderAsync(_testFolderId); _output.LogInformation($"Deleted folder {_testFolderId}"); _testFolderId = null; }
-                catch (Exception ex) { _output.LogError($"Error deleting folder {_testFolderId}: {ex.Message}", ex); }
-            }
-            if (!string.IsNullOrWhiteSpace(_testSpaceId))
-            {
-                try { await _spaceService.DeleteSpaceAsync(_testSpaceId); _output.LogInformation($"Deleted space {_testSpaceId}"); _testSpaceId = null; }
-                catch (Exception ex) { _output.LogError($"Error deleting space {_testSpaceId}: {ex.Message}", ex); }
-            }
-        }
+        // Removed CleanupLingeringResourcesAsync as TestHierarchyHelper.TeardownHierarchyAsync handles it.
 
         private void RegisterCreatedComment(long commentId)
         {
@@ -332,5 +303,62 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output.LogInformation($"Received expected ClickUpApiNotFoundException for DeleteCommentAsync: {exception.Message}");
             Assert.NotNull(exception);
         }
+
+        [Fact]
+        public async Task GetListCommentsStreamAsync_ShouldRetrieveAllListComments()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(_testListId), "TestListId must be available for this test.");
+
+            int commentsToCreate = 3; // Create a few comments directly on the list
+            var createdCommentApiIds = new List<long>();
+
+            _output.LogInformation($"Creating {commentsToCreate} comments for list comments stream test on list '{_testListId}'.");
+            for (int i = 0; i < commentsToCreate; i++)
+            {
+                var commentText = $"List Comment {i + 1} - {Guid.NewGuid()}";
+                var createReq = new CreateCommentRequest { CommentText = commentText, Assignee = null, NotifyAll = false };
+                var createdCommentInfo = await _commentService.CreateListCommentAsync(_testListId, createReq);
+
+                if (long.TryParse(createdCommentInfo.Id, out var commentIdLong))
+                {
+                    createdCommentApiIds.Add(commentIdLong);
+                    // We don't need to register these for individual cleanup as the list will be cleaned up.
+                }
+                else
+                {
+                    _output.LogWarning($"Could not parse list comment ID '{createdCommentInfo.Id}' to long in stream test.");
+                }
+                _output.LogInformation($"Created list comment {i + 1}/{commentsToCreate}, API ID: {createdCommentInfo.Id}");
+                await Task.Delay(250); // API niceness
+            }
+
+            var retrievedComments = new List<ClickUp.Api.Client.Models.Entities.Comments.Comment>();
+            int count = 0;
+            _output.LogInformation($"Starting to stream comments for list '{_testListId}'.");
+
+            await foreach (var comment in _commentService.GetListCommentsStreamAsync(_testListId))
+            {
+                count++;
+                retrievedComments.Add(comment);
+                _output.LogInformation($"Streamed list comment {count}: ID {comment.Id}, Text: '{comment.CommentText?.Substring(0, Math.Min(20, comment.CommentText.Length))}'...");
+            }
+
+            _output.LogInformation($"Finished streaming list comments. Total comments received: {count}");
+
+            Assert.Equal(commentsToCreate, count);
+            Assert.Equal(commentsToCreate, retrievedComments.Count);
+
+            foreach (var createdIdLong in createdCommentApiIds)
+            {
+                Assert.Contains(retrievedComments, rc => rc.Id == createdIdLong.ToString());
+            }
+            _output.LogInformation($"All {commentsToCreate} created list comments were found in the streamed results for list '{_testListId}'.");
+        }
+
+        // Test for GetChatViewCommentsStreamAsync would require creating a Chat View, which is more complex.
+        // Placeholder for now, or implement if view creation is simple enough via API.
+        // For now, this test is skipped as it requires a view_id that is hard to create programmatically without more services.
+        // [Fact]
+        // public async Task GetChatViewCommentsStreamAsync_ShouldRetrieveAllChatViewComments() { /* ... */ }
     }
 }

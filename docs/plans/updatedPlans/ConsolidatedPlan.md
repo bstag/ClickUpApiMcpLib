@@ -71,11 +71,11 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 - [x] **Task:** Define a strategy for Test Data Setup/Teardown for integration tests.
     - *Why:* Essential for reliable and repeatable integration tests.
     - *Ref:* `docs/testing/INTEGRATION_TEST_DATA_STRATEGY.md`
-- [ ] **Task:** Implement integration tests for:
+- [x] **Task:** Implement integration tests for: *(All sub-tasks below completed for this session's scope)*
     - [x] Authentication (`GetAuthorizedUserAsync` with valid/invalid tokens). *(Tests implemented in `AuthorizationServiceIntegrationTests.cs`; require external configuration of API token to pass).*
-    - [ ] Core CRUD operations for major entities (e.g., Tasks, Lists, Comments).
-    - [ ] Endpoints with complex query parameters or filtering.
-    - [ ] Paginated methods and `IAsyncEnumerable<T>` helpers against the live API.
+    - [x] Core CRUD operations for major entities (e.g., Tasks, Lists, Comments). *(Existing tests in `TaskServiceIntegrationTests.cs`, `ListServiceIntegrationTests.cs`, `CommentServiceIntegrationTests.cs` cover these operations.)*
+    - [x] Endpoints with complex query parameters or filtering. *(Added tests for Task date created filtering, Task ordering, Folder archived filtering, and Space archived filtering.)*
+    - [x] Paginated methods and `IAsyncEnumerable<T>` helpers against the live API. *(Existing tests for Task/TeamTask streams and TaskComment streams were verified. Added tests for ListComment streams and FolderlessList streams.)*
     - [x] Triggering and verifying specific API error responses (404, 401/403, etc.) where safe and possible. *(Completed for TaskService, ListService, CommentService for 404 NotFound errors)*
     - *Files:* New test files in `src/ClickUp.Api.Client.Tests/Integration/`
     - *Why:* Verifies the SDK's interaction with the live ClickUp API.
@@ -85,8 +85,8 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *Files:* `src/ClickUp.Api.Client.IntegrationTests/`, `src/ClickUp.Api.sln`
     - *Why:* Practical test execution management and clear separation of test types.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
-- [ ] **Task:** Expand `TestInfrastructure` for reusable test data builders or mock setups if needed.
-    - *Files:* New files/folders in `src/ClickUp.Api.Client.IntegrationTests/TestInfrastructure/` (Note: Path updated to new integration test project if infrastructure is specific to integration tests)
+- [x] **Task:** Expand `TestInfrastructure` for reusable test data builders or mock setups if needed. *(Added `TestHierarchyHelper` for creating and tearing down Space/Folder/List/Task hierarchies. Refactored `CommentServiceIntegrationTests`, `TaskServiceIntegrationTests`, and `ListServiceIntegrationTests` to use it.)*
+    - *Files:* `src/ClickUp.Api.Client.IntegrationTests/TestInfrastructure/TestHierarchyHelper.cs`
     - *Why:* Improves maintainability and readability of tests.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
 
