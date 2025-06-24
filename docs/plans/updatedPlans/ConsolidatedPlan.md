@@ -80,12 +80,13 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
     - *Files:* New test files in `src/ClickUp.Api.Client.Tests/Integration/`
     - *Why:* Verifies the SDK's interaction with the live ClickUp API.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
-- [ ] **Task:** Decide on and implement a strategy for separating integration tests (e.g., test categories or conditional compilation) if they are not to be run with every `dotnet test` execution.
-    - *File:* `src/ClickUp.Api.Client.Tests/ClickUp.Api.Client.Tests.csproj` and test files.
-    - *Why:* Practical test execution management.
+- [x] **Task:** Decide on and implement a strategy for separating integration tests (e.g., test categories or conditional compilation) if they are not to be run with every `dotnet test` execution.
+    - *Strategy Implemented:* Integration tests have been moved to a separate project: `src/ClickUp.Api.Client.IntegrationTests`. This allows them to be built and run independently of unit tests. Existing integration tests use `[Trait("Category", "Integration")]` which can be used for filtering if running tests from the solution level.
+    - *Files:* `src/ClickUp.Api.Client.IntegrationTests/`, `src/ClickUp.Api.sln`
+    - *Why:* Practical test execution management and clear separation of test types.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
 - [ ] **Task:** Expand `TestInfrastructure` for reusable test data builders or mock setups if needed.
-    - *Files:* New files/folders in `src/ClickUp.Api.Client.Tests/TestInfrastructure/`
+    - *Files:* New files/folders in `src/ClickUp.Api.Client.IntegrationTests/TestInfrastructure/` (Note: Path updated to new integration test project if infrastructure is specific to integration tests)
     - *Why:* Improves maintainability and readability of tests.
     - *Ref:* `docs/plans/updatedPlans/testing/07-TestingStrategy.md`
 
