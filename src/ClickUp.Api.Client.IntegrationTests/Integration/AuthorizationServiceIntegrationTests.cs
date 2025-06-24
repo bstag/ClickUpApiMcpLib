@@ -84,18 +84,4 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output.LogInformation($"Successfully fetched {workspaces.Count()} workspaces. First workspace: {firstWorkspace.Name} (ID: {firstWorkspace.Id})");
         }
     }
-
-    // Helper extension for ITestOutputHelper to make logging easier
-    public static class TestOutputHelperExtensions
-    {
-        public static void LogInformation(this ITestOutputHelper output, string message)
-        {
-            output.WriteLine($"[INFO] {DateTime.UtcNow:O} | {message}");
-        }
-
-        public static void LogError(this ITestOutputHelper output, string message, Exception? ex = null)
-        {
-            output.WriteLine($"[ERROR] {DateTime.UtcNow:O} | {message}" + (ex != null ? $"\nException: {ex}" : ""));
-        }
-    }
 }
