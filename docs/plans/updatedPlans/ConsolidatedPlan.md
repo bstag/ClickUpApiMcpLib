@@ -93,43 +93,43 @@ This plan consolidates uncompleted items from the 11 detailed plan documents in 
 ## Phase 3: SDK Usability & Advanced Features
 
 ### 7. Enhance SDK Configuration & Resilience
-- [ ] **Task:** Implement `ClickUpPollyOptions` class and integrate with `IOptions` in `ServiceCollectionExtensions.cs` to make Polly policy parameters (retry count, delays, break duration) configurable.
-    - [ ] Create `ClickUpPollyOptions.cs` in `src/ClickUp.Api.Client.Abstractions/Options/`
-    - [ ] Define properties for retry count, base delay, and break duration in `ClickUpPollyOptions`.
-    - [ ] Integrate `ClickUpPollyOptions` with `IOptions` in `ServiceCollectionExtensions.cs`.
-    - [ ] Use configured options from `ClickUpPollyOptions` in Polly policies (retry and circuit breaker) within `ServiceCollectionExtensions.cs`.
+- [x] **Task:** Implement `ClickUpPollyOptions` class and integrate with `IOptions` in `ServiceCollectionExtensions.cs` to make Polly policy parameters (retry count, delays, break duration) configurable.
+    - [x] Create `ClickUpPollyOptions.cs` in `src/ClickUp.Api.Client.Abstractions/Options/`
+    - [x] Define properties for retry count, base delay, and break duration in `ClickUpPollyOptions`.
+    - [x] Integrate `ClickUpPollyOptions` with `IOptions` in `ServiceCollectionExtensions.cs`.
+    - [x] Use configured options from `ClickUpPollyOptions` in Polly policies (retry and circuit breaker) within `ServiceCollectionExtensions.cs`.
     - *Files:* New `ClickUpPollyOptions.cs` in `src/ClickUp.Api.Client.Abstractions/Options/`, update `src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs`.
     - *Why:* Increases flexibility for SDK consumers.
     - *Ref:* `docs/plans/updatedPlans/resilience/05-ResilienceWithPolly.md`
-- [ ] **Task:** Enhance Polly retry/circuit breaker policies in `ServiceCollectionExtensions.cs` for specific HTTP 429 handling, respecting `Retry-After` headers if present.
-    - [ ] Add a new Polly policy or enhance existing ones to specifically handle HTTP 429 (Too Many Requests) status code.
-    - [ ] In the 429 handling logic, attempt to parse the `Retry-After` header from the `HttpResponseMessage`.
-    - [ ] If `Retry-After` is present (either as a delta in seconds or a specific date), use its value for the delay.
-    - [ ] If `Retry-After` is not present or parsable, use a default or configurable backoff strategy for 429 errors.
-    - [ ] Ensure this policy is correctly applied to the `HttpClient` configuration in `ServiceCollectionExtensions.cs`.
+- [x] **Task:** Enhance Polly retry/circuit breaker policies in `ServiceCollectionExtensions.cs` for specific HTTP 429 handling, respecting `Retry-After` headers if present.
+    - [x] Add a new Polly policy or enhance existing ones to specifically handle HTTP 429 (Too Many Requests) status code.
+    - [x] In the 429 handling logic, attempt to parse the `Retry-After` header from the `HttpResponseMessage`.
+    - [x] If `Retry-After` is present (either as a delta in seconds or a specific date), use its value for the delay.
+    - [x] If `Retry-After` is not present or parsable, use a default or configurable backoff strategy for 429 errors.
+    - [x] Ensure this policy is correctly applied to the `HttpClient` configuration in `ServiceCollectionExtensions.cs`.
     - *File:* `src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs`
     - *Why:* More robust and compliant rate limit handling.
     - *Ref:* `docs/plans/updatedPlans/resilience/05-ResilienceWithPolly.md`
-- [ ] **Task:** Replace `Console.WriteLine` in Polly `onRetry`/`onBreak`/`onReset` delegates with `ILogger` obtained from the service provider.
-    - [ ] Ensure `ILogger` (e.g., `ILogger<ApiConnection>` or a more general `ILogger`) is accessible within the Polly policy configuration in `ServiceCollectionExtensions.cs`. This might involve getting it from the service provider `sp`.
-    - [ ] Replace `Console.WriteLine` in `onRetry` delegate with `logger.LogWarning` or similar, including details like request URI, status code, delay, retry attempt, and correlation ID.
-    - [ ] Replace `Console.WriteLine` in `onBreak` delegate with `logger.LogError` or `logger.LogWarning`, including details like request URI, status code, break duration, and correlation ID.
-    - [ ] Replace `Console.WriteLine` in `onReset` delegate with `logger.LogInformation`, including correlation ID or operation key.
-    - [ ] Replace `Console.WriteLine` in `onHalfOpen` delegate with `logger.LogInformation`.
+- [x] **Task:** Replace `Console.WriteLine` in Polly `onRetry`/`onBreak`/`onReset` delegates with `ILogger` obtained from the service provider.
+    - [x] Ensure `ILogger` (e.g., `ILogger<ApiConnection>` or a more general `ILogger`) is accessible within the Polly policy configuration in `ServiceCollectionExtensions.cs`. This might involve getting it from the service provider `sp`.
+    - [x] Replace `Console.WriteLine` in `onRetry` delegate with `logger.LogWarning` or similar, including details like request URI, status code, delay, retry attempt, and correlation ID.
+    - [x] Replace `Console.WriteLine` in `onBreak` delegate with `logger.LogError` or `logger.LogWarning`, including details like request URI, status code, break duration, and correlation ID.
+    - [x] Replace `Console.WriteLine` in `onReset` delegate with `logger.LogInformation`, including correlation ID or operation key.
+    - [x] Replace `Console.WriteLine` in `onHalfOpen` delegate with `logger.LogInformation`.
     - *File:* `src/ClickUp.Api.Client/Extensions/ServiceCollectionExtensions.cs`
     - *Why:* Adherence to proper logging practices using standard .NET logging abstractions.
-    - *Ref:* `docs/plans/updatedPlans/resilience/05-ResilienceWithPolly.md`
-- [ ] **Task:** Implement OAuth 2.0 support:
-    - [ ] **`ClickUpClientOptions.cs` Changes:**
-        - [ ] Add `public string? OAuthAccessToken { get; set; }` to `ClickUpClientOptions.cs`.
-        - [ ] Consider adding properties for `OAuthRefreshToken` and `OAuthTokenExpiresAt` if refresh token handling will be part of SDK (less common for client libraries, but good for completeness).
-    - [ ] **`AuthenticationDelegatingHandler.cs` Changes:**
-        - [ ] Modify the constructor or properties to accept `IOptions<ClickUpClientOptions>` instead of just the `apiKey` string, or pass the full options to `SendAsync` via context if preferred.
-        - [ ] In `SendAsync`, check if `options.OAuthAccessToken` is not null or whitespace.
-        - [ ] If `OAuthAccessToken` is available, set the `Authorization` header to `new AuthenticationHeaderValue("Bearer", options.OAuthAccessToken)`.
-        - [ ] Else, if `options.PersonalAccessToken` is available, use it as before (`new AuthenticationHeaderValue(options.PersonalAccessToken)`).
-        - [ ] Ensure appropriate error handling or logging if neither token is available but authentication is expected.
-    - [ ] **Guidance/Documentation:**
+    - *Ref:* `docs/plans/updatedPxlans/resilience/05-ResilienceWithPolly.md`
+- [x] **Task:** Implement OAuth 2.0 support:
+    - [x] **`ClickUpClientOptions.cs` Changes:**
+        - [x] Add `public string? OAuthAccessToken { get; set; }` to `ClickUpClientOptions.cs`.
+        - [ ] Consider adding properties for `OAuthRefreshToken` and `OAuthTokenExpiresAt` if refresh token handling will be part of SDK (less common for client libraries, but good for completeness). *(Decided against for now to keep client simple; focuses on consuming pre-acquired token)*
+    - [x] **`AuthenticationDelegatingHandler.cs` Changes:**
+        - [x] Modify the constructor or properties to accept `IOptions<ClickUpClientOptions>` instead of just the `apiKey` string, or pass the full options to `SendAsync` via context if preferred.
+        - [x] In `SendAsync`, check if `options.OAuthAccessToken` is not null or whitespace.
+        - [x] If `OAuthAccessToken` is available, set the `Authorization` header to `new AuthenticationHeaderValue("Bearer", options.OAuthAccessToken)`.
+        - [x] Else, if `options.PersonalAccessToken` is available, use it as before (`new AuthenticationHeaderValue(options.PersonalAccessToken)`).
+        - [x] Ensure appropriate error handling or logging if neither token is available but authentication is expected.
+    - [ ] **Guidance/Documentation:** *(Deferred to DocFX phase)*
         - [ ] Add comments or a section in `authentication.md` (once created) explaining that the SDK can use a pre-acquired OAuth token.
         - [ ] Clarify that the SDK itself does not perform the OAuth 2.0 authorization code flow or token exchange, but consumes the resulting token.
     - *Files:* `src/ClickUp.Api.Client.Abstractions/Options/ClickUpClientOptions.cs`, `src/ClickUp.Api.Client/Http/Handlers/AuthenticationDelegatingHandler.cs`
