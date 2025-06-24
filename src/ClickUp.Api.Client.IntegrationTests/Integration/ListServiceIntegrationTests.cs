@@ -25,10 +25,11 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         private readonly ISpacesService _spaceService;
 
         private string _testWorkspaceId;
-        private string _testSpaceId; // Will be created for the test class
-        private string _testFolderId; // Will be created for the test class
+        private string _testSpaceId = null!;
+        private string _testFolderId = null!;
 
         private List<string> _createdListIds = new List<string>();
+        private TestHierarchyContext _hierarchyContext = null!;
 
         public ListServiceIntegrationTests(ITestOutputHelper output) : base()
         {
@@ -48,87 +49,71 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
         public async Task InitializeAsync()
         {
-            _output.LogInformation("Starting ListServiceIntegrationTests class initialization: Creating shared test resources (Space, Folder).");
+            _output.LogInformation("Starting ListServiceIntegrationTests class initialization using TestHierarchyHelper.");
             try
             {
-                // 1. Create a Test Space
-                var spaceName = $"TestSpace_Lists_{Guid.NewGuid()}";
-                _output.LogInformation($"Creating test space: {spaceName} in Workspace ID: {_testWorkspaceId}");
-                // Corrected CreateSpaceRequest instantiation
-                var createSpaceReq = new ClickUp.Api.Client.Models.RequestModels.Spaces.CreateSpaceRequest(spaceName, null, null);
-                var space = await _spaceService.CreateSpaceAsync(_testWorkspaceId, createSpaceReq);
-                _testSpaceId = space.Id;
-                _output.LogInformation($"Test space created successfully. Space ID: {_testSpaceId}");
+                // Create Space and Folder using the helper. Lists will be created by individual tests.
+                // We use CreateSpaceFolderListHierarchyAsync and just use its SpaceId and FolderId.
+                // Or we could make a CreateSpaceFolderHierarchyAsync if needed often.
+                _hierarchyContext = await TestHierarchyHelper.CreateSpaceFolderListHierarchyAsync(
+                    _spaceService, _folderService, _listService, // _listService is used by helper but we might not use its list
+                    _testWorkspaceId, "ListsTest", _output);
 
-                // 2. Create a Test Folder in that Space
-                var folderName = $"TestFolder_Lists_{Guid.NewGuid()}";
-                _output.LogInformation($"Creating test folder: {folderName} in Space ID: {_testSpaceId}");
-                var createFolderReq = new CreateFolderRequest(folderName);
-                var folder = await _folderService.CreateFolderAsync(_testSpaceId, createFolderReq);
-                _testFolderId = folder.Id;
-                _output.LogInformation($"Test folder created successfully. Folder ID: {_testFolderId}");
+                _testSpaceId = _hierarchyContext.SpaceId;
+                _testFolderId = _hierarchyContext.FolderId;
+                // _hierarchyContext.ListId is created but might not be the primary list for all tests here.
+                // Tests that need a specific list will create it.
+                _output.LogInformation($"Hierarchy created: SpaceId={_testSpaceId}, FolderId={_testFolderId}. A default list was also created: {_hierarchyContext.ListId}");
+                 RegisterCreatedList(_hierarchyContext.ListId); // Register the default list for cleanup
             }
             catch (Exception ex)
             {
                 _output.LogError($"Error during InitializeAsync: {ex.Message}", ex);
-                await CleanupLingeringResourcesAsync(); // Attempt cleanup
+                if (_hierarchyContext != null)
+                {
+                    await TestHierarchyHelper.TeardownHierarchyAsync(_spaceService, _hierarchyContext, _output);
+                }
                 throw;
             }
         }
 
         public async Task DisposeAsync()
         {
-            _output.LogInformation("Starting ListServiceIntegrationTests class disposal: Cleaning up created lists and shared resources.");
-            foreach (var listId in _createdListIds)
+            _output.LogInformation("Starting ListServiceIntegrationTests class disposal.");
+
+            var listsToClean = new List<string>(_createdListIds);
+            _createdListIds.Clear(); // Clear original list before async operations
+
+            foreach (var listId in listsToClean)
             {
+                // Don't delete the list that was part of the hierarchy context if it's still there,
+                // as TeardownHierarchyAsync will handle it via space deletion.
+                // However, lists created OUTSIDE this default list by tests should be cleaned.
+                // For simplicity, we'll try to delete all registered lists. If it's already deleted (e.g. by folder/space delete), it should be fine.
                 try
                 {
-                    _output.LogInformation($"Deleting list: {listId}");
+                    _output.LogInformation($"Attempting to delete list: {listId}");
                     await _listService.DeleteListAsync(listId);
+                    _output.LogInformation($"List {listId} deleted successfully or was already gone.");
+                }
+                catch (ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException)
+                {
+                    _output.LogInformation($"List {listId} was not found during cleanup (already deleted).");
                 }
                 catch (Exception ex)
                 {
                     _output.LogError($"Error deleting list {listId}: {ex.Message}", ex);
                 }
             }
-            _createdListIds.Clear();
-            await CleanupLingeringResourcesAsync();
+
+            if (_hierarchyContext != null)
+            {
+                await TestHierarchyHelper.TeardownHierarchyAsync(_spaceService, _hierarchyContext, _output);
+            }
             _output.LogInformation("ListServiceIntegrationTests class disposal complete.");
         }
 
-        private async Task CleanupLingeringResourcesAsync()
-        {
-            // Delete folder (which should delete lists within it if API behaves as expected, but we delete lists explicitly first)
-            if (!string.IsNullOrWhiteSpace(_testFolderId))
-            {
-                try
-                {
-                    _output.LogInformation($"Deleting test folder: {_testFolderId}");
-                    await _folderService.DeleteFolderAsync(_testFolderId);
-                    _testFolderId = null; // Mark as deleted
-                }
-                catch (Exception ex)
-                {
-                    _output.LogError($"Error deleting folder {_testFolderId}: {ex.Message}", ex);
-                }
-            }
-
-            // Delete space
-            if (!string.IsNullOrWhiteSpace(_testSpaceId))
-            {
-                try
-                {
-                    _output.LogInformation($"Deleting test space: {_testSpaceId}");
-                    await _spaceService.DeleteSpaceAsync(_testSpaceId);
-                    _testSpaceId = null; // Mark as deleted
-                }
-                catch (Exception ex)
-                {
-                    _output.LogError($"Error deleting space {_testSpaceId}: {ex.Message}", ex);
-                }
-            }
-        }
-
+        // Removed CleanupLingeringResourcesAsync
 
         private void RegisterCreatedList(string listId)
         {
@@ -325,6 +310,65 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             _output.LogInformation($"Received expected ClickUpApiNotFoundException: {exception.Message}");
             Assert.NotNull(exception);
+        }
+
+        [Fact]
+        public async Task GetFolderlessListsAsyncEnumerableAsync_ShouldRetrieveAllFolderlessListsInSpace()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(_testSpaceId), "TestSpaceId must be available for this test.");
+
+            int listsToCreate = 3; // Create a few folderless lists
+            var createdFolderlessListIds = new List<string>();
+
+            _output.LogInformation($"Creating {listsToCreate} folderless lists for stream test in space '{_testSpaceId}'.");
+            for (int i = 0; i < listsToCreate; i++)
+            {
+                var listName = $"Folderless List {i + 1} - {Guid.NewGuid()}";
+                var createReq = new CreateListRequest(Name: listName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null);
+                var createdList = await _listService.CreateFolderlessListAsync(_testSpaceId, createReq);
+                RegisterCreatedList(createdList.Id); // Ensure they are cleaned up by DisposeAsync
+                createdFolderlessListIds.Add(createdList.Id);
+                _output.LogInformation($"Created folderless list {i + 1}/{listsToCreate}, ID: {createdList.Id}");
+                await Task.Delay(250); // API niceness
+            }
+
+            // Also create one list inside the folder to ensure it's NOT returned by GetFolderlessListsAsyncEnumerableAsync
+            var listInFolderName = $"List_In_Folder_Not_Folderless_{Guid.NewGuid()}";
+            var listInFolder = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(Name: listInFolderName, Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null));
+            RegisterCreatedList(listInFolder.Id);
+            _output.LogInformation($"Created list '{listInFolderName}' (ID: {listInFolder.Id}) inside folder '{_testFolderId}' for negative test.");
+
+
+            var retrievedLists = new List<ClickUpList>();
+            int count = 0;
+            _output.LogInformation($"Starting to stream folderless lists for space '{_testSpaceId}'.");
+
+            await foreach (var list in _listService.GetFolderlessListsAsyncEnumerableAsync(_testSpaceId))
+            {
+                count++;
+                retrievedLists.Add(list);
+                _output.LogInformation($"Streamed folderless list {count}: ID {list.Id}, Name: '{list.Name}'...");
+                Assert.Null(list.Folder?.Id); // Verify it is indeed folderless
+                Assert.Equal(_testSpaceId, list.Space?.Id); // Verify it belongs to the correct space
+            }
+
+            _output.LogInformation($"Finished streaming folderless lists. Total lists received: {count}");
+
+            // The GetFolderlessLists API endpoint itself is not paginated by `page` or `start_id`.
+            // So, the IAsyncEnumerable wrapper will likely retrieve all in one go.
+            // The test primarily verifies that it correctly calls the underlying GetFolderlessListsAsync and yields results.
+            Assert.Equal(listsToCreate, count);
+            Assert.Equal(listsToCreate, retrievedLists.Count);
+
+            foreach (var createdId in createdFolderlessListIds)
+            {
+                Assert.Contains(retrievedLists, rl => rl.Id == createdId);
+            }
+            _output.LogInformation($"All {listsToCreate} created folderless lists were found in the streamed results from space '{_testSpaceId}'.");
+
+            // Ensure the list created inside the folder was NOT returned
+            Assert.DoesNotContain(retrievedLists, rl => rl.Id == listInFolder.Id);
+            _output.LogInformation($"List '{listInFolderName}' (ID: {listInFolder.Id}) which is inside a folder was correctly NOT found in folderless stream.");
         }
     }
 }

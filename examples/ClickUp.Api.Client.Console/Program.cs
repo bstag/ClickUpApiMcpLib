@@ -176,14 +176,14 @@ public class Program
             {
                 Log.Information("\n--- Starting Comment Examples for Task ID: {TaskId} ---", taskIdForCommentOps);
 
-                var createCommentRequest = new CreateCommentRequest // Changed from CreateTaskCommentRequest
-                {
-                    CommentText = "Hello from the SDK! This is a test comment.",
-                    Assignee = authorizedUser.Id,
-                    NotifyAll = false
-                };
+                var createTaskCommentRequest = new CreateTaskCommentRequest( // Changed to CreateTaskCommentRequest
+                    CommentText: "Hello from the SDK! This is a test comment.",
+                    Assignee: authorizedUser.Id,
+                    NotifyAll: false,
+                    GroupAssignee: null // Added missing GroupAssignee from CreateTaskCommentRequest
+                );
 
-                CreateCommentResponse? createCommentResponse = await commentService.CreateTaskCommentAsync(taskIdForCommentOps, createCommentRequest);
+                CreateCommentResponse? createCommentResponse = await commentService.CreateTaskCommentAsync(taskIdForCommentOps, createTaskCommentRequest);
                 if (createCommentResponse != null && !string.IsNullOrEmpty(createCommentResponse.Id))
                 {
                     Log.Information("[COMMENTS] Successfully created comment. ID: {CommentId}", createCommentResponse.Id);

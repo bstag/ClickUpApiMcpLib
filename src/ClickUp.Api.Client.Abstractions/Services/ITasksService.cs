@@ -29,33 +29,13 @@ namespace ClickUp.Api.Client.Abstractions.Services
     public interface ITasksService
     {
         /// <summary>
-        /// Retrieves a paginated list of Tasks within a specific List, with various filtering and sorting options.
+        /// Retrieves a paginated list of Tasks within a specific List, with various filtering and sorting options provided by the <paramref name="requestModel"/>.
         /// </summary>
         /// <param name="listId">The unique identifier of the List from which to retrieve Tasks.</param>
-        /// <param name="archived">Optional. If set to <c>true</c>, includes archived Tasks in the results. Defaults to <c>false</c>.</param>
-        /// <param name="includeMarkdownDescription">Optional. If set to <c>true</c>, returns Task descriptions in Markdown format. Defaults to <c>false</c>.</param>
-        /// <param name="page">Optional. The page number to fetch for pagination (0-indexed).</param>
-        /// <param name="orderBy">Optional. The field by which to order the Tasks (e.g., "created", "updated", "due_date").</param>
-        /// <param name="reverse">Optional. If set to <c>true</c>, reverses the sort order. Defaults to <c>false</c>.</param>
-        /// <param name="subtasks">Optional. If set to <c>true</c>, includes subtasks in the results. Defaults to <c>false</c>.</param>
-        /// <param name="statuses">Optional. An enumerable of status names or IDs to filter Tasks by.</param>
-        /// <param name="includeClosed">Optional. If set to <c>true</c>, includes closed Tasks in the results. Defaults to <c>false</c>.</param>
-        /// <param name="assignees">Optional. An enumerable of user IDs to filter Tasks by assignees.</param>
-        /// <param name="watchers">Optional. An enumerable of user IDs to filter Tasks by watchers.</param>
-        /// <param name="tags">Optional. An enumerable of tag names to filter Tasks by.</param>
-        /// <param name="dueDateGreaterThan">Optional. Filters for Tasks with a due date after this Unix timestamp (in milliseconds).</param>
-        /// <param name="dueDateLessThan">Optional. Filters for Tasks with a due date before this Unix timestamp (in milliseconds).</param>
-        /// <param name="dateCreatedGreaterThan">Optional. Filters for Tasks created after this Unix timestamp (in milliseconds).</param>
-        /// <param name="dateCreatedLessThan">Optional. Filters for Tasks created before this Unix timestamp (in milliseconds).</param>
-        /// <param name="dateUpdatedGreaterThan">Optional. Filters for Tasks updated after this Unix timestamp (in milliseconds).</param>
-        /// <param name="dateUpdatedLessThan">Optional. Filters for Tasks updated before this Unix timestamp (in milliseconds).</param>
-        /// <param name="dateDoneGreaterThan">Optional. Filters for Tasks completed after this Unix timestamp (in milliseconds).</param>
-        /// <param name="dateDoneLessThan">Optional. Filters for Tasks completed before this Unix timestamp (in milliseconds).</param>
-        /// <param name="customFields">Optional. A JSON string representing an array of custom field filters.</param>
-        /// <param name="customItems">Optional. An enumerable of custom item type IDs to filter Tasks by.</param>
+        /// <param name="requestModel">An object containing various filtering and sorting options such as archived status, pagination, ordering, subtasks, statuses, assignees, tags, due dates, creation dates, update dates, completion dates, custom fields, and custom items.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetTasksResponse"/> object with the list of Tasks and pagination details.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null or empty.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> or <paramref name="requestModel"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this List.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>

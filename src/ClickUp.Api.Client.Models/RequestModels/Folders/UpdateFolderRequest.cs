@@ -8,5 +8,8 @@ namespace ClickUp.Api.Client.Models.RequestModels.Folders;
 public record class UpdateFolderRequest
 (
     [property: JsonPropertyName("name")]
-    string Name
+    string Name,
+
+    [property: JsonPropertyName("archived")]
+    bool? Archived = null // Added for archiving functionality
 );
