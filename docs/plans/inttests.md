@@ -22,7 +22,7 @@ All tests should be implemented to support both `Record` and `Playback` modes.
 | Folders                   | `IFoldersService`         | To Do         |                                                                       |
 | Lists                     | `IListsService`           | To Do         |                                                                       |
 | **Task Management**       |                           |               |                                                                       |
-| Tasks                     | `ITasksService`           | Done          | Comprehensive tests exist, including CRUD, filters, pagination.       |
+| Tasks                     | `ITasksService`           | To Do         | Comprehensive tests exist, including CRUD, filters, pagination.       |
 | Task Checklists           | `ITaskChecklistsService`  | To Do         |                                                                       |
 | Task Relationships        | `ITaskRelationshipsService` | To Do         |                                                                       |
 | Templates                 | `ITemplatesService`       | To Do         | Task, List, Folder templates.                                         |
