@@ -1,0 +1,28 @@
+{
+  "lists": [
+    {
+      "id": "list_in_folder_1",
+      "name": "Playback List in Folder 1",
+      "orderindex": 0,
+      "content": null,
+      "status": null, "priority": null, "assignee": null, "task_count": "10",
+      "due_date": null, "due_date_time": false, "start_date": null, "start_date_time": false,
+      "folder": { "id": "playback_folder_lists_001", "name": "Playback Folder for Lists", "archived": false, "statuses": null },
+      "space": { "id": "playback_space_lists_001", "name": "Playback Space for Lists" },
+      "archived": false, "override_statuses": false, "statuses": [], "permission_level": "admin"
+    },
+    {
+      "id": "list_in_folder_2",
+      "name": "Playback List in Folder 2",
+      "orderindex": 1,
+      "content": null,
+      "status": null, "priority": null, "assignee": null, "task_count": "0",
+      "due_date": null, "due_date_time": false, "start_date": null, "start_date_time": false,
+      "folder": { "id": "playback_folder_lists_001", "name": "Playback Folder for Lists", "archived": false, "statuses": null },
+      "space": { "id": "playback_space_lists_001", "name": "Playback Space for Lists" },
+      "archived": false, "override_statuses": true, 
+      "statuses": [{ "status": "Custom Status", "orderindex": 0, "color": "#abcdef", "type": "custom" }], 
+      "permission_level": "admin"
+    }
+  ]
+}

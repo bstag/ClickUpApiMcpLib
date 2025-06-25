@@ -28,8 +28,15 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- <Using Include="Xunit" /> is generally not needed here when ImplicitUsings is true, global usings are managed by the SDK or in a Usings.cs file -->
+  <ItemGroup><!-- <Using Include="Xunit" /> is generally not needed here when ImplicitUsings is true, global usings are managed by the SDK or in a Usings.cs file -->
+  
+    <Folder Include="test-data\recorded-responses\FolderService\GetFolder\" />
+    <Folder Include="test-data\recorded-responses\FolderService\GetFolders\" />
+    <Folder Include="test-data\recorded-responses\ListService\GetFolderlessLists\" />
+    <Folder Include="test-data\recorded-responses\ListService\GetList\" />
+    <Folder Include="test-data\recorded-responses\ListService\GetListsInFolder\" />
+    <Folder Include="test-data\recorded-responses\SpaceService\GetSpace\" />
+    <Folder Include="test-data\recorded-responses\SpaceService\GetSpaces\" />
   </ItemGroup>
 
   <ItemGroup>

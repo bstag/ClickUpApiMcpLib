@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "id": "folder_active_123",
+      "name": "Active Playback Folder",
+      "archived": false,
+      "statuses": []
+    },
+    {
+      "id": "folder_archived_789",
+      "name": "Archived Playback Folder",
+      "archived": true,
+      "statuses": []
+    }
+  ]
+}

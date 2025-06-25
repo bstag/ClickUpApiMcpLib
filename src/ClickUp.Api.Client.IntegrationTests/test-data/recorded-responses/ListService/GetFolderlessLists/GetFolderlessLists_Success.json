@@ -1,0 +1,26 @@
+{
+  "lists": [
+    {
+      "id": "folderless_list_1",
+      "name": "Playback Folderless List 1",
+      "orderindex": 0,
+      "content": null,
+      "status": null, "priority": null, "assignee": null, "task_count": "2",
+      "due_date": null, "due_date_time": false, "start_date": null, "start_date_time": false,
+      "folder": null,
+      "space": { "id": "playback_space_lists_001", "name": "Playback Space for Lists" },
+      "archived": false, "override_statuses": false, "statuses": [], "permission_level": "read"
+    },
+    {
+      "id": "folderless_list_2",
+      "name": "Playback Folderless List 2",
+      "orderindex": 1,
+      "content": null,
+      "status": null, "priority": null, "assignee": null, "task_count": "3",
+      "due_date": null, "due_date_time": false, "start_date": null, "start_date_time": false,
+      "folder": null,
+      "space": { "id": "playback_space_lists_001", "name": "Playback Space for Lists" },
+      "archived": false, "override_statuses": false, "statuses": [], "permission_level": "read"
+    }
+  ]
+}

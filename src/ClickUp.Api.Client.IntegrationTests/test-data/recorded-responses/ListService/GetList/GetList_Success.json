@@ -1,0 +1,24 @@
+{
+  "id": "list_single_abc",
+  "name": "Single Playback List",
+  "orderindex": 0,
+  "content": "This is a test list for playback.",
+  "status": { "status": "Green", "color": "#00FF00", "hide_label": false },
+  "priority": { "priority": "High", "color": "#FF0000" },
+  "assignee": null,
+  "task_count": "5",
+  "due_date": "1678886400000", 
+  "due_date_time": false,
+  "start_date": null,
+  "start_date_time": false,
+  "folder": { "id": "playback_folder_lists_001", "name": "Playback Folder for Lists", "archived": false, "statuses": null },
+  "space": { "id": "playback_space_lists_001", "name": "Playback Space for Lists" },
+  "archived": false,
+  "override_statuses": true,
+  "statuses": [
+    { "status": "To Do", "orderindex": 0, "color": "#d3d3d3", "type": "open" },
+    { "status": "Complete", "orderindex": 1, "color": "#6bc950", "type": "closed" }
+  ],
+  "permission_level": "admin",
+  "inbound_address": "list+list_single_abc@tasks.clickup.com"
+}

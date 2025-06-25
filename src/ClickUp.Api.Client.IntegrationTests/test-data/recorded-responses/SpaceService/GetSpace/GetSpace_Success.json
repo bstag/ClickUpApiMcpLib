@@ -1,0 +1,50 @@
+{
+  "id": "space_single_456",
+  "name": "My Single Playback Space",
+  "private": false,
+  "statuses": [
+    {
+      "status": "open",
+      "type": "open",
+      "orderindex": 0,
+      "color": "#d3d3d3"
+    },
+    {
+      "status": "in progress",
+      "type": "custom",
+      "orderindex": 1,
+      "color": "#40e0d0"
+    },
+    {
+      "status": "complete",
+      "type": "closed",
+      "orderindex": 2,
+      "color": "#6bc950"
+    }
+  ],
+  "multiple_assignees": true,
+  "features": {
+    "due_dates": { "enabled": true, "start_date": false, "remap_due_dates": true, "remap_closed_due_date": false },
+    "time_tracking": { "enabled": false },
+    "tags": { "enabled": true },
+    "time_estimates": { "enabled": true },
+    "checklists": { "enabled": true },
+    "custom_fields": { "enabled": true },
+    "remap_dependencies": { "enabled": true },
+    "dependency_warning": { "enabled": false },
+    "portfolios": { "enabled": false }
+  },
+  "archived": false,
+  "members": [
+    {
+      "user": {
+        "id": 123,
+        "username": "Playback User",
+        "email": "playback@example.com",
+        "color": "#a1a1a1",
+        "profilePicture": null,
+        "initials": "PU"
+      }
+    }
+  ]
+}
