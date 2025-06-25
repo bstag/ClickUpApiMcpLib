@@ -18,9 +18,9 @@ All tests should be implemented to support both `Record` and `Playback` modes.
 | ------------------------- | ------------------------- | ------------- | --------------------------------------------------------------------- |
 | **Core Hierarchy**        |                           |               |                                                                       |
 | Workspaces                | `IWorkspacesService`      | To Do         |                                                                       |
-| Spaces                    | `ISpacesService`          | To Do         |                                                                       |
+| Spaces                    | `ISpacesService`          | Done          | Verified existing tests and recordings.                               |
 | Folders                   | `IFoldersService`         | To Do         |                                                                       |
-| Lists                     | `IListsService`           | To Do         |                                                                       |
+| Lists                     | `IListsService`           | In Progress   | Existing tests need recordings generated and playback logic updated.    |
 | **Task Management**       |                           |               |                                                                       |
 | Tasks                     | `ITasksService`           | To Do         | Comprehensive tests exist, including CRUD, filters, pagination.       |
 | Task Checklists           | `ITaskChecklistsService`  | To Do         |                                                                       |
