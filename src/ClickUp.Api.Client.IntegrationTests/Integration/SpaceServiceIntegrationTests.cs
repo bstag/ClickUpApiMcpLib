@@ -271,6 +271,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             string spaceIdForTest = "mocked-space-id-get"; // For Playback
             string spaceNameForTest = $"My Space To Get - {Guid.NewGuid()}"; // For Record
             string recordedCreateBodyHash_ForGetTest = "body1f17b88e"; // From logs, for the POST in this test's setup
+            string expectedSpaceName = string.Empty; // Declare here
 
             if (CurrentTestMode == TestMode.Playback)
             {
