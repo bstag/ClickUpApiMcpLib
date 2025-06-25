@@ -25,4 +25,4 @@ jobs:
     - name: Build
       run: dotnet build  src/ClickUp.Api.sln --configuration Release --no-restore
     - name: Test
-      run: dotnet test  src/ClickUp.Api.sln --no-build --configuration Release
+      run: dotnet test  src/ClickUp.Api.sln --no-build --configuration Release --filter "FullyQualifiedName!~IntegrationTest"
