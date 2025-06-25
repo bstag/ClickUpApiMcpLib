@@ -32,7 +32,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             _output = output;
             _spaceService = ServiceProvider.GetRequiredService<ISpacesService>();
-            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"];
+            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"]!;
 
             if (string.IsNullOrWhiteSpace(_testWorkspaceId))
             {

@@ -17,6 +17,7 @@ using System.Text.Json;
 using ClickUp.Api.Client.Models.ResponseModels.Lists;
 using ClickUp.Api.Client.Models.Entities.Lists;
 using ClickUp.Api.Client.Models.Entities.Folders; // Required for Folder.Hidden
+using ClickUp.Api.Client.Helpers; // For JsonSerializerOptionsHelper
 
 namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
@@ -45,7 +46,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _folderService = ServiceProvider.GetRequiredService<IFoldersService>();
             _spaceService = ServiceProvider.GetRequiredService<ISpacesService>();
             _tasksService = ServiceProvider.GetRequiredService<ITasksService>(); // Added
-            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"];
+            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"]!;
 
             if (string.IsNullOrWhiteSpace(_testWorkspaceId))
             {
@@ -532,7 +533,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             string folderId = _testFolderId;
             string templateId = PlaybackListTemplateId; // In Record mode, this needs to be a real template ID
             var listName = $"List from Template in Folder - {Guid.NewGuid()}";
-            var request = new CreateListFromTemplateRequest(listName);
+            var request = new CreateListFromTemplateRequest { Name = listName };
             string playbackListId = "playback_list_from_tpl_folder_001";
             string playbackBodyHash = "body_create_list_from_tpl_folder_success";
 
@@ -541,11 +542,11 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 Assert.NotNull(MockHttpHandler);
                 folderId = PlaybackFolderId;
                 listName = "Playback List from Template in Folder";
-                request = new CreateListFromTemplateRequest(listName);
+                request = new CreateListFromTemplateRequest { Name = listName };
 
                 var responseContent = await GetResponseJsonAsync("ListsService", "POSTCreateListFromTemplateInFolder", "Success", playbackBodyHash);
                 MockHttpHandler.When(HttpMethod.Post, $"https://api.clickup.com/api/v2/folder/{folderId}/listTemplate/{templateId}")
-                               .WithPartialContent(JsonSerializer.Serialize(request, _jsonSerializerOptions)) // Match body
+                               .WithPartialContent(JsonSerializer.Serialize(request, JsonSerializerOptionsHelper.Options)) // Match body
                                .Respond(HttpStatusCode.OK, "application/json", responseContent);
                 MockHttpHandler.When(HttpMethod.Delete, $"https://api.clickup.com/api/v2/list/{playbackListId}")
                                .Respond(HttpStatusCode.NoContent);
@@ -572,7 +573,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             string spaceId = _testSpaceId;
             string templateId = PlaybackListTemplateId; // In Record mode, this needs to be a real template ID
             var listName = $"List from Template in Space - {Guid.NewGuid()}";
-            var request = new CreateListFromTemplateRequest(listName);
+            var request = new CreateListFromTemplateRequest { Name = listName };
             string playbackListId = "playback_list_from_tpl_space_001";
             string playbackBodyHash = "body_create_list_from_tpl_space_success";
 
@@ -581,11 +582,11 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 Assert.NotNull(MockHttpHandler);
                 spaceId = PlaybackSpaceId;
                 listName = "Playback List from Template in Space";
-                request = new CreateListFromTemplateRequest(listName);
+                request = new CreateListFromTemplateRequest { Name = listName };
 
                 var responseContent = await GetResponseJsonAsync("ListsService", "POSTCreateListFromTemplateInSpace", "Success", playbackBodyHash);
                 MockHttpHandler.When(HttpMethod.Post, $"https://api.clickup.com/api/v2/space/{spaceId}/listTemplate/{templateId}")
-                               .WithPartialContent(JsonSerializer.Serialize(request, _jsonSerializerOptions)) // Match body
+                               .WithPartialContent(JsonSerializer.Serialize(request, JsonSerializerOptionsHelper.Options)) // Match body
                                .Respond(HttpStatusCode.OK, "application/json", responseContent);
                 MockHttpHandler.When(HttpMethod.Delete, $"https://api.clickup.com/api/v2/list/{playbackListId}")
                                .Respond(HttpStatusCode.NoContent);

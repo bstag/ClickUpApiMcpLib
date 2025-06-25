@@ -64,6 +64,14 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var method = request.Method.Method; // GET, POST, etc.
             var statusCode = (int)httpResponse.StatusCode;
 
+            if (uri == null)
+            {
+                // Handle cases where RequestUri is null, though this is rare for outgoing client requests.
+                // You might want to log this or generate a specific "UnknownUri" path.
+                Console.WriteLine($"[RecordingDelegatingHandler] RequestUri is null for method {method}. Using default path.");
+                return Path.Combine(_basePath, "UnknownService", $"{method}_UnknownUri", $"{(httpResponse.IsSuccessStatusCode ? "Success" : $"Error_{statusCode}")}.json");
+            }
+
             var pathSegments = uri.AbsolutePath.Trim('/').Split('/');
             string serviceName = "UnknownService";
             string derivedMethodNamePart = "UnknownOperation"; // This will be like "GetSpace", "CreateTask"
