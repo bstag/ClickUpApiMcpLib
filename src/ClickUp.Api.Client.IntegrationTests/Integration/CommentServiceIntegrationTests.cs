@@ -35,7 +35,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         private string _testFolderId = null!;
         private string _testListId = null!;
         private string _testTaskId = null!;
-        // private string _testChatViewId = "mock_chat_view_id"; // Placeholder for chat view tests
+#pragma warning disable CS0414 // Field is assigned but its value is never used in active code paths
+        private string _testChatViewId = "mock_chat_view_id_tests"; // Default mock ID, used in skipped tests
+#pragma warning restore CS0414
 
         private List<string> _createdCommentIds = new List<string>(); // Comment IDs are strings in API responses
         private TestHierarchyContext _hierarchyContext = null!;
@@ -50,7 +52,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _spaceService = ServiceProvider.GetRequiredService<ISpacesService>();
             // _viewsService = ServiceProvider.GetRequiredService<IViewsService>();
 
-            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"];
+            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"]!;
 
             if (string.IsNullOrWhiteSpace(_testWorkspaceId) && CurrentTestMode != TestMode.Playback)
             {
@@ -580,7 +582,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         // In Playback, they can be made to work with mock_chat_view_id and recorded JSONs.
 
         private const string SkipChatViewTestsReason = "Chat View ID (_testChatViewId) not dynamically provisioned. Run manually if a view ID is available or after recording.";
-        private string _testChatViewId = "mock_chat_view_id_tests"; // Default mock ID
+        // private string _testChatViewId = "mock_chat_view_id_tests"; // Default mock ID // This is the duplicate
 
         [Fact(Skip = SkipChatViewTestsReason)]
         public async Task CreateChatViewCommentAsync_WithValidData_ShouldCreateComment()

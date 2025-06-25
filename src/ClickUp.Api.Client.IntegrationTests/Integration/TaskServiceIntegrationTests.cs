@@ -17,6 +17,8 @@ using System.Net.Http; // For HttpMethod
 using System.Web; // For HttpUtility
 using RichardSzalay.MockHttp; // For MockHttpMessageHandler specific methods like When
 using ClickUp.Api.Client.Models.Common; // For Status
+using ClickUp.Api.Client.Models.ResponseModels.Tasks; // For TaskTimeInStatusResponse and GetBulkTasksTimeInStatusResponse
+using ClickUp.Api.Client.Models.Entities.Users; // For User
 
 namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
@@ -127,6 +129,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             else // Record or Passthrough
             {
                 var user = await _authService.GetAuthorizedUserAsync();
+                Assert.NotNull(user); // Ensure user is not null before accessing Id
                 _currentUserId = user.Id.ToString();
                 _output.LogInformation($"Current user ID: {_currentUserId}");
 
@@ -448,7 +451,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             Assert.NotNull(response); Assert.NotNull(response.Tasks);
             Assert.Contains(response.Tasks, t => t.Id == taskAssigned.Id);
-            Assert.All(response.Tasks, task => Assert.Contains(task.Assignees, a => a.Id == userIdIntToTest)); // Compare int ID with int ID
+            Assert.All(response.Tasks, task => Assert.Contains(task.Assignees ?? new List<User>(), a => a.Id == userIdIntToTest)); // Compare int ID with int ID
              // Verifying taskUnassigned is NOT present is tricky due to auto-assignment behavior. The mock JSON should only return assigned tasks.
             if (CurrentTestMode == TestMode.Playback) Assert.DoesNotContain(response.Tasks, t => t.Id == taskUnassigned.Id);
         }
@@ -530,7 +533,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             var getTasksRequest = new GetTasksRequest { Tags = new List<string> { tagName } };
             var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
             Assert.NotNull(response?.Tasks);
-            Assert.Contains(response.Tasks, t => t.Id == taskWithTag.Id && t.Tags.Any(tag => tag.Name == tagName));
+            Assert.Contains(response.Tasks, t => t.Id == taskWithTag.Id && t.Tags?.Any(tag => tag.Name == tagName) == true);
             Assert.DoesNotContain(response.Tasks, t => t.Id == taskWithoutTag.Id);
         }
 
@@ -729,6 +732,12 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 // {
                 //    pointInTimeBeforeSecondTask = dateCreatedMs - 1000;
                 // }
+                else // If dateCreatedActual is null and not in playback, use a fallback or log
+                {
+                    _output.LogWarning($"[Record/Passthrough] taskLater.DateCreated was not a DateTimeOffset or was null. Using current time for pointInTimeBeforeSecondTask calculation basis.");
+                    // Fallback, though this might make the assertion less meaningful if taskLater was just created
+                    pointInTimeBeforeSecondTask = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                }
             }
 
             var getTasksRequestLT = new GetTasksRequest { DateCreatedLessThan = pointInTimeBeforeSecondTask };
@@ -821,7 +830,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Assert.NotNull(createdTask);
             Assert.False(string.IsNullOrWhiteSpace(createdTask.Id));
             Assert.Equal(taskName, createdTask.Name); // The API should use the name from the request
-            Assert.Equal(_testListId, createdTask.List.Id);
+            Assert.Equal(_testListId, createdTask.List?.Id);
 
             if (CurrentTestMode == TestMode.Playback)
             {
@@ -846,7 +855,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 MockHttpHandler.When(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/task")
                                .Respond("application/json", await MockedFileContentAsync(createTaskMockPath));
 
-                testTask = new CuTask { Id = playbackCreatedTaskId, Name = taskName, List = new Models.ResponseModels.Common.MinimalClickUpList { Id = _testListId} }; // Simulate created task for Playback
+                testTask = new CuTask(Id: playbackCreatedTaskId, CustomId: null, CustomItemId: null, Name: taskName, TextContent: null, Description: null, MarkdownDescription: null, Status: null, OrderIndex: null, DateCreated: null, DateUpdated: null, DateClosed: null, Archived: null, Creator: null, Assignees: null, GroupAssignees: null, Watchers: null, Checklists: null, Tags: null, Parent: null, Priority: null, DueDate: null, StartDate: null, Points: null, TimeEstimate: null, TimeSpent: null, CustomFields: null, Dependencies: null, LinkedTasks: null, TeamId: null, Url: null, Sharing: null, PermissionLevel: null, List: new TaskListReference(Id: _testListId, Name: null, Access: null), Folder: null, Space: null, Project: null); // Simulate created task for Playback
 
                 // Mock the GetTaskTimeInStatusAsync call
                 var timeInStatusMockPath = "TaskService/GetTaskTimeInStatusAsync_WithExistingTask_ShouldReturnTimeInStatus/TimeInStatus_Success.json";
@@ -901,8 +910,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 MockHttpHandler.Expect(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/task")
                                .Respond("application/json", await MockedFileContentAsync("TaskService/GetBulkTasksTimeInStatusAsync_WithExistingTasks_ShouldReturnTimeInStatus/CreateTask2_Success.json"));
 
-                testTask1 = new CuTask { Id = playbackTask1Id }; // Simplified for playback setup
-                testTask2 = new CuTask { Id = playbackTask2Id };
+                testTask1 = new CuTask(Id: playbackTask1Id, CustomId: null, CustomItemId: null, Name: taskName1, TextContent: null, Description: null, MarkdownDescription: null, Status: null, OrderIndex: null, DateCreated: null, DateUpdated: null, DateClosed: null, Archived: null, Creator: null, Assignees: null, GroupAssignees: null, Watchers: null, Checklists: null, Tags: null, Parent: null, Priority: null, DueDate: null, StartDate: null, Points: null, TimeEstimate: null, TimeSpent: null, CustomFields: null, Dependencies: null, LinkedTasks: null, TeamId: null, Url: null, Sharing: null, PermissionLevel: null, List: new TaskListReference(Id: _testListId, Name: null, Access: null), Folder: null, Space: null, Project: null); // Simplified for playback setup
+                testTask2 = new CuTask(Id: playbackTask2Id, CustomId: null, CustomItemId: null, Name: taskName2, TextContent: null, Description: null, MarkdownDescription: null, Status: null, OrderIndex: null, DateCreated: null, DateUpdated: null, DateClosed: null, Archived: null, Creator: null, Assignees: null, GroupAssignees: null, Watchers: null, Checklists: null, Tags: null, Parent: null, Priority: null, DueDate: null, StartDate: null, Points: null, TimeEstimate: null, TimeSpent: null, CustomFields: null, Dependencies: null, LinkedTasks: null, TeamId: null, Url: null, Sharing: null, PermissionLevel: null, List: new TaskListReference(Id: _testListId, Name: null, Access: null), Folder: null, Space: null, Project: null);
                 taskIdsForTest.Add(playbackTask1Id);
                 taskIdsForTest.Add(playbackTask2Id);
 
@@ -929,13 +938,13 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             GetBulkTasksTimeInStatusResponse bulkTimeResponse = await _taskService.GetBulkTasksTimeInStatusAsync(taskIdsForTest);
 
             Assert.NotNull(bulkTimeResponse);
-            Assert.NotNull(bulkTimeResponse.TasksTimeInStatus);
-            Assert.Equal(taskIdsForTest.Count, bulkTimeResponse.TasksTimeInStatus.Count);
+            // Assert.NotNull(bulkTimeResponse.TasksTimeInStatus); // bulkTimeResponse *is* the dictionary
+            Assert.Equal(taskIdsForTest.Count, bulkTimeResponse.Count);
 
             foreach (var taskId in taskIdsForTest)
             {
-                Assert.True(bulkTimeResponse.TasksTimeInStatus.ContainsKey(taskId));
-                var timeInStatusData = bulkTimeResponse.TasksTimeInStatus[taskId];
+                Assert.True(bulkTimeResponse.ContainsKey(taskId));
+                var timeInStatusData = bulkTimeResponse[taskId];
                 Assert.NotNull(timeInStatusData.CurrentStatus);
                 Assert.True(timeInStatusData.StatusHistory.Any());
                 if (CurrentTestMode == TestMode.Playback)
@@ -965,8 +974,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 MockHttpHandler.Expect(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/task") // Source Task
                                .Respond("application/json", await MockedFileContentAsync("TaskService/MergeTasksAsync_WithValidTasks_ShouldMergeAndReturnTargetTask/CreateSourceTask_Success.json"));
 
-                targetTask = new CuTask { Id = playbackTargetTaskId, Name = targetTaskName, List = new Models.ResponseModels.Common.MinimalClickUpList{Id = _testListId} };
-                sourceTask = new CuTask { Id = playbackSourceTaskId, Name = sourceTaskName, List = new Models.ResponseModels.Common.MinimalClickUpList{Id = _testListId} };
+                targetTask = new CuTask(Id: playbackTargetTaskId, CustomId: null, CustomItemId: null, Name: targetTaskName, TextContent: null, Description: null, MarkdownDescription: null, Status: null, OrderIndex: null, DateCreated: null, DateUpdated: null, DateClosed: null, Archived: null, Creator: null, Assignees: null, GroupAssignees: null, Watchers: null, Checklists: null, Tags: null, Parent: null, Priority: null, DueDate: null, StartDate: null, Points: null, TimeEstimate: null, TimeSpent: null, CustomFields: null, Dependencies: null, LinkedTasks: null, TeamId: null, Url: null, Sharing: null, PermissionLevel: null, List: new TaskListReference(Id: _testListId, Name: null, Access: null), Folder: null, Space: null, Project: null);
+                sourceTask = new CuTask(Id: playbackSourceTaskId, CustomId: null, CustomItemId: null, Name: sourceTaskName, TextContent: null, Description: null, MarkdownDescription: null, Status: null, OrderIndex: null, DateCreated: null, DateUpdated: null, DateClosed: null, Archived: null, Creator: null, Assignees: null, GroupAssignees: null, Watchers: null, Checklists: null, Tags: null, Parent: null, Priority: null, DueDate: null, StartDate: null, Points: null, TimeEstimate: null, TimeSpent: null, CustomFields: null, Dependencies: null, LinkedTasks: null, TeamId: null, Url: null, Sharing: null, PermissionLevel: null, List: new TaskListReference(Id: _testListId, Name: null, Access: null), Folder: null, Space: null, Project: null);
 
                 // Mock the MergeTasksAsync call (POST to /task/{source_task_id}/merge)
                 var mergeResponseMockPath = "TaskService/MergeTasksAsync_WithValidTasks_ShouldMergeAndReturnTargetTask/Merge_Success.json";
@@ -989,7 +998,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 _output.LogInformation($"[Record/Passthrough] Created target task '{targetTask.Id}' and source task '{sourceTask.Id}' for MergeTasksAsync test.");
             }
 
-            var mergeRequest = new MergeTasksRequest(new List<string> { sourceTask.Id });
+            var mergeRequest = new MergeTasksRequest { SourceTaskIds = new List<string> { sourceTask.Id } };
             CuTask updatedTargetTask = await _taskService.MergeTasksAsync(targetTask.Id, mergeRequest);
 
             Assert.NotNull(updatedTargetTask);

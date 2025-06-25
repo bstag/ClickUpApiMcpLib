@@ -49,7 +49,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             // For task creation, we need a List.
             // Option 1: Use a pre-existing List ID from config.
-            _testListId = Configuration["ClickUpApi:TestListIdForRelationships"];
+            _testListId = Configuration["ClickUpApi:TestListIdForRelationships"]!;
             if (string.IsNullOrWhiteSpace(_testListId))
             {
                 _output.LogWarning("ClickUpApi:TestListIdForRelationships is not configured. Tests requiring task creation will fail in Record/Passthrough mode.");

@@ -36,7 +36,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _folderService = ServiceProvider.GetRequiredService<IFoldersService>();
             _spaceService = ServiceProvider.GetRequiredService<ISpacesService>();
 
-            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"];
+            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"]!;
 
             if (string.IsNullOrWhiteSpace(_testWorkspaceId))
             {
@@ -165,9 +165,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 Assert.True(File.Exists(getNonArchivedPath), $"Playback file not found: {getNonArchivedPath}");
                 var getNonArchivedContent = await File.ReadAllTextAsync(getNonArchivedPath);
                 MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/space/{spaceIdForMock}/folder?archived=false")
-                               .Respond("application/json", getNonArchivedContent);
+                               .Respond("application/json", getNonArchivedContent ?? string.Empty);
                 MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/space/{spaceIdForMock}/folder?archived=False")
-                               .Respond("application/json", getNonArchivedContent);
+                               .Respond("application/json", getNonArchivedContent ?? string.Empty);
 
                 // Mock for GetFoldersAsync(archived: true)
                 var getArchivedPath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "GetFolders", "GetFolders_Archived_Success.json");
@@ -175,9 +175,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 Assert.True(File.Exists(getArchivedPath), $"Playback file not found: {getArchivedPath}");
                 var getArchivedContent = await File.ReadAllTextAsync(getArchivedPath);
                 MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/space/{spaceIdForMock}/folder?archived=true")
-                               .Respond("application/json", getArchivedContent);
+                               .Respond("application/json", getArchivedContent ?? string.Empty);
                 MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/space/{spaceIdForMock}/folder?archived=True")
-                               .Respond("application/json", getArchivedContent);
+                               .Respond("application/json", getArchivedContent ?? string.Empty);
 
                 // Mock for GetFoldersAsync(archived: null) - parameter omitted
                 var getAllPath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "GetFolders", "GetFolders_All_Success.json");
@@ -185,7 +185,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 Assert.True(File.Exists(getAllPath), $"Playback file not found: {getAllPath}");
                 var getAllContent = await File.ReadAllTextAsync(getAllPath);
                 MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/space/{spaceIdForMock}/folder")
-                               .Respond("application/json", getAllContent);
+                               .Respond("application/json", getAllContent ?? string.Empty);
 
                 _output.LogInformation("[Playback] Skipped live creation/archiving of folders.");
             }

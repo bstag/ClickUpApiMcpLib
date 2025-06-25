@@ -442,9 +442,9 @@ public async Task CreateChecklistAsync_Playback_ShouldReturnMockedChecklist()
             response.Should().NotBeNull();
             response.Checklist.Should().NotBeNull();
             response.Checklist.Id.Should().Be(parentChecklist.Id); // Ensure it's the same parent checklist
-            response.Checklist.Items.Should().NotBeNullOrEmpty();
+            response.Checklist.Items?.Should().NotBeNullOrEmpty(); // Added ?.
 
-            createdItem = response.Checklist.Items.FirstOrDefault(item => item.Name == checklistItemName);
+            createdItem = response.Checklist.Items?.FirstOrDefault(item => item.Name == checklistItemName); // Added ?.
             createdItem.Should().NotBeNull($"Expected to find checklist item with name '{checklistItemName}'");
             createdItem!.Id.Should().NotBeNullOrEmpty();
 
@@ -498,7 +498,7 @@ public async Task CreateChecklistAsync_Playback_ShouldReturnMockedChecklist()
 
                 var createItemRequest = new CreateChecklistItemRequest(Name: initialItemName, Assignee: null);
                 var createItemResponse = await _taskChecklistsService.CreateChecklistItemAsync(parentChecklist.Id, createItemRequest);
-                originalItem = createItemResponse.Checklist.Items.FirstOrDefault(i => i.Name == initialItemName);
+                originalItem = createItemResponse.Checklist.Items?.FirstOrDefault(i => i.Name == initialItemName); // Added ?.
                 Assert.NotNull(originalItem);
                 _outputHelper.WriteLine($"[{nameof(EditChecklistItemAsync_ValidData_ShouldUpdateItem)}] Created checklist item ID: {originalItem.Id}");
             }
@@ -545,9 +545,9 @@ public async Task CreateChecklistAsync_Playback_ShouldReturnMockedChecklist()
             response.Should().NotBeNull();
             response.Checklist.Should().NotBeNull();
             response.Checklist.Id.Should().Be(parentChecklist.Id);
-            response.Checklist.Items.Should().NotBeNullOrEmpty();
+            response.Checklist.Items?.Should().NotBeNullOrEmpty(); // Added ?.
 
-            var updatedItem = response.Checklist.Items.FirstOrDefault(i => i.Id == originalItem.Id);
+            var updatedItem = response.Checklist.Items?.FirstOrDefault(i => i.Id == originalItem.Id); // Added ?.
             updatedItem.Should().NotBeNull();
             updatedItem!.Name.Should().Be(updatedItemName);
             updatedItem.Resolved.Should().Be(true);
@@ -594,7 +594,7 @@ public async Task CreateChecklistAsync_Playback_ShouldReturnMockedChecklist()
                 var itemName = $"Item to Delete {Guid.NewGuid()}";
                 var createItemRequest = new CreateChecklistItemRequest(Name: itemName, Assignee: null);
                 var createItemResponse = await _taskChecklistsService.CreateChecklistItemAsync(parentChecklist.Id, createItemRequest);
-                itemToDelete = createItemResponse.Checklist.Items.FirstOrDefault(i => i.Name == itemName);
+                itemToDelete = createItemResponse.Checklist.Items?.FirstOrDefault(i => i.Name == itemName); // Added ?.
                 Assert.NotNull(itemToDelete);
                 _outputHelper.WriteLine($"[{nameof(DeleteChecklistItemAsync_ValidId_ShouldDeleteItem)}] Created checklist item ID for deletion: {itemToDelete.Id}");
             }

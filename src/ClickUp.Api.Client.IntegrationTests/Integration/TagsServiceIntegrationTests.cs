@@ -9,10 +9,11 @@ using System.Web; // For HttpUtility if encoding tag names
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.IntegrationTests.TestInfrastructure;
 using ClickUp.Api.Client.Models.Entities.Tags;
-using ClickUp.Api.Client.Models.RequestModels.Spaces; // For ModifyTagRequest if it's there, else Tags namespace
 using ClickUp.Api.Client.Models.RequestModels.Tags; // For ModifyTagRequest if it's there
 using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
+// Explicit alias for the correct ModifyTagRequest
+using SpacesModifyTagRequest = ClickUp.Api.Client.Models.RequestModels.Spaces.ModifyTagRequest;
 using Xunit;
 using Xunit.Abstractions;
 using ClickUp.Api.Client.Models.RequestModels.Tasks; // For CreateTaskRequest if needed
@@ -54,7 +55,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _listsService = ServiceProvider.GetRequiredService<IListsService>();
             _foldersService = ServiceProvider.GetRequiredService<IFoldersService>();
 
-            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"];
+            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"]!;
 
             if (string.IsNullOrWhiteSpace(_testWorkspaceId) && CurrentTestMode != TestMode.Playback)
             {
@@ -147,8 +148,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             else
             {
                 // Ensure some tags exist for Record/Passthrough
-                await _tagsService.CreateSpaceTagAsync(_testSpaceId, new ModifyTagRequest { Name = $"LiveTag1_{Guid.NewGuid().ToString().Substring(0,4)}", TagFg = "#000000", TagBg = "#FFFFFF" });
-                await _tagsService.CreateSpaceTagAsync(_testSpaceId, new ModifyTagRequest { Name = $"LiveTag2_{Guid.NewGuid().ToString().Substring(0,4)}", TagFg = "#111111", TagBg = "#EEEEEE" });
+                await _tagsService.CreateSpaceTagAsync(_testSpaceId, new SpacesModifyTagRequest { Name = $"LiveTag1_{Guid.NewGuid().ToString().Substring(0,4)}", TagForegroundColor = "#000000", TagBackgroundColor = "#FFFFFF" });
+                await _tagsService.CreateSpaceTagAsync(_testSpaceId, new SpacesModifyTagRequest { Name = $"LiveTag2_{Guid.NewGuid().ToString().Substring(0,4)}", TagForegroundColor = "#111111", TagBackgroundColor = "#EEEEEE" });
                 await Task.Delay(500); // Give API a moment
             }
 
@@ -176,7 +177,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             Assert.False(string.IsNullOrWhiteSpace(_testSpaceId), "TestSpaceId must be available.");
             var tagName = $"NewTag_{Guid.NewGuid().ToString().Substring(0, 6)}";
-            var tagRequest = new ModifyTagRequest { Name = tagName, TagFg = "#FF0000", TagBg = "#00FF00" };
+            var tagRequest = new SpacesModifyTagRequest { Name = tagName, TagForegroundColor = "#FF0000", TagBackgroundColor = "#00FF00" };
 
             if (CurrentTestMode == TestMode.Playback)
             {
@@ -218,8 +219,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             if (CurrentTestMode != TestMode.Playback)
             {
-                Assert.Equal(tagRequest.TagFg, createdTag.TagFg);
-                Assert.Equal(tagRequest.TagBg, createdTag.TagBg);
+                Assert.Equal(tagRequest.TagForegroundColor, createdTag.TagFg);
+                Assert.Equal(tagRequest.TagBackgroundColor, createdTag.TagBg);
                 _output.LogInformation($"Successfully created and verified tag: {createdTag.Name}");
             }
         }
@@ -230,16 +231,16 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Assert.False(string.IsNullOrWhiteSpace(_testSpaceId), "TestSpaceId must be available.");
             var originalTagName = $"OriginalTag_{Guid.NewGuid().ToString().Substring(0, 6)}";
             var updatedTagName = $"UpdatedTag_{Guid.NewGuid().ToString().Substring(0, 6)}";
-            var originalTagRequest = new ModifyTagRequest { Name = originalTagName, TagFg = "#111111", TagBg = "#222222" };
-            var updatedTagRequest = new ModifyTagRequest { Name = updatedTagName, TagFg = "#AAAAAA", TagBg = "#BBBBBB" };
-            string tagIdToEdit = ""; // Not directly used by EditSpaceTagAsync, it uses name
+            var originalTagRequest = new SpacesModifyTagRequest { Name = originalTagName, TagForegroundColor = "#111111", TagBackgroundColor = "#222222" };
+            var updatedTagRequest = new SpacesModifyTagRequest { Name = updatedTagName, TagForegroundColor = "#AAAAAA", TagBackgroundColor = "#BBBBBB" };
+            // string tagIdToEdit = ""; // Not directly used by EditSpaceTagAsync, it uses name
 
             if (CurrentTestMode == TestMode.Playback)
             {
                 Assert.NotNull(MockHttpHandler);
                 originalTagName = PlaybackTagName1; // Assume this tag exists from GetSpaceTagsAsync mock or a Create mock
                 updatedTagName = PlaybackTagName2; // The new name it will take
-                updatedTagRequest = new ModifyTagRequest { Name = updatedTagName, TagFg = "#AAAAAA", TagBg = "#BBBBBB" };
+                updatedTagRequest = new SpacesModifyTagRequest { Name = updatedTagName, TagForegroundColor = "#AAAAAA", TagBackgroundColor = "#BBBBBB" };
 
 
                 // Mock for EditSpaceTagAsync (PUT)
@@ -268,16 +269,16 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Tag editedTag = await _tagsService.EditSpaceTagAsync(_testSpaceId, originalTagName, updatedTagRequest);
             Assert.NotNull(editedTag);
             Assert.Equal(updatedTagName, editedTag.Name);
-            Assert.Equal(updatedTagRequest.TagFg, editedTag.TagFg);
-            Assert.Equal(updatedTagRequest.TagBg, editedTag.TagBg);
+            Assert.Equal(updatedTagRequest.TagForegroundColor, editedTag.TagFg);
+            Assert.Equal(updatedTagRequest.TagBackgroundColor, editedTag.TagBg);
 
             // 3. Verify by getting all tags
             var tags = await _tagsService.GetSpaceTagsAsync(_testSpaceId);
             Assert.NotNull(tags);
             var verifiedTag = tags.FirstOrDefault(t => t.Name == updatedTagName);
             Assert.NotNull(verifiedTag);
-            Assert.Equal(updatedTagRequest.TagFg, verifiedTag.TagFg);
-            Assert.Equal(updatedTagRequest.TagBg, verifiedTag.TagBg);
+            Assert.Equal(updatedTagRequest.TagForegroundColor, verifiedTag.TagFg);
+            Assert.Equal(updatedTagRequest.TagBackgroundColor, verifiedTag.TagBg);
             Assert.DoesNotContain(tags, t => t.Name == originalTagName); // Original name should be gone
 
             _output.LogInformation($"Successfully edited tag '{originalTagName}' to '{updatedTagName}'.");
@@ -288,7 +289,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             Assert.False(string.IsNullOrWhiteSpace(_testSpaceId), "TestSpaceId must be available.");
             var tagNameToDelete = $"TagToDelete_{Guid.NewGuid().ToString().Substring(0, 6)}";
-            var tagRequest = new ModifyTagRequest { Name = tagNameToDelete, TagFg = "#DELETE", TagBg = "#ME" };
+            var tagRequest = new SpacesModifyTagRequest { Name = tagNameToDelete, TagForegroundColor = "#DELETE", TagBackgroundColor = "#ME" };
 
             if (CurrentTestMode == TestMode.Playback)
             {
@@ -360,7 +361,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 var existingTags = await _tagsService.GetSpaceTagsAsync(_testSpaceId);
                 if (!existingTags.Any(t => t.Name == tagName))
                 {
-                    await _tagsService.CreateSpaceTagAsync(_testSpaceId, new ModifyTagRequest { Name = tagName, TagFg = "#TAGADD", TagBg = "#TASK" });
+                    await _tagsService.CreateSpaceTagAsync(_testSpaceId, new SpacesModifyTagRequest { Name = tagName, TagForegroundColor = "#TAGADD", TagBackgroundColor = "#TASK" });
                     _output.LogInformation($"[Record] Created tag '{tagName}' for AddTagToTask test.");
                     await Task.Delay(500);
                 }
@@ -412,7 +413,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 var existingTags = await _tagsService.GetSpaceTagsAsync(_testSpaceId);
                 if (!existingTags.Any(t => t.Name == tagName))
                 {
-                    await _tagsService.CreateSpaceTagAsync(_testSpaceId, new ModifyTagRequest { Name = tagName, TagFg = "#TAGREM", TagBg = "#TASK" });
+                    await _tagsService.CreateSpaceTagAsync(_testSpaceId, new SpacesModifyTagRequest { Name = tagName, TagForegroundColor = "#TAGREM", TagBackgroundColor = "#TASK" });
                      _output.LogInformation($"[Record] Created tag '{tagName}' for RemoveTagFromTask test.");
                     await Task.Delay(500);
                 }

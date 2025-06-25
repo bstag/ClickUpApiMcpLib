@@ -28,7 +28,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _usersService = ServiceProvider.GetRequiredService<IUsersService>();
             _authorizationService = ServiceProvider.GetRequiredService<IAuthorizationService>(); // For fetching current user
 
-            _workspaceId = ClientOptions.TestWorkspaceId; // From base class, loaded from config
+            _workspaceId = ClientOptions.TestWorkspaceId!; // From base class, loaded from config
 
             if (CurrentTestMode != TestMode.Playback && string.IsNullOrWhiteSpace(_workspaceId))
             {

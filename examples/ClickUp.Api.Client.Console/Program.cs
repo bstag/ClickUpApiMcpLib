@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Extensions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+// using Microsoft.Extensions.Configuration; // Duplicate
+// using Microsoft.Extensions.DependencyInjection; // Duplicate
+// using Microsoft.Extensions.Hosting; // Duplicate
 using Serilog;
 using System;
 using System.IO;
@@ -25,8 +25,8 @@ using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Comments;
 using ClickUp.Api.Client.Models.Entities.Comments;
-using ClickUp.Api.Client.Models.RequestModels.Tasks; // Added for GetTasksRequest
-using ClickUp.Api.Client.Models.RequestModels.Comments; // Added for GetTaskCommentsRequest
+// using ClickUp.Api.Client.Models.RequestModels.Tasks; // Duplicate
+// using ClickUp.Api.Client.Models.RequestModels.Comments; // Duplicate
 
 
 // Helper class to hold example settings
@@ -196,7 +196,7 @@ public class Program
                         foreach (var comment in taskCommentsEnumerable.Take(3))
                         {
                             string commentTextToDisplay = comment.CommentText ?? string.Empty;
-                            Log.Information("- Comment ID: {CommentId}, Text: {CommentText}", comment.Id, commentTextToDisplay.Substring(0, Math.Min(50, commentTextToDisplay.Length)) + "...");
+                            Log.Information("- Comment ID: {CommentId}, Text: {CommentText}", comment.Id ?? "UnknownId", commentTextToDisplay.Substring(0, Math.Min(50, commentTextToDisplay.Length)) + "...");
                         }
                     } else Log.Warning("[COMMENTS] No comments found for task {TaskId}", taskIdForCommentOps);
                 }

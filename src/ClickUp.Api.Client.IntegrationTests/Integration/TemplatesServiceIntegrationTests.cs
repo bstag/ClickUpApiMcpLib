@@ -25,7 +25,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             _output = output;
             _templatesService = ServiceProvider.GetRequiredService<ITemplatesService>();
-            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"];
+            _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"]!;
 
             if (string.IsNullOrWhiteSpace(_testWorkspaceId))
             {

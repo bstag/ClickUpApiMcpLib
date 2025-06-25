@@ -29,7 +29,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             _output = output;
             _chatService = ServiceProvider.GetRequiredService<IChatService>();
-            _workspaceId = ClientOptions.TestWorkspaceId;
+            _workspaceId = ClientOptions.TestWorkspaceId!;
 
             if (CurrentTestMode != TestMode.Playback && string.IsNullOrWhiteSpace(_workspaceId))
             {
