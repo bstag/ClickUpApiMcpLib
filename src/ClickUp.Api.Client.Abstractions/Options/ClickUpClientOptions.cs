@@ -27,6 +27,12 @@ public class ClickUpClientOptions
     /// </summary>
     public string BaseAddress { get; set; } = "https://api.clickup.com/api/v2/";
 
+    /// <summary>
+    /// Gets or sets the Workspace ID (Team ID) to be used in integration tests.
+    /// This is often required as part of the API URL path.
+    /// </summary>
+    public string? TestWorkspaceId { get; set; }
+
     // Other OAuth properties like ClientId, ClientSecret, RefreshToken, TokenExpiresAt
     // are not included here as this library focuses on consuming a pre-acquired access token.
     // Handling the OAuth flow itself or token refresh mechanisms are outside the current scope.

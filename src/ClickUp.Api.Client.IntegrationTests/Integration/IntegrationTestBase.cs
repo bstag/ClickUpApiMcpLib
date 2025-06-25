@@ -36,13 +36,27 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             ClientOptions = new ClickUpClientOptions();
             Configuration.GetSection("ClickUpApi").Bind(ClientOptions);
 
-            if (string.IsNullOrWhiteSpace(ClientOptions.PersonalAccessToken) && CurrentTestMode != TestMode.Playback)
+            // Validate essential configuration based on TestMode
+            if (CurrentTestMode != TestMode.Playback)
             {
-                throw new InvalidOperationException("ClickUp API PersonalAccessToken not configured for integration tests. "+
-                                                    "Set via User Secrets (e.g., 'ClickUpApi:PersonalAccessToken') " +
-                                                    "or Environment Variables (e.g., 'ClickUpApi__PersonalAccessToken'). " +
-                                                    "Not required if CLICKUP_SDK_TEST_MODE is 'Playback'.");
+                if (string.IsNullOrWhiteSpace(ClientOptions.PersonalAccessToken))
+                {
+                    throw new InvalidOperationException("ClickUp API PersonalAccessToken not configured for integration tests. " +
+                                                        "Set via User Secrets (e.g., 'ClickUpApi:PersonalAccessToken') " +
+                                                        "or Environment Variables (e.g., 'ClickUpApi__PersonalAccessToken'). " +
+                                                        "Required for Record and Passthrough modes.");
+                }
+                if (string.IsNullOrWhiteSpace(ClientOptions.TestWorkspaceId))
+                {
+                    // This ID is often part of the URL path, so it's needed even for recording.
+                    throw new InvalidOperationException("ClickUp API TestWorkspaceId not configured for integration tests. " +
+                                                        "Set via User Secrets (e.g., 'ClickUpApi:TestWorkspaceId') " +
+                                                        "or Environment Variables (e.g., 'ClickUpApi__TestWorkspaceId'). " +
+                                                        "Required for Record and Passthrough modes.");
+                }
             }
+            // For Playback mode, PersonalAccessToken and TestWorkspaceId might not be strictly necessary if all requests are mocked
+            // and mock paths don't rely on them. However, they are loaded if present.
 
             var testModeEnv = Environment.GetEnvironmentVariable("CLICKUP_SDK_TEST_MODE");
             Enum.TryParse(testModeEnv, true, out TestMode mode); // Defaults to Passthrough (0) if parsing fails
