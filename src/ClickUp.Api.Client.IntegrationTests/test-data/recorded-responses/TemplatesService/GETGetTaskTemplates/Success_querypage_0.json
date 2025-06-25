@@ -1,0 +1,92 @@
+{
+    "templates": [
+        {
+            "id": "mock-template-id-123",
+            "name": "Mock Task Template 1",
+            "description": "This is a description for mock task template 1.",
+            "project_id": "mock-project-id-456",
+            "space_id": "mock-space-id-789",
+            "date_created": "2023-01-15T10:00:00.000Z",
+            "last_updated": "2023-01-16T11:00:00.000Z",
+            "public": false,
+            "team_id": "mock-team-id-000",
+            "user_id": "mock-user-id-111",
+            "orderindex": 0,
+            "features": {
+                "due_dates": {
+                    "enabled": true,
+                    "start_date": false,
+                    "remap_due_dates": true
+                },
+                "time_tracking": {
+                    "enabled": false
+                },
+                "tags": {
+                    "enabled": true
+                },
+                "time_estimates": {
+                    "enabled": true
+                },
+                "checklists": {
+                    "enabled": true
+                },
+                "custom_fields": {
+                    "enabled": true
+                },
+                "remap_dependencies": {
+                    "enabled": true
+                },
+                "dependency_warning": {
+                    "enabled": true
+                },
+                "portfolios": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "id": "mock-template-id-456",
+            "name": "Another Mock Template",
+            "description": "Details for another template.",
+            "project_id": "mock-project-id-789",
+            "space_id": "mock-space-id-123",
+            "date_created": "2023-02-20T14:30:00.000Z",
+            "last_updated": "2023-02-21T15:00:00.000Z",
+            "public": true,
+            "team_id": "mock-team-id-000",
+            "user_id": "mock-user-id-222",
+            "orderindex": 1,
+            "features": {
+                "due_dates": {
+                    "enabled": true,
+                    "start_date": true,
+                    "remap_due_dates": false
+                },
+                "time_tracking": {
+                    "enabled": true
+                },
+                "tags": {
+                    "enabled": false
+                },
+                "time_estimates": {
+                    "enabled": false
+                },
+                "checklists": {
+                    "enabled": true
+                },
+                "custom_fields": {
+                    "enabled": false
+                },
+                "remap_dependencies": {
+                    "enabled": false
+                },
+                "dependency_warning": {
+                    "enabled": false
+                },
+                "portfolios": {
+                    "enabled": false
+                }
+            }
+        }
+    ]
+}
