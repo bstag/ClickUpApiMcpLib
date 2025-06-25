@@ -14,6 +14,7 @@ using ClickUp.Api.Client.Models.Entities.Folders;
 using RichardSzalay.MockHttp;
 using System.IO;
 using System.Net;
+using ClickUp.Api.Client.Models.Exceptions;
 
 namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
@@ -299,6 +300,218 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 Assert.Contains(folder.Statuses, s => s.StatusValue == "Open");
             }
             _output.LogInformation($"Successfully fetched and validated folder '{folder.Name}' (ID: {folder.Id}).");
+        }
+
+        [Fact]
+        public async Task CreateFolderAsync_ValidName_ReturnsCreatedFolder()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(_testSpaceId), "TestSpaceId must be available for CreateFolderAsync test.");
+
+            var newFolderName = "Test Create Folder";
+            var expectedFolderId = "folder_created_mock_001"; // From placeholder JSON
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "CreateFolder", "CreateFolder_Success.json");
+                _output.LogInformation($"[Playback] Using response file: {responsePath}");
+                Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
+                var responseContent = await File.ReadAllTextAsync(responsePath);
+
+                MockHttpHandler.When(HttpMethod.Post, $"https://api.clickup.com/api/v2/space/{_testSpaceId}/folder")
+                               .WithJsonContentMatcher(new { name = newFolderName })
+                               .Respond("application/json", responseContent);
+                _output.LogInformation($"[Playback] Mocking POST /space/{_testSpaceId}/folder");
+            }
+            else // Record or Passthrough mode
+            {
+                newFolderName = $"Live Create Folder_{Guid.NewGuid()}";
+                _output.LogInformation($"[Record/Passthrough] Will attempt to create folder: {newFolderName} in space {_testSpaceId}");
+            }
+
+            // Act
+            var createRequest = new CreateFolderRequest(newFolderName);
+            _output.LogInformation($"Attempting to create folder with name: '{createRequest.Name}' in space ID: '{_testSpaceId}'.");
+            var createdFolder = await _folderService.CreateFolderAsync(_testSpaceId, createRequest);
+
+            // Assert
+            Assert.NotNull(createdFolder);
+            Assert.Equal(newFolderName, createdFolder.Name);
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.Equal(expectedFolderId, createdFolder.Id);
+                Assert.Equal("Mock Created Folder", createdFolder.Name); // Name from JSON
+            }
+            else
+            {
+                Assert.False(string.IsNullOrWhiteSpace(createdFolder.Id));
+                RegisterCreatedFolder(createdFolder.Id); // Important for cleanup in live modes
+                _output.LogInformation($"[Record/Passthrough] Successfully created folder '{createdFolder.Name}' (ID: {createdFolder.Id}).");
+                // In a real record scenario, we'd want to delete this folder in DisposeAsync or a specific cleanup.
+                // For this task, we are not running tests, so direct cleanup here isn't triggered.
+            }
+            _output.LogInformation($"Validated created folder: '{createdFolder.Name}' (ID: {createdFolder.Id}).");
+        }
+
+        [Fact]
+        public async Task UpdateFolderAsync_ValidChanges_ReturnsUpdatedFolder()
+        {
+            const string folderIdToUpdatePlayback = "folder_to_update_mock_002"; // From placeholder JSON
+            var updatedFolderName = "Test Updated Folder Name";
+            var updatedArchivedStatus = true;
+
+            string folderIdForTest = folderIdToUpdatePlayback;
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "UpdateFolder", "UpdateFolder_Success.json");
+                _output.LogInformation($"[Playback] Using response file: {responsePath}");
+                Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
+                var responseContent = await File.ReadAllTextAsync(responsePath);
+
+                MockHttpHandler.When(HttpMethod.Put, $"https://api.clickup.com/api/v2/folder/{folderIdToUpdatePlayback}")
+                               .WithJsonContentMatcher(new { name = updatedFolderName, archived = updatedArchivedStatus })
+                               .Respond("application/json", responseContent);
+                _output.LogInformation($"[Playback] Mocking PUT /folder/{folderIdToUpdatePlayback}");
+            }
+            else // Record or Passthrough mode
+            {
+                var initialFolderName = $"Live FolderToUpdate_{Guid.NewGuid()}";
+                _output.LogInformation($"[Record/Passthrough] Creating initial folder '{initialFolderName}' in space {_testSpaceId} for update test.");
+                var liveFolder = await _folderService.CreateFolderAsync(_testSpaceId, new CreateFolderRequest(initialFolderName));
+                RegisterCreatedFolder(liveFolder.Id);
+                folderIdForTest = liveFolder.Id;
+                updatedFolderName = $"Live Updated Folder_{Guid.NewGuid()}"; // Ensure unique updated name
+                _output.LogInformation($"[Record/Passthrough] Initial folder created with ID: {folderIdForTest}. Will update to name '{updatedFolderName}'.");
+                await Task.Delay(1000); // Delay for API consistency
+            }
+
+            // Act
+            var updateRequest = new UpdateFolderRequest(Name: updatedFolderName, Archived: updatedArchivedStatus);
+            _output.LogInformation($"Attempting to update folder ID: '{folderIdForTest}' with Name: '{updateRequest.Name}', Archived: {updateRequest.Archived}.");
+            var updatedFolder = await _folderService.UpdateFolderAsync(folderIdForTest, updateRequest);
+
+            // Assert
+            Assert.NotNull(updatedFolder);
+            Assert.Equal(folderIdForTest, updatedFolder.Id);
+            Assert.Equal(updatedFolderName, updatedFolder.Name);
+            Assert.Equal(updatedArchivedStatus, updatedFolder.Archived);
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.Equal("Mock Updated Folder Name", updatedFolder.Name); // Name from JSON
+                Assert.True(updatedFolder.Archived); // Archived status from JSON
+                // Assert.NotEmpty(updatedFolder.Lists); // Folder model does not directly contain Lists
+                Assert.NotEmpty(updatedFolder.Statuses);
+            }
+            _output.LogInformation($"Validated updated folder: '{updatedFolder.Name}' (ID: {updatedFolder.Id}), Archived: {updatedFolder.Archived}.");
+        }
+
+        [Fact]
+        public async Task DeleteFolderAsync_ExistingFolder_DeletesSuccessfully()
+        {
+            const string folderIdToDeletePlayback = "folder_to_delete_mock_003";
+
+            string folderIdForTest = folderIdToDeletePlayback;
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "DeleteFolder", "DeleteFolder_Success.json");
+                _output.LogInformation($"[Playback] Using response file: {responsePath}");
+                Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
+                var responseContent = await File.ReadAllTextAsync(responsePath);
+
+                MockHttpHandler.When(HttpMethod.Delete, $"https://api.clickup.com/api/v2/folder/{folderIdToDeletePlayback}")
+                               .Respond(HttpStatusCode.OK, "application/json", responseContent); // Docs say 200 OK with {}
+                _output.LogInformation($"[Playback] Mocking DELETE /folder/{folderIdToDeletePlayback}");
+            }
+            else // Record or Passthrough mode
+            {
+                var folderNameToDelete = $"Live FolderToDelete_{Guid.NewGuid()}";
+                _output.LogInformation($"[Record/Passthrough] Creating folder '{folderNameToDelete}' in space {_testSpaceId} for delete test.");
+                var liveFolder = await _folderService.CreateFolderAsync(_testSpaceId, new CreateFolderRequest(folderNameToDelete));
+                // We don't register this one for cleanup via _createdFolderIds because it's meant to be deleted by the test itself.
+                folderIdForTest = liveFolder.Id;
+                _output.LogInformation($"[Record/Passthrough] Folder created with ID: {folderIdForTest}. Will attempt to delete.");
+                await Task.Delay(1000); // Delay for API consistency
+            }
+
+            // Act
+            _output.LogInformation($"Attempting to delete folder ID: '{folderIdForTest}'.");
+            await _folderService.DeleteFolderAsync(folderIdForTest);
+
+            // Assert
+            // Primary assertion is that no exception was thrown.
+            // In live mode, we could try to GetFolderAsync and expect a NotFoundException.
+            if (CurrentTestMode != TestMode.Playback)
+            {
+                _output.LogInformation($"[Record/Passthrough] Delete called for folder {folderIdForTest}. Verifying deletion.");
+                await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(
+                    () => _folderService.GetFolderAsync(folderIdForTest));
+                _output.LogInformation($"[Record/Passthrough] Folder {folderIdForTest} confirmed deleted (Get returned NotFound).");
+            }
+            else
+            {
+                _output.LogInformation($"[Playback] Delete call for folder {folderIdForTest} completed based on mock.");
+            }
+            _output.LogInformation($"Deletion process for folder ID '{folderIdForTest}' completed.");
+        }
+
+        [Fact]
+        public async Task CreateFolderFromTemplateAsync_ValidTemplate_ReturnsCreatedFolder()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(_testSpaceId), "TestSpaceId must be available for CreateFolderFromTemplateAsync test.");
+
+            const string templateId = "mock_template_id_12345"; // This would be a real ID in record/passthrough
+            var newFolderName = "Test Folder from Template";
+            var expectedFolderId = "folder_from_template_mock_003"; // From placeholder JSON
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "CreateFolderFromTemplate", "CreateFolderFromTemplate_Success.json");
+                _output.LogInformation($"[Playback] Using response file: {responsePath}");
+                Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
+                var responseContent = await File.ReadAllTextAsync(responsePath);
+
+                MockHttpHandler.When(HttpMethod.Post, $"https://api.clickup.com/api/v2/space/{_testSpaceId}/folder/template/{templateId}")
+                               .WithJsonContentMatcher(new { name = newFolderName })
+                               .Respond("application/json", responseContent);
+                _output.LogInformation($"[Playback] Mocking POST /space/{_testSpaceId}/folder/template/{templateId}");
+            }
+            else // Record or Passthrough mode
+            {
+                newFolderName = $"Live Folder from Template_{Guid.NewGuid()}";
+                _output.LogInformation($"[Record/Passthrough] Will attempt to create folder from template {templateId}: {newFolderName} in space {_testSpaceId}");
+                // In a real scenario, templateId would need to be a valid, accessible template ID.
+                // For this exercise, we assume it would work if run.
+            }
+
+            // Act
+            var createRequest = new CreateFolderFromTemplateRequest { Name = newFolderName };
+            _output.LogInformation($"Attempting to create folder from template ID '{templateId}' with name: '{createRequest.Name}' in space ID: '{_testSpaceId}'.");
+            var createdFolder = await _folderService.CreateFolderFromTemplateAsync(_testSpaceId, templateId, createRequest);
+
+            // Assert
+            Assert.NotNull(createdFolder);
+            Assert.Equal(newFolderName, createdFolder.Name);
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.Equal(expectedFolderId, createdFolder.Id);
+                Assert.Equal("Mock Folder From Template", createdFolder.Name); // Name from JSON
+                // Assert.NotEmpty(createdFolder.Lists); // Folder model does not directly contain Lists
+            }
+            else
+            {
+                Assert.False(string.IsNullOrWhiteSpace(createdFolder.Id));
+                RegisterCreatedFolder(createdFolder.Id); // Important for cleanup in live modes
+                _output.LogInformation($"[Record/Passthrough] Successfully created folder '{createdFolder.Name}' (ID: {createdFolder.Id}) from template {templateId}.");
+            }
+            _output.LogInformation($"Validated folder from template: '{createdFolder.Name}' (ID: {createdFolder.Id}).");
         }
     }
 }

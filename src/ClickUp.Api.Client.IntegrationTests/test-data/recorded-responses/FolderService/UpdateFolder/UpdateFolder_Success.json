@@ -1,0 +1,23 @@
+{
+  "id": "folder_to_update_mock_002",
+  "name": "Mock Updated Folder Name",
+  "orderindex": 1,
+  "override_statuses": true,
+  "hidden": false,
+  "archived": true,
+  "task_count": "5",
+  "statuses": [
+     {
+         "status": "custom status open",
+         "type": "open",
+         "orderindex": 0,
+         "color": "#000000"
+     },
+     {
+         "status": "custom status closed",
+         "type": "closed",
+         "orderindex": 1,
+         "color": "#ffffff"
+     }
+  ]
+}
