@@ -36,178 +36,186 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             var response = await base.SendAsync(request, cancellationToken);
 
             // Check if recording is enabled (e.g., via a toggle or if the response is successful)
-            // For now, let's assume we always try to record if this handler is in the pipeline
-            // and the request is a GET request (simplification for PoC)
-            if (request.Method == HttpMethod.Get && response.IsSuccessStatusCode)
-            {
-                var path = GenerateFilePath(request);
-                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            // Record all responses now
+            var path = GenerateFilePath(request, response); // Pass response to include status for unique error file names
+            var content = await response.Content.ReadAsStringAsync(cancellationToken); // Read content regardless of status
 
-                try
+            try
+            {
+                var directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(directory))
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
-                    await File.WriteAllTextAsync(path, content, cancellationToken);
-                    Console.WriteLine($"[RecordingDelegatingHandler] Recorded response for {request.Method} {request.RequestUri} to {path}");
+                    Directory.CreateDirectory(directory);
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[RecordingDelegatingHandler] Failed to record response for {request.Method} {request.RequestUri} to {path}. Error: {ex.Message}");
-                    // Optionally re-throw or handle as needed
-                }
+                await File.WriteAllTextAsync(path, content, cancellationToken);
+                Console.WriteLine($"[RecordingDelegatingHandler] Recorded response for {request.Method} {request.RequestUri} (Status: {(int)response.StatusCode}) to {path}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RecordingDelegatingHandler] Failed to record response for {request.Method} {request.RequestUri} to {path}. Error: {ex.Message}");
             }
 
             return response;
         }
 
-        private string GenerateFilePath(HttpRequestMessage request)
+        private string GenerateFilePath(HttpRequestMessage request, HttpResponseMessage httpResponse)
         {
             var uri = request.RequestUri;
             var method = request.Method.Method; // GET, POST, etc.
-
-            // Simplified naming: method_host_pathsegments_queryhash.json
-            // Example: GET_api_clickup_com_api_v2_user.json
-            // Example: GET_api_clickup_com_api_v2_team_teamId_space_spaceId_folder.json
-            // Using a hash for the query string to keep filenames manageable and somewhat deterministic for identical queries.
-
-            // Expected URI structure: /api/v2/{resource_type}/{id_if_any}/{sub_resource_if_any}
-            // Examples:
-            // /api/v2/user -> AuthorizationService, GetAuthorizedUser
-            // /api/v2/team -> AuthorizationService, GetAuthorizedTeams (Workspaces)
-            // /api/v2/space/{space_id} -> SpaceService, GetSpace
-            // /api/v2/space -> SpaceService, CreateSpace (POST) or GetSpaces (GET)
-            // /api/v2/list/{list_id}/task -> TaskService, GetTasksInList or CreateTaskInList
+            var statusCode = (int)httpResponse.StatusCode;
 
             var pathSegments = uri.AbsolutePath.Trim('/').Split('/');
             string serviceName = "UnknownService";
-            string methodName = request.Method.Method; // Start with HTTP method e.g., GET, POST
+            string derivedMethodNamePart = "UnknownOperation"; // This will be like "GetSpace", "CreateTask"
 
-            if (pathSegments.Length >= 2 && pathSegments[0] == "api" && pathSegments[1] == "v2")
+            if (pathSegments.Length >= 3 && pathSegments[0].ToLowerInvariant() == "api" && pathSegments[1].ToLowerInvariant() == "v2")
             {
-                // Remove "api" and "v2"
-                var resourcePathSegments = pathSegments.Skip(2).ToList();
-
-                if (resourcePathSegments.Any())
+                var relevantPathSegments = pathSegments.Skip(2).ToList();
+                if (relevantPathSegments.Any())
                 {
-                    var primaryResource = resourcePathSegments[0].ToLowerInvariant();
-                    resourcePathSegments.RemoveAt(0); // Consume the primary resource segment
+                    var primaryResource = relevantPathSegments[0].ToLowerInvariant();
 
                     switch (primaryResource)
                     {
                         case "user":
                             serviceName = "AuthorizationService";
-                            methodName += "AuthorizedUser"; // e.g., GetAuthorizedUser
+                            derivedMethodNamePart = "AuthorizedUser";
                             break;
-                        case "team": // "Team" in API URL often refers to Workspaces
-                            serviceName = "AuthorizationService";
-                            methodName += "AuthorizedTeams"; // e.g., GetAuthorizedTeams
+                        case "team":
+                            // Check if the path is like /team/{team_id}/space
+                            if (relevantPathSegments.Count > 1 && relevantPathSegments.Contains("space"))
+                            {
+                                serviceName = "SpaceService";
+                                derivedMethodNamePart = (request.Method == HttpMethod.Post) ? "CreateSpace" : "GetSpaces";
+                            }
+                            else // /team or /team/{team_id}
+                            {
+                                serviceName = "AuthorizationService";
+                                derivedMethodNamePart = "AuthorizedTeams";
+                            }
                             break;
                         case "space":
                             serviceName = "SpaceService";
-                            if (resourcePathSegments.Any() && !Guid.TryParse(resourcePathSegments[0], out _)) // e.g. /space/{space_id}/view
+                            // /space/{space_id} -> GetSpace, UpdateSpace, DeleteSpace
+                            // For sub-resources like /space/{id}/folder, /space/{id}/list, etc.
+                            if (relevantPathSegments.Count > 2 && IsPotentialGuid(relevantPathSegments[1])) // e.g. /space/{id}/subResource
                             {
-                                methodName += CapitalizeFirstLetter(resourcePathSegments[0]); // e.g. GetViews for /space/{id}/view
-                                resourcePathSegments.RemoveAt(0);
+                                derivedMethodNamePart = CapitalizeFirstLetter(relevantPathSegments[2]); // e.g. Folder, List, Tag, View
                             }
-                            else // /space or /space/{id}
+                            else // Just /space/{id} or /space
                             {
-                                methodName += (resourcePathSegments.Any() ? "Space" : "Spaces"); // GetSpace, GetSpaces, CreateSpace, UpdateSpace, DeleteSpace
+                                derivedMethodNamePart = "Space"; // Will be prefixed with HTTP method later
                             }
                             break;
                         case "folder":
                             serviceName = "FolderService";
-                             if (resourcePathSegments.Any() && !Guid.TryParse(resourcePathSegments[0], out _))
+                            if (relevantPathSegments.Count > 2 && IsPotentialGuid(relevantPathSegments[1]))  // e.g. /folder/{id}/subResource
                             {
-                                methodName += CapitalizeFirstLetter(resourcePathSegments[0]);
-                                resourcePathSegments.RemoveAt(0);
+                                derivedMethodNamePart = CapitalizeFirstLetter(relevantPathSegments[2]);
                             }
                             else
                             {
-                                methodName += (resourcePathSegments.Any() ? "Folder" : "Folders");
+                                derivedMethodNamePart = "Folder";
                             }
                             break;
                         case "list":
                             serviceName = "ListService";
-                            if (resourcePathSegments.Any() && !Guid.TryParse(resourcePathSegments[0], out _)) // e.g. /list/{list_id}/task
+                            if (relevantPathSegments.Count > 2 && IsPotentialGuid(relevantPathSegments[1])) // e.g. /list/{id}/subResource
                             {
-                                methodName += CapitalizeFirstLetter(resourcePathSegments[0]); // e.g., GetTasks, CreateTask (from list)
-                                resourcePathSegments.RemoveAt(0);
+                                derivedMethodNamePart = CapitalizeFirstLetter(relevantPathSegments[2]); // e.g. Task, Member
                             }
                             else
                             {
-                                methodName += (resourcePathSegments.Any() ? "List" : "Lists");
+                                derivedMethodNamePart = "List";
                             }
                             break;
                         case "task":
                             serviceName = "TaskService";
-                             if (resourcePathSegments.Any() && !Guid.TryParse(resourcePathSegments[0], out _))
+                             if (relevantPathSegments.Count > 2 && IsPotentialGuid(relevantPathSegments[1])) // e.g. /task/{id}/subResource
                             {
-                                methodName += CapitalizeFirstLetter(resourcePathSegments[0]);
-                                resourcePathSegments.RemoveAt(0);
+                                derivedMethodNamePart = CapitalizeFirstLetter(relevantPathSegments[2]); // e.g. Comment, Time, Checklist
                             }
                             else
                             {
-                                methodName += (resourcePathSegments.Any() ? "Task" : "Tasks");
+                                derivedMethodNamePart = "Task";
                             }
                             break;
-                        case "comment": // Assuming /api/v2/comment or similar for a dedicated comment endpoint if it exists
-                                        // More likely comments are sub-resources, e.g., /api/v2/task/{task_id}/comment
+                        case "comment":
                             serviceName = "CommentService";
-                            methodName += "Comment"; // Needs to be more specific based on actual comment endpoints
+                            derivedMethodNamePart = "Comment"; // Operations are usually on /comment/{id} or POST to parent
                             break;
-                        // Add more cases for other services:
-                        // Goals, Tags, CustomFields, Members, Guests, Roles, Views, Webhooks etc.
-                        // Example for a sub-resource like task comments:
-                        // if path was /task/{task_id}/comment, primaryResource would be "task"
-                        // then we'd need to check resourcePathSegments for "comment"
+                        // Add other primary resources here
                         default:
                             serviceName = CapitalizeFirstLetter(primaryResource) + "Service";
-                            methodName += CapitalizeFirstLetter(primaryResource);
+                            derivedMethodNamePart = CapitalizeFirstLetter(primaryResource);
                             break;
                     }
-
-                    // Append remaining path segments to method name for specificity if any
-                    // e.g. /list/{list_id}/task -> ListService, GetTasks (if GET)
-                    // e.g. /task/{task_id}/comment -> TaskService, GetComments (if GET)
-                    // This part needs careful thought to align with actual service method names.
-                    // The switch above is a start.
-                    // For now, the primary resource determines the service and the base of the method name.
-                    // If there are sub-resources like /task/{id}/comment, the method name might become GetTaskComments.
-                    // This simple version might result in GetComment for /task/{id}/comment which is okay for now.
                 }
                 else
                 {
-                    methodName += "Root"; // e.g. GetRoot for /api/v2/
+                    serviceName = "RootService"; // e.g. for /api/v2/
+                    derivedMethodNamePart = "RootOperation";
                 }
             }
             else
             {
-                // Non-standard path, use a generic structure
                 var pathPart = string.Join("_", pathSegments).Replace(".", "_");
-                methodName += CapitalizeFirstLetter(pathPart);
+                serviceName = "ExternalOrUnknown";
+                derivedMethodNamePart = CapitalizeFirstLetter(pathPart);
             }
 
-            // Default scenario name
-            var scenarioName = "RecordedResponse"; // Base name, will append .json and possibly query hash
+            // Construct methodName like "GetSpace", "CreateTask", "DeleteComment"
+            string fullMethodName = request.Method.Method + derivedMethodNamePart;
 
+
+            // Scenario name based on success/error and hashes
+            var scenarioName = $"{(httpResponse.IsSuccessStatusCode ? "Success" : $"Error_{statusCode}")}";
+
+            string queryOrBodyHash = string.Empty;
             if (request.Method == HttpMethod.Get && !string.IsNullOrWhiteSpace(uri.Query))
             {
                 using var sha256 = SHA256.Create();
                 var queryBytes = Encoding.UTF8.GetBytes(uri.Query);
                 var queryHashBytes = sha256.ComputeHash(queryBytes);
-                var queryHash = BitConverter.ToString(queryHashBytes).Replace("-", "").ToLowerInvariant().Substring(0, 8);
-                scenarioName += $"_{queryHash}";
+                queryOrBodyHash = BitConverter.ToString(queryHashBytes).Replace("-", "").ToLowerInvariant().Substring(0, 8);
+                scenarioName += $"_query{queryOrBodyHash}";
             }
+            else if (request.Method == HttpMethod.Post || request.Method == HttpMethod.Put)
+            {
+                var requestBody = request.Content?.ReadAsStringAsync().Result ?? string.Empty; // Sync for simplicity here
+                if (!string.IsNullOrEmpty(requestBody))
+                {
+                    using var sha256 = SHA256.Create();
+                    var bodyBytes = Encoding.UTF8.GetBytes(requestBody);
+                    var bodyHashBytes = sha256.ComputeHash(bodyBytes);
+                    queryOrBodyHash = BitConverter.ToString(bodyHashBytes).Replace("-", "").ToLowerInvariant().Substring(0, 8);
+                    scenarioName += $"_body{queryOrBodyHash}";
+                }
+            }
+            // For DELETE or GET without query and POST/PUT without body, scenarioName remains "Success" or "Error_XXX"
+
             scenarioName += ".json";
 
-            // Construct the full path
-            var directoryPath = Path.Combine(_basePath, serviceName, methodName);
+            var directoryPath = Path.Combine(_basePath, serviceName, fullMethodName);
             var filePath = Path.Combine(directoryPath, scenarioName);
 
-            // Log the generated path for debugging
-            Console.WriteLine($"[RecordingDelegatingHandler] Determined Path: Service='{serviceName}', Method='{methodName}', File='{filePath}' for URI '{uri}'");
+            Console.WriteLine($"[RecordingDelegatingHandler] Determined Path: Service='{serviceName}', Method='{fullMethodName}', File='{filePath}' for URI '{uri}'");
 
             return filePath;
         }
+
+                private static bool IsPotentialGuid(string segment)
+                {
+                    // Basic check, ClickUp IDs are not always GUIDs but often numeric or alphanumeric strings.
+                    // This is a heuristic. A true GUID check is Guid.TryParse.
+                    // For ClickUp, IDs can be plain numbers, or strings like "abc123xyz".
+                    // We're checking if it's NOT a known sub-resource keyword.
+                    // A more robust way would be to check if it matches known sub-resource names like "view", "tag", "comment", etc.
+                    // For now, if it's not one of the explicit sub-resource checks above in the switch,
+                    // and it's a segment after a primary resource, it's often an ID.
+                    // This simple check helps differentiate /space/{id} from /space/feature or similar.
+                    return !string.IsNullOrWhiteSpace(segment) && segment.Length > 3; // Arbitrary length, many IDs are longer
+                }
 
         private static string CapitalizeFirstLetter(string input)
         {
