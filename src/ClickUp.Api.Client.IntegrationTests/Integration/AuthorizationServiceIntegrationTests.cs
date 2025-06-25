@@ -39,7 +39,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback)
             {
                 Assert.NotNull(MockHttpHandler); // Ensure MockHttpHandler is available in Playback mode
-                var responsePath = Path.Combine(RecordedResponsesBasePath, "AuthorizationService", "GetAuthorizedUser", "Success.json");
+                // Adjusted path to match RecordingDelegatingHandler output
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "AuthorizationService", "GETAuthorizedUser", "Success.json");
                 _output.LogInformation($"[Playback] Using response file: {responsePath}");
                 Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
                 var responseContent = await File.ReadAllTextAsync(responsePath);
@@ -93,7 +94,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback)
             {
                 Assert.NotNull(MockHttpHandler);
-                var responsePath = Path.Combine(RecordedResponsesBasePath, "AuthorizationService", "GetAuthorizedTeams", "Success.json"); // Note: Original name was GetAuthorizedTeams
+                // Adjusted path to match RecordingDelegatingHandler output
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "AuthorizationService", "GETAuthorizedTeams", "Success.json");
                 _output.LogInformation($"[Playback] Using response file: {responsePath}");
                 Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
                 var responseContent = await File.ReadAllTextAsync(responsePath);
