@@ -1,9 +1,0 @@
-{
-  "id": "folder_single_456",
-  "name": "Single Playback Folder",
-  "archived": false,
-  "statuses": [
-    { "status": "Open", "type": "open", "orderindex": 0, "color": "#000000" },
-    { "status": "Closed", "type": "closed", "orderindex": 1, "color": "#111111" }
-  ]
-}

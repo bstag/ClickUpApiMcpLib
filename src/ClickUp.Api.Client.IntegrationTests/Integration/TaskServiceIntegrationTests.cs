@@ -783,5 +783,235 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Assert.Equal(3, relevantTasksNatural.Count);
             Assert.Equal(taskDueToday.Id, relevantTasksNatural[0].Id); Assert.Equal(taskDueTomorrow.Id, relevantTasksNatural[1].Id); Assert.Equal(taskDueDayAfter.Id, relevantTasksNatural[2].Id);
         }
+
+        private const string PlaybackTaskTemplateId = "playback_task_template_001"; // Added for template tests
+
+        [Fact]
+        public async Task CreateTaskFromTemplateAsync_WithValidTemplate_ShouldCreateTask()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(_testListId), "TestListId must be available.");
+            string templateId = PlaybackTaskTemplateId; // In Record mode, this needs to be a real template ID
+            var taskName = $"Task from Template - {(CurrentTestMode == TestMode.Playback ? "Playback" : Guid.NewGuid().ToString())}";
+            var request = new CreateTaskFromTemplateRequest(taskName);
+            string playbackTaskId = "playback_task_from_tpl_001";
+            // string playbackBodyHash = "body_create_task_from_tpl_success"; // If matching specific body content
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                // taskName = "Playback Task from Template"; // Name is in request, already set
+                // request = new CreateTaskFromTemplateRequest(taskName); // Already set
+
+                var mockResponsePath = "TaskService/CreateTaskFromTemplateAsync_WithValidTemplate_ShouldCreateTask/CreateTaskFromTemplate_Success.json";
+                MockHttpHandler.When(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/taskTemplate/{templateId}")
+                               // .WithPartialContent(JsonSerializer.Serialize(request, _jsonSerializerOptions)) // Match body if needed
+                               .Respond("application/json", await MockedFileContentAsync(mockResponsePath));
+
+                // If this task needs to be cleaned up in Playback by DeleteTaskAsync mock in DisposeAsync, register its playback ID
+                // However, tasks are usually cleaned up by deleting the list/space in hierarchy teardown.
+            }
+            else
+            {
+                _output.LogWarning($"[Record/Passthrough] Ensure task template ID '{templateId}' is valid for CreateTaskFromTemplateAsync test in list '{_testListId}'.");
+            }
+
+            CuTask createdTask = await _taskService.CreateTaskFromTemplateAsync(_testListId, templateId, request);
+            if (createdTask != null && CurrentTestMode != TestMode.Playback) RegisterCreatedTask(createdTask.Id);
+
+            Assert.NotNull(createdTask);
+            Assert.False(string.IsNullOrWhiteSpace(createdTask.Id));
+            Assert.Equal(taskName, createdTask.Name); // The API should use the name from the request
+            Assert.Equal(_testListId, createdTask.List.Id);
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.Equal(playbackTaskId, createdTask.Id);
+                // Potentially assert other properties if the mocked JSON has them, e.g., if template populates description.
+            }
+        }
+
+        [Fact]
+        public async Task GetTaskTimeInStatusAsync_WithExistingTask_ShouldReturnTimeInStatus()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(_testListId), "TestListId must be available for GetTaskTimeInStatusAsync.");
+            var taskName = $"TaskForTimeInStatus - {(CurrentTestMode == TestMode.Playback ? "Playback" : Guid.NewGuid().ToString())}";
+            var playbackCreatedTaskId = "playback_task_timeInStatus_001";
+            CuTask testTask;
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                // Mock the task creation
+                var createTaskMockPath = "TaskService/GetTaskTimeInStatusAsync_WithExistingTask_ShouldReturnTimeInStatus/CreateTask_Success.json";
+                MockHttpHandler.When(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/task")
+                               .Respond("application/json", await MockedFileContentAsync(createTaskMockPath));
+
+                testTask = new CuTask { Id = playbackCreatedTaskId, Name = taskName, List = new Models.ResponseModels.Common.MinimalClickUpList { Id = _testListId} }; // Simulate created task for Playback
+
+                // Mock the GetTaskTimeInStatusAsync call
+                var timeInStatusMockPath = "TaskService/GetTaskTimeInStatusAsync_WithExistingTask_ShouldReturnTimeInStatus/TimeInStatus_Success.json";
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/task/{playbackCreatedTaskId}/time_in_status")
+                               .Respond("application/json", await MockedFileContentAsync(timeInStatusMockPath));
+            }
+            else
+            {
+                testTask = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(taskName, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                RegisterCreatedTask(testTask.Id);
+                _output.LogInformation($"[Record/Passthrough] Created task '{testTask.Name}' (ID: {testTask.Id}) for GetTaskTimeInStatusAsync test.");
+                // Allow some time or perform status changes for more meaningful data in Record mode.
+                await Task.Delay(1000);
+            }
+
+            Assert.NotNull(testTask);
+            TaskTimeInStatusResponse timeInStatusResponse = await _taskService.GetTaskTimeInStatusAsync(testTask.Id);
+
+            Assert.NotNull(timeInStatusResponse);
+            Assert.NotNull(timeInStatusResponse.CurrentStatus);
+            Assert.True(timeInStatusResponse.StatusHistory.Any());
+            // Further assertions can be made based on the expected content of the mock JSON or actual API response
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.Equal("playback_status_open", timeInStatusResponse.CurrentStatus.Status); // Example, adjust to your mock data
+                Assert.Contains(timeInStatusResponse.StatusHistory, h => h.Status == "playback_status_open");
+            }
+            else
+            {
+                // In record mode, the status would likely be the default "open" status or whatever it was set to.
+                Assert.NotNull(timeInStatusResponse.CurrentStatus.Status);
+            }
+        }
+
+        [Fact]
+        public async Task GetBulkTasksTimeInStatusAsync_WithExistingTasks_ShouldReturnTimeInStatus()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(_testListId), "TestListId must be available for GetBulkTasksTimeInStatusAsync.");
+            var taskName1 = $"BulkTaskTime_1 - {(CurrentTestMode == TestMode.Playback ? "Playback" : Guid.NewGuid().ToString())}";
+            var taskName2 = $"BulkTaskTime_2 - {(CurrentTestMode == TestMode.Playback ? "Playback" : Guid.NewGuid().ToString())}";
+            var playbackTask1Id = "playback_bulkTask1_timeInStatus_001";
+            var playbackTask2Id = "playback_bulkTask2_timeInStatus_002";
+            List<string> taskIdsForTest = new List<string>();
+            CuTask testTask1, testTask2;
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                // Mock task creations
+                MockHttpHandler.Expect(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/task")
+                               .Respond("application/json", await MockedFileContentAsync("TaskService/GetBulkTasksTimeInStatusAsync_WithExistingTasks_ShouldReturnTimeInStatus/CreateTask1_Success.json"));
+                MockHttpHandler.Expect(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/task")
+                               .Respond("application/json", await MockedFileContentAsync("TaskService/GetBulkTasksTimeInStatusAsync_WithExistingTasks_ShouldReturnTimeInStatus/CreateTask2_Success.json"));
+
+                testTask1 = new CuTask { Id = playbackTask1Id }; // Simplified for playback setup
+                testTask2 = new CuTask { Id = playbackTask2Id };
+                taskIdsForTest.Add(playbackTask1Id);
+                taskIdsForTest.Add(playbackTask2Id);
+
+                // Mock the GetBulkTasksTimeInStatusAsync call
+                var bulkTimeInStatusMockPath = "TaskService/GetBulkTasksTimeInStatusAsync_WithExistingTasks_ShouldReturnTimeInStatus/BulkTimeInStatus_Success.json";
+                // The API takes task_ids as a comma-separated query parameter
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/task/bulk_time_in_status/task_ids?task_ids={playbackTask1Id}%2C{playbackTask2Id}") // Ensure URL encoding for comma
+                               .Respond("application/json", await MockedFileContentAsync(bulkTimeInStatusMockPath));
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/task/bulk_time_in_status/task_ids?task_ids={playbackTask2Id}%2C{playbackTask1Id}") // Order might vary
+                               .Respond("application/json", await MockedFileContentAsync(bulkTimeInStatusMockPath));
+            }
+            else
+            {
+                testTask1 = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(taskName1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                RegisterCreatedTask(testTask1.Id);
+                taskIdsForTest.Add(testTask1.Id);
+                testTask2 = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(taskName2, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                RegisterCreatedTask(testTask2.Id);
+                taskIdsForTest.Add(testTask2.Id);
+                _output.LogInformation($"[Record/Passthrough] Created tasks '{testTask1.Id}' and '{testTask2.Id}' for GetBulkTasksTimeInStatusAsync test.");
+                await Task.Delay(1000); // Allow time for tasks to settle
+            }
+
+            GetBulkTasksTimeInStatusResponse bulkTimeResponse = await _taskService.GetBulkTasksTimeInStatusAsync(taskIdsForTest);
+
+            Assert.NotNull(bulkTimeResponse);
+            Assert.NotNull(bulkTimeResponse.TasksTimeInStatus);
+            Assert.Equal(taskIdsForTest.Count, bulkTimeResponse.TasksTimeInStatus.Count);
+
+            foreach (var taskId in taskIdsForTest)
+            {
+                Assert.True(bulkTimeResponse.TasksTimeInStatus.ContainsKey(taskId));
+                var timeInStatusData = bulkTimeResponse.TasksTimeInStatus[taskId];
+                Assert.NotNull(timeInStatusData.CurrentStatus);
+                Assert.True(timeInStatusData.StatusHistory.Any());
+                if (CurrentTestMode == TestMode.Playback)
+                {
+                     Assert.Equal("playback_status_open", timeInStatusData.CurrentStatus.Status); // Example
+                }
+            }
+        }
+
+        [Fact]
+        public async Task MergeTasksAsync_WithValidTasks_ShouldMergeAndReturnTargetTask()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(_testListId), "TestListId must be available for MergeTasksAsync.");
+            var targetTaskName = $"MergeTargetTask - {(CurrentTestMode == TestMode.Playback ? "Playback" : Guid.NewGuid().ToString())}";
+            var sourceTaskName = $"MergeSourceTask - {(CurrentTestMode == TestMode.Playback ? "Playback" : Guid.NewGuid().ToString())}";
+
+            string playbackTargetTaskId = "playback_merge_target_task_001";
+            string playbackSourceTaskId = "playback_merge_source_task_001";
+            CuTask targetTask, sourceTask;
+
+            if (CurrentTestMode == TestMode.Playback)
+            {
+                Assert.NotNull(MockHttpHandler);
+                // Mock creations
+                MockHttpHandler.Expect(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/task") // Target Task
+                               .Respond("application/json", await MockedFileContentAsync("TaskService/MergeTasksAsync_WithValidTasks_ShouldMergeAndReturnTargetTask/CreateTargetTask_Success.json"));
+                MockHttpHandler.Expect(HttpMethod.Post, $"https://api.clickup.com/api/v2/list/{_testListId}/task") // Source Task
+                               .Respond("application/json", await MockedFileContentAsync("TaskService/MergeTasksAsync_WithValidTasks_ShouldMergeAndReturnTargetTask/CreateSourceTask_Success.json"));
+
+                targetTask = new CuTask { Id = playbackTargetTaskId, Name = targetTaskName, List = new Models.ResponseModels.Common.MinimalClickUpList{Id = _testListId} };
+                sourceTask = new CuTask { Id = playbackSourceTaskId, Name = sourceTaskName, List = new Models.ResponseModels.Common.MinimalClickUpList{Id = _testListId} };
+
+                // Mock the MergeTasksAsync call (POST to /task/{source_task_id}/merge)
+                var mergeResponseMockPath = "TaskService/MergeTasksAsync_WithValidTasks_ShouldMergeAndReturnTargetTask/Merge_Success.json";
+                // This endpoint is called for each source task. If multiple sources, mock each.
+                MockHttpHandler.When(HttpMethod.Post, $"https://api.clickup.com/api/v2/task/{playbackSourceTaskId}/merge")
+                               .WithJsonContentMatcher(new { target_task_id = playbackTargetTaskId })
+                               .Respond("application/json", await MockedFileContentAsync(mergeResponseMockPath));
+
+                // Mock for GetTaskAsync on sourceTask (to verify it's deleted/merged)
+                MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/task/{playbackSourceTaskId}")
+                               .Respond(HttpStatusCode.NotFound, "application/json", "{ \"err\": \"Task not found\" }"); // Source task should be gone
+            }
+            else
+            {
+                targetTask = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(targetTaskName, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                RegisterCreatedTask(targetTask.Id); // Target task remains, so register for cleanup
+                sourceTask = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(sourceTaskName, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                // Source task will be deleted by merge, so typically not registered for separate cleanup.
+                // However, if Merge fails, it might linger. For safety in tests, one might register then unregister if merge is successful.
+                _output.LogInformation($"[Record/Passthrough] Created target task '{targetTask.Id}' and source task '{sourceTask.Id}' for MergeTasksAsync test.");
+            }
+
+            var mergeRequest = new MergeTasksRequest(new List<string> { sourceTask.Id });
+            CuTask updatedTargetTask = await _taskService.MergeTasksAsync(targetTask.Id, mergeRequest);
+
+            Assert.NotNull(updatedTargetTask);
+            Assert.Equal(targetTask.Id, updatedTargetTask.Id); // ID of target task should remain the same
+            // Name of target task might also remain the same, or API might append info. Check API behavior.
+            // For now, assume name remains or is updated as per mock.
+            if(CurrentTestMode == TestMode.Playback)
+            {
+                Assert.Equal("Merged Playback Task Name", updatedTargetTask.Name); // Example from a potential mock JSON
+            }
+
+            // Verify source task is gone (in live mode)
+            if (CurrentTestMode != TestMode.Playback)
+            {
+                await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(sourceTask.Id));
+                _output.LogInformation($"[Record/Passthrough] Verified source task '{sourceTask.Id}' is deleted after merge.");
+            }
+            else
+            {
+                // Playback verification relies on the mock for GetTaskAsync(sourceTask.Id) returning NotFound.
+                 await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(playbackSourceTaskId));
+            }
+        }
     }
 }
