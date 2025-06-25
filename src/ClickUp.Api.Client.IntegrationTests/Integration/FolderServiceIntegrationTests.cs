@@ -160,7 +160,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 var spaceIdForMock = _testSpaceId; // Should be PlaybackTestSpaceId
 
                 // Mock for GetFoldersAsync(archived: false)
-                var getNonArchivedPath = Path.Combine(RecordedResponsesBasePath, "FolderService", "GetFolders", "GetFolders_NotArchived_Success.json");
+                var getNonArchivedPath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "GetFolders", "GetFolders_NotArchived_Success.json");
                 _output.LogInformation($"[Playback] Using response file for Not Archived: {getNonArchivedPath}");
                 Assert.True(File.Exists(getNonArchivedPath), $"Playback file not found: {getNonArchivedPath}");
                 var getNonArchivedContent = await File.ReadAllTextAsync(getNonArchivedPath);
@@ -170,7 +170,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                                .Respond("application/json", getNonArchivedContent);
 
                 // Mock for GetFoldersAsync(archived: true)
-                var getArchivedPath = Path.Combine(RecordedResponsesBasePath, "FolderService", "GetFolders", "GetFolders_Archived_Success.json");
+                var getArchivedPath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "GetFolders", "GetFolders_Archived_Success.json");
                 _output.LogInformation($"[Playback] Using response file for Archived: {getArchivedPath}");
                 Assert.True(File.Exists(getArchivedPath), $"Playback file not found: {getArchivedPath}");
                 var getArchivedContent = await File.ReadAllTextAsync(getArchivedPath);
@@ -180,7 +180,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                                .Respond("application/json", getArchivedContent);
 
                 // Mock for GetFoldersAsync(archived: null) - parameter omitted
-                var getAllPath = Path.Combine(RecordedResponsesBasePath, "FolderService", "GetFolders", "GetFolders_All_Success.json");
+                var getAllPath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "GetFolders", "GetFolders_All_Success.json");
                 _output.LogInformation($"[Playback] Using response file for All (archived=null): {getAllPath}");
                 Assert.True(File.Exists(getAllPath), $"Playback file not found: {getAllPath}");
                 var getAllContent = await File.ReadAllTextAsync(getAllPath);
@@ -254,7 +254,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback)
             {
                 Assert.NotNull(MockHttpHandler);
-                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "GetFolder", "GetFolder_Success.json");
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "GetFolder", "GetFolder_Success.json");
                 _output.LogInformation($"[Playback] Using response file: {responsePath}");
                 Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
                 var responseContent = await File.ReadAllTextAsync(responsePath);
@@ -313,7 +313,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback)
             {
                 Assert.NotNull(MockHttpHandler);
-                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "CreateFolder", "CreateFolder_Success.json");
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "CreateFolder", "CreateFolder_Success.json");
                 _output.LogInformation($"[Playback] Using response file: {responsePath}");
                 Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
                 var responseContent = await File.ReadAllTextAsync(responsePath);
@@ -366,7 +366,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback)
             {
                 Assert.NotNull(MockHttpHandler);
-                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "UpdateFolder", "UpdateFolder_Success.json");
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "UpdateFolder", "UpdateFolder_Success.json");
                 _output.LogInformation($"[Playback] Using response file: {responsePath}");
                 Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
                 var responseContent = await File.ReadAllTextAsync(responsePath);
@@ -419,7 +419,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback)
             {
                 Assert.NotNull(MockHttpHandler);
-                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "DeleteFolder", "DeleteFolder_Success.json");
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "DeleteFolder", "DeleteFolder_Success.json");
                 _output.LogInformation($"[Playback] Using response file: {responsePath}");
                 Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
                 var responseContent = await File.ReadAllTextAsync(responsePath);
@@ -472,7 +472,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback)
             {
                 Assert.NotNull(MockHttpHandler);
-                var responsePath = Path.Combine(RecordedResponsesBasePath, "FolderService", "CreateFolderFromTemplate", "CreateFolderFromTemplate_Success.json");
+                var responsePath = Path.Combine(RecordedResponsesBasePath, "FoldersService", "CreateFolderFromTemplate", "CreateFolderFromTemplate_Success.json");
                 _output.LogInformation($"[Playback] Using response file: {responsePath}");
                 Assert.True(File.Exists(responsePath), $"Playback file not found: {responsePath}");
                 var responseContent = await File.ReadAllTextAsync(responsePath);
