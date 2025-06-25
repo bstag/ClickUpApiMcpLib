@@ -46,6 +46,6 @@ namespace ClickUp.Api.Client.Models.RequestModels.Tasks
         [property: JsonPropertyName("check_required_custom_fields")] bool? CheckRequiredCustomFields,
         [property: JsonPropertyName("custom_fields")] List<CustomTaskFieldToSet>? CustomFields,
         [property: JsonPropertyName("custom_item_id")] long? CustomItemId,
-        [property: JsonPropertyName("list_id")] string? ListId
+        [property: JsonPropertyName("list_id")] string? ListId = null
     );
 }
