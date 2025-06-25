@@ -68,7 +68,59 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             string serviceName = "UnknownService";
             string derivedMethodNamePart = "UnknownOperation"; // This will be like "GetSpace", "CreateTask"
 
-            if (pathSegments.Length >= 3 && pathSegments[0].ToLowerInvariant() == "api" && pathSegments[1].ToLowerInvariant() == "v2")
+            // Handle v3 paths (e.g., /v3/workspaces/{id}/channels)
+            if (pathSegments.Length >= 1 && pathSegments[0].ToLowerInvariant() == "v3")
+            {
+                // Example: /v3/workspaces/{workspace_id}/channels/{channel_id}/messages
+                // relevantPathSegments for this example: ["workspaces", "{workspace_id}", "channels", "{channel_id}", "messages"]
+                var relevantPathSegments = pathSegments.Skip(1).ToList();
+                if (relevantPathSegments.Any())
+                {
+                    // Determine service based on primary resource after /v3/
+                    // For chat: /v3/workspaces/{id}/channels -> ChatService
+                    // For chat: /v3/chat/messages/{id} -> ChatService
+                    if ((relevantPathSegments.Contains("workspaces") && relevantPathSegments.Contains("channels")) ||
+                        (relevantPathSegments.Contains("chat") && relevantPathSegments.Contains("messages")))
+                    {
+                        serviceName = "ChatService";
+                        if (relevantPathSegments.Contains("channels"))
+                        {
+                            // /v3/workspaces/{wsId}/channels
+                            // /v3/workspaces/{wsId}/channels/{chId}
+                            // /v3/workspaces/{wsId}/channels/{chId}/messages
+                            // /v3/workspaces/{wsId}/channels/{chId}/followers
+                            // /v3/workspaces/{wsId}/channels/{chId}/members
+                            derivedMethodNamePart = "Channels"; // Default for channel operations
+                            if (relevantPathSegments.Last().ToLowerInvariant() == "messages") derivedMethodNamePart = "ChannelMessages";
+                            else if (relevantPathSegments.Last().ToLowerInvariant() == "followers") derivedMethodNamePart = "ChannelFollowers";
+                            else if (relevantPathSegments.Last().ToLowerInvariant() == "members") derivedMethodNamePart = "ChannelMembers";
+                            // If an ID follows "channels", it's an operation on a specific channel.
+                            // e.g. POST /channels -> CreateChannel, GET /channels/{id} -> GetChannel
+                            // The HTTP method (GET, POST) will prefix this.
+                        }
+                        else if (relevantPathSegments.Contains("messages"))
+                        {
+                            // /v3/chat/messages/{msgId}
+                            // /v3/chat/messages/{msgId}/reactions
+                            // /v3/chat/messages/{msgId}/tagged_users
+                            // /v3/chat/messages/{msgId}/messages (replies)
+                            derivedMethodNamePart = "Messages"; // Default for message operations
+                            if (relevantPathSegments.Last().ToLowerInvariant() == "reactions") derivedMethodNamePart = "MessageReactions";
+                            else if (relevantPathSegments.Last().ToLowerInvariant() == "tagged_users") derivedMethodNamePart = "MessageTaggedUsers";
+                            else if (relevantPathSegments.Contains("messages") && relevantPathSegments.Count(s => s=="messages") > 1) derivedMethodNamePart = "MessageReplies";
+
+                        }
+                    }
+                    else
+                    {
+                        // Fallback for other potential v3 services
+                        serviceName = CapitalizeFirstLetter(relevantPathSegments.First()) + "V3Service";
+                        derivedMethodNamePart = CapitalizeFirstLetter(relevantPathSegments.Last());
+                    }
+                }
+            }
+            // Handle v2 paths (e.g., /api/v2/user)
+            else if (pathSegments.Length >= 3 && pathSegments[0].ToLowerInvariant() == "api" && pathSegments[1].ToLowerInvariant() == "v2")
             {
                 var relevantPathSegments = pathSegments.Skip(2).ToList();
                 if (relevantPathSegments.Any())
@@ -88,10 +140,15 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
                                 serviceName = "SpaceService";
                                 derivedMethodNamePart = (request.Method == HttpMethod.Post) ? "CreateSpace" : "GetSpaces";
                             }
-                            else // /team or /team/{team_id}
+                            else if (relevantPathSegments.Count > 2 && relevantPathSegments[2].ToLowerInvariant() == "user") // /team/{team_id}/user/{user_id}
                             {
-                                serviceName = "AuthorizationService";
-                                derivedMethodNamePart = "AuthorizedTeams";
+                                serviceName = "UsersService";
+                                derivedMethodNamePart = "User"; // Will be GETUser, PUTUser, DELETEUser
+                            }
+                            else // /team or /team/{team_id} (not user-specific)
+                            {
+                                serviceName = "AuthorizationService"; // Or TeamService if distinct
+                                derivedMethodNamePart = "AuthorizedTeams"; // Or Team operation
                             }
                             break;
                         case "space":
