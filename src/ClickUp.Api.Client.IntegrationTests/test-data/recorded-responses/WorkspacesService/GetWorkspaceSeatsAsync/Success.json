@@ -1,0 +1,10 @@
+{
+  "members": {
+    "filled_seats": 2,
+    "total_seats": 5
+  },
+  "guests": {
+    "filled_seats": 1,
+    "total_seats": 5
+  }
+}
