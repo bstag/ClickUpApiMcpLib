@@ -99,14 +99,14 @@ public class FluentCreateViewRequest
         return this;
     }
 
-    public async Task<object> CreateAsync(CancellationToken cancellationToken = default)
+    public async Task<View> CreateAsync(CancellationToken cancellationToken = default)
     {
         return _containerType switch
         {
-            ViewContainerType.Workspace => await _viewsService.CreateWorkspaceViewAsync(_containerId, _request, cancellationToken),
-            ViewContainerType.Space => await _viewsService.CreateSpaceViewAsync(_containerId, _request, cancellationToken),
-            ViewContainerType.Folder => await _viewsService.CreateFolderViewAsync(_containerId, _request, cancellationToken),
-            ViewContainerType.List => await _viewsService.CreateListViewAsync(_containerId, _request, cancellationToken),
+            ViewContainerType.Workspace => (await _viewsService.CreateWorkspaceViewAsync(_containerId, _request, cancellationToken)).View,
+            ViewContainerType.Space => (await _viewsService.CreateSpaceViewAsync(_containerId, _request, cancellationToken)).View,
+            ViewContainerType.Folder => (await _viewsService.CreateFolderViewAsync(_containerId, _request, cancellationToken)).View,
+            ViewContainerType.List => (await _viewsService.CreateListViewAsync(_containerId, _request, cancellationToken)).View,
             _ => throw new System.ArgumentOutOfRangeException()
         };
     }
