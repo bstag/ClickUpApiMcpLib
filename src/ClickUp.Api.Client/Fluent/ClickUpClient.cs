@@ -66,31 +66,31 @@ public class ClickUpClient
         _workspacesService = new WorkspacesService(_apiConnection, loggerFactory.CreateLogger<WorkspacesService>());
     }
 
-    public FluentAttachmentsApi Attachments => new FluentAttachmentsApi(_attachmentsService);
-    public FluentAuthorizationApi Authorization => new FluentAuthorizationApi(_authorizationService);
-    public FluentChatApi Chat => new FluentChatApi(_chatService);
-    public FluentCommentApi Comments => new FluentCommentApi(_commentService);
-    public FluentCustomFieldsApi CustomFields => new FluentCustomFieldsApi(_customFieldsService);
-    public FluentDocsApi Docs => new FluentDocsApi(_docsService);
-    public FluentFoldersApi Folders => new FluentFoldersApi(_foldersService);
-    public FluentGoalsApi Goals => new FluentGoalsApi(_goalsService);
-    public FluentGuestsApi Guests => new FluentGuestsApi(_guestsService);
-    public FluentListsApi Lists => new FluentListsApi(_listsService);
-    public FluentMembersApi Members => new FluentMembersApi(_membersService);
-    public FluentRolesApi Roles => new FluentRolesApi(_rolesService);
-    public FluentSharedHierarchyApi SharedHierarchy => new FluentSharedHierarchyApi(_sharedHierarchyService);
-    public FluentSpacesApi Spaces => new FluentSpacesApi(_spacesService);
-    public FluentTagsApi Tags => new FluentTagsApi(_tagsService);
-    public FluentTaskChecklistsApi TaskChecklists => new FluentTaskChecklistsApi(_taskChecklistsService);
-    public FluentTaskRelationshipsApi TaskRelationships => new FluentTaskRelationshipsApi(_taskRelationshipsService);
-    public FluentTasksApi Tasks => new FluentTasksApi(_tasksService);
-    public FluentTemplatesApi Templates => new FluentTemplatesApi(_templatesService);
-    public FluentTimeTrackingApi TimeTracking => new FluentTimeTrackingApi(_timeTrackingService);
-    public FluentUserGroupsApi UserGroupsApi => new FluentUserGroupsApi(_userGroupsService);
-    public FluentUsersApi Users => new FluentUsersApi(_usersService);
-    public FluentViewsApi Views => new FluentViewsApi(_viewsService);
-    public FluentWebhooksApi Webhooks => new FluentWebhooksApi(_webhooksService);
-    public FluentWorkspacesApi Workspaces => new FluentWorkspacesApi(_workspacesService);
+    public AttachmentsFluentApi Attachments => new AttachmentsFluentApi(_attachmentsService);
+    public AuthorizationFluentApi Authorization => new AuthorizationFluentApi(_authorizationService);
+    public ChatFluentApi Chat => new ChatFluentApi(_chatService);
+    public CommentFluentApi Comments => new CommentFluentApi(_commentService);
+    public CustomFieldsFluentApi CustomFields => new CustomFieldsFluentApi(_customFieldsService);
+    public DocsFluentApi Docs => new DocsFluentApi(_docsService);
+    public FoldersFluentApi Folders => new FoldersFluentApi(_foldersService);
+    public GoalsFluentApi Goals => new GoalsFluentApi(_goalsService);
+    public GuestsFluentApi Guests => new GuestsFluentApi(_guestsService);
+    public ListsFluentApi Lists => new ListsFluentApi(_listsService);
+    public MembersFluentApi Members => new MembersFluentApi(_membersService);
+    public RolesFluentApi Roles => new RolesFluentApi(_rolesService);
+    public SharedHierarchyFluentApi SharedHierarchy => new SharedHierarchyFluentApi(_sharedHierarchyService);
+    public SpacesFluentApi Spaces => new SpacesFluentApi(_spacesService);
+    public TagsFluentApi Tags => new TagsFluentApi(_tagsService);
+    public TaskChecklistsFluentApi TaskChecklists => new TaskChecklistsFluentApi(_taskChecklistsService);
+    public TaskRelationshipsFluentApi TaskRelationships => new TaskRelationshipsFluentApi(_taskRelationshipsService);
+    public TasksFluentApi Tasks => new TasksFluentApi(_tasksService);
+    public TemplatesFluentApi Templates => new TemplatesFluentApi(_templatesService);
+    public TimeTrackingFluentApi TimeTracking => new TimeTrackingFluentApi(_timeTrackingService);
+    public UserGroupsFluentApi UserGroupsApi => new UserGroupsFluentApi(_userGroupsService);
+    public UsersFluentApi Users => new UsersFluentApi(_usersService);
+    public ViewsFluentApi Views => new ViewsFluentApi(_viewsService);
+    public WebhooksFluentApi Webhooks => new WebhooksFluentApi(_webhooksService);
+    public WorkspacesFluentApi Workspaces => new WorkspacesFluentApi(_workspacesService);
 
     public static ClickUpClient Create(string apiToken, ILoggerFactory loggerFactory)
     {
