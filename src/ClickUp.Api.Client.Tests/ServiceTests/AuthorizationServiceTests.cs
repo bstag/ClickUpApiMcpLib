@@ -41,7 +41,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var clientSecret = "test_client_secret";
             var code = "test_code";
             var expectedResponse = new GetAccessTokenResponse("test_access_token");
-            var requestPayload = new GetAccessTokenRequest(clientId, clientSecret, code);
+            var requestPayload = new GetAccessTokenRequest { ClientId = clientId, ClientSecret = clientSecret, Code = code };
 
             _mockApiConnection
                 .Setup(x => x.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(

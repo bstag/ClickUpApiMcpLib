@@ -44,7 +44,12 @@ namespace ClickUp.Api.Client.Services
         {
             _logger.LogInformation("Getting access token for Client ID: {ClientId}", clientId);
             var endpoint = "oauth/token";
-            var payload = new GetAccessTokenRequest(clientId, clientSecret, code);
+            var payload = new GetAccessTokenRequest
+            {
+                ClientId = clientId,
+                ClientSecret = clientSecret,
+                Code = code
+            };
             var response = await _apiConnection.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(endpoint, payload, cancellationToken);
             if (response == null) throw new InvalidOperationException("API returned null for GetAccessTokenAsync.");
             return response;
