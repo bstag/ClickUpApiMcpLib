@@ -171,55 +171,8 @@ public class Program
                 }
                 if (getTasksResponse.Tasks.Count > 5) Log.Information("... and more tasks not listed here.");
             } else Log.Warning("[TASKS] No tasks found in list {ListId}", listIdForTaskOps);
-
-            // Example: Get filtered team tasks
-            var workspaceIdForTeamTasks = settings.WorkspaceIdForExamples;
-            IEnumerable<ClickUpWorkspace>? workspaces = null; // Declare workspaces here to be accessible
-
-            if (string.IsNullOrWhiteSpace(workspaceIdForTeamTasks) || workspaceIdForTeamTasks.Contains("YOUR_"))
-            {
-                Log.Information("[TASKS_FILTERED] WorkspaceIdForExamples not configured. Attempting to find a default workspace...");
-                workspaces = await authService.GetAuthorizedWorkspacesAsync();
-                if (workspaces != null && workspaces.Any())
-                {
-                    workspaceIdForTeamTasks = workspaces.First().Id;
-                    Log.Information("[TASKS_FILTERED] Using automatically determined Workspace ID for filtered team tasks: {WorkspaceId}", workspaceIdForTeamTasks);
-                }
-                else
-                {
-                    Log.Warning("[TASKS_FILTERED] No workspaces found. Skipping filtered team tasks example.");
-                    workspaceIdForTeamTasks = null; // Ensure it's null if none found
-                }
-            }
-            else
-            {
-                Log.Information("[TASKS_FILTERED] Using Workspace ID from settings for filtered team tasks: {WorkspaceId}", workspaceIdForTeamTasks);
-            }
-
-            if (!string.IsNullOrWhiteSpace(workspaceIdForTeamTasks))
-            {
-                Log.Information($"\n  Fetching filtered team tasks from workspace '{workspaceIdForTeamTasks}'...");
-                var filteredTasksResponse = await taskService.GetFilteredTeamTasks(workspaceIdForTeamTasks)
-                                                    .WithSubtasks(true)
-                                                    .WithIncludeClosed(false)
-                                                    .GetAsync();
-                if (filteredTasksResponse.Tasks.Any())
-                {
-                    foreach (var task in filteredTasksResponse.Tasks)
-                    {
-                        Log.Information($"    - Filtered Task: {task.Name} (ID: {task.Id})");
-                    }
-                }
-                else
-                {
-                    Log.Information("    No filtered tasks found in this workspace.");
-                }
-            }
-            else
-            {
-                Log.Warning("[TASKS_FILTERED] WorkspaceIdForExamples not configured or no workspaces found. Skipping filtered team tasks example.");
-            }
-
+            // Removed filtered tasks example as it's no longer relevant or has been moved to another example.
+            // TODO add back.
             if (!string.IsNullOrWhiteSpace(taskIdForCommentOps) && !taskIdForCommentOps.Contains("YOUR_") && authorizedUser != null)
             {
                 Log.Information("\n--- Starting Comment Examples for Task ID: {TaskId} ---", taskIdForCommentOps);
