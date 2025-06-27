@@ -11,19 +11,19 @@ public class GetAccessTokenRequest
     /// Gets the client ID of your ClickUp OAuth app.
     /// </summary>
     [JsonPropertyName("client_id")]
-    public string ClientId { get; }
+    public string ClientId { get; set; }
 
     /// <summary>
     /// Gets the client secret of your ClickUp OAuth app.
     /// </summary>
     [JsonPropertyName("client_secret")]
-    public string ClientSecret { get; }
+    public string ClientSecret { get; set; }
 
     /// <summary>
     /// Gets the authorization code received from the OAuth authorization flow.
     /// </summary>
     [JsonPropertyName("code")]
-    public string Code { get; }
+    public string Code { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetAccessTokenRequest"/> class.
