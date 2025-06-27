@@ -3,28 +3,48 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System.IO; // For Stream
 using ClickUp.Api.Client.Models.RequestModels.Docs; // For ParentDocIdentifier
 using ClickUp.Api.Client.Models.RequestModels.UserGroups; // For UserGroupMembersUpdate
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
+using ClickUp.Api.Client.Fluent.Console;
 
 Console.WriteLine("Hello, ClickUp Fluent API!");
+
+// Build configuration
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .Build();
+
+var settings = configuration.GetSection("ClickUpSettings").Get<ClickUpSettings>();
+
+if (settings is null)
+{
+    Console.WriteLine("Failed to load ClickUpSettings from appsettings.json");
+    return;
+}
 
 // You'll need a logger factory. For simple cases, you can use NullLoggerFactory.Instance.
 var loggerFactory = NullLoggerFactory.Instance;
 
 // Create a client with your API token
-// IMPORTANT: Replace "YOUR_API_TOKEN" with your actual ClickUp API token.
-var client = ClickUpClient.Create("YOUR_API_TOKEN", loggerFactory);
+if (string.IsNullOrWhiteSpace(settings.ApiToken) || settings.ApiToken == "YOUR_API_TOKEN")
+{
+    Console.WriteLine("Please set your API token in appsettings.json under ClickUpSettings:ApiToken.");
+    return;
+}
+var client = ClickUpClient.Create(settings.ApiToken, loggerFactory);
 
 // Example: Get all workspaces
 try
 {
     Console.WriteLine("\nFetching workspaces...");
-    var workspacesResponse = await client.Workspaces.GetAsync();
-    foreach (var workspace in workspacesResponse.Workspaces)
+    var workspaceIdForSpaces = settings.WorkspaceId ?? "YOUR_WORKSPACE_ID";
+    var workspacesResponse = await client.Spaces.GetSpacesAsync(workspaceIdForSpaces);
+    foreach (var workspace in workspacesResponse)
     {
         Console.WriteLine($"- Workspace: {workspace.Name} (ID: {workspace.Id})");
 
         // Example: Get tasks from a specific list within the workspace
-        // IMPORTANT: Replace "YOUR_LIST_ID" with an actual list ID from your workspace.
-        const string listId = "YOUR_LIST_ID";
+        var listId = settings.ListId ?? "YOUR_LIST_ID";
         if (listId != "YOUR_LIST_ID")
         {
             Console.WriteLine($"\n  Fetching tasks from list '{listId}'...");
@@ -103,9 +123,9 @@ try
             var chatChannelsResponse = await client.Chat.GetChatChannels(workspaceId)
                                                     .WithLimit(10)
                                                     .GetAsync();
-            if (chatChannelsResponse.Channels.Any())
+            if (chatChannelsResponse.Data.Any())
             {
-                foreach (var channel in chatChannelsResponse.Channels)
+                foreach (var channel in chatChannelsResponse.Data)
                 {
                     Console.WriteLine($"    - Chat Channel: {channel.Name} (ID: {channel.Id})");
                 }
@@ -220,7 +240,7 @@ try
             try
             {
                 var guestResponse = await client.Guests.GetGuestAsync(workspaceId, guestId);
-                Console.WriteLine($"    Guest: {guestResponse.Guest.Username} (ID: {guestResponse.Guest.Id})");
+                Console.WriteLine($"    Guest: {guestResponse.Guest.User.Username} (ID: {guestResponse.Guest.User.Id})");
             }
             catch (Exception ex)
             {
@@ -259,7 +279,7 @@ try
             {
                 foreach (var member in taskMembers)
                 {
-                    Console.WriteLine($"    - Task Member: {member.Username} (ID: {member.Id})");
+                    Console.WriteLine($"    - Task Member: {member.User.Username} (ID: {member.User.Id})");
                 }
             }
             else
@@ -293,9 +313,9 @@ try
         {
             Console.WriteLine($"\n  Fetching shared hierarchy for workspace '{workspaceId}'...");
             var sharedHierarchy = await client.SharedHierarchy.GetSharedHierarchyAsync(workspaceId);
-            Console.WriteLine($"    Shared Tasks Count: {sharedHierarchy.Tasks.Count}");
-            Console.WriteLine($"    Shared Lists Count: {sharedHierarchy.Lists.Count}");
-            Console.WriteLine($"    Shared Folders Count: {sharedHierarchy.Folders.Count}");
+            Console.WriteLine($"    Shared Tasks Count: {sharedHierarchy.Shared.Tasks.Count}");
+            Console.WriteLine($"    Shared Lists Count: {sharedHierarchy.Shared.Lists.Count}");
+            Console.WriteLine($"    Shared Folders Count: {sharedHierarchy.Shared.Folders.Count}");
         }
 
         // Example: Spaces API - Get spaces
@@ -328,7 +348,7 @@ try
             {
                 foreach (var tag in tags)
                 {
-                    Console.WriteLine($"    - Tag: {tag.Name} (Color: {tag.TagForegroundColor})");
+                    Console.WriteLine($"    - Tag: {tag.Name} (Color: {tag.TagFg})");
                 }
             }
             else
@@ -422,7 +442,7 @@ try
         if (workspaceId != "YOUR_WORKSPACE_ID")
         {
             Console.WriteLine($"\n  Fetching user groups for workspace '{workspaceId}'...");
-            var userGroups = await client.UserGroups.GetUserGroupsAsync(workspaceId);
+            var userGroups = await client.UserGroupsApi.GetUserGroupsAsync(workspaceId);
             if (userGroups.Any())
             {
                 foreach (var group in userGroups)
@@ -482,7 +502,7 @@ try
             {
                 foreach (var webhook in webhooks)
                 {
-                    Console.WriteLine($"    - Webhook: {webhook.Url} (ID: {webhook.Id})");
+                    Console.WriteLine($"    - Webhook: {webhook.Endpoint} (ID: {webhook.Id})");
                 }
             }
             else
@@ -495,5 +515,5 @@ try
 catch (Exception ex)
 {
     Console.WriteLine($"\nAn error occurred: {ex.Message}");
-    Console.WriteLine("Please ensure you have replaced 'YOUR_API_TOKEN' and other placeholder IDs with your actual data.");
+    Console.WriteLine("Please ensure you have set your API token and other IDs in appsettings.json.");
 }
