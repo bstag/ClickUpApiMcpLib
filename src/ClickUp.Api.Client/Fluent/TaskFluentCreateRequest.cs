@@ -164,7 +164,7 @@ public class TaskFluentCreateRequest
             Parent: _parent,
             LinksTo: _linksTo,
             CheckRequiredCustomFields: _checkRequiredCustomFields,
-            CustomFields: null, // Not handled by this fluent builder yet
+            CustomFields: _customFields, // This needs to be properly handled. The `WithCustomFields` method takes a string, but the request expects a List of DTOs.
             CustomItemId: _customItemId,
             ListId: _listId // Passed from constructor
         );

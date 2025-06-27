@@ -38,8 +38,8 @@ try
 {
     Console.WriteLine("\nFetching workspaces...");
     var workspaceIdForSpaces = settings.WorkspaceId ?? "YOUR_WORKSPACE_ID";
-    var workspacesResponse = await client.Spaces.GetSpacesAsync(workspaceIdForSpaces);
-    foreach (var workspace in workspacesResponse)
+    var workspaces = await client.Authorization.GetAuthorizedWorkspacesAsync();
+    foreach (var workspace in workspaces)
     {
         Console.WriteLine($"- Workspace: {workspace.Name} (ID: {workspace.Id})");
 

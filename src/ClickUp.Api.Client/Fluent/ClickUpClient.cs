@@ -86,7 +86,7 @@ public class ClickUpClient
     public TasksFluentApi Tasks => new TasksFluentApi(_tasksService);
     public TemplatesFluentApi Templates => new TemplatesFluentApi(_templatesService);
     public TimeTrackingFluentApi TimeTracking => new TimeTrackingFluentApi(_timeTrackingService);
-    public UserGroupsFluentApi UserGroupsApi => new UserGroupsFluentApi(_userGroupsService);
+    public UserGroupsFluentApi UserGroups => new UserGroupsFluentApi(_userGroupsService);
     public UsersFluentApi Users => new UsersFluentApi(_usersService);
     public ViewsFluentApi Views => new ViewsFluentApi(_viewsService);
     public WebhooksFluentApi Webhooks => new WebhooksFluentApi(_webhooksService);
