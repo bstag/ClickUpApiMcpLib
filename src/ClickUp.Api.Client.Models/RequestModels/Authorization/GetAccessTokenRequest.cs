@@ -1,10 +1,5 @@
-using System.Text.Json.Serialization;
-
 namespace ClickUp.Api.Client.Models.RequestModels.Authorization;
 
-/// <summary>
-/// Represents the request body for obtaining an OAuth access token.
-/// </summary>
 public class GetAccessTokenRequest
 {
     /// <summary>
@@ -38,3 +33,4 @@ public class GetAccessTokenRequest
         Code = code;
     }
 }
+
