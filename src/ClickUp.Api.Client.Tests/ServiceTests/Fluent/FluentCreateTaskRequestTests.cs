@@ -43,7 +43,7 @@ public class FluentCreateTaskRequestTests
         var startDateTime = true;
         var parent = "testParentId";
         var notifyAll = true;
-        var customFields = "{}"; // Mock custom fields JSON
+        var customFields = new List<CustomTaskFieldToSet>(); // Use an empty list or mock as needed
         var linksTo = "testLinksToId";
         var checkRequiredCustomFields = true;
         var customItemId = 12345L;

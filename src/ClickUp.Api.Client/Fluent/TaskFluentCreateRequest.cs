@@ -23,7 +23,7 @@ public class TaskFluentCreateRequest
     private bool? _startDateTime;
     private string? _parent;
     private bool? _notifyAll;
-    private string? _customFields;
+    private List<CustomTaskFieldToSet>? _customFields;
     private string? _linksTo;
     private bool? _checkRequiredCustomFields;
     private long? _customItemId;
@@ -121,7 +121,7 @@ public class TaskFluentCreateRequest
         return this;
     }
 
-    public TaskFluentCreateRequest WithCustomFields(string customFields)
+    public TaskFluentCreateRequest WithCustomFields(List<CustomTaskFieldToSet> customFields)
     {
         _customFields = customFields;
         return this;
@@ -164,7 +164,7 @@ public class TaskFluentCreateRequest
             Parent: _parent,
             LinksTo: _linksTo,
             CheckRequiredCustomFields: _checkRequiredCustomFields,
-            CustomFields: _customFields, // This needs to be properly handled. The `WithCustomFields` method takes a string, but the request expects a List of DTOs.
+            CustomFields: _customFields, // Now correctly typed
             CustomItemId: _customItemId,
             ListId: _listId // Passed from constructor
         );

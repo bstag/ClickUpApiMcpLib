@@ -442,7 +442,7 @@ try
         if (workspaceId != "YOUR_WORKSPACE_ID")
         {
             Console.WriteLine($"\n  Fetching user groups for workspace '{workspaceId}'...");
-            var userGroups = await client.UserGroupsApi.GetUserGroupsAsync(workspaceId);
+            var userGroups = await client.UserGroups.GetUserGroupsAsync(workspaceId);
             if (userGroups.Any())
             {
                 foreach (var group in userGroups)
