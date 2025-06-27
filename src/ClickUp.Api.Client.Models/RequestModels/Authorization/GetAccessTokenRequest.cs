@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace ClickUp.Api.Client.Models.RequestModels.Authorization;
@@ -8,6 +9,7 @@ public class GetAccessTokenRequest
     /// Gets the client ID of your ClickUp OAuth app.
     /// </summary>
     [JsonPropertyName("client_id")]
+    [Required]
     public string? ClientId { get; set; }
 
     /// <summary>
@@ -28,16 +30,15 @@ public class GetAccessTokenRequest
     /// <param name="clientId">The client ID of your ClickUp OAuth app.</param>
     /// <param name="clientSecret">The client secret of your ClickUp OAuth app.</param>
     /// <param name="code">The authorization code received from the OAuth authorization flow.</param>
-    public GetAccessTokenRequest(string clientId, string clientSecret, string code)
-    {
+    public GetAccessTokenRequest(string? clientId = null, string? clientSecret = null, string? code = null) {
         ClientId = clientId;
         ClientSecret = clientSecret;
         Code = code;
     }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="GetAccessTokenRequest"/> class.
     /// </summary>
     public GetAccessTokenRequest() { }
+    
 }
 

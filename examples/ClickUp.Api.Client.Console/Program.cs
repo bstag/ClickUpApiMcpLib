@@ -171,7 +171,8 @@ public class Program
                 }
                 if (getTasksResponse.Tasks.Count > 5) Log.Information("... and more tasks not listed here.");
             } else Log.Warning("[TASKS] No tasks found in list {ListId}", listIdForTaskOps);
-
+            // Removed filtered tasks example as it's no longer relevant or has been moved to another example.
+            // TODO add back.
             if (!string.IsNullOrWhiteSpace(taskIdForCommentOps) && !taskIdForCommentOps.Contains("YOUR_") && authorizedUser != null)
             {
                 Log.Information("\n--- Starting Comment Examples for Task ID: {TaskId} ---", taskIdForCommentOps);
