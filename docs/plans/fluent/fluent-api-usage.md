@@ -39,14 +39,14 @@ For more complex requests that involve multiple parameters, the fluent API uses 
 Here's how you can get a list of tasks from a specific list and apply various filters:
 
 ```csharp
-var tasksResponse = await client.Tasks.GetAsync("YOUR_LIST_ID", request =>
-    request.WithArchived(false)
-           .WithPage(0)
-           .WithOrderBy("created")
-           .WithReverse(true)
-           .WithSubtasks(true)
-           .WithStatuses(new[] { "open", "in progress" })
-);
+var tasksResponse = await client.Tasks.Get("YOUR_LIST_ID")
+    .WithArchived(false)
+    .WithPage(0)
+    .WithOrderBy("created")
+    .WithReverse(true)
+    .WithSubtasks(true)
+    .WithStatuses(new[] { "open", "in progress" })
+    .GetAsync();
 
 foreach (var task in tasksResponse.Tasks)
 {
