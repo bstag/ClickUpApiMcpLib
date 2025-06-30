@@ -99,11 +99,11 @@ The following phases outline a roadmap for further developing the Fluent API.
     *   **Value:** Improves the clarity and maintainability of the core service layer. Ensures that the fluent API builders have a consistent and well-structured object to populate, leading to cleaner fluent implementations.
     *   **Tasks:**
         *   - [ ] **General Audit:** Review all `I...Service.cs` methods that return lists or have numerous optional parameters.
-        *   - [ ] **ITasksService Example:**
-            *   - [ ] Refactor `ITasksService.GetFilteredTeamTasksAsync(...)` to accept a `GetFilteredTeamTasksRequest` object.
-            *   - [ ] Update `TasksService.GetFilteredTeamTasksAsync` implementation.
-            *   - [ ] Update `TasksFluentGetFilteredTeamRequest` to build and pass the new request object.
-            *   - [ ] Refactor `ITasksService.GetFilteredTeamTasksAsyncEnumerableAsync(...)` to also accept or internally use the `GetFilteredTeamTasksRequest` object for consistency.
+        *   - [x] **ITasksService Example:**
+            *   - [x] Refactor `ITasksService.GetFilteredTeamTasksAsync(...)` to accept a `GetFilteredTeamTasksRequest` object.
+            *   - [x] Update `TasksService.GetFilteredTeamTasksAsync` implementation.
+            *   - [x] Update `TasksFluentGetFilteredTeamRequest` to build and pass the new request object.
+            *   - [x] Refactor `ITasksService.GetFilteredTeamTasksAsyncEnumerableAsync(...)` to also accept or internally use the `GetFilteredTeamTasksRequest` object for consistency.
         *   - [ ] **Other Services:** Identify and list other service methods requiring similar refactoring based on the audit. For each identified method:
             *   - [ ] Define the new `...Request` DTO.
             *   - [ ] Update the service interface and implementation.

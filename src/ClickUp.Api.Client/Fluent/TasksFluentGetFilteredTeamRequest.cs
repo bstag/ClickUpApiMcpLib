@@ -44,35 +44,12 @@ public class TasksFluentGetFilteredTeamRequest
     public TasksFluentGetFilteredTeamRequest WithParentTaskId(string parentTaskId) { _request.ParentTaskId = parentTaskId; return this; }
     public TasksFluentGetFilteredTeamRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription) { _request.IncludeMarkdownDescription = includeMarkdownDescription; return this; }
 
-    public async Task<GetTasksResponse> GetAsync()
+    public async Task<GetTasksResponse> GetAsync(System.Threading.CancellationToken cancellationToken = default)
     {
         return await _tasksService.GetFilteredTeamTasksAsync(
             _workspaceId,
-            _request.Page,
-            _request.OrderBy,
-            _request.Reverse,
-            _request.Subtasks,
-            _request.SpaceIds,
-            _request.ProjectIds,
-            _request.ListIds,
-            _request.Statuses,
-            _request.IncludeClosed,
-            _request.Assignees,
-            _request.Tags,
-            _request.DueDateGreaterThan,
-            _request.DueDateLessThan,
-            _request.DateCreatedGreaterThan,
-            _request.DateCreatedLessThan,
-            _request.DateUpdatedGreaterThan,
-            _request.DateUpdatedLessThan,
-            _request.CustomFields,
-            _request.CustomTaskIds,
-            _request.TeamIdForCustomTaskIds,
-            _request.CustomItems,
-            _request.DateDoneGreaterThan,
-            _request.DateDoneLessThan,
-            _request.ParentTaskId,
-            _request.IncludeMarkdownDescription
+            _request,
+            cancellationToken
         );
     }
 }
