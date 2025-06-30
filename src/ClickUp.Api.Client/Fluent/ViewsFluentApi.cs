@@ -78,4 +78,92 @@ public class ViewsFluentApi
     {
         return await _viewsService.GetViewTasksAsync(viewId, page, cancellationToken);
     }
+
+    /// <summary>
+    /// Retrieves all Workspace (Everything level) views asynchronously.
+    /// The underlying API is not paginated for listing views.
+    /// </summary>
+    /// <param name="workspaceId">The ID of the workspace (team).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="View"/>.</returns>
+    public async IAsyncEnumerable<View> GetWorkspaceViewsAsyncEnumerableAsync(
+        string workspaceId,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var response = await _viewsService.GetWorkspaceViewsAsync(workspaceId, cancellationToken).ConfigureAwait(false);
+        if (response?.Views != null)
+        {
+            foreach (var view in response.Views)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return view;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Retrieves all views for a specific Space asynchronously.
+    /// The underlying API is not paginated for listing views.
+    /// </summary>
+    /// <param name="spaceId">The ID of the Space.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="View"/>.</returns>
+    public async IAsyncEnumerable<View> GetSpaceViewsAsyncEnumerableAsync(
+        string spaceId,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var response = await _viewsService.GetSpaceViewsAsync(spaceId, cancellationToken).ConfigureAwait(false);
+        if (response?.Views != null)
+        {
+            foreach (var view in response.Views)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return view;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Retrieves all views for a specific Folder asynchronously.
+    /// The underlying API is not paginated for listing views.
+    /// </summary>
+    /// <param name="folderId">The ID of the Folder.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="View"/>.</returns>
+    public async IAsyncEnumerable<View> GetFolderViewsAsyncEnumerableAsync(
+        string folderId,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var response = await _viewsService.GetFolderViewsAsync(folderId, cancellationToken).ConfigureAwait(false);
+        if (response?.Views != null)
+        {
+            foreach (var view in response.Views)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return view;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Retrieves all views for a specific List asynchronously.
+    /// The underlying API is not paginated for listing views.
+    /// </summary>
+    /// <param name="listId">The ID of the List.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="View"/>.</returns>
+    public async IAsyncEnumerable<View> GetListViewsAsyncEnumerableAsync(
+        string listId,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var response = await _viewsService.GetListViewsAsync(listId, cancellationToken).ConfigureAwait(false);
+        if (response?.Views != null)
+        {
+            foreach (var view in response.Views)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return view;
+            }
+        }
+    }
 }

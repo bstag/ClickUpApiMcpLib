@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ClickUp.Api.Client.Models.Common;
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Members
 {

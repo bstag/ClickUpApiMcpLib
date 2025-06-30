@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
+using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.ResponseModels.Members;
 using ClickUp.Api.Client.Models.Entities.Users;
 using ClickUp.Api.Client.Services;
@@ -48,8 +49,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         private Member CreateSampleMember(int userId = 1, string username = "Test Member") // Changed userId to int
         {
             var user = CreateSampleUser(userId, username);
-            var member = new Member { User = user }; // Initialize using object initializer for required property
-            // member.Role = "some_role_if_needed"; // Role is string? and can be set as a property
+            var member = new Member(user, null, null); // Pass required 'User' parameter and optional parameters as null
             return member;
         }
 

@@ -10,7 +10,7 @@ using Moq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
+using ClickUp.Api.Client.Models.Common;
 using Xunit;
 
 namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent;
