@@ -72,22 +72,22 @@ The following phases outline a roadmap for further developing the Fluent API.
         *   - [x] **CustomFieldsFluentApi:** Implement for `GetAccessibleCustomFieldsAsyncEnumerableAsync`. (Note: API is not paginated, so this is a wrapper.)
         *   - [x] **DocsFluentApi:** Implement for `GetDocsAsyncEnumerableAsync`, `SearchDocsAsyncEnumerableAsync`. (Leveraged existing `SearchAllDocsAsync` from service layer which handles pagination.)
         *   - [x] **FoldersFluentApi:** Implement for `GetFoldersAsyncEnumerableAsync`. (Note: API is not paginated, so this is a wrapper.)
-        *   - [ ] **GoalsFluentApi:** Implement for `GetGoalsAsyncEnumerableAsync`.
-        *   - [ ] **GuestsFluentApi:** Review all list-returning methods (e.g., `GetGuests`, `GetGuestTasks`) and implement `...AsyncEnumerableAsync` equivalents. pagination does not exist on guests.
+        *   - [ ] **GoalsFluentApi:** Implement for `GetGoalsAsyncEnumerableAsync`. it does not have pagination. 
+        *   - [ ] **GuestsFluentApi:** Review all list-returning methods (e.g., `GetGuests`, `GetGuestTasks`) and implement `...AsyncEnumerableAsync` equivalents. it does not have pagination. 
         *   - [x] **ListsFluentApi:** Implement for `GetListsAsyncEnumerableAsync`, `GetFolderlessListsAsyncEnumerableAsync`.
-        *   - [ ] **MembersFluentApi:** Review all list-returning methods (e.g., `GetWorkspaceMembers`, `GetListMembers`, `GetTaskMembers`) and implement `...AsyncEnumerableAsync` equivalents.
-        *   - [ ] **RolesFluentApi:** Implement for `GetRolesAsyncEnumerableAsync` if it returns a list that can be paginated.
-        *   - [ ] **SharedHierarchyFluentApi:** Implement for `GetSharedHierarchyAsyncEnumerableAsync`.
+        *   - [ ] **MembersFluentApi:** Review all list-returning methods (e.g., `GetWorkspaceMembers`, `GetListMembers`, `GetTaskMembers`) and implement `...AsyncEnumerableAsync` equivalents. it does not have pagination. 
+        *   - [ ] **RolesFluentApi:** Implement for `GetRolesAsyncEnumerableAsync` it does not have pagination. 
+        *   - [ ] **SharedHierarchyFluentApi:** Implement for `GetSharedHierarchyAsyncEnumerableAsync`. it does not have pagination. 
         *   - [x] **SpacesFluentApi:** Implement for `GetSpacesAsyncEnumerableAsync`.
         *   - [x] **TagsFluentApi:** Implement for `GetSpaceTagsAsyncEnumerableAsync`.
         *   - [x] **TasksFluentApi:** Already implements `GetTasksAsyncEnumerableAsync` and `GetFilteredTeamTasksAsyncEnumerableAsync`. Serve as a model.
-        *   - [ ] **TemplatesFluentApi:** Implement for `GetTemplatesAsyncEnumerableAsync`.
-        *   - [ ] **TimeTrackingFluentApi:** Implement for `GetTimeEntriesAsyncEnumerableAsync`, `GetTimeEntryHistoryAsyncEnumerableAsync`.
-        *   - [ ] **UserGroupsFluentApi:** Implement for `GetUserGroupsAsyncEnumerableAsync`, `GetGroupMembersAsyncEnumerableAsync`.
-        *   - [ ] **UsersFluentApi:** Implement for `GetUsersAsyncEnumerableAsync` if applicable for listing multiple users.
-        *   - [ ] **ViewsFluentApi:** Implement for `GetSpaceViewsAsyncEnumerableAsync`, `GetFolderViewsAsyncEnumerableAsync`, `GetListViewsAsyncEnumerableAsync`. (Note: `GetTaskViews` might be singular).
-        *   - [ ] **WebhooksFluentApi:** Implement for `GetWebhooksAsyncEnumerableAsync`.
-        *   - [ ] **WorkspacesFluentApi:** Implement for `GetWorkspacesAsyncEnumerableAsync` (though likely small, for consistency if API supports pagination).
+        *   - [ ] **TemplatesFluentApi:** Implement for `GetTemplatesAsyncEnumerableAsync`. 
+        *   - [ ] **TimeTrackingFluentApi:** Implement for `GetTimeEntriesAsyncEnumerableAsync`, `GetTimeEntryHistoryAsyncEnumerableAsync`. it does not have pagination. 
+        *   - [ ] **UserGroupsFluentApi:** Implement for `GetUserGroupsAsyncEnumerableAsync`, `GetGroupMembersAsyncEnumerableAsync`. it does not have pagination. 
+        *   - [ ] **UsersFluentApi:** Implement for `GetUsersAsyncEnumerableAsync` if applicable for listing multiple users. you can not list multiple users.
+        *   - [ ] **ViewsFluentApi:** Implement for `GetSpaceViewsAsyncEnumerableAsync`, `GetFolderViewsAsyncEnumerableAsync`, `GetListViewsAsyncEnumerableAsync`. (Note: `GetTaskViews` might be singular). it does not have pagination. 
+        *   - [ ] **WebhooksFluentApi:** Implement for `GetWebhooksAsyncEnumerableAsync`.it does not have pagination. 
+        *   - [ ] **WorkspacesFluentApi:** Implement for `GetWorkspacesAsyncEnumerableAsync` (though likely small, for consistency if API supports pagination). it does not have pagination. 
 
 2.  **Step 2.2: Refactor Service Methods to Use Request Objects (If Necessary)**
     *   **Action:** If the audit in Step 1.1 reveals any `I...Service.cs` methods that still accept a large number of optional parameters directly (instead of a single request object), refactor them.
