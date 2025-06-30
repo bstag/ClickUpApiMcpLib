@@ -39,17 +39,14 @@ public class CommentFluentApi
     /// <param name="start">Optional. A Unix timestamp (in milliseconds) to start fetching comments from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Comment"/>.</returns>
-    public async IAsyncEnumerable<Comment> GetTaskCommentsAsyncEnumerableAsync(
+    public IAsyncEnumerable<Comment> GetTaskCommentsAsyncEnumerableAsync(
         string taskId,
         bool? customTaskIds = null,
         string? teamId = null,
         long? start = null,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(taskId, customTaskIds, teamId, start, cancellationToken).WithCancellation(cancellationToken))
-        {
-            yield return comment;
-        }
+        return _commentService.GetTaskCommentsStreamAsync(taskId, customTaskIds, teamId, start, cancellationToken);
     }
 
     /// <summary>
@@ -59,15 +56,12 @@ public class CommentFluentApi
     /// <param name="start">Optional. A Unix timestamp (in milliseconds) to start fetching comments from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Comment"/>.</returns>
-    public async IAsyncEnumerable<Comment> GetListCommentsAsyncEnumerableAsync(
+    public IAsyncEnumerable<Comment> GetListCommentsAsyncEnumerableAsync(
         string listId,
         long? start = null,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach (var comment in _commentService.GetListCommentsStreamAsync(listId, start, cancellationToken).WithCancellation(cancellationToken))
-        {
-            yield return comment;
-        }
+        return _commentService.GetListCommentsStreamAsync(listId, start, cancellationToken);
     }
 
     /// <summary>
@@ -77,14 +71,11 @@ public class CommentFluentApi
     /// <param name="start">Optional. A Unix timestamp (in milliseconds) to start fetching comments from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Comment"/>.</returns>
-    public async IAsyncEnumerable<Comment> GetChatViewCommentsAsyncEnumerableAsync(
+    public IAsyncEnumerable<Comment> GetChatViewCommentsAsyncEnumerableAsync(
         string viewId,
         long? start = null,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach (var comment in _commentService.GetChatViewCommentsStreamAsync(viewId, start, cancellationToken).WithCancellation(cancellationToken))
-        {
-            yield return comment;
-        }
+        return _commentService.GetChatViewCommentsStreamAsync(viewId, start, cancellationToken);
     }
 }

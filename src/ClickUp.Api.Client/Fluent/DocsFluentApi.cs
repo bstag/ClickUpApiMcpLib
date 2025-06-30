@@ -4,7 +4,8 @@ using ClickUp.Api.Client.Models.Entities.Docs;
 using ClickUp.Api.Client.Models.RequestModels.Docs; // Contains SearchDocsRequest and LocationType
 using ClickUp.Api.Client.Models.ResponseModels.Docs;
 using System.Collections.Generic;
-using System.Linq; // For .ToList()
+using System.Linq;
+using System.Runtime.CompilerServices; // For .ToList()
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,22 +47,26 @@ public class DocsFluentApi
         return await _docsService.GetDocAsync(workspaceId, docId, cancellationToken);
     }
 
-    public async Task<IEnumerable<DocPageListingItem>> GetDocPageListingAsync(string workspaceId, string docId, int? maxPageDepth = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DocPageListingItem>> GetDocPageListingAsync(string workspaceId, string docId,
+        int? maxPageDepth = null, CancellationToken cancellationToken = default)
     {
         return await _docsService.GetDocPageListingAsync(workspaceId, docId, maxPageDepth, cancellationToken);
     }
 
-    public async Task<IEnumerable<Page>> GetDocPagesAsync(string workspaceId, string docId, int? maxPageDepth = null, string? contentFormat = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Page>> GetDocPagesAsync(string workspaceId, string docId, int? maxPageDepth = null,
+        string? contentFormat = null, CancellationToken cancellationToken = default)
     {
         return await _docsService.GetDocPagesAsync(workspaceId, docId, maxPageDepth, contentFormat, cancellationToken);
     }
 
-    public PageFluentCreateRequest CreatePage(string workspaceId, string docId, string name, string content, string contentFormat)
+    public PageFluentCreateRequest CreatePage(string workspaceId, string docId, string name, string content,
+        string contentFormat)
     {
         return new PageFluentCreateRequest(workspaceId, docId, _docsService, name, content, contentFormat);
     }
 
-    public async Task<Page> GetPageAsync(string workspaceId, string docId, string pageId, string? contentFormat = null, CancellationToken cancellationToken = default)
+    public async Task<Page> GetPageAsync(string workspaceId, string docId, string pageId, string? contentFormat = null,
+        CancellationToken cancellationToken = default)
     {
         return await _docsService.GetPageAsync(workspaceId, docId, pageId, contentFormat, cancellationToken);
     }
@@ -81,25 +86,20 @@ public class DocsFluentApi
     /// <param name="includeDeleted">Optional. Whether to include deleted docs. Defaults to false.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Doc"/>.</returns>
-    public async IAsyncEnumerable<Doc> GetDocsAsyncEnumerableAsync(
+    public IAsyncEnumerable<Doc> GetDocsAsyncEnumerableAsync(
         string workspaceId,
         bool? includeArchived = null,
         bool? includeDeleted = null,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var searchRequest = new SearchDocsRequest // Using the specific request model for clarity
+        var searchRequest = new SearchDocsRequest
         {
-            // Query = null by default, meaning no specific text search
             IncludeArchived = includeArchived,
             IncludeDeleted = includeDeleted
-            // Other filters like SpaceIds, FolderIds, etc., are null by default,
-            // effectively listing all accessible docs within the workspace subject to permissions.
         };
 
-        await foreach (var doc in _docsService.SearchAllDocsAsync(workspaceId, searchRequest, cancellationToken).WithCancellation(cancellationToken))
-        {
-            yield return doc;
-        }
+        // Remove WithCancellation to match the expected return type
+        return _docsService.SearchAllDocsAsync(workspaceId, searchRequest, cancellationToken);
     }
 
     /// <summary>
