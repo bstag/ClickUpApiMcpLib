@@ -65,19 +65,94 @@ The following phases outline a roadmap for further developing the Fluent API.
     *   **Action:** Based on the audit in Step 1.1, implement `...AsyncEnumerableAsync` methods in their respective `...FluentApi.cs` classes for all service operations that return paginated lists of items and currently lack this feature.
     *   **Details:** These methods should encapsulate the pagination logic, making it trivial for users to iterate over all items in a collection without manual page handling. Follow the pattern established in `TasksFluentApi.cs`.
     *   **Value:** Significantly simplifies common data retrieval tasks, reduces boilerplate code for users, and makes the library more user-friendly.
+    *   **Tasks:**
+        *   - [ ] **AttachmentsFluentApi:** Review methods like `GetTaskAttachments` and implement `...AsyncEnumerableAsync` if applicable.
+        *   - [ ] **ChatFluentApi:** Implement for methods like `GetViewMessagesAsyncEnumerableAsync`, `GetChannelMessagesAsyncEnumerableAsync`. https://developer.clickup.com/reference/getchatmessages
+        *   - [ ] **CommentsFluentApi:** Implement for `GetTaskCommentsAsyncEnumerableAsync`, `GetListCommentsAsyncEnumerableAsync`, `GetChatMessagesCommentsAsyncEnumerableAsync`. https://developer.clickup.com/reference/getchatviewcomments 
+        *   - [ ] **CustomFieldsFluentApi:** Implement for `GetAccessibleCustomFieldsAsyncEnumerableAsync`.
+        *   - [ ] **DocsFluentApi:** Implement for `GetDocsAsyncEnumerableAsync`, `SearchDocsAsyncEnumerableAsync`.
+        *   - [ ] **FoldersFluentApi:** Implement for `GetFoldersAsyncEnumerableAsync`.
+        *   - [ ] **GoalsFluentApi:** Implement for `GetGoalsAsyncEnumerableAsync`.
+        *   - [ ] **GuestsFluentApi:** Review all list-returning methods (e.g., `GetGuests`, `GetGuestTasks`) and implement `...AsyncEnumerableAsync` equivalents. pagination does not exist on guests.
+        *   - [ ] **ListsFluentApi:** Implement for `GetListsAsyncEnumerableAsync`, `GetFolderlessListsAsyncEnumerableAsync`.
+        *   - [ ] **MembersFluentApi:** Review all list-returning methods (e.g., `GetWorkspaceMembers`, `GetListMembers`, `GetTaskMembers`) and implement `...AsyncEnumerableAsync` equivalents.
+        *   - [ ] **RolesFluentApi:** Implement for `GetRolesAsyncEnumerableAsync` if it returns a list that can be paginated.
+        *   - [ ] **SharedHierarchyFluentApi:** Implement for `GetSharedHierarchyAsyncEnumerableAsync`.
+        *   - [ ] **SpacesFluentApi:** Implement for `GetSpacesAsyncEnumerableAsync`.
+        *   - [ ] **TagsFluentApi:** Implement for `GetSpaceTagsAsyncEnumerableAsync`.
+        *   - [x] **TasksFluentApi:** Already implements `GetTasksAsyncEnumerableAsync` and `GetFilteredTeamTasksAsyncEnumerableAsync`. Serve as a model.
+        *   - [ ] **TemplatesFluentApi:** Implement for `GetTemplatesAsyncEnumerableAsync`.
+        *   - [ ] **TimeTrackingFluentApi:** Implement for `GetTimeEntriesAsyncEnumerableAsync`, `GetTimeEntryHistoryAsyncEnumerableAsync`.
+        *   - [ ] **UserGroupsFluentApi:** Implement for `GetUserGroupsAsyncEnumerableAsync`, `GetGroupMembersAsyncEnumerableAsync`.
+        *   - [ ] **UsersFluentApi:** Implement for `GetUsersAsyncEnumerableAsync` if applicable for listing multiple users.
+        *   - [ ] **ViewsFluentApi:** Implement for `GetSpaceViewsAsyncEnumerableAsync`, `GetFolderViewsAsyncEnumerableAsync`, `GetListViewsAsyncEnumerableAsync`. (Note: `GetTaskViews` might be singular).
+        *   - [ ] **WebhooksFluentApi:** Implement for `GetWebhooksAsyncEnumerableAsync`.
+        *   - [ ] **WorkspacesFluentApi:** Implement for `GetWorkspacesAsyncEnumerableAsync` (though likely small, for consistency if API supports pagination).
 
 2.  **Step 2.2: Refactor Service Methods to Use Request Objects (If Necessary)**
     *   **Action:** If the audit in Step 1.1 reveals any `I...Service.cs` methods that still accept a large number of optional parameters directly (instead of a single request object), refactor them.
     *   **Details:**
-        *   Introduce a specific `...Request.cs` model for such methods.
-        *   Update the service interface and implementation to use this request model.
+        *   Introduce a specific `...Request.cs` model for such methods in `ClickUp.Api.Client.Models.RequestModels`.
+        *   Update the service interface (`I...Service.cs`) and implementation (`...Service.cs`) to use this request model.
         *   Ensure the corresponding fluent API builder (`...Fluent[Action]Request.cs`) correctly populates this new request model.
+        *   This applies to both standard async methods and their `...AsyncEnumerableAsync` counterparts if the parameter list is extensive.
     *   **Value:** Improves the clarity and maintainability of the core service layer. Ensures that the fluent API builders have a consistent and well-structured object to populate, leading to cleaner fluent implementations.
+    *   **Tasks:**
+        *   - [ ] **General Audit:** Review all `I...Service.cs` methods that return lists or have numerous optional parameters.
+        *   - [ ] **ITasksService Example:**
+            *   - [ ] Refactor `ITasksService.GetFilteredTeamTasksAsync(...)` to accept a `GetFilteredTeamTasksRequest` object.
+            *   - [ ] Update `TasksService.GetFilteredTeamTasksAsync` implementation.
+            *   - [ ] Update `TasksFluentGetFilteredTeamRequest` to build and pass the new request object.
+            *   - [ ] Refactor `ITasksService.GetFilteredTeamTasksAsyncEnumerableAsync(...)` to also accept or internally use the `GetFilteredTeamTasksRequest` object for consistency.
+        *   - [ ] **Other Services:** Identify and list other service methods requiring similar refactoring based on the audit. For each identified method:
+            *   - [ ] Define the new `...Request` DTO.
+            *   - [ ] Update the service interface and implementation.
+            *   - [ ] Update or create the corresponding Fluent API request builder.
 
 3.  **Step 2.3: Apply Standardized Naming Conventions**
-    *   **Action:** Based on the decisions made in Step 1.2, refactor the names of fluent request builder classes, `With...()` methods, and execution methods across the entire Fluent API surface.
-    *   **Details:** This is a potentially breaking change, so it should be communicated clearly if the library is already in use. The goal is to achieve a highly consistent and predictable API.
+    *   **Action:** Based on the decisions made in Step 1.2 and further review, refactor the names of fluent request builder classes, `With...()` methods, and execution methods across the entire Fluent API surface.
+    *   **Details:**
+        *   **Proposed Request Builder Naming Strategy:**
+            *   For operations on a single entity (Create, Get Single, Update, Delete): `[EntityName]Fluent[Action]Request` (e.g., `TaskFluentCreateRequest`, `TaskFluentGetSingleRequest`, `TaskFluentUpdateRequest`, `TaskFluentDeleteRequest`).
+            *   For operations fetching multiple entities (Get List/Collection): `[EntityName]FluentQueryRequest` (e.g., `TasksFluentQueryRequest`, `FoldersFluentQueryRequest`). This replaces previous suggestions like `[ServiceName]FluentGetRequest` for more clarity on the "query" nature.
+            *   For other specific actions: `[EntityName]Fluent[SpecificAction]Request` (e.g., `TaskFluentMergeRequest`).
+        *   **Execution Methods:** Standardize to `ExecuteAsync()` for commands (Create, Update, Delete, other actions) and `GetAsync()` for queries (Get Single, Get Multiple).
+        *   **`With...()` Methods:** Ensure consistency (e.g., always `WithParameterName()`). This is largely good but needs a final check.
+        *   GetAsync(): Returning a Task<TResponse> with a paginated object (e.g., GetTasksResponse).
+        *   GetAsyncEnumerableAsync(): Returning an IAsyncEnumerable<T> for easy iteration over all pages.
     *   **Value:** Long-term benefits of improved learnability, usability, and maintainability of the Fluent API.
+    *   **Tasks:**
+        *   - [ ] **Finalize Naming Strategy:** Confirm the proposed naming strategy for request builders and execution methods.
+        *   - [ ] **Request Builder Class Renaming:** Audit and rename existing request builder classes according to the chosen strategy. Create tasks per service/entity:
+            *   - [ ] Attachments: Review and rename request builders.
+            *   - [ ] Authorization: Review and rename request builders (e.g., `GetAccessTokenFluentRequest`).
+            *   - [ ] Chat: Review and rename request builders (e.g., `ChatChannelsFluentGetRequest`).
+            *   - [ ] Checklists: Review and rename request builders (e.g., `ChecklistFluentCreateRequest`, `ChecklistItemFluentEditRequest`).
+            *   - [ ] Comments: Review and rename request builders.
+            *   - [ ] CustomFields: Review and rename request builders.
+            *   - [ ] Docs: Review and rename request builders.
+            *   - [ ] Folders: Review and rename request builders.
+            *   - [ ] Goals: Review and rename request builders (e.g., `GoalsFluentGetRequest` to `GoalsFluentQueryRequest`).
+            *   - [ ] Guests: Review and rename request builders.
+            *   - [ ] Lists: Review and rename request builders.
+            *   - [ ] Members: Review and rename request builders.
+            *   - [ ] Roles: Review and rename request builders.
+            *   - [ ] SharedHierarchy: Review and rename request builders.
+            *   - [ ] Spaces: Review and rename request builders.
+            *   - [ ] Tags: Review and rename request builders.
+            *   - [ ] Tasks: Review and rename (e.g., `TasksRequest` to `TasksFluentQueryRequest`, `TaskFluentGetRequest` to `TaskFluentGetSingleRequest`).
+            *   - [ ] Templates: Review and rename request builders.
+            *   - [ ] TimeTracking: Review and rename request builders.
+            *   - [ ] UserGroups: Review and rename request builders.
+            *   - [ ] Users: Review and rename request builders.
+            *   - [ ] Views: Review and rename request builders.
+            *   - [ ] Webhooks: Review and rename request builders.
+            *   - [ ] Workspaces: Review and rename request builders.
+        *   - [ ] **Execution Method Standardization:**
+            *   - [ ] Audit all request builder classes and standardize their execution methods (e.g., `CreateAsync`, `UpdateAsync`, `DeleteAsync` to `ExecuteAsync()`; `GetAsync` for single/list to remain `GetAsync()` ).
+                - [ ] 
+        *   - [ ] **`With...()` Method Consistency Check:**
+            *   - [ ] Perform a quick audit across all request builders to ensure `With...()` methods are consistently named.
 
 ---
 
