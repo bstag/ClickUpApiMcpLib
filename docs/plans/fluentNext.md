@@ -67,13 +67,13 @@ The following phases outline a roadmap for further developing the Fluent API.
     *   **Value:** Significantly simplifies common data retrieval tasks, reduces boilerplate code for users, and makes the library more user-friendly.
     *   **Tasks:**
         *   - [ ] **AttachmentsFluentApi:** Review methods like `GetTaskAttachments` and implement `...AsyncEnumerableAsync` if applicable.
-        *   - [ ] **ChatFluentApi:** Implement for methods like `GetViewMessagesAsyncEnumerableAsync`, `GetChannelMessagesAsyncEnumerableAsync`.
-        *   - [ ] **CommentsFluentApi:** Implement for `GetTaskCommentsAsyncEnumerableAsync`, `GetListCommentsAsyncEnumerableAsync`, `GetChatMessagesCommentsAsyncEnumerableAsync`.
+        *   - [ ] **ChatFluentApi:** Implement for methods like `GetViewMessagesAsyncEnumerableAsync`, `GetChannelMessagesAsyncEnumerableAsync`. https://developer.clickup.com/reference/getchatmessages
+        *   - [ ] **CommentsFluentApi:** Implement for `GetTaskCommentsAsyncEnumerableAsync`, `GetListCommentsAsyncEnumerableAsync`, `GetChatMessagesCommentsAsyncEnumerableAsync`. https://developer.clickup.com/reference/getchatviewcomments 
         *   - [ ] **CustomFieldsFluentApi:** Implement for `GetAccessibleCustomFieldsAsyncEnumerableAsync`.
         *   - [ ] **DocsFluentApi:** Implement for `GetDocsAsyncEnumerableAsync`, `SearchDocsAsyncEnumerableAsync`.
         *   - [ ] **FoldersFluentApi:** Implement for `GetFoldersAsyncEnumerableAsync`.
         *   - [ ] **GoalsFluentApi:** Implement for `GetGoalsAsyncEnumerableAsync`.
-        *   - [ ] **GuestsFluentApi:** Review all list-returning methods (e.g., `GetGuests`, `GetGuestTasks`) and implement `...AsyncEnumerableAsync` equivalents.
+        *   - [ ] **GuestsFluentApi:** Review all list-returning methods (e.g., `GetGuests`, `GetGuestTasks`) and implement `...AsyncEnumerableAsync` equivalents. pagination does not exist on guests.
         *   - [ ] **ListsFluentApi:** Implement for `GetListsAsyncEnumerableAsync`, `GetFolderlessListsAsyncEnumerableAsync`.
         *   - [ ] **MembersFluentApi:** Review all list-returning methods (e.g., `GetWorkspaceMembers`, `GetListMembers`, `GetTaskMembers`) and implement `...AsyncEnumerableAsync` equivalents.
         *   - [ ] **RolesFluentApi:** Implement for `GetRolesAsyncEnumerableAsync` if it returns a list that can be paginated.
@@ -118,6 +118,8 @@ The following phases outline a roadmap for further developing the Fluent API.
             *   For other specific actions: `[EntityName]Fluent[SpecificAction]Request` (e.g., `TaskFluentMergeRequest`).
         *   **Execution Methods:** Standardize to `ExecuteAsync()` for commands (Create, Update, Delete, other actions) and `GetAsync()` for queries (Get Single, Get Multiple).
         *   **`With...()` Methods:** Ensure consistency (e.g., always `WithParameterName()`). This is largely good but needs a final check.
+        *   GetAsync(): Returning a Task<TResponse> with a paginated object (e.g., GetTasksResponse).
+        *   GetAsyncEnumerableAsync(): Returning an IAsyncEnumerable<T> for easy iteration over all pages.
     *   **Value:** Long-term benefits of improved learnability, usability, and maintainability of the Fluent API.
     *   **Tasks:**
         *   - [ ] **Finalize Naming Strategy:** Confirm the proposed naming strategy for request builders and execution methods.
@@ -147,7 +149,8 @@ The following phases outline a roadmap for further developing the Fluent API.
             *   - [ ] Webhooks: Review and rename request builders.
             *   - [ ] Workspaces: Review and rename request builders.
         *   - [ ] **Execution Method Standardization:**
-            *   - [ ] Audit all request builder classes and standardize their execution methods (e.g., `CreateAsync`, `UpdateAsync`, `DeleteAsync` to `ExecuteAsync()`; `GetAsync` for single/list to remain `GetAsync()`).
+            *   - [ ] Audit all request builder classes and standardize their execution methods (e.g., `CreateAsync`, `UpdateAsync`, `DeleteAsync` to `ExecuteAsync()`; `GetAsync` for single/list to remain `GetAsync()` ).
+                - [ ] 
         *   - [ ] **`With...()` Method Consistency Check:**
             *   - [ ] Perform a quick audit across all request builders to ensure `With...()` methods are consistently named.
 
