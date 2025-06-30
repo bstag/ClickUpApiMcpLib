@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.ResponseModels.Members;
 
 namespace ClickUp.Api.Client.Abstractions.Services

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.ResponseModels.Members; // Assuming GetMembersResponse exists
 using Microsoft.Extensions.Logging;
@@ -33,25 +34,25 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<ClickUp.Api.Client.Models.ResponseModels.Members.Member>> GetTaskMembersAsync(
+        public async Task<IEnumerable<Member>> GetTaskMembersAsync(
             string taskId,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting task members for task ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}/member";
             var response = await _apiConnection.GetAsync<GetMembersResponse>(endpoint, cancellationToken); // API returns {"members": [...]}
-            return response?.Members ?? Enumerable.Empty<ClickUp.Api.Client.Models.ResponseModels.Members.Member>();
+            return response?.Members ?? Enumerable.Empty<Member>();
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<ClickUp.Api.Client.Models.ResponseModels.Members.Member>> GetListMembersAsync(
+        public async Task<IEnumerable<Member>> GetListMembersAsync(
             string listId,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting list members for list ID: {ListId}", listId);
             var endpoint = $"list/{listId}/member";
             var response = await _apiConnection.GetAsync<GetMembersResponse>(endpoint, cancellationToken); // API returns {"members": [...]}
-            return response?.Members ?? Enumerable.Empty<ClickUp.Api.Client.Models.ResponseModels.Members.Member>();
+            return response?.Members ?? Enumerable.Empty<Member>();
         }
     }
 }
