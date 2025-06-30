@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using ClickUp.Api.Client.Models.Entities.Users; // For User
 using ClickUp.Api.Client.Models.RequestModels.Authorization;
 using ClickUp.Api.Client.Models.ResponseModels.Authorization;
-using ClickUp.Api.Client.Models.ResponseModels.Workspaces; // For GetAuthorizedWorkspacesResponse
+// Removed: using ClickUp.Api.Client.Models.ResponseModels.Workspaces; // This caused ambiguity
 
 namespace ClickUp.Api.Client.Services
 {
