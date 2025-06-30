@@ -10,9 +10,9 @@ namespace ClickUp.Api.Client.Fluent;
 
 public class CommentFluentApi
 {
-    private readonly ICommentService _commentService; // Corrected service name
+    private readonly ICommentsService _commentService; // Corrected service name
 
-    public CommentFluentApi(ICommentService commentService) // Corrected service name
+    public CommentFluentApi(ICommentsService commentService) // Corrected service name
     {
         _commentService = commentService;
     }
