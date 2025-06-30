@@ -71,8 +71,8 @@ public class TasksFluentApi
         return _tasksService.GetTasksAsyncEnumerableAsync(listId, archived, includeMarkdownDescription, orderBy, reverse, subtasks, statuses, includeClosed, assignees, watchers, tags, dueDateGreaterThan, dueDateLessThan, dateCreatedGreaterThan, dateCreatedLessThan, dateUpdatedGreaterThan, dateUpdatedLessThan, dateDoneGreaterThan, dateDoneLessThan, customFields, customItems, cancellationToken);
     }
 
-    public IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(string workspaceId, string? orderBy = null, bool? reverse = null, bool? subtasks = null, IEnumerable<string>? spaceIds = null, IEnumerable<string>? projectIds = null, IEnumerable<string>? listIds = null, IEnumerable<string>? statuses = null, bool? includeClosed = null, IEnumerable<string>? assignees = null, IEnumerable<string>? tags = null, long? dueDateGreaterThan = null, long? dueDateLessThan = null, long? dateCreatedGreaterThan = null, long? dateCreatedLessThan = null, long? dateUpdatedGreaterThan = null, long? dateUpdatedLessThan = null, string? customFields = null, bool? customTaskIds = null, string? teamIdForCustomTaskIds = null, IEnumerable<long>? customItems = null, long? dateDoneGreaterThan = null, long? dateDoneLessThan = null, string? parentTaskId = null, bool? includeMarkdownDescription = null, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(string workspaceId, GetFilteredTeamTasksRequest requestModel, CancellationToken cancellationToken = default)
     {
-        return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, orderBy, reverse, subtasks, spaceIds, projectIds, listIds, statuses, includeClosed, assignees, tags, dueDateGreaterThan, dueDateLessThan, dateCreatedGreaterThan, dateCreatedLessThan, dateUpdatedGreaterThan, dateUpdatedLessThan, customFields, customTaskIds, teamIdForCustomTaskIds, customItems, dateDoneGreaterThan, dateDoneLessThan, parentTaskId, includeMarkdownDescription, cancellationToken);
+        return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, requestModel, cancellationToken);
     }
 }

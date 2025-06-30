@@ -572,8 +572,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskInList1Id, taskInList1.Id); Assert.Equal(taskInOtherListId, taskInOtherList.Id); }
 
 
-            var response = await _taskService.GetFilteredTeamTasksAsync(workspaceId: _testWorkspaceId, listIds: new List<string> { _testListId });
-            Assert.NotNull(response?.Tasks);
+            var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
+            var response = await _taskService.GetFilteredTeamTasksAsync(workspaceId: _testWorkspaceId, requestModel: requestModel); Assert.NotNull(response?.Tasks);
             Assert.Contains(response.Tasks, t => t.Id == taskInList1.Id);
             Assert.DoesNotContain(response.Tasks, t => t.Id == taskInOtherList.Id);
         }
@@ -631,7 +631,11 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
 
             var retrievedTasks = new List<CuTask>();
-            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, listIds: new List<string> { _testListId })) { retrievedTasks.Add(task); }
+            var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
+            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, requestModel))
+            {
+                retrievedTasks.Add(task);
+            }
             Assert.Equal(tasksToCreate, retrievedTasks.Count);
             if(CurrentTestMode == TestMode.Playback) { Assert.Contains(retrievedTasks, rt => rt.Id == "playback_team_pag_task_1"); Assert.Contains(retrievedTasks, rt => rt.Id == "playback_team_pag_task_2"); Assert.DoesNotContain(retrievedTasks, rt => rt.Id == "playback_task_in_other_list_team_pag");}
         }
