@@ -118,7 +118,7 @@ public class DocsFluentApi
     /// <param name="creatorId">Optional. Filter by creator user ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Doc"/>.</returns>
-    public async IAsyncEnumerable<Doc> SearchDocsAsyncEnumerableAsync(
+    public IAsyncEnumerable<Doc> SearchDocsAsyncEnumerableAsync(
         string workspaceId,
         string? query = null,
         IEnumerable<string>? spaceIds = null,
@@ -127,10 +127,10 @@ public class DocsFluentApi
         IEnumerable<string>? taskIds = null,
         bool? includeArchived = null,
         string? parentId = null,
-        int? parentType = null, // Consider using an enum here in the future if one is defined
+        int? parentType = null,
         bool? includeDeleted = null,
         int? creatorId = null,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         var searchRequest = new SearchDocsRequest
         {
@@ -144,12 +144,8 @@ public class DocsFluentApi
             ParentType = parentType.HasValue ? parentType.Value : null,
             IncludeDeleted = includeDeleted,
             CreatorId = creatorId
-            // Cursor and Limit are handled by SearchAllDocsAsync
         };
 
-        await foreach (var doc in _docsService.SearchAllDocsAsync(workspaceId, searchRequest, cancellationToken).WithCancellation(cancellationToken))
-        {
-            yield return doc;
-        }
+        return _docsService.SearchAllDocsAsync(workspaceId, searchRequest, cancellationToken);
     }
 }
