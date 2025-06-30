@@ -1,6 +1,8 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Webhooks;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +20,21 @@ public class WebhooksFluentApi
     public async Task<IEnumerable<Webhook>> GetWebhooksAsync(string workspaceId, CancellationToken cancellationToken = default)
     {
         return await _webhooksService.GetWebhooksAsync(workspaceId, cancellationToken);
+    }
+
+    public async IAsyncEnumerable<Webhook> GetWebhooksAsyncEnumerableAsync(string workspaceId, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var webhooks = await _webhooksService.GetWebhooksAsync(workspaceId, cancellationToken).ConfigureAwait(false);
+        if (webhooks == null)
+        {
+            yield break;
+        }
+
+        foreach (var webhook in webhooks)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return webhook;
+        }
     }
 
     public WebhookFluentCreateRequest CreateWebhook(string workspaceId)

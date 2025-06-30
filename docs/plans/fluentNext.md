@@ -86,8 +86,8 @@ The following phases outline a roadmap for further developing the Fluent API.
         *   - [x] **UserGroupsFluentApi:** Implement for `GetUserGroupsAsyncEnumerableAsync`, `GetGroupMembersAsyncEnumerableAsync`. it does not have pagination. (Implemented `GetUserGroupsAsyncEnumerableAsync`. `GetGroupMembersAsyncEnumerableAsync` is not directly applicable as members are part of `UserGroup` object; service lacks a direct separate endpoint for only members of a group.)
         *   - [ ] **UsersFluentApi:** Implement for `GetUsersAsyncEnumerableAsync` if applicable for listing multiple users. you can not list multiple users.
         *   - [x] **ViewsFluentApi:** Implement for `GetSpaceViewsAsyncEnumerableAsync`, `GetFolderViewsAsyncEnumerableAsync`, `GetListViewsAsyncEnumerableAsync`. (Note: `GetTaskViews` might be singular). it does not have pagination. (Also implemented `GetWorkspaceViewsAsyncEnumerableAsync`.)
-        *   - [ ] **WebhooksFluentApi:** Implement for `GetWebhooksAsyncEnumerableAsync`.it does not have pagination. 
-        *   - [ ] **WorkspacesFluentApi:** Implement for `GetWorkspacesAsyncEnumerableAsync` (though likely small, for consistency if API supports pagination). it does not have pagination. 
+        *   - [x] **WebhooksFluentApi:** Implement for `GetWebhooksAsyncEnumerableAsync`. API is not paginated; wrapper added for consistency.
+        *   - [x] **WorkspacesFluentApi:** Implement for `GetWorkspacesAsyncEnumerableAsync` (specifically `GetAuthorizedWorkspacesAsyncEnumerableAsync`). Added `GetAuthorizedWorkspacesAsync` to service. API is not paginated; wrapper added for consistency.
 
 2.  **Step 2.2: Refactor Service Methods to Use Request Objects (If Necessary)**
     *   **Action:** If the audit in Step 1.1 reveals any `I...Service.cs` methods that still accept a large number of optional parameters directly (instead of a single request object), refactor them.

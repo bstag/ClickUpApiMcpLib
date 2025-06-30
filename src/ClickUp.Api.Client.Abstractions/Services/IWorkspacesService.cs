@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.ResponseModels.Workspaces; // Assuming WorkspaceSeats and WorkspacePlan DTOs are here
+using ClickUp.Api.Client.Models.ResponseModels.Workspaces; // For GetWorkspaceSeatsResponse, GetWorkspacePlanResponse
+using ClickUp.Api.Client.Models.ResponseModels.Authorization; // For GetAuthorizedWorkspacesResponse
+
 // Or use ClickUp.Api.Client.Models.Entities if they are defined there.
 
 namespace ClickUp.Api.Client.Abstractions.Services
@@ -19,10 +21,19 @@ namespace ClickUp.Api.Client.Abstractions.Services
     /// <list type="bullet">
     /// <item><description>GET /v2/team/{team_id}/seats</description></item>
     /// <item><description>GET /v2/team/{team_id}/plan</description></item>
+    /// <item><description>GET /v2/team</description></item>
     /// </list>
     /// </remarks>
     public interface IWorkspacesService
     {
+        /// <summary>
+        /// Retrieves all Workspaces (Teams) that the authenticated user is part of.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse"/> which includes a list of workspaces.</returns>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown for API-side errors, such as authentication issues or other request failures.</exception>
+        Task<Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse> GetAuthorizedWorkspacesAsync(CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Retrieves the current seat usage (members and guests) for a specific Workspace.
         /// </summary>
