@@ -1,13 +1,15 @@
 using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Goals;
 using ClickUp.Api.Client.Models.RequestModels.Goals;
 using ClickUp.Api.Client.Models.ResponseModels.Goals;
+using System.Collections.Generic; // Added for IAsyncEnumerable
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-using ClickUp.Api.Client.Models.Entities.Goals;
+// Removed redundant using ClickUp.Api.Client.Models.Entities.Goals;
 
 public class GoalsFluentApi
 {
@@ -56,5 +58,31 @@ public class GoalsFluentApi
     public async Task DeleteKeyResultAsync(string keyResultId, CancellationToken cancellationToken = default)
     {
         await _goalsService.DeleteKeyResultAsync(keyResultId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Retrieves all goals for a specific workspace asynchronously.
+    /// While this method returns an IAsyncEnumerable, the underlying ClickUp API for getting goals
+    /// does not appear to be paginated, so all goals are typically fetched in a single call by the service.
+    /// The response from the service includes both goals and goal folders; this method yields only the goals.
+    /// </summary>
+    /// <param name="workspaceId">The ID of the workspace (team).</param>
+    /// <param name="includeCompleted">Optional. Whether to include completed goals. Defaults to false.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Goal"/>.</returns>
+    public async IAsyncEnumerable<Goal> GetGoalsAsyncEnumerableAsync(
+        string workspaceId,
+        bool? includeCompleted = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var response = await _goalsService.GetGoalsAsync(workspaceId, includeCompleted, cancellationToken).ConfigureAwait(false);
+        if (response?.Goals != null)
+        {
+            foreach (var goal in response.Goals)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return goal;
+            }
+        }
     }
 }

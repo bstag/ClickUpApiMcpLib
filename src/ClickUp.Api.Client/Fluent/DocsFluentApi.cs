@@ -1,8 +1,10 @@
 using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Docs;
-using ClickUp.Api.Client.Models.RequestModels.Docs;
+using ClickUp.Api.Client.Models.RequestModels.Docs; // Contains SearchDocsRequest and LocationType
 using ClickUp.Api.Client.Models.ResponseModels.Docs;
 using System.Collections.Generic;
+using System.Linq; // For .ToList()
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -67,5 +69,87 @@ public class DocsFluentApi
     public PageFluentEditRequest EditPage(string workspaceId, string docId, string pageId)
     {
         return new PageFluentEditRequest(workspaceId, docId, pageId, _docsService);
+    }
+
+    /// <summary>
+    /// Retrieves all docs within a workspace, handling pagination.
+    /// This is a convenience method that uses the SearchAllDocsAsync capability of the service
+    /// with minimal filter criteria.
+    /// </summary>
+    /// <param name="workspaceId">The ID of the workspace.</param>
+    /// <param name="includeArchived">Optional. Whether to include archived docs. Defaults to false.</param>
+    /// <param name="includeDeleted">Optional. Whether to include deleted docs. Defaults to false.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Doc"/>.</returns>
+    public async IAsyncEnumerable<Doc> GetDocsAsyncEnumerableAsync(
+        string workspaceId,
+        bool? includeArchived = null,
+        bool? includeDeleted = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var searchRequest = new SearchDocsRequest // Using the specific request model for clarity
+        {
+            // Query = null by default, meaning no specific text search
+            IncludeArchived = includeArchived,
+            IncludeDeleted = includeDeleted
+            // Other filters like SpaceIds, FolderIds, etc., are null by default,
+            // effectively listing all accessible docs within the workspace subject to permissions.
+        };
+
+        await foreach (var doc in _docsService.SearchAllDocsAsync(workspaceId, searchRequest, cancellationToken).WithCancellation(cancellationToken))
+        {
+            yield return doc;
+        }
+    }
+
+    /// <summary>
+    /// Searches for docs within a workspace based on specified criteria, handling pagination.
+    /// </summary>
+    /// <param name="workspaceId">The ID of the workspace.</param>
+    /// <param name="query">The search query string.</param>
+    /// <param name="spaceIds">Optional list of Space IDs to filter by.</param>
+    /// <param name="folderIds">Optional list of Folder IDs to filter by.</param>
+    /// <param name="listIds">Optional list of List IDs to filter by.</param>
+    /// <param name="taskIds">Optional list of Task IDs to filter by.</param>
+    /// <param name="includeArchived">Optional. Whether to include archived docs.</param>
+    /// <param name="parentId">Optional. Filter by parent ID (e.g., Space, Folder, List, Task ID).</param>
+    /// <param name="parentType">Optional. Type of the parent ID (1: Space, 2: Folder, 3: List, 4: Task).</param>
+    /// <param name="includeDeleted">Optional. Whether to include deleted docs.</param>
+    /// <param name="creatorId">Optional. Filter by creator user ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Doc"/>.</returns>
+    public async IAsyncEnumerable<Doc> SearchDocsAsyncEnumerableAsync(
+        string workspaceId,
+        string? query = null,
+        IEnumerable<string>? spaceIds = null,
+        IEnumerable<string>? folderIds = null,
+        IEnumerable<string>? listIds = null,
+        IEnumerable<string>? taskIds = null,
+        bool? includeArchived = null,
+        string? parentId = null,
+        int? parentType = null, // Consider using an enum here in the future if one is defined
+        bool? includeDeleted = null,
+        int? creatorId = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var searchRequest = new SearchDocsRequest
+        {
+            Query = query,
+            SpaceIds = spaceIds?.ToList(),
+            FolderIds = folderIds?.ToList(),
+            ListIds = listIds?.ToList(),
+            TaskIds = taskIds?.ToList(),
+            IncludeArchived = includeArchived,
+            ParentId = parentId,
+            ParentType = parentType.HasValue ? (LocationType?)parentType.Value : null,
+            IncludeDeleted = includeDeleted,
+            CreatorId = creatorId
+            // Cursor and Limit are handled by SearchAllDocsAsync
+        };
+
+        await foreach (var doc in _docsService.SearchAllDocsAsync(workspaceId, searchRequest, cancellationToken).WithCancellation(cancellationToken))
+        {
+            yield return doc;
+        }
     }
 }

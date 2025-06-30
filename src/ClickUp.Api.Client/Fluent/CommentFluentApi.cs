@@ -10,20 +10,81 @@ namespace ClickUp.Api.Client.Fluent;
 
 public class CommentFluentApi
 {
-    private readonly ICommentsService _commentsService;
+    private readonly ICommentService _commentService; // Corrected service name
 
-    public CommentFluentApi(ICommentsService commentsService)
+    public CommentFluentApi(ICommentService commentService) // Corrected service name
     {
-        _commentsService = commentsService;
+        _commentService = commentService;
     }
 
     public TaskCommentsFluentGetRequest GetTaskComments(string taskId)
     {
-        return new TaskCommentsFluentGetRequest(taskId, _commentsService);
+        // This request builder will eventually use the GetTaskCommentsAsyncEnumerableAsync or a similar paginated method.
+        // For now, its internal implementation might use the older GetTaskCommentsAsync.
+        // This change is about adding the AsyncEnumerable directly to the fluent API.
+        return new TaskCommentsFluentGetRequest(taskId, _commentService);
     }
 
     public async Task<CreateCommentResponse> CreateTaskCommentAsync(string taskId, CreateTaskCommentRequest createCommentRequest, bool? customTaskIds = null, string? teamId = null, CancellationToken cancellationToken = default)
     {
-        return await _commentsService.CreateTaskCommentAsync(taskId, createCommentRequest, customTaskIds, teamId, cancellationToken);
+        return await _commentService.CreateTaskCommentAsync(taskId, createCommentRequest, customTaskIds, teamId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Retrieves all comments for a specific task asynchronously, handling pagination.
+    /// </summary>
+    /// <param name="taskId">The ID of the task.</param>
+    /// <param name="customTaskIds">Optional. If true, the taskId is treated as a custom task ID.</param>
+    /// <param name="teamId">Optional. The Workspace ID, required if customTaskIds is true.</param>
+    /// <param name="start">Optional. A Unix timestamp (in milliseconds) to start fetching comments from.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Comment"/>.</returns>
+    public async IAsyncEnumerable<Comment> GetTaskCommentsAsyncEnumerableAsync(
+        string taskId,
+        bool? customTaskIds = null,
+        string? teamId = null,
+        long? start = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(taskId, customTaskIds, teamId, start, cancellationToken).WithCancellation(cancellationToken))
+        {
+            yield return comment;
+        }
+    }
+
+    /// <summary>
+    /// Retrieves all comments for a specific list asynchronously, handling pagination.
+    /// </summary>
+    /// <param name="listId">The ID of the list.</param>
+    /// <param name="start">Optional. A Unix timestamp (in milliseconds) to start fetching comments from.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Comment"/>.</returns>
+    public async IAsyncEnumerable<Comment> GetListCommentsAsyncEnumerableAsync(
+        string listId,
+        long? start = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var comment in _commentService.GetListCommentsStreamAsync(listId, start, cancellationToken).WithCancellation(cancellationToken))
+        {
+            yield return comment;
+        }
+    }
+
+    /// <summary>
+    /// Retrieves all comments for a specific chat view asynchronously, handling pagination.
+    /// </summary>
+    /// <param name="viewId">The ID of the chat view.</param>
+    /// <param name="start">Optional. A Unix timestamp (in milliseconds) to start fetching comments from.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Comment"/>.</returns>
+    public async IAsyncEnumerable<Comment> GetChatViewCommentsAsyncEnumerableAsync(
+        string viewId,
+        long? start = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var comment in _commentService.GetChatViewCommentsStreamAsync(viewId, start, cancellationToken).WithCancellation(cancellationToken))
+        {
+            yield return comment;
+        }
     }
 }
