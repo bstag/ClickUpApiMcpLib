@@ -141,7 +141,7 @@ public class DocsFluentApi
             TaskIds = taskIds?.ToList(),
             IncludeArchived = includeArchived,
             ParentId = parentId,
-            ParentType = parentType.HasValue ? (LocationType?)parentType.Value : null,
+            ParentType = parentType.HasValue ? parentType.Value : null,
             IncludeDeleted = includeDeleted,
             CreatorId = creatorId
             // Cursor and Limit are handled by SearchAllDocsAsync
