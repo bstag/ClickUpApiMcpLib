@@ -45,4 +45,29 @@ public class FoldersFluentApi
     {
         return new TemplateFluentCreateFolderRequest(spaceId, templateId, _foldersService);
     }
+
+    /// <summary>
+    /// Retrieves all folders within a specific space asynchronously.
+    /// While this method returns an IAsyncEnumerable, the underlying ClickUp API for getting folders
+    /// does not appear to be paginated, so all folders are typically fetched in a single call by the service.
+    /// </summary>
+    /// <param name="spaceId">The ID of the space.</param>
+    /// <param name="archived">Optional. Whether to include archived folders. Defaults to false.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Folder"/>.</returns>
+    public async IAsyncEnumerable<Folder> GetFoldersAsyncEnumerableAsync(
+        string spaceId,
+        bool? archived = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var folders = await _foldersService.GetFoldersAsync(spaceId, archived, cancellationToken).ConfigureAwait(false);
+        if (folders != null)
+        {
+            foreach (var folder in folders)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return folder;
+            }
+        }
+    }
 }

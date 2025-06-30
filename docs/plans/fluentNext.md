@@ -66,12 +66,12 @@ The following phases outline a roadmap for further developing the Fluent API.
     *   **Details:** These methods should encapsulate the pagination logic, making it trivial for users to iterate over all items in a collection without manual page handling. Follow the pattern established in `TasksFluentApi.cs`.
     *   **Value:** Significantly simplifies common data retrieval tasks, reduces boilerplate code for users, and makes the library more user-friendly.
     *   **Tasks:**
-        *   - [ ] **AttachmentsFluentApi:** Review methods like `GetTaskAttachments` and implement `...AsyncEnumerableAsync` if applicable.
-        *   - [ ] **ChatFluentApi:** Implement for methods like `GetViewMessagesAsyncEnumerableAsync`, `GetChannelMessagesAsyncEnumerableAsync`. https://developer.clickup.com/reference/getchatmessages
-        *   - [ ] **CommentsFluentApi:** Implement for `GetTaskCommentsAsyncEnumerableAsync`, `GetListCommentsAsyncEnumerableAsync`, `GetChatMessagesCommentsAsyncEnumerableAsync`. https://developer.clickup.com/reference/getchatviewcomments 
-        *   - [ ] **CustomFieldsFluentApi:** Implement for `GetAccessibleCustomFieldsAsyncEnumerableAsync`.
-        *   - [ ] **DocsFluentApi:** Implement for `GetDocsAsyncEnumerableAsync`, `SearchDocsAsyncEnumerableAsync`.
-        *   - [ ] **FoldersFluentApi:** Implement for `GetFoldersAsyncEnumerableAsync`.
+        *   - [ ] **AttachmentsFluentApi:** Review methods like `GetTaskAttachments` and implement `...AsyncEnumerableAsync` if applicable. (Update: API endpoint for getting task attachments does not exist as of 2024-07-12. Cannot implement.)
+        *   - [x] **ChatFluentApi:** Implement for methods like `GetViewMessagesAsyncEnumerableAsync`, `GetChannelMessagesAsyncEnumerableAsync`. https://developer.clickup.com/reference/getchatmessages (Implemented `GetChannelMessagesAsyncEnumerableAsync`)
+        *   - [x] **CommentsFluentApi:** Implement for `GetTaskCommentsAsyncEnumerableAsync`, `GetListCommentsAsyncEnumerableAsync`, `GetChatViewCommentsAsyncEnumerableAsync` (renamed from `GetChatMessagesCommentsAsyncEnumerableAsync` to align with service method). https://developer.clickup.com/reference/getchatviewcomments
+        *   - [x] **CustomFieldsFluentApi:** Implement for `GetAccessibleCustomFieldsAsyncEnumerableAsync`. (Note: API is not paginated, so this is a wrapper.)
+        *   - [x] **DocsFluentApi:** Implement for `GetDocsAsyncEnumerableAsync`, `SearchDocsAsyncEnumerableAsync`. (Leveraged existing `SearchAllDocsAsync` from service layer which handles pagination.)
+        *   - [x] **FoldersFluentApi:** Implement for `GetFoldersAsyncEnumerableAsync`. (Note: API is not paginated, so this is a wrapper.)
         *   - [ ] **GoalsFluentApi:** Implement for `GetGoalsAsyncEnumerableAsync`.
         *   - [ ] **GuestsFluentApi:** Review all list-returning methods (e.g., `GetGuests`, `GetGuestTasks`) and implement `...AsyncEnumerableAsync` equivalents. pagination does not exist on guests.
         *   - [ ] **ListsFluentApi:** Implement for `GetListsAsyncEnumerableAsync`, `GetFolderlessListsAsyncEnumerableAsync`.
