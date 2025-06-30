@@ -1,5 +1,4 @@
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Goals;
 using ClickUp.Api.Client.Models.RequestModels.Goals;
 using ClickUp.Api.Client.Models.ResponseModels.Goals;
