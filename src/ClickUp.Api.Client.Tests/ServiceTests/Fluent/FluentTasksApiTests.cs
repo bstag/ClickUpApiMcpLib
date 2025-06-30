@@ -69,32 +69,8 @@ public class FluentTasksApiTests
 
         var mockTasksService = new Mock<ITasksService>();
         mockTasksService.Setup(x => x.GetFilteredTeamTasksAsync(
-            It.IsAny<string>(),
-            It.IsAny<int?>(),
-            It.IsAny<string?>(),
-            It.IsAny<bool?>(),
-            It.IsAny<bool?>(),
-            It.IsAny<IEnumerable<string>?>(),
-            It.IsAny<IEnumerable<string>?>(),
-            It.IsAny<IEnumerable<string>?>(),
-            It.IsAny<IEnumerable<string>?>(),
-            It.IsAny<bool?>(),
-            It.IsAny<IEnumerable<string>?>(),
-            It.IsAny<IEnumerable<string>?>(),
-            It.IsAny<long?>(),
-            It.IsAny<long?>(),
-            It.IsAny<long?>(),
-            It.IsAny<long?>(),
-            It.IsAny<long?>(),
-            It.IsAny<long?>(),
-            It.IsAny<string?>(),
-            It.IsAny<bool?>(),
-            It.IsAny<string?>(),
-            It.IsAny<IEnumerable<long>?>(),
-            It.IsAny<long?>(),
-            It.IsAny<long?>(),
-            It.IsAny<string?>(),
-            It.IsAny<bool?>(),
+            It.IsAny<string>(), // workspaceId
+            It.IsAny<Client.Models.RequestModels.Tasks.GetFilteredTeamTasksRequest>(), // requestModel
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
@@ -110,31 +86,10 @@ public class FluentTasksApiTests
         Assert.Equal(expectedResponse, result);
         mockTasksService.Verify(x => x.GetFilteredTeamTasksAsync(
             workspaceId,
-            null, // page
-            null, // orderBy
-            null, // reverse
-            true, // subtasks
-            null, // spaceIds
-            null, // projectIds
-            null, // listIds
-            null, // statuses
-            false, // includeClosed
-            null, // assignees
-            null, // tags
-            null, // dueDateGreaterThan
-            null, // dueDateLessThan
-            null, // dateCreatedGreaterThan
-            null, // dateCreatedLessThan
-            null, // dateUpdatedGreaterThan
-            null, // dateUpdatedLessThan
-            null, // customFields
-            null, // customTaskIds
-            null, // teamIdForCustomTaskIds
-            null, // customItems
-            null, // dateDoneGreaterThan
-            null, // dateDoneLessThan
-            null, // parentTaskId
-            null, // includeMarkdownDescription
+            It.Is<Client.Models.RequestModels.Tasks.GetFilteredTeamTasksRequest>(req =>
+                req.Subtasks == true &&
+                req.IncludeClosed == false
+            ),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

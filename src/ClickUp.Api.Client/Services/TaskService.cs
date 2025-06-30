@@ -349,30 +349,16 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async IAsyncEnumerable<Models.Entities.Tasks.CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
-            bool? archived = null,
-            bool? includeMarkdownDescription = null,
-            string? orderBy = null,
-            bool? reverse = null,
-            bool? subtasks = null,
-            IEnumerable<string>? statuses = null,
-            bool? includeClosed = null,
-            IEnumerable<string>? assignees = null,
-            IEnumerable<string>? watchers = null,
-            IEnumerable<string>? tags = null,
-            long? dueDateGreaterThan = null,
-            long? dueDateLessThan = null,
-            long? dateCreatedGreaterThan = null,
-            long? dateCreatedLessThan = null,
-            long? dateUpdatedGreaterThan = null,
-            long? dateUpdatedLessThan = null,
-            long? dateDoneGreaterThan = null,
-            long? dateDoneLessThan = null,
-            string? customFields = null,
-            IEnumerable<long>? customItems = null,
+            GetTasksRequest requestModel,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting tasks as an async enumerable for list ID: {ListId}", listId);
-            int currentPage = 0;
+            if (requestModel == null)
+            {
+                throw new ArgumentNullException(nameof(requestModel));
+            }
+
+            int currentPage = requestModel.Page ?? 0; // Start from requested page or 0
             bool lastPage;
 
             do
@@ -384,31 +370,33 @@ namespace ClickUp.Api.Client.Services
                 }
 
                 _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
-                var request = new GetTasksRequest
+
+                // Create a request for the current page, copying other parameters from the original requestModel
+                var pagedRequestModel = new GetTasksRequest
                 {
-                    Archived = archived,
-                    IncludeMarkdownDescription = includeMarkdownDescription,
+                    Archived = requestModel.Archived,
+                    IncludeMarkdownDescription = requestModel.IncludeMarkdownDescription,
                     Page = currentPage, // Current page for this iteration
-                    OrderBy = orderBy,
-                    Reverse = reverse,
-                    Subtasks = subtasks,
-                    Statuses = statuses,
-                    IncludeClosed = includeClosed,
-                    Assignees = assignees,
-                    Watchers = watchers,
-                    Tags = tags,
-                    DueDateGreaterThan = dueDateGreaterThan,
-                    DueDateLessThan = dueDateLessThan,
-                    DateCreatedGreaterThan = dateCreatedGreaterThan,
-                    DateCreatedLessThan = dateCreatedLessThan,
-                    DateUpdatedGreaterThan = dateUpdatedGreaterThan,
-                    DateUpdatedLessThan = dateUpdatedLessThan,
-                    DateDoneGreaterThan = dateDoneGreaterThan,
-                    DateDoneLessThan = dateDoneLessThan,
-                    CustomFields = customFields,
-                    CustomItems = customItems
+                    OrderBy = requestModel.OrderBy,
+                    Reverse = requestModel.Reverse,
+                    Subtasks = requestModel.Subtasks,
+                    Statuses = requestModel.Statuses,
+                    IncludeClosed = requestModel.IncludeClosed,
+                    Assignees = requestModel.Assignees,
+                    Watchers = requestModel.Watchers,
+                    Tags = requestModel.Tags,
+                    DueDateGreaterThan = requestModel.DueDateGreaterThan,
+                    DueDateLessThan = requestModel.DueDateLessThan,
+                    DateCreatedGreaterThan = requestModel.DateCreatedGreaterThan,
+                    DateCreatedLessThan = requestModel.DateCreatedLessThan,
+                    DateUpdatedGreaterThan = requestModel.DateUpdatedGreaterThan,
+                    DateUpdatedLessThan = requestModel.DateUpdatedLessThan,
+                    DateDoneGreaterThan = requestModel.DateDoneGreaterThan,
+                    DateDoneLessThan = requestModel.DateDoneLessThan,
+                    CustomFields = requestModel.CustomFields,
+                    CustomItems = requestModel.CustomItems
                 };
-                var response = await GetTasksAsync(listId, request, cancellationToken).ConfigureAwait(false);
+                var response = await GetTasksAsync(listId, pagedRequestModel, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Tasks != null && response.Tasks.Any())
                 {
@@ -439,73 +427,53 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async Task<GetTasksResponse> GetFilteredTeamTasksAsync(
             string workspaceId,
-            int? page = null,
-            string? orderBy = null,
-            bool? reverse = null,
-            bool? subtasks = null,
-            IEnumerable<string>? spaceIds = null,
-            IEnumerable<string>? projectIds = null,
-            IEnumerable<string>? listIds = null,
-            IEnumerable<string>? statuses = null,
-            bool? includeClosed = null,
-            IEnumerable<string>? assignees = null,
-            IEnumerable<string>? tags = null,
-            long? dueDateGreaterThan = null,
-            long? dueDateLessThan = null,
-            long? dateCreatedGreaterThan = null,
-            long? dateCreatedLessThan = null,
-            long? dateUpdatedGreaterThan = null,
-            long? dateUpdatedLessThan = null,
-            string? customFields = null,
-            bool? customTaskIds = null, // Name in interface
-            string? teamIdForCustomTaskIds = null, // Name in interface
-            IEnumerable<long>? customItems = null,
-            long? dateDoneGreaterThan = null,
-            long? dateDoneLessThan = null,
-            string? parentTaskId = null,
-            bool? includeMarkdownDescription = null,
+            GetFilteredTeamTasksRequest requestModel,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, page);
+            _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, requestModel.Page);
             if (string.IsNullOrWhiteSpace(workspaceId))
             {
                 throw new ArgumentNullException(nameof(workspaceId));
+            }
+            if (requestModel == null)
+            {
+                throw new ArgumentNullException(nameof(requestModel));
             }
 
             var endpoint = $"team/{workspaceId}/task";
             var queryParams = new Dictionary<string, string?>();
 
-            if (page.HasValue) queryParams["page"] = page.Value.ToString();
-            if (!string.IsNullOrEmpty(orderBy)) queryParams["order_by"] = orderBy;
-            if (reverse.HasValue) queryParams["reverse"] = reverse.Value.ToString().ToLower();
-            if (subtasks.HasValue) queryParams["subtasks"] = subtasks.Value.ToString().ToLower();
-            if (includeClosed.HasValue) queryParams["include_closed"] = includeClosed.Value.ToString().ToLower();
+            if (requestModel.Page.HasValue) queryParams["page"] = requestModel.Page.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.OrderBy)) queryParams["order_by"] = requestModel.OrderBy;
+            if (requestModel.Reverse.HasValue) queryParams["reverse"] = requestModel.Reverse.Value.ToString().ToLower();
+            if (requestModel.Subtasks.HasValue) queryParams["subtasks"] = requestModel.Subtasks.Value.ToString().ToLower();
+            if (requestModel.IncludeClosed.HasValue) queryParams["include_closed"] = requestModel.IncludeClosed.Value.ToString().ToLower();
 
-            if (dueDateGreaterThan.HasValue) queryParams["due_date_gt"] = dueDateGreaterThan.Value.ToString();
-            if (dueDateLessThan.HasValue) queryParams["due_date_lt"] = dueDateLessThan.Value.ToString();
-            if (dateCreatedGreaterThan.HasValue) queryParams["date_created_gt"] = dateCreatedGreaterThan.Value.ToString();
-            if (dateCreatedLessThan.HasValue) queryParams["date_created_lt"] = dateCreatedLessThan.Value.ToString();
-            if (dateUpdatedGreaterThan.HasValue) queryParams["date_updated_gt"] = dateUpdatedGreaterThan.Value.ToString();
-            if (dateUpdatedLessThan.HasValue) queryParams["date_updated_lt"] = dateUpdatedLessThan.Value.ToString();
-            if (dateDoneGreaterThan.HasValue) queryParams["date_done_gt"] = dateDoneGreaterThan.Value.ToString();
-            if (dateDoneLessThan.HasValue) queryParams["date_done_lt"] = dateDoneLessThan.Value.ToString();
-            if (!string.IsNullOrEmpty(parentTaskId)) queryParams["parent"] = parentTaskId;
-            if (includeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = includeMarkdownDescription.Value.ToString().ToLower();
+            if (requestModel.DueDateGreaterThan.HasValue) queryParams["due_date_gt"] = requestModel.DueDateGreaterThan.Value.ToString();
+            if (requestModel.DueDateLessThan.HasValue) queryParams["due_date_lt"] = requestModel.DueDateLessThan.Value.ToString();
+            if (requestModel.DateCreatedGreaterThan.HasValue) queryParams["date_created_gt"] = requestModel.DateCreatedGreaterThan.Value.ToString();
+            if (requestModel.DateCreatedLessThan.HasValue) queryParams["date_created_lt"] = requestModel.DateCreatedLessThan.Value.ToString();
+            if (requestModel.DateUpdatedGreaterThan.HasValue) queryParams["date_updated_gt"] = requestModel.DateUpdatedGreaterThan.Value.ToString();
+            if (requestModel.DateUpdatedLessThan.HasValue) queryParams["date_updated_lt"] = requestModel.DateUpdatedLessThan.Value.ToString();
+            if (requestModel.DateDoneGreaterThan.HasValue) queryParams["date_done_gt"] = requestModel.DateDoneGreaterThan.Value.ToString();
+            if (requestModel.DateDoneLessThan.HasValue) queryParams["date_done_lt"] = requestModel.DateDoneLessThan.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.ParentTaskId)) queryParams["parent"] = requestModel.ParentTaskId;
+            if (requestModel.IncludeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = requestModel.IncludeMarkdownDescription.Value.ToString().ToLower();
 
-            if (!string.IsNullOrEmpty(customFields)) queryParams["custom_fields"] = customFields;
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamIdForCustomTaskIds)) queryParams["team_id"] = teamIdForCustomTaskIds;
+            if (!string.IsNullOrEmpty(requestModel.CustomFields)) queryParams["custom_fields"] = requestModel.CustomFields;
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamIdForCustomTaskIds)) queryParams["team_id"] = requestModel.TeamIdForCustomTaskIds;
 
             var queryString = BuildQueryString(queryParams);
 
             var arrayParams = new List<string>();
-            if (spaceIds != null && spaceIds.Any()) arrayParams.Add(BuildQueryStringFromArray("space_ids", spaceIds));
-            if (projectIds != null && projectIds.Any()) arrayParams.Add(BuildQueryStringFromArray("project_ids", projectIds));
-            if (listIds != null && listIds.Any()) arrayParams.Add(BuildQueryStringFromArray("list_ids", listIds));
-            if (statuses != null && statuses.Any()) arrayParams.Add(BuildQueryStringFromArray("statuses", statuses));
-            if (assignees != null && assignees.Any()) arrayParams.Add(BuildQueryStringFromArray("assignees", assignees));
-            if (tags != null && tags.Any()) arrayParams.Add(BuildQueryStringFromArray("tags", tags));
-            if (customItems != null && customItems.Any()) arrayParams.Add(BuildQueryStringFromArray("custom_items", customItems.Select(ci => ci.ToString())));
+            if (requestModel.SpaceIds != null && requestModel.SpaceIds.Any()) arrayParams.Add(BuildQueryStringFromArray("space_ids", requestModel.SpaceIds));
+            if (requestModel.ProjectIds != null && requestModel.ProjectIds.Any()) arrayParams.Add(BuildQueryStringFromArray("project_ids", requestModel.ProjectIds));
+            if (requestModel.ListIds != null && requestModel.ListIds.Any()) arrayParams.Add(BuildQueryStringFromArray("list_ids", requestModel.ListIds));
+            if (requestModel.Statuses != null && requestModel.Statuses.Any()) arrayParams.Add(BuildQueryStringFromArray("statuses", requestModel.Statuses));
+            if (requestModel.Assignees != null && requestModel.Assignees.Any()) arrayParams.Add(BuildQueryStringFromArray("assignees", requestModel.Assignees));
+            if (requestModel.Tags != null && requestModel.Tags.Any()) arrayParams.Add(BuildQueryStringFromArray("tags", requestModel.Tags));
+            if (requestModel.CustomItems != null && requestModel.CustomItems.Any()) arrayParams.Add(BuildQueryStringFromArray("custom_items", requestModel.CustomItems.Select(ci => ci.ToString())));
 
             if (arrayParams.Any(p => !string.IsNullOrEmpty(p)))
             {
@@ -525,31 +493,7 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(
             string workspaceId,
-            string? orderBy = null,
-            bool? reverse = null,
-            bool? subtasks = null,
-            IEnumerable<string>? spaceIds = null,
-            IEnumerable<string>? projectIds = null,
-            IEnumerable<string>? listIds = null,
-            IEnumerable<string>? statuses = null,
-            bool? includeClosed = null,
-            IEnumerable<string>? assignees = null,
-            IEnumerable<string>? tags = null,
-            long? dueDateGreaterThan = null,
-            long? dueDateLessThan = null,
-            long? dateCreatedGreaterThan = null,
-            long? dateCreatedLessThan = null,
-            long? dateUpdatedGreaterThan = null,
-            long? dateUpdatedLessThan = null,
-            // Removed duplicate dateDoneGreaterThan and dateDoneLessThan
-            string? customFields = null,
-            bool? queryCustomTaskIds = null,
-            string? teamIdForQueryCustomTaskIds = null,
-            IEnumerable<long>? customItems = null,
-            long? dateDoneGreaterThan = null, // Kept one set of these
-            long? dateDoneLessThan = null,
-            string? parentTaskId = null,
-            bool? includeMarkdownDescription = null,
+            GetFilteredTeamTasksRequest requestModel,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting filtered team tasks as an async enumerable for workspace ID: {WorkspaceId}", workspaceId);
@@ -557,8 +501,12 @@ namespace ClickUp.Api.Client.Services
             {
                 throw new ArgumentNullException(nameof(workspaceId));
             }
+            if (requestModel == null)
+            {
+                throw new ArgumentNullException(nameof(requestModel));
+            }
 
-            int currentPage = 0;
+            int currentPage = requestModel.Page ?? 0; // Start from requested page or 0
             bool lastPage;
 
             do
@@ -566,34 +514,41 @@ namespace ClickUp.Api.Client.Services
                 cancellationToken.ThrowIfCancellationRequested(); // Check before API call
 
                 _logger.LogDebug("Fetching page {PageNumber} for filtered team tasks in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
+
+                // Create a request for the current page, copying other parameters from the original requestModel
+                var pagedRequestModel = new GetFilteredTeamTasksRequest
+                {
+                    Page = currentPage,
+                    OrderBy = requestModel.OrderBy,
+                    Reverse = requestModel.Reverse,
+                    Subtasks = requestModel.Subtasks,
+                    SpaceIds = requestModel.SpaceIds,
+                    ProjectIds = requestModel.ProjectIds,
+                    ListIds = requestModel.ListIds,
+                    Statuses = requestModel.Statuses,
+                    IncludeClosed = requestModel.IncludeClosed,
+                    Assignees = requestModel.Assignees,
+                    Tags = requestModel.Tags,
+                    DueDateGreaterThan = requestModel.DueDateGreaterThan,
+                    DueDateLessThan = requestModel.DueDateLessThan,
+                    DateCreatedGreaterThan = requestModel.DateCreatedGreaterThan,
+                    DateCreatedLessThan = requestModel.DateCreatedLessThan,
+                    DateUpdatedGreaterThan = requestModel.DateUpdatedGreaterThan,
+                    DateUpdatedLessThan = requestModel.DateUpdatedLessThan,
+                    CustomFields = requestModel.CustomFields,
+                    CustomTaskIds = requestModel.CustomTaskIds,
+                    TeamIdForCustomTaskIds = requestModel.TeamIdForCustomTaskIds,
+                    CustomItems = requestModel.CustomItems,
+                    DateDoneGreaterThan = requestModel.DateDoneGreaterThan,
+                    DateDoneLessThan = requestModel.DateDoneLessThan,
+                    ParentTaskId = requestModel.ParentTaskId,
+                    IncludeMarkdownDescription = requestModel.IncludeMarkdownDescription
+                };
+
                 var response = await GetFilteredTeamTasksAsync(
-                    workspaceId: workspaceId,
-                    page: currentPage,
-                    orderBy: orderBy,
-                    reverse: reverse,
-                    subtasks: subtasks,
-                    spaceIds: spaceIds,
-                    projectIds: projectIds,
-                    listIds: listIds,
-                    statuses: statuses,
-                    includeClosed: includeClosed,
-                    assignees: assignees,
-                    tags: tags,
-                    dueDateGreaterThan: dueDateGreaterThan,
-                    dueDateLessThan: dueDateLessThan,
-                    dateCreatedGreaterThan: dateCreatedGreaterThan,
-                    dateCreatedLessThan: dateCreatedLessThan,
-                    dateUpdatedGreaterThan: dateUpdatedGreaterThan,
-                    dateUpdatedLessThan: dateUpdatedLessThan,
-                    customFields: customFields,
-                    customTaskIds: queryCustomTaskIds, // Ensure mapping to the correct parameter name
-                    teamIdForCustomTaskIds: teamIdForQueryCustomTaskIds, // Ensure mapping
-                    customItems: customItems,
-                    dateDoneGreaterThan: dateDoneGreaterThan,
-                    dateDoneLessThan: dateDoneLessThan,
-                    parentTaskId: parentTaskId,
-                    includeMarkdownDescription: includeMarkdownDescription,
-                    cancellationToken: cancellationToken
+                    workspaceId,
+                    pagedRequestModel,
+                    cancellationToken
                 ).ConfigureAwait(false);
 
                 if (response?.Tasks != null && response.Tasks.Any())
