@@ -20,9 +20,27 @@ public class ListsFluentApi
         return await _listsService.GetListsInFolderAsync(folderId, archived, cancellationToken);
     }
 
+    public async IAsyncEnumerable<ClickUpList> GetListsAsyncEnumerableAsync(string folderId, bool? archived = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var lists = await _listsService.GetListsInFolderAsync(folderId, archived, cancellationToken).ConfigureAwait(false);
+        foreach (var list in lists)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return list;
+        }
+    }
+
     public async Task<IEnumerable<ClickUpList>> GetFolderlessListsAsync(string spaceId, bool? archived = null, CancellationToken cancellationToken = default)
     {
         return await _listsService.GetFolderlessListsAsync(spaceId, archived, cancellationToken);
+    }
+
+    public async IAsyncEnumerable<ClickUpList> GetFolderlessListsAsyncEnumerableAsync(string spaceId, bool? archived = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var list in _listsService.GetFolderlessListsAsyncEnumerableAsync(spaceId, archived, cancellationToken).ConfigureAwait(false))
+        {
+            yield return list;
+        }
     }
 
     public async Task<ClickUpList> GetListAsync(string listId, CancellationToken cancellationToken = default)

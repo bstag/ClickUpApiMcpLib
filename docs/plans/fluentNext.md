@@ -74,12 +74,12 @@ The following phases outline a roadmap for further developing the Fluent API.
         *   - [x] **FoldersFluentApi:** Implement for `GetFoldersAsyncEnumerableAsync`. (Note: API is not paginated, so this is a wrapper.)
         *   - [ ] **GoalsFluentApi:** Implement for `GetGoalsAsyncEnumerableAsync`.
         *   - [ ] **GuestsFluentApi:** Review all list-returning methods (e.g., `GetGuests`, `GetGuestTasks`) and implement `...AsyncEnumerableAsync` equivalents. pagination does not exist on guests.
-        *   - [ ] **ListsFluentApi:** Implement for `GetListsAsyncEnumerableAsync`, `GetFolderlessListsAsyncEnumerableAsync`.
+        *   - [x] **ListsFluentApi:** Implement for `GetListsAsyncEnumerableAsync`, `GetFolderlessListsAsyncEnumerableAsync`.
         *   - [ ] **MembersFluentApi:** Review all list-returning methods (e.g., `GetWorkspaceMembers`, `GetListMembers`, `GetTaskMembers`) and implement `...AsyncEnumerableAsync` equivalents.
         *   - [ ] **RolesFluentApi:** Implement for `GetRolesAsyncEnumerableAsync` if it returns a list that can be paginated.
         *   - [ ] **SharedHierarchyFluentApi:** Implement for `GetSharedHierarchyAsyncEnumerableAsync`.
-        *   - [ ] **SpacesFluentApi:** Implement for `GetSpacesAsyncEnumerableAsync`.
-        *   - [ ] **TagsFluentApi:** Implement for `GetSpaceTagsAsyncEnumerableAsync`.
+        *   - [x] **SpacesFluentApi:** Implement for `GetSpacesAsyncEnumerableAsync`.
+        *   - [x] **TagsFluentApi:** Implement for `GetSpaceTagsAsyncEnumerableAsync`.
         *   - [x] **TasksFluentApi:** Already implements `GetTasksAsyncEnumerableAsync` and `GetFilteredTeamTasksAsyncEnumerableAsync`. Serve as a model.
         *   - [ ] **TemplatesFluentApi:** Implement for `GetTemplatesAsyncEnumerableAsync`.
         *   - [ ] **TimeTrackingFluentApi:** Implement for `GetTimeEntriesAsyncEnumerableAsync`, `GetTimeEntryHistoryAsyncEnumerableAsync`.

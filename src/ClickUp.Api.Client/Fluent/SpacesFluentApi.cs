@@ -20,6 +20,16 @@ public class SpacesFluentApi
         return await _spacesService.GetSpacesAsync(workspaceId, archived, cancellationToken);
     }
 
+    public async IAsyncEnumerable<Space> GetSpacesAsyncEnumerableAsync(string workspaceId, bool? archived = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var spaces = await _spacesService.GetSpacesAsync(workspaceId, archived, cancellationToken).ConfigureAwait(false);
+        foreach (var space in spaces)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return space;
+        }
+    }
+
     public async Task<Space> GetSpaceAsync(string spaceId, CancellationToken cancellationToken = default)
     {
         return await _spacesService.GetSpaceAsync(spaceId, cancellationToken);
