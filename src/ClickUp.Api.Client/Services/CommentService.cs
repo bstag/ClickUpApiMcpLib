@@ -151,33 +151,30 @@ namespace ClickUp.Api.Client.Services
 
         /// <inheritdoc />
         public async IAsyncEnumerable<Comment> GetTaskCommentsStreamAsync(
-            string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
-            long? start = null,
+            string taskId, // TaskId remains separate as it's part of the path
+            GetTaskCommentsRequest requestModel,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Streaming task comments for task ID: {TaskId}, Start: {Start}", taskId, start);
-            string? currentStartId = null;
-            bool hasMore = true;
+            _logger.LogInformation("Streaming task comments for task ID: {TaskId}, Start: {Start}", taskId, requestModel.Start);
 
-            // The 'start' (timestamp) parameter is only used for the first request according to ClickUp docs.
-            // For subsequent pages, 'start_id' is used.
-            long? currentStartTimestamp = start;
+            // Clone the requestModel to modify Start and StartId for pagination
+            var pagedRequestModel = new GetTaskCommentsRequest(taskId) // TaskId must be passed to constructor
+            {
+                CustomTaskIds = requestModel.CustomTaskIds,
+                TeamId = requestModel.TeamId,
+                Start = requestModel.Start, // Initial start timestamp
+                StartId = requestModel.StartId // Initial start_id (usually null for first call)
+            };
+
+            bool hasMore = true;
 
             while (hasMore)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                _logger.LogDebug("Fetching next page of task comments for task ID: {TaskId}, Start: {Start}, StartId: {StartId}", taskId, currentStartTimestamp, currentStartId);
+                // Use pagedRequestModel.Start and pagedRequestModel.StartId for logging and the call
+                _logger.LogDebug("Fetching next page of task comments for task ID: {TaskId}, Start: {Start}, StartId: {StartId}", taskId, pagedRequestModel.Start, pagedRequestModel.StartId);
 
-                var request = new GetTaskCommentsRequest(taskId)
-                {
-                    CustomTaskIds = customTaskIds,
-                    TeamId = teamId,
-                    Start = currentStartTimestamp, // Use the current start timestamp
-                    StartId = currentStartId
-                };
-                var commentsPage = await GetTaskCommentsAsync(request, cancellationToken).ConfigureAwait(false);
+                var commentsPage = await GetTaskCommentsAsync(pagedRequestModel, cancellationToken).ConfigureAwait(false);
 
                 if (commentsPage == null || !commentsPage.Any())
                 {
@@ -193,12 +190,13 @@ namespace ClickUp.Api.Client.Services
                         yield return comment;
                         lastComment = comment;
                     }
-                    currentStartId = lastComment?.Id; // Prepare for the next iteration using the ID of the last comment seen
+                    // Update StartId in pagedRequestModel for the next iteration
+                    pagedRequestModel.StartId = lastComment?.Id;
 
                     // After the first successful fetch, we should rely on start_id, not the initial 'start' timestamp.
-                    if (currentStartTimestamp.HasValue)
+                    if (pagedRequestModel.Start.HasValue)
                     {
-                        currentStartTimestamp = null;
+                        pagedRequestModel.Start = null;
                     }
 
                     // If the number of comments returned is less than a typical page limit (e.g. 100, though API doesn't specify page size for comments),

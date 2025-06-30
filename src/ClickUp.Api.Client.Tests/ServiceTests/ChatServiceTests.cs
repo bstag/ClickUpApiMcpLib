@@ -91,14 +91,17 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _chatService.GetChatChannelsAsync(workspaceId,
-                descriptionFormat: "html",
-                cursor: "prev_cursor",
-                limit: 10,
-                isFollower: true,
-                includeHidden: false,
-                withCommentSince: 1234567890,
-                roomTypes: new List<string> { "public_channel", "private_channel" });
+            var requestModel = new GetChatChannelsRequest
+            {
+                DescriptionFormat = "html",
+                Cursor = "prev_cursor",
+                Limit = 10,
+                IsFollower = true,
+                IncludeHidden = false,
+                WithCommentSince = 1234567890,
+                RoomTypes = new List<string> { "public_channel", "private_channel" }
+            };
+            var result = await _chatService.GetChatChannelsAsync(workspaceId, requestModel);
 
             // Assert
             Assert.NotNull(result);
@@ -181,7 +184,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ThrowsAsync(new HttpRequestException("API Down"));
 
             await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _chatService.GetChatChannelsAsync(workspaceId));
+                _chatService.GetChatChannelsAsync(workspaceId, new GetChatChannelsRequest()));
         }
 
         [Fact]
@@ -207,7 +210,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync((ChatChannelPaginatedResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _chatService.GetChatChannelsAsync(workspaceId));
+                _chatService.GetChatChannelsAsync(workspaceId, new GetChatChannelsRequest()));
         }
 
         [Fact]
@@ -220,7 +223,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _chatService.GetChatChannelsAsync(workspaceId));
+                _chatService.GetChatChannelsAsync(workspaceId, new GetChatChannelsRequest()));
         }
 
         [Fact]
@@ -261,7 +264,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
 
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                _chatService.GetChatChannelsAsync(workspaceId, cancellationToken: new CancellationTokenSource().Token));
+                _chatService.GetChatChannelsAsync(workspaceId, new GetChatChannelsRequest(), cancellationToken: new CancellationTokenSource().Token));
         }
 
         [Fact]
@@ -275,7 +278,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(c => c.GetAsync<ChatChannelPaginatedResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
 
-            await _chatService.GetChatChannelsAsync(workspaceId, cancellationToken: expectedToken);
+            await _chatService.GetChatChannelsAsync(workspaceId, new GetChatChannelsRequest(), cancellationToken: expectedToken);
 
             _mockApiConnection.Verify(c => c.GetAsync<ChatChannelPaginatedResponse>(
                 $"/v3/workspaces/{workspaceId}/channels",
@@ -993,7 +996,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _chatService.GetChatMessagesAsync(workspaceId, channelId, cursor, limit, contentFormat);
+            var requestModel = new GetChatMessagesRequest { Cursor = cursor, Limit = limit, ContentFormat = contentFormat };
+            var result = await _chatService.GetChatMessagesAsync(workspaceId, channelId, requestModel);
 
             // Assert
             Assert.NotNull(result);
@@ -1018,7 +1022,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _chatService.GetChatMessagesAsync(workspaceId, channelId);
+            var result = await _chatService.GetChatMessagesAsync(workspaceId, channelId, new GetChatMessagesRequest());
 
             // Assert
             Assert.NotNull(result);
@@ -1037,7 +1041,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ThrowsAsync(new HttpRequestException("API Down"));
 
             await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _chatService.GetChatMessagesAsync(workspaceId, channelId));
+                _chatService.GetChatMessagesAsync(workspaceId, channelId, new GetChatMessagesRequest()));
         }
 
         [Fact]
@@ -1050,7 +1054,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync((GetChatMessagesResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _chatService.GetChatMessagesAsync(workspaceId, channelId));
+                _chatService.GetChatMessagesAsync(workspaceId, channelId, new GetChatMessagesRequest()));
         }
 
         [Fact]
@@ -1063,7 +1067,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
 
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                _chatService.GetChatMessagesAsync(workspaceId, channelId, cancellationToken: new CancellationTokenSource().Token));
+                _chatService.GetChatMessagesAsync(workspaceId, channelId, new GetChatMessagesRequest(), cancellationToken: new CancellationTokenSource().Token));
         }
 
         [Fact]
@@ -1078,7 +1082,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(c => c.GetAsync<GetChatMessagesResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
 
-            await _chatService.GetChatMessagesAsync(workspaceId, channelId, cancellationToken: expectedToken);
+            await _chatService.GetChatMessagesAsync(workspaceId, channelId, new GetChatMessagesRequest(), cancellationToken: expectedToken);
 
             _mockApiConnection.Verify(c => c.GetAsync<GetChatMessagesResponse>(
                 $"/v3/workspaces/{workspaceId}/channels/{channelId}/messages",
@@ -1490,7 +1494,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _chatService.GetChatMessageRepliesAsync("ws_ignored", parentMessageId, cursor, limit, contentFormat);
+            var requestModel = new GetChatMessagesRequest { Cursor = cursor, Limit = limit, ContentFormat = contentFormat };
+            var result = await _chatService.GetChatMessageRepliesAsync(parentMessageId, requestModel); // Removed workspaceId
 
             // Assert
             Assert.NotNull(result);
@@ -1514,7 +1519,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _chatService.GetChatMessageRepliesAsync("ws_ignored", parentMessageId);
+            var result = await _chatService.GetChatMessageRepliesAsync(parentMessageId, new GetChatMessagesRequest()); // Removed workspaceId
 
             // Assert
             Assert.NotNull(result);
@@ -1532,7 +1537,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ThrowsAsync(new HttpRequestException("API Down"));
 
             await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _chatService.GetChatMessageRepliesAsync("ws_ignored", parentMessageId));
+                _chatService.GetChatMessageRepliesAsync(parentMessageId, new GetChatMessagesRequest())); // Removed workspaceId
         }
 
         [Fact]
@@ -1544,7 +1549,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync((GetChatMessagesResponse?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _chatService.GetChatMessageRepliesAsync("ws_ignored", parentMessageId));
+                _chatService.GetChatMessageRepliesAsync(parentMessageId, new GetChatMessagesRequest())); // Removed workspaceId
         }
 
         [Fact]
@@ -1556,7 +1561,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ThrowsAsync(new TaskCanceledException("API timeout"));
 
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                _chatService.GetChatMessageRepliesAsync("ws_ignored", parentMessageId, cancellationToken: new CancellationTokenSource().Token));
+                _chatService.GetChatMessageRepliesAsync(parentMessageId, new GetChatMessagesRequest(), cancellationToken: new CancellationTokenSource().Token)); // Removed workspaceId
         }
 
         [Fact]
@@ -1570,7 +1575,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(c => c.GetAsync<GetChatMessagesResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
 
-            await _chatService.GetChatMessageRepliesAsync("ws_ignored", parentMessageId, cancellationToken: expectedToken);
+            await _chatService.GetChatMessageRepliesAsync(parentMessageId, new GetChatMessagesRequest(), cancellationToken: expectedToken); // Removed workspaceId
 
             _mockApiConnection.Verify(c => c.GetAsync<GetChatMessagesResponse>(
                 $"/v3/chat/messages/{parentMessageId}/messages",

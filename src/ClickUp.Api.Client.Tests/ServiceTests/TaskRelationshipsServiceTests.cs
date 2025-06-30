@@ -197,7 +197,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId: dependsOnTargetId, dependencyOfTaskId: string.Empty);
+            await _taskRelationshipsService.DeleteDependencyAsync(taskId, new DeleteDependencyRequest(dependsOnTaskId: dependsOnTargetId));
 
             // Assert
             _mockApiConnection.Verify(x => x.DeleteAsync(
@@ -219,7 +219,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId: string.Empty, dependencyOfTaskId: dependencyOfTargetId);
+            await _taskRelationshipsService.DeleteDependencyAsync(taskId, new DeleteDependencyRequest(dependencyOfTaskId: dependencyOfTargetId));
 
             // Assert
             _mockApiConnection.Verify(x => x.DeleteAsync(
@@ -241,7 +241,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId: dependsOnTargetId, dependencyOfTaskId: "", customTaskIds: customTaskIds, teamId: teamId);
+            await _taskRelationshipsService.DeleteDependencyAsync(taskId, new DeleteDependencyRequest(dependsOnTaskId: dependsOnTargetId, customTaskIds: customTaskIds, teamId: teamId));
 
             // Assert
             _mockApiConnection.Verify(x => x.DeleteAsync(
@@ -256,8 +256,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var taskId = "task_del_no_specific_dep";
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-                _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId: "", dependencyOfTaskId: "")
+            // Validation is now in DTO constructor
+            Assert.Throws<ArgumentException>(() =>
+                new DeleteDependencyRequest(dependsOnTaskId: "", dependencyOfTaskId: "") // This will throw
             );
         }
 
@@ -265,11 +266,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task DeleteDependencyAsync_BothDependsOnAndDependencyOf_ThrowsArgumentException()
         {
             // Arrange
-            var taskId = "task_del_both_specific_dep";
-
+            // Validation is now in DTO constructor
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-                _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId: "t2", dependencyOfTaskId: "t0")
+            Assert.Throws<ArgumentException>(() =>
+                 new DeleteDependencyRequest(dependsOnTaskId: "t2", dependencyOfTaskId: "t0") // This will throw
             );
         }
 
@@ -285,7 +285,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId: dependsOnTargetId, dependencyOfTaskId: "")
+                _taskRelationshipsService.DeleteDependencyAsync(taskId, new DeleteDependencyRequest(dependsOnTaskId: dependsOnTargetId))
             );
         }
 
@@ -301,7 +301,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId: dependsOnTargetId, dependencyOfTaskId: "", cancellationToken: new CancellationTokenSource().Token)
+                _taskRelationshipsService.DeleteDependencyAsync(taskId, new DeleteDependencyRequest(dependsOnTaskId: dependsOnTargetId), cancellationToken: new CancellationTokenSource().Token)
             );
         }
 
@@ -321,7 +321,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId: dependsOnTargetId, dependencyOfTaskId: "", cancellationToken: expectedToken);
+            await _taskRelationshipsService.DeleteDependencyAsync(taskId, new DeleteDependencyRequest(dependsOnTaskId: dependsOnTargetId), cancellationToken: expectedToken);
 
             // Assert
             _mockApiConnection.Verify(x => x.DeleteAsync(
@@ -360,7 +360,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(apiResponse);
 
             // Act
-            var result = await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId);
+            var result = await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, new AddTaskLinkRequest());
 
             // Assert
             Assert.NotNull(result);
@@ -388,7 +388,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(apiResponse);
 
             // Act
-            await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, customTaskIds, teamId);
+            await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, new AddTaskLinkRequest(customTaskIds, teamId));
 
             // Assert
             _mockApiConnection.Verify(x => x.PostAsync<object, ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTaskResponse>(
@@ -408,7 +408,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync((ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTaskResponse?)null);
 
             // Act
-            var result = await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId);
+            var result = await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, new AddTaskLinkRequest());
 
             // Assert
             Assert.Null(result);
@@ -426,7 +426,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId)
+                _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, new AddTaskLinkRequest())
             );
         }
 
@@ -442,7 +442,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, cancellationToken: new CancellationTokenSource().Token)
+                _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, new AddTaskLinkRequest(), cancellationToken: new CancellationTokenSource().Token)
             );
         }
 
@@ -465,7 +465,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(apiResponse);
 
             // Act
-            await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, cancellationToken: expectedToken);
+            await _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, new AddTaskLinkRequest(), cancellationToken: expectedToken);
 
             // Assert
             _mockApiConnection.Verify(x => x.PostAsync<object, ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTaskResponse>(
@@ -489,7 +489,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId);
+            var result = await _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, new DeleteTaskLinkRequest());
 
             // Assert
             Assert.Null(result);
@@ -512,7 +512,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, customTaskIds, teamId);
+            await _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, new DeleteTaskLinkRequest(customTaskIds, teamId));
 
             // Assert
             _mockApiConnection.Verify(x => x.DeleteAsync(
@@ -532,7 +532,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId)
+                _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, new DeleteTaskLinkRequest())
             );
         }
 
@@ -548,7 +548,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, cancellationToken: new CancellationTokenSource().Token)
+                _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, new DeleteTaskLinkRequest(), cancellationToken: new CancellationTokenSource().Token)
             );
         }
 
@@ -568,7 +568,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, cancellationToken: expectedToken);
+            await _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, new DeleteTaskLinkRequest(), cancellationToken: expectedToken);
 
             // Assert
             _mockApiConnection.Verify(x => x.DeleteAsync(

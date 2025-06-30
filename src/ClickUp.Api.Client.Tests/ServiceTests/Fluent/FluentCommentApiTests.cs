@@ -2,75 +2,140 @@ using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Fluent;
 using ClickUp.Api.Client.Models.Entities.Comments;
-
+using ClickUp.Api.Client.Models.RequestModels.Comments;
 using Microsoft.Extensions.Logging;
-
 using Moq;
-
 using System.Collections.Generic;
+using System.Linq; // Required for ToAsyncEnumerable
 using System.Threading;
 using System.Threading.Tasks;
-
 using Xunit;
 
-namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent;
-
-public class FluentCommentApiTests
+namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
 {
-    private readonly Mock<IApiConnection> _mockApiConnection;
-    private readonly Mock<ILoggerFactory> _mockLoggerFactory;
-    private readonly ClickUpClient _client;
-
-    public FluentCommentApiTests()
+    public class FluentCommentApiTests
     {
-        _mockApiConnection = new Mock<IApiConnection>();
-        _mockLoggerFactory = new Mock<ILoggerFactory>();
-        _mockLoggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>()))
-            .Returns(Mock.Of<ILogger>());
-        _client = new ClickUpClient(_mockApiConnection.Object, _mockLoggerFactory.Object);
-    }
+        private readonly Mock<IApiConnection> _mockApiConnection;
+        private readonly Mock<ILoggerFactory> _mockLoggerFactory;
+        // private readonly ClickUpClient _client;
 
-    [Fact]
-    public async Task FluentCommentApi_GetTaskComments_ShouldBuildCorrectRequestAndCallService()
-    {
-        // Arrange
-        var taskId = "testTaskId";
-        var expectedComments = new List<Comment>();
-
-        var mockCommentsService = new Mock<ICommentsService>();
-        mockCommentsService.Setup(x => x.GetTaskCommentsStreamAsync(
-            It.IsAny<string>(),
-            It.IsAny<bool?>(),
-            It.IsAny<string?>(),
-            It.IsAny<long?>(),
-            It.IsAny<CancellationToken>()))
-            .Returns(ToAsyncEnumerable(expectedComments));
-
-        var fluentCommentApi = new CommentFluentApi(mockCommentsService.Object);
-
-        // Act
-        var result = new List<Comment>();
-        await foreach (var comment in fluentCommentApi.GetTaskComments(taskId).GetStreamAsync())
+        public FluentCommentApiTests()
         {
-            result.Add(comment);
+            _mockApiConnection = new Mock<IApiConnection>();
+            _mockLoggerFactory = new Mock<ILoggerFactory>();
+            _mockLoggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>()))
+                .Returns(Mock.Of<ILogger>());
+            // _client = new ClickUpClient(_mockApiConnection.Object, _mockLoggerFactory.Object);
         }
 
-        // Assert
-        Assert.Equal(expectedComments, result);
-        mockCommentsService.Verify(x => x.GetTaskCommentsStreamAsync(
-            taskId,
-            null,
-            null,
-            null,
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    private static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(IEnumerable<T> enumerable)
-    {
-        foreach (var item in enumerable)
+        [Fact]
+        public async Task GetTaskComments_ViaBuilder_GetStreamAsync_CallsServiceCorrectly()
         {
-            await Task.Yield();
-            yield return item;
+            // Arrange
+            var taskId = "testTaskId";
+            var expectedComments = new List<Comment>().ToAsyncEnumerable();
+
+            var mockCommentsService = new Mock<ICommentsService>();
+            mockCommentsService.Setup(x => x.GetTaskCommentsStreamAsync(
+                taskId,
+                It.IsAny<GetTaskCommentsRequest>(),
+                It.IsAny<CancellationToken>()))
+                .Returns(expectedComments);
+
+            var commentFluentApi = new CommentFluentApi(mockCommentsService.Object);
+
+            // Act
+            var result = new List<Comment>();
+            await foreach (var comment in commentFluentApi.GetTaskComments(taskId).WithStart(0).GetStreamAsync())
+            {
+                result.Add(comment);
+            }
+
+            // Assert
+            Assert.Equal(await expectedComments.ToListAsync(), result);
+            mockCommentsService.Verify(x => x.GetTaskCommentsStreamAsync(
+                taskId,
+                It.Is<GetTaskCommentsRequest>(dto => dto.TaskId == taskId && dto.Start == 0 && dto.CustomTaskIds == null && dto.TeamId == null && dto.StartId == null),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetTaskCommentsAsyncEnumerableAsync_DirectCall_WithAllParams_CallsServiceCorrectly()
+        {
+            // Arrange
+            var taskId = "test-task-direct";
+            var mockCommentService = new Mock<ICommentsService>();
+            var expectedComments = new List<Comment>().ToAsyncEnumerable();
+            bool customTaskIds = true;
+            string teamId = "test-team";
+            long start = 12345L;
+            string startId = "commentStartId";
+
+            mockCommentService.Setup(x => x.GetTaskCommentsStreamAsync(
+                taskId,
+                It.Is<GetTaskCommentsRequest>(r =>
+                    r.CustomTaskIds == customTaskIds &&
+                    r.TeamId == teamId &&
+                    r.Start == start &&
+                    r.StartId == startId),
+                It.IsAny<CancellationToken>()))
+                .Returns(expectedComments);
+
+            var fluentCommentApi = new CommentFluentApi(mockCommentService.Object);
+
+            // Act
+            var resultStream = fluentCommentApi.GetTaskCommentsAsyncEnumerableAsync(taskId, customTaskIds, teamId, start, startId, CancellationToken.None);
+            await foreach (var item in resultStream) { /* Consume */ }
+
+            // Assert
+            mockCommentService.Verify(x => x.GetTaskCommentsStreamAsync(
+                taskId,
+                It.Is<GetTaskCommentsRequest>(r =>
+                    r.CustomTaskIds == customTaskIds &&
+                    r.TeamId == teamId &&
+                    r.Start == start &&
+                    r.StartId == startId),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetTaskCommentsAsyncEnumerableAsync_DirectCall_WithOnlyTaskId_CallsServiceCorrectly()
+        {
+            // Arrange
+            var taskId = "test-task-direct-simple";
+            var mockCommentService = new Mock<ICommentsService>();
+            var expectedComments = new List<Comment>().ToAsyncEnumerable();
+
+            mockCommentService.Setup(x => x.GetTaskCommentsStreamAsync(
+                taskId,
+                It.IsAny<GetTaskCommentsRequest>(),
+                It.IsAny<CancellationToken>()))
+                .Returns(expectedComments);
+
+            var fluentCommentApi = new CommentFluentApi(mockCommentService.Object);
+
+            // Act
+            var resultStream = fluentCommentApi.GetTaskCommentsAsyncEnumerableAsync(taskId, cancellationToken: CancellationToken.None);
+            await foreach (var item in resultStream) { /* Consume */ }
+
+            // Assert
+            mockCommentService.Verify(x => x.GetTaskCommentsStreamAsync(
+                taskId,
+                It.Is<GetTaskCommentsRequest>(r =>
+                    r.CustomTaskIds == null &&
+                    r.TeamId == null &&
+                    r.Start == null &&
+                    r.StartId == null),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        private static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(IEnumerable<T> enumerable)
+        {
+            foreach (var item in enumerable)
+            {
+                await Task.Yield();
+                yield return item;
+            }
         }
     }
 }

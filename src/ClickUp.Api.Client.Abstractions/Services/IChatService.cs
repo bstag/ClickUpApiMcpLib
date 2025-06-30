@@ -27,27 +27,15 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Retrieves a paginated list of Chat Channels within a specified Workspace.
         /// </summary>
         /// <param name="workspaceId">The unique identifier of the Workspace.</param>
-        /// <param name="descriptionFormat">Optional. The desired format for the channel description (e.g., "text/plain", "text/md").</param>
-        /// <param name="cursor">Optional. The cursor for pagination, used to fetch the next set of results.</param>
-        /// <param name="limit">Optional. The maximum number of channels to return per page.</param>
-        /// <param name="isFollower">Optional. If true, filters channels to those the authenticated user is following.</param>
-        /// <param name="includeHidden">Optional. If true, includes Direct Message (DM) or Group DM channels that have been explicitly closed by the user.</param>
-        /// <param name="withCommentSince">Optional. A Unix timestamp (in milliseconds). If provided, only returns channels that have had comments since this time.</param>
-        /// <param name="roomTypes">Optional. An enumerable of strings specifying the types of channels to return (e.g., "CHANNEL", "DM", "GROUP_DM").</param>
+        /// <param name="requestModel">An object containing parameters for filtering and pagination such as description format, cursor, limit, follower status, hidden status, comments since a certain time, and room types.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="ChatChannelPaginatedResponse"/> object with the list of channels and pagination information.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="requestModel"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access channels in this workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
         Task<ChatChannelPaginatedResponse> GetChatChannelsAsync(
             string workspaceId,
-            string? descriptionFormat = null,
-            string? cursor = null,
-            int? limit = null,
-            bool? isFollower = null,
-            bool? includeHidden = null,
-            long? withCommentSince = null,
-            IEnumerable<string>? roomTypes = null,
+            GetChatChannelsRequest requestModel,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -194,21 +182,17 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="workspaceId">The unique identifier of the Workspace.</param>
         /// <param name="channelId">The unique identifier of the Channel from which to retrieve messages.</param>
-        /// <param name="cursor">Optional. The cursor for pagination.</param>
-        /// <param name="limit">Optional. The maximum number of messages to return per page.</param>
-        /// <param name="contentFormat">Optional. The desired format for the message content.</param>
+        /// <param name="requestModel">An object containing parameters for pagination (cursor, limit) and content formatting.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetChatMessagesResponse"/> object with the list of messages (<see cref="ChatMessage"/>) and pagination information.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="channelId"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/>, <paramref name="channelId"/>, or <paramref name="requestModel"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the channel with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access messages in this channel.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<GetChatMessagesResponse> GetChatMessagesAsync(
             string workspaceId,
             string channelId,
-            string? cursor = null,
-            int? limit = null,
-            string? contentFormat = null,
+            GetChatMessagesRequest requestModel,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -284,23 +268,18 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <summary>
         /// Retrieves a paginated list of replies for a specified parent message.
         /// </summary>
-        /// <param name="workspaceId">The unique identifier of the Workspace.</param>
         /// <param name="messageId">The unique identifier of the parent message for which to retrieve replies.</param>
-        /// <param name="cursor">Optional. The cursor for pagination.</param>
-        /// <param name="limit">Optional. The maximum number of replies to return per page.</param>
-        /// <param name="contentFormat">Optional. The desired format for the message content.</param>
+        /// <param name="requestModel">An object containing parameters for pagination (cursor, limit) and content formatting. WorkspaceId is not part of this request as per API spec for this endpoint.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetChatMessagesResponse"/> object with the list of reply messages (<see cref="ChatMessage"/>) and pagination information.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="messageId"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="messageId"/> or <paramref name="requestModel"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the parent message with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access replies for this message.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<GetChatMessagesResponse> GetChatMessageRepliesAsync(
-            string workspaceId,
-            string messageId,
-            string? cursor = null,
-            int? limit = null,
-            string? contentFormat = null,
+            // string workspaceId, // Not used by the /v3/chat/messages/{parent_message_id}/messages endpoint
+            string messageId, // This is the parent_message_id
+            GetChatMessagesRequest requestModel, // Reusing GetChatMessagesRequest DTO
             CancellationToken cancellationToken = default);
         #endregion
 

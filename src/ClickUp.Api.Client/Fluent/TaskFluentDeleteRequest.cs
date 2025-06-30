@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
+using ClickUp.Api.Client.Models.RequestModels.Tasks; // Added for DeleteTaskRequest
+
 public class TaskFluentDeleteRequest
 {
-    private bool? _customTaskIds;
-    private string? _teamId;
-
+    private readonly DeleteTaskRequest _requestDto = new(); // Use the DTO
     private readonly string _taskId;
     private readonly ITasksService _tasksService;
 
@@ -20,22 +20,22 @@ public class TaskFluentDeleteRequest
 
     public TaskFluentDeleteRequest WithCustomTaskIds(bool customTaskIds)
     {
-        _customTaskIds = customTaskIds;
+        _requestDto.CustomTaskIds = customTaskIds;
         return this;
     }
 
     public TaskFluentDeleteRequest WithTeamId(string teamId)
     {
-        _teamId = teamId;
+        _requestDto.TeamId = teamId;
         return this;
     }
 
     public async Task DeleteAsync(CancellationToken cancellationToken = default)
     {
+        // The method in ITasksService is now DeleteTaskAsync(string taskId, DeleteTaskRequest requestModel, CancellationToken token)
         await _tasksService.DeleteTaskAsync(
             _taskId,
-            _customTaskIds,
-            _teamId,
+            _requestDto, // Pass the DTO
             cancellationToken
         );
     }

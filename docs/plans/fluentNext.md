@@ -104,10 +104,28 @@ The following phases outline a roadmap for further developing the Fluent API.
             *   - [x] Update `TasksService.GetFilteredTeamTasksAsync` implementation.
             *   - [x] Update `TasksFluentGetFilteredTeamRequest` to build and pass the new request object.
             *   - [x] Refactor `ITasksService.GetFilteredTeamTasksAsyncEnumerableAsync(...)` to also accept or internally use the `GetFilteredTeamTasksRequest` object for consistency.
+            *   - [x] Refactor `ITasksService.GetTasksAsyncEnumerableAsync(...)` to accept a `GetTasksRequest` object.
+            *   - [x] Refactor `ITasksService.GetTaskAsync(...)` to accept a `GetTaskRequest` object.
+            *   - [x] Refactor `ITasksService.DeleteTaskAsync(...)` to accept a `DeleteTaskRequest` object.
+            *   - [x] Refactor `ITasksService.GetTaskTimeInStatusAsync(...)` to accept a `GetTaskTimeInStatusRequest` object.
+            *   - [x] Refactor `ITasksService.GetBulkTasksTimeInStatusAsync(...)` to accept a `GetBulkTasksTimeInStatusRequest` object.
+            *   - [x] Refactor `ITasksService.CreateTaskFromTemplateAsync(...)` to remove unused query parameters from signature.
         *   - [ ] **Other Services:** Identify and list other service methods requiring similar refactoring based on the audit. For each identified method:
             *   - [ ] Define the new `...Request` DTO.
             *   - [ ] Update the service interface and implementation.
             *   - [ ] Update or create the corresponding Fluent API request builder.
+        *   - [x] **ITaskRelationshipsService:**
+            *   - [x] Refactor `DeleteDependencyAsync` to accept `DeleteDependencyRequest` DTO.
+            *   - [x] Refactor `AddTaskLinkAsync` to accept `AddTaskLinkRequest` DTO.
+            *   - [x] Refactor `DeleteTaskLinkAsync` to accept `DeleteTaskLinkRequest` DTO.
+            *   - [x] (Note: `AddDependencyAsync` was reviewed and deemed not to need changes to its DTO for query params.)
+        *   - [ ] **IChatService:**
+            *   - [x] Refactor `GetChatChannelsAsync` to accept `GetChatChannelsRequest` DTO.
+            *   - [x] Refactor `GetChatMessagesAsync` to accept `GetChatMessagesRequest` DTO.
+            *   - [x] Refactor `GetChatMessageRepliesAsync` to accept `GetChatMessagesRequest` DTO (reused DTO) and remove unused `workspaceId`.
+        *   - [ ] **ICommentService:**
+            *   - [x] (Note: `CreateTaskCommentAsync` was reviewed and deemed not to need DTO changes for query params `customTaskIds`, `teamId`.)
+            *   - [x] Refactor `GetTaskCommentsStreamAsync` to accept `GetTaskCommentsRequest` DTO.
 
 3.  **Step 2.3: Apply Standardized Naming Conventions**
     *   **Action:** Based on the decisions made in Step 1.2 and further review, refactor the names of fluent request builder classes, `With...()` methods, and execution methods across the entire Fluent API surface.

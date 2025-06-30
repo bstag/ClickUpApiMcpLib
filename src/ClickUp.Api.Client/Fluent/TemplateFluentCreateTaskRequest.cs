@@ -9,8 +9,8 @@ namespace ClickUp.Api.Client.Fluent;
 public class TemplateFluentCreateTaskRequest
 {
     private string? _name;
-    private bool? _customTaskIds;
-    private string? _teamId;
+    // private bool? _customTaskIds; // Removed
+    // private string? _teamId; // Removed
 
     private readonly string _listId;
     private readonly string _templateId;
@@ -29,30 +29,30 @@ public class TemplateFluentCreateTaskRequest
         return this;
     }
 
-    public TemplateFluentCreateTaskRequest WithCustomTaskIds(bool customTaskIds)
-    {
-        _customTaskIds = customTaskIds;
-        return this;
-    }
+    // public TemplateFluentCreateTaskRequest WithCustomTaskIds(bool customTaskIds) // Removed
+    // {
+    //     _customTaskIds = customTaskIds;
+    //     return this;
+    // }
 
-    public TemplateFluentCreateTaskRequest WithTeamId(string teamId)
-    {
-        _teamId = teamId;
-        return this;
-    }
+    // public TemplateFluentCreateTaskRequest WithTeamId(string teamId) // Removed
+    // {
+    //     _teamId = teamId;
+    //     return this;
+    // }
 
     public async Task<CuTask> CreateAsync(CancellationToken cancellationToken = default)
     {
         var createTaskFromTemplateRequest = new CreateTaskFromTemplateRequest(
-            Name: _name ?? string.Empty
+            Name: _name ?? string.Empty // Ensure Name is provided, matching DTO constructor if it's non-nullable for name
         );
 
         return await _tasksService.CreateTaskFromTemplateAsync(
             _listId,
             _templateId,
             createTaskFromTemplateRequest,
-            _customTaskIds,
-            _teamId,
+            // _customTaskIds, // Removed
+            // _teamId, // Removed
             cancellationToken
         );
     }

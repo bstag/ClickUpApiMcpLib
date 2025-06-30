@@ -60,7 +60,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             // Act
-            var channelsResponse = await _chatService.GetChatChannelsAsync(_workspaceId);
+            var channelsResponse = await _chatService.GetChatChannelsAsync(_workspaceId, new GetChatChannelsRequest());
 
             // Assert
             Assert.NotNull(channelsResponse);

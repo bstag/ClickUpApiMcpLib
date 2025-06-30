@@ -90,7 +90,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedTask);
 
             // Act
-            var result = await _taskService.GetTaskAsync(taskId, null, null, null, null, CancellationToken.None);
+            var result = await _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -115,9 +115,16 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedTask);
 
             var expectedEndpoint = $"task/{taskId}?custom_task_ids=true&team_id={teamId}&include_subtasks=true&include_markdown_description=true";
+            var requestModel = new GetTaskRequest
+            {
+                CustomTaskIds = customTaskIds,
+                TeamId = teamId,
+                IncludeSubtasks = includeSubtasks,
+                IncludeMarkdownDescription = includeMarkdownDescription
+            };
 
             // Act
-            await _taskService.GetTaskAsync(taskId, customTaskIds, teamId, includeSubtasks, includeMarkdownDescription, CancellationToken.None);
+            await _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None);
 
             // Assert
             _mockApiConnection.Verify(x => x.GetAsync<CuTask>(expectedEndpoint, CancellationToken.None), Times.Once);
@@ -139,9 +146,16 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedTask);
 
             var expectedEndpoint = $"task/{taskId}?team_id={teamId}&include_subtasks=true";
+            var requestModel = new GetTaskRequest
+            {
+                CustomTaskIds = customTaskIds, // Will be null, so not added to query
+                TeamId = teamId,
+                IncludeSubtasks = includeSubtasks,
+                IncludeMarkdownDescription = includeMarkdownDescription // Will be null
+            };
 
             // Act
-            await _taskService.GetTaskAsync(taskId, customTaskIds, teamId, includeSubtasks, includeMarkdownDescription, CancellationToken.None);
+            await _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None);
 
             // Assert
             _mockApiConnection.Verify(x => x.GetAsync<CuTask>(expectedEndpoint, CancellationToken.None), Times.Once);
@@ -158,7 +172,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _taskService.GetTaskAsync(taskId, null, null, null, null, CancellationToken.None)
+                _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None)
             );
         }
 
@@ -174,7 +188,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             var actualException = await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _taskService.GetTaskAsync(taskId, null, null, null, null, CancellationToken.None)
+                _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None)
             );
             Assert.Equal(apiException.Message, actualException.Message);
         }
@@ -400,7 +414,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                _taskService.GetTaskAsync(taskId, null, null, null, null, cts.Token)
+                _taskService.GetTaskAsync(taskId, new GetTaskRequest(), cts.Token)
             );
         }
 
@@ -418,7 +432,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedTask);
 
             // Act
-            await _taskService.GetTaskAsync(taskId, null, null, null, null, expectedToken);
+            await _taskService.GetTaskAsync(taskId, new GetTaskRequest(), expectedToken);
 
             // Assert
             _mockApiConnection.Verify(x => x.GetAsync<CuTask>(

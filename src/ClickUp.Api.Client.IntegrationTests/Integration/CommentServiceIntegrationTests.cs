@@ -339,7 +339,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             var retrievedComments = new List<Comment>();
-            await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(_testTaskId))
+            await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(_testTaskId, new GetTaskCommentsRequest(_testTaskId)))
             {
                 retrievedComments.Add(comment);
             }

@@ -144,7 +144,7 @@ public class Program
                 taskIdForCommentOps = newTaskId;
                 Log.Information("[TASKS] Successfully created task ID: {TaskId}, Name: {TaskName}", newTaskId, createdTask.Name);
 
-                CuTask? fetchedTask = await taskService.GetTaskAsync(newTaskId);
+                CuTask? fetchedTask = await taskService.GetTaskAsync(newTaskId, new GetTaskRequest());
                 if (fetchedTask != null) Log.Information("[TASKS] Got task: {TaskName}, Status: {Status}", fetchedTask.Name, fetchedTask.Status?.StatusValue);
                 else Log.Warning("[TASKS] Failed to get task {TaskId}.", newTaskId);
 
@@ -207,7 +207,7 @@ public class Program
             if (!string.IsNullOrWhiteSpace(newTaskId))
             {
                 Log.Information("\n[CLEANUP] Attempting to delete created task ID: {TaskId}...", newTaskId);
-                await taskService.DeleteTaskAsync(newTaskId);
+                await taskService.DeleteTaskAsync(newTaskId, new DeleteTaskRequest());
                 Log.Information("[CLEANUP] Delete call for task ID: {TaskId} completed (assuming success if no exception).", newTaskId);
             }
         }

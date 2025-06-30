@@ -139,19 +139,17 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async Task<CuTask> GetTaskAsync(
             string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
-            bool? includeSubtasks = null,
-            bool? includeMarkdownDescription = null,
+            GetTaskRequest requestModel,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting task with ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}";
             var queryParams = new Dictionary<string, string?>();
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            if (includeSubtasks.HasValue) queryParams["include_subtasks"] = includeSubtasks.Value.ToString().ToLower();
-            if (includeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = includeMarkdownDescription.Value.ToString().ToLower();
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
+            if (requestModel.IncludeSubtasks.HasValue) queryParams["include_subtasks"] = requestModel.IncludeSubtasks.Value.ToString().ToLower();
+            if (requestModel.IncludeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = requestModel.IncludeMarkdownDescription.Value.ToString().ToLower();
+            if (requestModel.Page.HasValue) queryParams["page"] = requestModel.Page.Value.ToString();
             endpoint += BuildQueryString(queryParams);
 
             var task = await _apiConnection.GetAsync<CuTask>(endpoint, cancellationToken);
@@ -188,15 +186,14 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async System.Threading.Tasks.Task DeleteTaskAsync(
             string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            DeleteTaskRequest requestModel,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Deleting task with ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}";
             var queryParams = new Dictionary<string, string?>();
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
             endpoint += BuildQueryString(queryParams);
 
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
@@ -272,15 +269,14 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async Task<TaskTimeInStatusResponse> GetTaskTimeInStatusAsync(
             string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            GetTaskTimeInStatusRequest requestModel,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting task time in status for task ID: {TaskId}", taskId);
             var endpoint = $"task/{taskId}/time_in_status";
             var queryParams = new Dictionary<string, string?>();
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<TaskTimeInStatusResponse>(endpoint, cancellationToken);
@@ -293,21 +289,19 @@ namespace ClickUp.Api.Client.Services
 
         /// <inheritdoc />
         public async Task<GetBulkTasksTimeInStatusResponse> GetBulkTasksTimeInStatusAsync(
-            IEnumerable<string> taskIds,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            GetBulkTasksTimeInStatusRequest requestModel,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting bulk tasks time in status for task IDs: {TaskIdsCount}", taskIds?.Count());
+            _logger.LogInformation("Getting bulk tasks time in status for task IDs: {TaskIdsCount}", requestModel.TaskIds?.Count());
             var endpoint = $"task/bulk_time_in_status/task_ids"; // Path doesn't take task_ids directly
             var queryParams = new Dictionary<string, string?>();
-            if (taskIds == null || !taskIds.Any())
+            if (requestModel.TaskIds == null || !requestModel.TaskIds.Any())
             {
-                throw new ArgumentException("Task IDs collection cannot be null or empty.", nameof(taskIds));
+                throw new ArgumentException("Task IDs collection cannot be null or empty.", nameof(requestModel.TaskIds));
             }
-            queryParams["task_ids"] = string.Join(",", taskIds); // Comma-separated list
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
+            queryParams["task_ids"] = string.Join(",", requestModel.TaskIds); // Comma-separated list
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetBulkTasksTimeInStatusResponse>(endpoint, cancellationToken);
@@ -323,20 +317,13 @@ namespace ClickUp.Api.Client.Services
             string listId,
             string templateId,
             CreateTaskFromTemplateRequest createTaskFromTemplateRequest,
-            bool? customTaskIds = null,
-            string? teamId = null,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Creating task in list ID: {ListId} from template ID: {TemplateId}", listId, templateId);
             var endpoint = $"list/{listId}/taskTemplate/{templateId}";
-            var queryParams = new Dictionary<string, string?>();
-            // Note: ClickUp API for this endpoint doesn't explicitly list custom_task_ids or team_id as query params.
-            // Assuming they might be applicable to the created task itself if passed in body, or not supported here.
-            // For now, not adding them to query string unless API spec confirms.
-            // If they apply to the list or template context, that's different.
-            // The `customTaskIds` and `teamId` parameters in the method signature might be a slight mismatch for this specific endpoint's query params.
-            // However, the `createTaskFromTemplateRequest` DTO is the main payload.
-            endpoint += BuildQueryString(queryParams);
+            // Query parameters customTaskIds and teamId are removed as they are not used for this endpoint.
+            // var queryParams = new Dictionary<string, string?>();
+            // endpoint += BuildQueryString(queryParams);
 
             var task = await _apiConnection.PostAsync<CreateTaskFromTemplateRequest, CuTask>(endpoint, createTaskFromTemplateRequest, cancellationToken);
             if (task == null)
@@ -349,29 +336,37 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async IAsyncEnumerable<Models.Entities.Tasks.CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
-            bool? archived = null,
-            bool? includeMarkdownDescription = null,
-            string? orderBy = null,
-            bool? reverse = null,
-            bool? subtasks = null,
-            IEnumerable<string>? statuses = null,
-            bool? includeClosed = null,
-            IEnumerable<string>? assignees = null,
-            IEnumerable<string>? watchers = null,
-            IEnumerable<string>? tags = null,
-            long? dueDateGreaterThan = null,
-            long? dueDateLessThan = null,
-            long? dateCreatedGreaterThan = null,
-            long? dateCreatedLessThan = null,
-            long? dateUpdatedGreaterThan = null,
-            long? dateUpdatedLessThan = null,
-            long? dateDoneGreaterThan = null,
-            long? dateDoneLessThan = null,
-            string? customFields = null,
-            IEnumerable<long>? customItems = null,
+            GetTasksRequest requestModel,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting tasks as an async enumerable for list ID: {ListId}", listId);
+
+            // Clone the requestModel to safely modify the Page property for internal pagination
+            var pagedRequestModel = new GetTasksRequest
+            {
+                Archived = requestModel.Archived,
+                IncludeMarkdownDescription = requestModel.IncludeMarkdownDescription,
+                // Page will be set in the loop
+                OrderBy = requestModel.OrderBy,
+                Reverse = requestModel.Reverse,
+                Subtasks = requestModel.Subtasks,
+                Statuses = requestModel.Statuses,
+                IncludeClosed = requestModel.IncludeClosed,
+                Assignees = requestModel.Assignees,
+                Watchers = requestModel.Watchers,
+                Tags = requestModel.Tags,
+                DueDateGreaterThan = requestModel.DueDateGreaterThan,
+                DueDateLessThan = requestModel.DueDateLessThan,
+                DateCreatedGreaterThan = requestModel.DateCreatedGreaterThan,
+                DateCreatedLessThan = requestModel.DateCreatedLessThan,
+                DateUpdatedGreaterThan = requestModel.DateUpdatedGreaterThan,
+                DateUpdatedLessThan = requestModel.DateUpdatedLessThan,
+                DateDoneGreaterThan = requestModel.DateDoneGreaterThan,
+                DateDoneLessThan = requestModel.DateDoneLessThan,
+                CustomFields = requestModel.CustomFields,
+                CustomItems = requestModel.CustomItems
+            };
+
             int currentPage = 0;
             bool lastPage;
 
@@ -384,31 +379,9 @@ namespace ClickUp.Api.Client.Services
                 }
 
                 _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
-                var request = new GetTasksRequest
-                {
-                    Archived = archived,
-                    IncludeMarkdownDescription = includeMarkdownDescription,
-                    Page = currentPage, // Current page for this iteration
-                    OrderBy = orderBy,
-                    Reverse = reverse,
-                    Subtasks = subtasks,
-                    Statuses = statuses,
-                    IncludeClosed = includeClosed,
-                    Assignees = assignees,
-                    Watchers = watchers,
-                    Tags = tags,
-                    DueDateGreaterThan = dueDateGreaterThan,
-                    DueDateLessThan = dueDateLessThan,
-                    DateCreatedGreaterThan = dateCreatedGreaterThan,
-                    DateCreatedLessThan = dateCreatedLessThan,
-                    DateUpdatedGreaterThan = dateUpdatedGreaterThan,
-                    DateUpdatedLessThan = dateUpdatedLessThan,
-                    DateDoneGreaterThan = dateDoneGreaterThan,
-                    DateDoneLessThan = dateDoneLessThan,
-                    CustomFields = customFields,
-                    CustomItems = customItems
-                };
-                var response = await GetTasksAsync(listId, request, cancellationToken).ConfigureAwait(false);
+                pagedRequestModel.Page = currentPage; // Set current page for this iteration
+
+                var response = await GetTasksAsync(listId, pagedRequestModel, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Tasks != null && response.Tasks.Any())
                 {

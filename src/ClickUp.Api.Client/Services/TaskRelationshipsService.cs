@@ -91,30 +91,21 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async System.Threading.Tasks.Task DeleteDependencyAsync(
             string taskId,
-            string? dependsOnTaskId = null,
-            string? dependencyOfTaskId = null,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            DeleteDependencyRequest requestModel,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Deleting dependency for task ID: {TaskId}, DependsOn: {DependsOn}, DependencyOf: {DependencyOf}", taskId, dependsOnTaskId, dependencyOfTaskId);
+            _logger.LogInformation("Deleting dependency for task ID: {TaskId}, DependsOn: {DependsOn}, DependencyOf: {DependencyOf}", taskId, requestModel.DependsOnTaskId, requestModel.DependencyOfTaskId);
 
             var endpoint = $"task/{taskId}/dependency";
             var queryParams = new Dictionary<string, string?>();
 
-            if (!string.IsNullOrWhiteSpace(dependsOnTaskId) && !string.IsNullOrWhiteSpace(dependencyOfTaskId))
-            {
-                 throw new ArgumentException("Provide either 'dependsOnTaskId' or 'dependencyOfTaskId', but not both for deleting a dependency.");
-            }
-            if (!string.IsNullOrWhiteSpace(dependsOnTaskId)) queryParams["depends_on"] = dependsOnTaskId;
-            else if (!string.IsNullOrWhiteSpace(dependencyOfTaskId)) queryParams["dependency_of"] = dependencyOfTaskId;
-            else
-            {
-                throw new ArgumentException("Either 'dependsOnTaskId' or 'dependencyOfTaskId' must be specified to delete a dependency.");
-            }
+            // Validation for DependsOnTaskId and DependencyOfTaskId is now in the DTO's constructor
+            if (!string.IsNullOrWhiteSpace(requestModel.DependsOnTaskId)) queryParams["depends_on"] = requestModel.DependsOnTaskId;
+            else if (!string.IsNullOrWhiteSpace(requestModel.DependencyOfTaskId)) queryParams["dependency_of"] = requestModel.DependencyOfTaskId;
+            // The DTO constructor ensures one of them is present.
 
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
             endpoint += BuildQueryString(queryParams);
 
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
@@ -124,15 +115,14 @@ namespace ClickUp.Api.Client.Services
         public async Task<CuTask?> AddTaskLinkAsync(
             string taskId,
             string linksToTaskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            AddTaskLinkRequest requestModel,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Adding task link from task ID: {TaskId} to task ID: {LinksToTaskId}", taskId, linksToTaskId);
             var endpoint = $"task/{taskId}/link/{linksToTaskId}";
             var queryParams = new Dictionary<string, string?>();
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
             endpoint += BuildQueryString(queryParams);
 
             // Add CuTask Link API is POST and returns the task.
@@ -145,15 +135,14 @@ namespace ClickUp.Api.Client.Services
         public async Task<CuTask?> DeleteTaskLinkAsync(
             string taskId,
             string linksToTaskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            DeleteTaskLinkRequest requestModel,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Deleting task link from task ID: {TaskId} to task ID: {LinksToTaskId}", taskId, linksToTaskId);
             var endpoint = $"task/{taskId}/link/{linksToTaskId}";
             var queryParams = new Dictionary<string, string?>();
-            if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
             endpoint += BuildQueryString(queryParams);
 
             // Delete CuTask Link API is DELETE and returns the task.
