@@ -32,7 +32,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse"/> which includes a list of workspaces.</returns>
         /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown for API-side errors, such as authentication issues or other request failures.</exception>
-        Task<Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse> GetAuthorizedWorkspacesAsync(CancellationToken cancellationToken = default);
+        Task<GetAuthorizedWorkspacesResponse> GetAuthorizedWorkspacesAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves the current seat usage (members and guests) for a specific Workspace.

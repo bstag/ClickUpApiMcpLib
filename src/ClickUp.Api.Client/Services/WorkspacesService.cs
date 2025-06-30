@@ -47,7 +47,8 @@ namespace ClickUp.Api.Client.Services
                 // If it can legitimately return null for "not found" or "empty list" scenarios without throwing,
                 // then returning an empty response might be appropriate.
                 // For now, assume null is unexpected if no exception was thrown by GetAsync.
-                return new GetAuthorizedWorkspacesResponse(); // Or throw new InvalidOperationException(...)
+                throw new InvalidOperationException("API connection returned null response when getting authorized workspaces.");
+                //return new GetAuthorizedWorkspacesResponse(); // Or throw new InvalidOperationException(...)
             }
             return response;
         }
