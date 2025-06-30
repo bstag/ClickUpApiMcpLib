@@ -47,6 +47,31 @@ public class TimeTrackingFluentApi
         return await _timeTrackingService.GetTimeEntryHistoryAsync(workspaceId, timerId, cancellationToken);
     }
 
+    /// <summary>
+    /// Retrieves the history for a specific time entry asynchronously.
+    /// While this method returns an IAsyncEnumerable, the underlying ClickUp API for time entry history
+    /// does not appear to be paginated, so all history records are typically fetched in a single call by the service.
+    /// </summary>
+    /// <param name="workspaceId">The ID of the workspace (team).</param>
+    /// <param name="timerId">The ID of the time entry (timer).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="TimeEntryHistory"/>.</returns>
+    public async IAsyncEnumerable<TimeEntryHistory> GetTimeEntryHistoryAsyncEnumerableAsync(
+        string workspaceId,
+        string timerId,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var historyEntries = await _timeTrackingService.GetTimeEntryHistoryAsync(workspaceId, timerId, cancellationToken).ConfigureAwait(false);
+        if (historyEntries != null)
+        {
+            foreach (var entry in historyEntries)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return entry;
+            }
+        }
+    }
+
     public async Task<TimeEntry?> GetRunningTimeEntryAsync(string workspaceId, string? assigneeUserId = null, CancellationToken cancellationToken = default)
     {
         return await _timeTrackingService.GetRunningTimeEntryAsync(workspaceId, assigneeUserId, cancellationToken);
