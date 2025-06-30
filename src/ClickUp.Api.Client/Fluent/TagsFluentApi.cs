@@ -21,6 +21,16 @@ public class TagsFluentApi
         return await _tagsService.GetSpaceTagsAsync(spaceId, cancellationToken);
     }
 
+    public async IAsyncEnumerable<Tag> GetSpaceTagsAsyncEnumerableAsync(string spaceId, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var tags = await _tagsService.GetSpaceTagsAsync(spaceId, cancellationToken).ConfigureAwait(false);
+        foreach (var tag in tags)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return tag;
+        }
+    }
+
     public TagFluentModifyRequest CreateSpaceTag(string spaceId)
     {
         return new TagFluentModifyRequest(spaceId, _tagsService);

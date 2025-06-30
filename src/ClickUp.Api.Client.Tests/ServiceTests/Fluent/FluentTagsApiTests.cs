@@ -54,4 +54,34 @@ public class FluentTagsApiTests
             spaceId,
             It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task FluentTagsApi_GetSpaceTagsAsyncEnumerableAsync_ShouldCallServiceAndReturnItems()
+    {
+        // Arrange
+        var spaceId = "testSpaceId";
+        var expectedTags = new List<Tag> { new Tag("tag1", null, null, null), new Tag("tag2", null, null, null) };
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var mockTagsService = new Mock<ITagsService>();
+        mockTagsService.Setup(x => x.GetSpaceTagsAsync(spaceId, cancellationToken))
+            .ReturnsAsync(expectedTags);
+
+        var fluentTagsApi = new TagsFluentApi(mockTagsService.Object);
+
+        // Act
+        var result = new List<Tag>();
+        await foreach (var item in fluentTagsApi.GetSpaceTagsAsyncEnumerableAsync(spaceId, cancellationToken))
+        {
+            result.Add(item);
+        }
+
+        // Assert
+        Assert.Equal(expectedTags.Count, result.Count);
+        for (int i = 0; i < expectedTags.Count; i++)
+        {
+            Assert.Equal(expectedTags[i].Name, result[i].Name);
+        }
+        mockTagsService.Verify(x => x.GetSpaceTagsAsync(spaceId, cancellationToken), Times.Once);
+    }
 }
