@@ -69,23 +69,17 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Retrieves the details of a specific Task by its ID.
         /// </summary>
         /// <param name="taskId">The unique identifier of the Task to retrieve.</param>
-        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
-        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
-        /// <param name="includeSubtasks">Optional. If set to <c>true</c>, includes subtasks in the response. Defaults to <c>false</c>.</param>
-        /// <param name="includeMarkdownDescription">Optional. If set to <c>true</c>, returns the Task description in Markdown format. Defaults to <c>false</c>.</param>
+        /// <param name="requestModel">An object containing options such as custom task ID handling, inclusion of subtasks, Markdown description, and comment pagination.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the details of the requested <see cref="CuTask"/>.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="requestModel"/> is null.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies CustomTaskIds as true but TeamId is not provided.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Task with the specified ID does not exist or is not accessible.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this Task.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<CuTask> GetTaskAsync(
             string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
-            bool? includeSubtasks = null,
-            bool? includeMarkdownDescription = null,
+            GetTaskRequest requestModel,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -113,19 +107,17 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Deletes a specified Task.
         /// </summary>
         /// <param name="taskId">The unique identifier of the Task to delete.</param>
-        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
-        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="requestModel">An object containing options for custom task ID handling.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="requestModel"/> is null.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies CustomTaskIds as true but TeamId is not provided.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Task with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to delete this Task.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         System.Threading.Tasks.Task DeleteTaskAsync(
             string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            DeleteTaskRequest requestModel,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -169,37 +161,31 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Retrieves the amount of time a specific Task has spent in each status.
         /// </summary>
         /// <param name="taskId">The unique identifier of the Task.</param>
-        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
-        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="requestModel">An object containing options for custom task ID handling.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="TaskTimeInStatusResponse"/> object with the time-in-status data for the Task.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="requestModel"/> is null.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies CustomTaskIds as true but TeamId is not provided.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Task with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information for the Task.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<TaskTimeInStatusResponse> GetTaskTimeInStatusAsync(
             string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            GetTaskTimeInStatusRequest requestModel,
             CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves the time spent in each status for a bulk list of Tasks.
         /// </summary>
-        /// <param name="taskIds">An enumerable collection of Task IDs for which to retrieve time-in-status data. The API expects a comma-separated string of up to 100 task IDs.</param>
-        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the task IDs in <paramref name="taskIds"/> are treated as custom task IDs. Defaults to <c>false</c>.</param>
-        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
+        /// <param name="requestModel">An object containing a collection of Task IDs and options for custom task ID handling. The API expects a comma-separated string of up to 100 task IDs.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetBulkTasksTimeInStatusResponse"/> object with time-in-status data for the requested Tasks.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskIds"/> is null or empty.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided, or if the number of task IDs exceeds the API limit (e.g., 100).</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="requestModel"/> or its TaskIds collection is null or empty.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies CustomTaskIds as true but TeamId is not provided, or if the number of task IDs exceeds the API limit (e.g., 100).</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access this information.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<GetBulkTasksTimeInStatusResponse> GetBulkTasksTimeInStatusAsync(
-            IEnumerable<string> taskIds,
-            bool? customTaskIds = null,
-            string? teamId = null,
+            GetBulkTasksTimeInStatusRequest requestModel,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -208,12 +194,9 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="listId">The unique identifier of the List where the new Task will be created.</param>
         /// <param name="templateId">The unique identifier of the Task Template to use.</param>
         /// <param name="createTaskFromTemplateRequest">An object containing details for creating the Task from the template, such as the new Task's name.</param>
-        /// <param name="customTaskIds">Optional. If set to <c>true</c>, affects how the new task's ID might be handled or if the template ID itself is custom. Defaults to <c>false</c>.</param>
-        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This may be required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the created <see cref="CuTask"/> object.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/>, <paramref name="templateId"/>, or <paramref name="createTaskFromTemplateRequest"/> is null.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided when required.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List or Task Template with the specified IDs does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to create Tasks in this List or use the specified template.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
@@ -221,62 +204,22 @@ namespace ClickUp.Api.Client.Abstractions.Services
             string listId,
             string templateId,
             CreateTaskFromTemplateRequest createTaskFromTemplateRequest,
-            bool? customTaskIds = null,
-            string? teamId = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves all Tasks within a specific List, automatically handling pagination using <see cref="IAsyncEnumerable{T}"/>.
         /// </summary>
         /// <param name="listId">The unique identifier of the List.</param>
-        /// <param name="archived">Optional. If set to <c>true</c>, includes archived Tasks. Defaults to <c>false</c>.</param>
-        /// <param name="includeMarkdownDescription">Optional. If set to <c>true</c>, returns Task descriptions in Markdown format. Defaults to <c>false</c>.</param>
-        /// <param name="orderBy">Optional. Field to order Tasks by.</param>
-        /// <param name="reverse">Optional. If true, reverses the sort order.</param>
-        /// <param name="subtasks">Optional. If true, includes subtasks.</param>
-        /// <param name="statuses">Optional. An enumerable of status names or IDs to filter by.</param>
-        /// <param name="includeClosed">Optional. If true, includes closed Tasks.</param>
-        /// <param name="assignees">Optional. An enumerable of user IDs to filter by assignees.</param>
-        /// <param name="watchers">Optional. An enumerable of user IDs to filter by watchers.</param>
-        /// <param name="tags">Optional. An enumerable of tag names to filter by.</param>
-        /// <param name="dueDateGreaterThan">Optional. Filters for Tasks with a due date after this Unix timestamp (ms).</param>
-        /// <param name="dueDateLessThan">Optional. Filters for Tasks with a due date before this Unix timestamp (ms).</param>
-        /// <param name="dateCreatedGreaterThan">Optional. Filters for Tasks created after this Unix timestamp (ms).</param>
-        /// <param name="dateCreatedLessThan">Optional. Filters for Tasks created before this Unix timestamp (ms).</param>
-        /// <param name="dateUpdatedGreaterThan">Optional. Filters for Tasks updated after this Unix timestamp (ms).</param>
-        /// <param name="dateUpdatedLessThan">Optional. Filters for Tasks updated before this Unix timestamp (ms).</param>
-        /// <param name="dateDoneGreaterThan">Optional. Filters for Tasks completed after this Unix timestamp (ms).</param>
-        /// <param name="dateDoneLessThan">Optional. Filters for Tasks completed before this Unix timestamp (ms).</param>
-        /// <param name="customFields">Optional. A JSON string representing an array of custom field filters.</param>
-        /// <param name="customItems">Optional. An enumerable of custom item type IDs to filter by.</param>
+        /// <param name="requestModel">An object containing various filtering and sorting options for retrieving Tasks from the list.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>An asynchronous stream of <see cref="CuTask"/> objects from the specified List.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null or empty.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> or <paramref name="requestModel"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this List.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown if an API call fails during the pagination process.</exception>
         IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
-            bool? archived = null,
-            bool? includeMarkdownDescription = null,
-            string? orderBy = null,
-            bool? reverse = null,
-            bool? subtasks = null,
-            IEnumerable<string>? statuses = null,
-            bool? includeClosed = null,
-            IEnumerable<string>? assignees = null,
-            IEnumerable<string>? watchers = null,
-            IEnumerable<string>? tags = null,
-            long? dueDateGreaterThan = null,
-            long? dueDateLessThan = null,
-            long? dateCreatedGreaterThan = null,
-            long? dateCreatedLessThan = null,
-            long? dateUpdatedGreaterThan = null,
-            long? dateUpdatedLessThan = null,
-            long? dateDoneGreaterThan = null,
-            long? dateDoneLessThan = null,
-            string? customFields = null,
-            IEnumerable<long>? customItems = null,
+            GetTasksRequest requestModel,
             CancellationToken cancellationToken = default
         );
 

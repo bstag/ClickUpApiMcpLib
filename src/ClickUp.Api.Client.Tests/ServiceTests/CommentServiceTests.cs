@@ -71,7 +71,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var allComments = new List<Comment>();
 
             // Act
-            await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(taskId, start: 0, cancellationToken: CancellationToken.None))
+            await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(taskId, new GetTaskCommentsRequest(taskId) { Start = 0 }, cancellationToken: CancellationToken.None))
             {
                 allComments.Add(comment);
             }
@@ -110,7 +110,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var count = 0;
 
             // Act
-            await foreach (var _ in _commentService.GetTaskCommentsStreamAsync(taskId, start: 0, cancellationToken: CancellationToken.None))
+            await foreach (var _ in _commentService.GetTaskCommentsStreamAsync(taskId, new GetTaskCommentsRequest(taskId) { Start = 0 }, cancellationToken: CancellationToken.None))
             {
                 count++;
             }
@@ -136,7 +136,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var allComments = new List<Comment>();
 
             // Act
-            await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(taskId, start: 0, cancellationToken: CancellationToken.None))
+            await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(taskId, new GetTaskCommentsRequest(taskId) { Start = 0 }, cancellationToken: CancellationToken.None))
             {
                 allComments.Add(comment);
             }
@@ -169,7 +169,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Act & Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
-                await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(taskId, start: 0, cancellationToken: cts.Token))
+                await foreach (var comment in _commentService.GetTaskCommentsStreamAsync(taskId, new GetTaskCommentsRequest(taskId) { Start = 0 }, cancellationToken: cts.Token))
                 {
                     commentsProcessed++;
                     if (commentsProcessed == 1)
@@ -196,7 +196,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Act & Assert
             await Assert.ThrowsAsync<HttpRequestException>(async () =>
             {
-                await foreach (var _ in _commentService.GetTaskCommentsStreamAsync(taskId, start: 0, cancellationToken: CancellationToken.None))
+                await foreach (var _ in _commentService.GetTaskCommentsStreamAsync(taskId, new GetTaskCommentsRequest(taskId) { Start = 0 }, cancellationToken: CancellationToken.None))
                 {
                     // Should not reach here
                 }

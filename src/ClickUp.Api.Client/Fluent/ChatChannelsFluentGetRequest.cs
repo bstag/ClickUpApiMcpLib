@@ -65,13 +65,7 @@ public class ChatChannelsFluentGetRequest
     {
         return await _chatService.GetChatChannelsAsync(
             _workspaceId,
-            _request.DescriptionFormat,
-            _request.Cursor,
-            _request.Limit,
-            _request.IsFollower,
-            _request.IncludeHidden,
-            _request.WithCommentSince,
-            _request.RoomTypes,
+            _request, // Pass the DTO directly
             cancellationToken
         );
     }

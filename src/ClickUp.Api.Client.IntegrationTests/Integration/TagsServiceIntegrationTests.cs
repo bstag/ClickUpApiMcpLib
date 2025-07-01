@@ -371,7 +371,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output.LogInformation($"Attempted to add tag '{tagName}' to task '{_testTaskId}'.");
 
             // Verify by getting the task and checking its tags
-            var task = await _tasksService.GetTaskAsync(_testTaskId);
+            var task = await _tasksService.GetTaskAsync(_testTaskId, new GetTaskRequest());
             Assert.NotNull(task);
             Assert.NotNull(task.Tags);
             Assert.Contains(task.Tags, t => t.Name == tagName);
@@ -431,7 +431,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output.LogInformation($"Attempted to remove tag '{tagName}' from task '{_testTaskId}'.");
 
             // Verify by getting the task and checking its tags
-            var task = await _tasksService.GetTaskAsync(_testTaskId);
+            var task = await _tasksService.GetTaskAsync(_testTaskId, new GetTaskRequest());
             Assert.NotNull(task);
             if (task.Tags != null) // Tags list can be null if no tags remain
             {

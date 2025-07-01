@@ -40,11 +40,11 @@ public class TaskCommentsFluentGetRequest
 
     public IAsyncEnumerable<Comment> GetStreamAsync(CancellationToken cancellationToken = default)
     {
+        // _request already contains TaskId, CustomTaskIds, TeamId, Start, and StartId (if set via a new WithStartId method if added)
+        // The service method GetTaskCommentsStreamAsync now takes (string taskId, GetTaskCommentsRequest requestModel, ...)
         return _commentsService.GetTaskCommentsStreamAsync(
-            _taskId,
-            _request.CustomTaskIds,
-            _request.TeamId,
-            _request.Start,
+            _taskId, // Still pass taskId directly as it's part of the path for the service method
+            _request,  // Pass the fully configured request DTO
             cancellationToken
         );
     }

@@ -44,9 +44,17 @@ public class CommentFluentApi
         bool? customTaskIds = null,
         string? teamId = null,
         long? start = null,
+        string? startId = null, // Added to allow passing start_id if known
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        return _commentService.GetTaskCommentsStreamAsync(taskId, customTaskIds, teamId, start, cancellationToken);
+        var requestModel = new GetTaskCommentsRequest(taskId) // TaskId is part of path, but DTO needs it for context
+        {
+            CustomTaskIds = customTaskIds,
+            TeamId = teamId,
+            Start = start,
+            StartId = startId
+        };
+        return _commentService.GetTaskCommentsStreamAsync(taskId, requestModel, cancellationToken);
     }
 
     /// <summary>

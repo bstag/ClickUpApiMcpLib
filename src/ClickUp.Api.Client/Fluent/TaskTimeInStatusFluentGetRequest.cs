@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
+using ClickUp.Api.Client.Models.RequestModels.Tasks; // Added for GetTaskTimeInStatusRequest
+
 public class TaskTimeInStatusFluentGetRequest
 {
-    private bool? _customTaskIds;
-    private string? _teamId;
-
+    private readonly GetTaskTimeInStatusRequest _requestDto = new(); // Use the DTO
     private readonly string _taskId;
     private readonly ITasksService _tasksService;
 
@@ -21,13 +21,13 @@ public class TaskTimeInStatusFluentGetRequest
 
     public TaskTimeInStatusFluentGetRequest WithCustomTaskIds(bool customTaskIds)
     {
-        _customTaskIds = customTaskIds;
+        _requestDto.CustomTaskIds = customTaskIds;
         return this;
     }
 
     public TaskTimeInStatusFluentGetRequest WithTeamId(string teamId)
     {
-        _teamId = teamId;
+        _requestDto.TeamId = teamId;
         return this;
     }
 
@@ -35,8 +35,7 @@ public class TaskTimeInStatusFluentGetRequest
     {
         return await _tasksService.GetTaskTimeInStatusAsync(
             _taskId,
-            _customTaskIds,
-            _teamId,
+            _requestDto, // Pass the DTO
             cancellationToken
         );
     }

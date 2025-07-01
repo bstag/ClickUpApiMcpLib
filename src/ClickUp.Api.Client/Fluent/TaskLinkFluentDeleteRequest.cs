@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
+using ClickUp.Api.Client.Models.RequestModels.TaskRelationships; // Added for DeleteTaskLinkRequest
+
 public class TaskLinkFluentDeleteRequest
 {
-    private bool? _customTaskIds;
-    private string? _teamId;
-
+    private readonly DeleteTaskLinkRequest _requestDto = new DeleteTaskLinkRequest(); // Use the DTO
     private readonly string _taskId;
     private readonly string _linksToTaskId;
     private readonly ITaskRelationshipsService _taskRelationshipsService;
@@ -23,13 +23,13 @@ public class TaskLinkFluentDeleteRequest
 
     public TaskLinkFluentDeleteRequest WithCustomTaskIds(bool customTaskIds)
     {
-        _customTaskIds = customTaskIds;
+        _requestDto.CustomTaskIds = customTaskIds;
         return this;
     }
 
     public TaskLinkFluentDeleteRequest WithTeamId(string teamId)
     {
-        _teamId = teamId;
+        _requestDto.TeamId = teamId;
         return this;
     }
 
@@ -38,8 +38,7 @@ public class TaskLinkFluentDeleteRequest
         return await _taskRelationshipsService.DeleteTaskLinkAsync(
             _taskId,
             _linksToTaskId,
-            _customTaskIds,
-            _teamId,
+            _requestDto, // Pass the DTO
             cancellationToken
         );
     }

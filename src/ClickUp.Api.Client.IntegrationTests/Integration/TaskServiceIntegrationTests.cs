@@ -190,7 +190,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             {
                 foreach (var taskId in tasksToDelete)
                 {
-                    try { _output.LogInformation($"Deleting task: {taskId}"); await _taskService.DeleteTaskAsync(taskId); }
+                    try { _output.LogInformation($"Deleting task: {taskId}"); await _taskService.DeleteTaskAsync(taskId, new DeleteTaskRequest()); }
                     catch (Exception ex) { _output.LogError($"Error deleting task {taskId}: {ex.Message}", ex); }
                 }
             }
@@ -288,7 +288,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(createdTaskId, taskToGet.Id);
 
 
-            var fetchedTask = await _taskService.GetTaskAsync(taskToGet.Id);
+            var fetchedTask = await _taskService.GetTaskAsync(taskToGet.Id, new GetTaskRequest());
             _output.LogInformation($"Fetched task. ID: {fetchedTask?.Id}");
 
             Assert.NotNull(fetchedTask);
@@ -331,7 +331,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Assert.Equal(updatedName, updatedTask.Name);
             Assert.Equal(updatedDescription, updatedTask.Description);
 
-            var refetchedTask = await _taskService.GetTaskAsync(createdTask.Id);
+            var refetchedTask = await _taskService.GetTaskAsync(createdTask.Id, new GetTaskRequest());
             Assert.Equal(updatedName, refetchedTask.Name);
             Assert.Equal(updatedDescription, refetchedTask.Description);
         }
@@ -360,10 +360,10 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(createdTaskId, createdTask.Id); else _createdTaskIds.Remove(createdTask.Id); // Ensure it's not cleaned up by Dispose if test fails before explicit delete
             _output.LogInformation($"Task created for Delete test. ID: {createdTask.Id}");
 
-            await _taskService.DeleteTaskAsync(createdTask.Id);
+            await _taskService.DeleteTaskAsync(createdTask.Id, new DeleteTaskRequest());
             _output.LogInformation($"DeleteTaskAsync called for task ID: {createdTask.Id}.");
 
-            await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(createdTask.Id));
+            await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(createdTask.Id, new GetTaskRequest()));
             _output.LogInformation($"Verified task {createdTask.Id} is deleted (GetTaskAsync threw NotFound).");
         }
 
@@ -598,7 +598,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             for (int i = 0; i < tasksToCreate; i++) { var task = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: $"PagTask{i}", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(task.Id); createdTaskIds.Add(task.Id); if(CurrentTestMode != TestMode.Playback) await Task.Delay(100); }
 
             var retrievedTasks = new List<CuTask>();
-            await foreach (var task in _taskService.GetTasksAsyncEnumerableAsync(_testListId)) { retrievedTasks.Add(task); }
+            await foreach (var task in _taskService.GetTasksAsyncEnumerableAsync(_testListId, new GetTasksRequest())) { retrievedTasks.Add(task); } // Pass empty GetTasksRequest
             Assert.Equal(tasksToCreate, retrievedTasks.Count);
             foreach (var id in createdTaskIds) if(CurrentTestMode != TestMode.Playback) Assert.Contains(retrievedTasks, rt => rt.Id == id); // In playback, IDs from JSON are asserted
              if(CurrentTestMode == TestMode.Playback) { Assert.Contains(retrievedTasks, rt => rt.Id == "playback_pag_task_1"); Assert.Contains(retrievedTasks, rt => rt.Id == "playback_pag_task_2"); }
@@ -650,7 +650,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 MockHttpHandler.When(HttpMethod.Get, $"https://api.clickup.com/api/v2/task/{nonExistentTaskId}")
                                .Respond(HttpStatusCode.NotFound, "application/json", await MockedFileContentAsync("TaskService/GetTaskAsync_WithNonExistentTaskId_ShouldThrowNotFoundException/GetNonExistentTask_NotFound.json"));
             }
-            await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(nonExistentTaskId));
+            await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(nonExistentTaskId, new GetTaskRequest()));
         }
 
         [Fact]
@@ -677,7 +677,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 MockHttpHandler.When(HttpMethod.Delete, $"https://api.clickup.com/api/v2/task/{nonExistentTaskId}")
                                .Respond(HttpStatusCode.NotFound, "application/json", "{ \"err\": \"Task not found\", \"ECODE\": \"TASK_001\" }");
             }
-            await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.DeleteTaskAsync(nonExistentTaskId));
+            await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.DeleteTaskAsync(nonExistentTaskId, new DeleteTaskRequest()));
         }
 
         // GetTasksAsync_FilterByDateCreated_ShouldReturnFilteredTasks and GetTasksAsync_OrderByDueDateAndReversed_ShouldReturnOrderedTasks
@@ -876,7 +876,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             Assert.NotNull(testTask);
-            TaskTimeInStatusResponse timeInStatusResponse = await _taskService.GetTaskTimeInStatusAsync(testTask.Id);
+            TaskTimeInStatusResponse timeInStatusResponse = await _taskService.GetTaskTimeInStatusAsync(testTask.Id, new GetTaskTimeInStatusRequest());
 
             Assert.NotNull(timeInStatusResponse);
             Assert.NotNull(timeInStatusResponse.CurrentStatus);
@@ -939,7 +939,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 await Task.Delay(1000); // Allow time for tasks to settle
             }
 
-            GetBulkTasksTimeInStatusResponse bulkTimeResponse = await _taskService.GetBulkTasksTimeInStatusAsync(taskIdsForTest);
+            GetBulkTasksTimeInStatusResponse bulkTimeResponse = await _taskService.GetBulkTasksTimeInStatusAsync(new GetBulkTasksTimeInStatusRequest(taskIdsForTest));
 
             Assert.NotNull(bulkTimeResponse);
             // Assert.NotNull(bulkTimeResponse.TasksTimeInStatus); // bulkTimeResponse *is* the dictionary
@@ -1017,13 +1017,13 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             // Verify source task is gone (in live mode)
             if (CurrentTestMode != TestMode.Playback)
             {
-                await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(sourceTask.Id));
+                await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(sourceTask.Id, new GetTaskRequest()));
                 _output.LogInformation($"[Record/Passthrough] Verified source task '{sourceTask.Id}' is deleted after merge.");
             }
             else
             {
                 // Playback verification relies on the mock for GetTaskAsync(sourceTask.Id) returning NotFound.
-                 await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(playbackSourceTaskId));
+                 await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiNotFoundException>(() => _taskService.GetTaskAsync(playbackSourceTaskId, new GetTaskRequest()));
             }
         }
     }

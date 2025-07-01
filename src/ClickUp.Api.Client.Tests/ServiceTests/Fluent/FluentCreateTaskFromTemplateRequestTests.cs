@@ -74,15 +74,15 @@ public class FluentCreateTaskFromTemplateRequestTests
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<CreateTaskFromTemplateRequest>(),
-            It.IsAny<bool?>(),
-            It.IsAny<string?>(),
+            // It.IsAny<bool?>(), // Removed customTaskIds
+            // It.IsAny<string?>(), // Removed teamId
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedTask);
 
         var fluentRequest = new TemplateFluentCreateTaskRequest(listId, templateId, _mockTasksService.Object)
-            .WithName(name)
-            .WithCustomTaskIds(customTaskIds)
-            .WithTeamId(teamId);
+            .WithName(name);
+            // .WithCustomTaskIds(customTaskIds) // Removed
+            // .WithTeamId(teamId); // Removed
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -93,8 +93,8 @@ public class FluentCreateTaskFromTemplateRequestTests
             listId,
             templateId,
             It.Is<CreateTaskFromTemplateRequest>(req => req.Name == name),
-            customTaskIds,
-            teamId,
+            // customTaskIds, // Removed
+            // teamId, // Removed
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -148,12 +148,17 @@ public class FluentCreateTaskFromTemplateRequestTests
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<CreateTaskFromTemplateRequest>(),
-            It.IsAny<bool?>(),
-            It.IsAny<string?>(),
+            // It.IsAny<bool?>(), // Removed customTaskIds
+            // It.IsAny<string?>(), // Removed teamId
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedTask);
 
         var fluentRequest = new TemplateFluentCreateTaskRequest(listId, templateId, _mockTasksService.Object);
+        // This test will now implicitly test with Name being null in the DTO,
+        // which then gets ?? string.Empty in the fluent builder.
+        // If CreateTaskFromTemplateRequest requires a Name, this might need adjustment
+        // or the DTO's Name property should be nullable if the API allows it.
+        // For now, assuming string.Empty is the intended default if WithName is not called.
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -163,9 +168,9 @@ public class FluentCreateTaskFromTemplateRequestTests
         _mockTasksService.Verify(x => x.CreateTaskFromTemplateAsync(
             listId,
             templateId,
-            It.Is<CreateTaskFromTemplateRequest>(req => req.Name == string.Empty),
-            null,
-            null,
+            It.Is<CreateTaskFromTemplateRequest>(req => req.Name == string.Empty), // Name is string.Empty due to ?? in fluent builder
+            // null, // Removed customTaskIds
+            // null, // Removed teamId
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

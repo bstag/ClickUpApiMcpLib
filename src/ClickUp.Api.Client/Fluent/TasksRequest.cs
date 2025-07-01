@@ -144,8 +144,16 @@ public class TasksRequest
         return this;
     }
 
-    public async Task<GetTasksResponse> GetAsync()
+    public async Task<GetTasksResponse> GetAsync(CancellationToken cancellationToken = default)
     {
-        return await _tasksService.GetTasksAsync(_listId, _request);
+        return await _tasksService.GetTasksAsync(_listId, _request, cancellationToken);
+    }
+
+    public IAsyncEnumerable<Models.Entities.Tasks.CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
+    {
+        // The _request DTO is already populated by the With... methods.
+        // The Page property in _request will be ignored by the service layer's GetTasksAsyncEnumerableAsync,
+        // as it handles its own pagination.
+        return _tasksService.GetTasksAsyncEnumerableAsync(_listId, _request, cancellationToken);
     }
 }

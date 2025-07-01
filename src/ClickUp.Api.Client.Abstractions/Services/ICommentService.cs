@@ -42,22 +42,18 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// This method handles pagination internally, yielding comments as they are fetched.
         /// </summary>
         /// <param name="taskId">The unique identifier of the task for which to retrieve comments.</param>
-        /// <param name="customTaskIds">Optional. If set to <c>true</c>, the <paramref name="taskId"/> is treated as a custom task ID. Defaults to <c>false</c>.</param>
-        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
-        /// <param name="start">Optional. A Unix timestamp (in milliseconds) indicating the starting point from which to retrieve comments. Only comments created at or after this time will be returned for the initial page.</param>
+        /// <param name="requestModel">An object containing options for custom task ID handling (<see cref="GetTaskCommentsRequest.CustomTaskIds"/>, <see cref="GetTaskCommentsRequest.TeamId"/>) and pagination (<see cref="GetTaskCommentsRequest.Start"/>, <see cref="GetTaskCommentsRequest.StartId"/>).</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.
         /// This token is also used by the <see cref="IAsyncEnumerable{T}"/> iteration.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> that yields <see cref="Comment"/> objects for the specified task.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="requestModel"/> is null.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies CustomTaskIds as true but TeamId is not provided.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task with the specified ID does not exist or is not accessible.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this task.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
         IAsyncEnumerable<Comment> GetTaskCommentsStreamAsync(
-            string taskId,
-            bool? customTaskIds = null,
-            string? teamId = null,
-            long? start = null,
+            string taskId, // TaskId remains separate as it's part of the path
+            GetTaskCommentsRequest requestModel,
             CancellationToken cancellationToken = default);
 
         /// <summary>

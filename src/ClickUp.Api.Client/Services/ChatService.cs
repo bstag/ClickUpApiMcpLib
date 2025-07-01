@@ -70,30 +70,24 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async Task<ChatChannelPaginatedResponse> GetChatChannelsAsync(
             string workspaceId,
-            string? descriptionFormat = null,
-            string? cursor = null,
-            int? limit = null,
-            bool? isFollower = null,
-            bool? includeHidden = null,
-            long? withCommentSince = null,
-            IEnumerable<string>? roomTypes = null,
+            GetChatChannelsRequest requestModel,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting chat channels for workspace ID: {WorkspaceId}, Cursor: {Cursor}, Limit: {Limit}", workspaceId, cursor, limit);
-            var endpoint = $"{BaseEndpoint}/{workspaceId}/channels"; // Corrected v3 endpoint from /docs to /channels
+            _logger.LogInformation("Getting chat channels for workspace ID: {WorkspaceId}, Cursor: {Cursor}, Limit: {Limit}", workspaceId, requestModel.Cursor, requestModel.Limit);
+            var endpoint = $"{BaseEndpoint}/{workspaceId}/channels";
             var queryParams = new Dictionary<string, string?>();
-            if (!string.IsNullOrEmpty(descriptionFormat)) queryParams["description_format"] = descriptionFormat;
-            if (!string.IsNullOrEmpty(cursor)) queryParams["cursor"] = cursor;
-            if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
-            if (isFollower.HasValue) queryParams["is_follower"] = isFollower.Value.ToString().ToLower();
-            if (includeHidden.HasValue) queryParams["include_hidden"] = includeHidden.Value.ToString().ToLower();
-            if (withCommentSince.HasValue) queryParams["with_comment_since"] = withCommentSince.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.DescriptionFormat)) queryParams["description_format"] = requestModel.DescriptionFormat;
+            if (!string.IsNullOrEmpty(requestModel.Cursor)) queryParams["cursor"] = requestModel.Cursor;
+            if (requestModel.Limit.HasValue) queryParams["limit"] = requestModel.Limit.Value.ToString();
+            if (requestModel.IsFollower.HasValue) queryParams["is_follower"] = requestModel.IsFollower.Value.ToString().ToLower();
+            if (requestModel.IncludeHidden.HasValue) queryParams["include_hidden"] = requestModel.IncludeHidden.Value.ToString().ToLower();
+            if (requestModel.WithCommentSince.HasValue) queryParams["with_comment_since"] = requestModel.WithCommentSince.Value.ToString();
 
             var queryString = BuildQueryString(queryParams);
 
-            if (roomTypes != null && roomTypes.Any())
+            if (requestModel.RoomTypes != null && requestModel.RoomTypes.Any())
             {
-                queryString += (string.IsNullOrEmpty(queryString) || queryString == "?" ? (queryString == "?" ? "" : "?") : "&") + BuildQueryStringFromArray("room_types", roomTypes);
+                queryString += (string.IsNullOrEmpty(queryString) || queryString == "?" ? (queryString == "?" ? "" : "?") : "&") + BuildQueryStringFromArray("room_types", requestModel.RoomTypes);
             }
             if (queryString == "?") queryString = string.Empty;
 
@@ -256,16 +250,14 @@ namespace ClickUp.Api.Client.Services
         public async Task<GetChatMessagesResponse> GetChatMessagesAsync(
             string workspaceId,
             string channelId,
-            string? cursor = null,
-            int? limit = null,
-            string? contentFormat = null,
+            GetChatMessagesRequest requestModel,
             CancellationToken cancellationToken = default)
         {
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels/{channelId}/messages";
             var queryParams = new Dictionary<string, string?>();
-            if (!string.IsNullOrEmpty(cursor)) queryParams["cursor"] = cursor;
-            if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
-            if (!string.IsNullOrEmpty(contentFormat)) queryParams["content_format"] = contentFormat;
+            if (!string.IsNullOrEmpty(requestModel.Cursor)) queryParams["cursor"] = requestModel.Cursor;
+            if (requestModel.Limit.HasValue) queryParams["limit"] = requestModel.Limit.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.ContentFormat)) queryParams["content_format"] = requestModel.ContentFormat;
             endpoint += BuildQueryString(queryParams);
 
             var result = await _apiConnection.GetAsync<GetChatMessagesResponse>(endpoint, cancellationToken);
@@ -341,19 +333,17 @@ namespace ClickUp.Api.Client.Services
 
         /// <inheritdoc />
         public async Task<GetChatMessagesResponse> GetChatMessageRepliesAsync(
-            string workspaceId, // workspaceId might not be needed if messageId is globally unique
+            // string workspaceId, // Not used by the /v3/chat/messages/{parent_message_id}/messages endpoint
             string messageId,   // This is the parent_message_id
-            string? cursor = null,
-            int? limit = null,
-            string? contentFormat = null,
+            GetChatMessagesRequest requestModel, // Reusing GetChatMessagesRequest DTO
             CancellationToken cancellationToken = default)
         {
             // API spec shows GET /v3/chat/messages/{parent_message_id}/messages
             var endpoint = $"/v3/chat/messages/{messageId}/messages";
             var queryParams = new Dictionary<string, string?>();
-            if (!string.IsNullOrEmpty(cursor)) queryParams["cursor"] = cursor;
-            if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
-            if (!string.IsNullOrEmpty(contentFormat)) queryParams["content_format"] = contentFormat;
+            if (!string.IsNullOrEmpty(requestModel.Cursor)) queryParams["cursor"] = requestModel.Cursor;
+            if (requestModel.Limit.HasValue) queryParams["limit"] = requestModel.Limit.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.ContentFormat)) queryParams["content_format"] = requestModel.ContentFormat;
             endpoint += BuildQueryString(queryParams);
 
             var result = await _apiConnection.GetAsync<GetChatMessagesResponse>(endpoint, cancellationToken);

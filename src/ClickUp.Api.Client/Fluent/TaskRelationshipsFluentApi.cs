@@ -2,6 +2,7 @@ using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.RequestModels.TaskRelationships; // Required for DeleteDependencyRequest
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -21,7 +22,8 @@ public class TaskRelationshipsFluentApi
 
     public async Task DeleteDependencyAsync(string taskId, string? dependsOnTaskId = null, string? dependencyOfTaskId = null, bool? customTaskIds = null, string? teamId = null, CancellationToken cancellationToken = default)
     {
-        await _taskRelationshipsService.DeleteDependencyAsync(taskId, dependsOnTaskId, dependencyOfTaskId, customTaskIds, teamId, cancellationToken);
+        var requestModel = new DeleteDependencyRequest(dependsOnTaskId, dependencyOfTaskId, customTaskIds, teamId);
+        await _taskRelationshipsService.DeleteDependencyAsync(taskId, requestModel, cancellationToken);
     }
 
     public DependencyFluentDeleteRequest DeleteDependency(string taskId)

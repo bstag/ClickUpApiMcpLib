@@ -5,13 +5,11 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
+using ClickUp.Api.Client.Models.RequestModels.Tasks; // Added for GetTaskRequest
+
 public class TaskFluentGetRequest
 {
-    private bool? _customTaskIds;
-    private string? _teamId;
-    private bool? _includeSubtasks;
-    private bool? _includeMarkdownDescription;
-
+    private readonly GetTaskRequest _requestDto = new(); // Use the DTO
     private readonly string _taskId;
     private readonly ITasksService _tasksService;
 
@@ -23,25 +21,31 @@ public class TaskFluentGetRequest
 
     public TaskFluentGetRequest WithCustomTaskIds(bool customTaskIds)
     {
-        _customTaskIds = customTaskIds;
+        _requestDto.CustomTaskIds = customTaskIds;
         return this;
     }
 
     public TaskFluentGetRequest WithTeamId(string teamId)
     {
-        _teamId = teamId;
+        _requestDto.TeamId = teamId;
         return this;
     }
 
     public TaskFluentGetRequest WithIncludeSubtasks(bool includeSubtasks)
     {
-        _includeSubtasks = includeSubtasks;
+        _requestDto.IncludeSubtasks = includeSubtasks;
         return this;
     }
 
     public TaskFluentGetRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription)
     {
-        _includeMarkdownDescription = includeMarkdownDescription;
+        _requestDto.IncludeMarkdownDescription = includeMarkdownDescription;
+        return this;
+    }
+
+    public TaskFluentGetRequest WithCommentPage(int page)
+    {
+        _requestDto.Page = page;
         return this;
     }
 
@@ -49,10 +53,7 @@ public class TaskFluentGetRequest
     {
         return await _tasksService.GetTaskAsync(
             _taskId,
-            _customTaskIds,
-            _teamId,
-            _includeSubtasks,
-            _includeMarkdownDescription,
+            _requestDto, // Pass the DTO
             cancellationToken
         );
     }

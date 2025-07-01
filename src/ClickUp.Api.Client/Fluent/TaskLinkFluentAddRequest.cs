@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
+using ClickUp.Api.Client.Models.RequestModels.TaskRelationships; // Added for AddTaskLinkRequest
+
 public class TaskLinkFluentAddRequest
 {
-    private bool? _customTaskIds;
-    private string? _teamId;
-
+    private readonly AddTaskLinkRequest _requestDto = new AddTaskLinkRequest(); // Use the DTO
     private readonly string _taskId;
     private readonly string _linksToTaskId;
     private readonly ITaskRelationshipsService _taskRelationshipsService;
@@ -23,13 +23,13 @@ public class TaskLinkFluentAddRequest
 
     public TaskLinkFluentAddRequest WithCustomTaskIds(bool customTaskIds)
     {
-        _customTaskIds = customTaskIds;
+        _requestDto.CustomTaskIds = customTaskIds;
         return this;
     }
 
     public TaskLinkFluentAddRequest WithTeamId(string teamId)
     {
-        _teamId = teamId;
+        _requestDto.TeamId = teamId;
         return this;
     }
 
@@ -38,8 +38,7 @@ public class TaskLinkFluentAddRequest
         return await _taskRelationshipsService.AddTaskLinkAsync(
             _taskId,
             _linksToTaskId,
-            _customTaskIds,
-            _teamId,
+            _requestDto, // Pass the DTO
             cancellationToken
         );
     }

@@ -3,6 +3,7 @@ using ClickUp.Api.Client.Models.ResponseModels.Chat;
 using System.Collections.Generic; // Added for IAsyncEnumerable
 using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.RequestModels.Chat; // Added for GetChatMessagesRequest
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -35,17 +36,21 @@ public class ChatFluentApi
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         string? cursor = null;
-        const int limit = 100; // Max limit as per API docs for efficient fetching
+        const int limitPerCall = 100; // Max limit as per API docs for efficient fetching
 
         do
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var requestModel = new GetChatMessagesRequest
+            {
+                Cursor = cursor,
+                Limit = limitPerCall,
+                ContentFormat = contentFormat
+            };
             var response = await _chatService.GetChatMessagesAsync(
                 workspaceId,
                 channelId,
-                cursor,
-                limit,
-                contentFormat,
+                requestModel,
                 cancellationToken);
 
             if (response?.Data != null)

@@ -186,7 +186,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             try
             {
-                await _tasksService.DeleteTaskAsync(taskId);
+                await _tasksService.DeleteTaskAsync(taskId, new DeleteTaskRequest()); // Pass empty request DTO
                 _output.LogInformation($"Task '{taskId}' deleted successfully or mock processed.");
             }
             catch (Exception ex)
@@ -432,7 +432,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Exception? thrownException = null;
             try
             {
-                await _taskRelationshipsService.DeleteDependencyAsync(taskA.Id, dependsOnTaskId: taskB.Id, dependencyOfTaskId: null);
+                await _taskRelationshipsService.DeleteDependencyAsync(taskA.Id, new Models.RequestModels.TaskRelationships.DeleteDependencyRequest(dependsOnTaskId: taskB.Id));
                 _output.LogInformation($"Successfully deleted 'depends_on' dependency from Task {taskA.Id} to Task {taskB.Id}.");
             }
             catch (Exception ex)
@@ -515,7 +515,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Exception? thrownException = null;
             try
             {
-                resultTask = await _taskRelationshipsService.AddTaskLinkAsync(taskFrom.Id, taskTo.Id);
+                resultTask = await _taskRelationshipsService.AddTaskLinkAsync(taskFrom.Id, taskTo.Id, new Models.RequestModels.TaskRelationships.AddTaskLinkRequest());
                 _output.LogInformation($"Successfully linked Task {taskFrom.Id} to Task {taskTo.Id}. Result task ID: {resultTask?.Id}");
             }
             catch (Exception ex)
@@ -617,7 +617,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             // Link them first
-            await _taskRelationshipsService.AddTaskLinkAsync(taskFrom.Id, taskTo.Id);
+            await _taskRelationshipsService.AddTaskLinkAsync(taskFrom.Id, taskTo.Id, new Models.RequestModels.TaskRelationships.AddTaskLinkRequest());
             _output.LogInformation($"Setup: Linked Task {taskFrom.Id} to Task {taskTo.Id}.");
 
             // Act
@@ -626,7 +626,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             try
             {
                 // This method in the service currently returns Task.FromResult<CuTask?>(null)
-                resultTask = await _taskRelationshipsService.DeleteTaskLinkAsync(taskFrom.Id, taskTo.Id);
+                resultTask = await _taskRelationshipsService.DeleteTaskLinkAsync(taskFrom.Id, taskTo.Id, new Models.RequestModels.TaskRelationships.DeleteTaskLinkRequest());
                 _output.LogInformation($"Successfully called DeleteTaskLinkAsync for Task {taskFrom.Id} and Task {taskTo.Id}.");
             }
             catch (Exception ex)
