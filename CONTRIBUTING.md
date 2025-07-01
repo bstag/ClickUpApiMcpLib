@@ -55,7 +55,7 @@ We follow the [Contributor Covenant](https://www.contributor-covenant.org/versio
 
 ## SDK Method Parameter Conventions
 
-To reduce cognitive load and prevent usage errors, **all public SDK methods MUST follow the canonical identifier order below**. A Roslyn analyzer (`ClickUp.IdOrderAnalyzer`) enforces this rule in CI.
+To reduce cognitive load and prevent usage errors, **all public SDK methods MUST follow the canonical identifier order below**.
 
 | Scope | Parameter Name |
 |-------|----------------|
