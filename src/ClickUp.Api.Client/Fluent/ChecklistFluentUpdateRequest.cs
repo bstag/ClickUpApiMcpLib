@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class ChecklistFluentEditRequest
+public class ChecklistFluentUpdateRequest
 {
     private string? _name;
     private int? _position;
@@ -13,19 +13,19 @@ public class ChecklistFluentEditRequest
     private readonly string _checklistId;
     private readonly ITaskChecklistsService _taskChecklistsService;
 
-    public ChecklistFluentEditRequest(string checklistId, ITaskChecklistsService taskChecklistsService)
+    public ChecklistFluentUpdateRequest(string checklistId, ITaskChecklistsService taskChecklistsService)
     {
         _checklistId = checklistId;
         _taskChecklistsService = taskChecklistsService;
     }
 
-    public ChecklistFluentEditRequest WithName(string name)
+    public ChecklistFluentUpdateRequest WithName(string name)
     {
         _name = name;
         return this;
     }
 
-    public ChecklistFluentEditRequest WithPosition(int position)
+    public ChecklistFluentUpdateRequest WithPosition(int position)
     {
         _position = position;
         return this;

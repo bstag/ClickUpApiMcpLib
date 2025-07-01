@@ -17,9 +17,9 @@ public class AuthorizationFluentApi
         _authorizationService = authorizationService;
     }
 
-    public GetAccessTokenFluentRequest GetAccessToken()
+    public AccessTokenFluentGetSingleRequest GetAccessToken()
     {
-        return new GetAccessTokenFluentRequest(_authorizationService);
+        return new AccessTokenFluentGetSingleRequest(_authorizationService);
     }
 
     public async Task<User> GetAuthorizedUserAsync(CancellationToken cancellationToken = default)

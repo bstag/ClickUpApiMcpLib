@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class ChecklistItemFluentEditRequest
+public class ChecklistItemFluentUpdateRequest
 {
     private string? _name;
     private bool? _resolved;
@@ -17,32 +17,32 @@ public class ChecklistItemFluentEditRequest
     private readonly string _checklistItemId;
     private readonly ITaskChecklistsService _taskChecklistsService;
 
-    public ChecklistItemFluentEditRequest(string checklistId, string checklistItemId, ITaskChecklistsService taskChecklistsService)
+    public ChecklistItemFluentUpdateRequest(string checklistId, string checklistItemId, ITaskChecklistsService taskChecklistsService)
     {
         _checklistId = checklistId;
         _checklistItemId = checklistItemId;
         _taskChecklistsService = taskChecklistsService;
     }
 
-    public ChecklistItemFluentEditRequest WithName(string name)
+    public ChecklistItemFluentUpdateRequest WithName(string name)
     {
         _name = name;
         return this;
     }
 
-    public ChecklistItemFluentEditRequest WithResolved(bool resolved)
+    public ChecklistItemFluentUpdateRequest WithResolved(bool resolved)
     {
         _resolved = resolved;
         return this;
     }
 
-    public ChecklistItemFluentEditRequest WithAssignee(string assignee)
+    public ChecklistItemFluentUpdateRequest WithAssignee(string assignee)
     {
         _assignee = assignee;
         return this;
     }
 
-    public ChecklistItemFluentEditRequest WithParent(string parent)
+    public ChecklistItemFluentUpdateRequest WithParent(string parent)
     {
         _parent = parent;
         return this;

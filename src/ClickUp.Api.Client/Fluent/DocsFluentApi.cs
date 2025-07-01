@@ -20,7 +20,7 @@ public class DocsFluentApi
         _docsService = docsService;
     }
 
-    public SearchDocsFluentRequest SearchDocs(string workspaceId,
+    public DocFluentSearchRequest SearchDocs(string workspaceId,
         string? query = null,
         List<string>? spaceIds = null,
         List<string>? folderIds = null,

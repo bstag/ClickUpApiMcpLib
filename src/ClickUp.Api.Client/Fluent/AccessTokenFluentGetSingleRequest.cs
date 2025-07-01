@@ -6,29 +6,29 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class GetAccessTokenFluentRequest
+public class AccessTokenFluentGetSingleRequest
 {
     private readonly GetAccessTokenRequest _request = new();
     private readonly IAuthorizationService _authorizationService;
 
-    public GetAccessTokenFluentRequest(IAuthorizationService authorizationService)
+    public AccessTokenFluentGetSingleRequest(IAuthorizationService authorizationService)
     {
         _authorizationService = authorizationService;
     }
 
-    public GetAccessTokenFluentRequest WithClientId(string clientId)
+    public AccessTokenFluentGetSingleRequest WithClientId(string clientId)
     {
         _request.ClientId = clientId;
         return this;
     }
 
-    public GetAccessTokenFluentRequest WithClientSecret(string clientSecret)
+    public AccessTokenFluentGetSingleRequest WithClientSecret(string clientSecret)
     {
         _request.ClientSecret = clientSecret;
         return this;
     }
 
-    public GetAccessTokenFluentRequest WithCode(string code)
+    public AccessTokenFluentGetSingleRequest WithCode(string code)
     {
         _request.Code = code;
         return this;

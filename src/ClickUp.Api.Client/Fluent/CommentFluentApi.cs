@@ -17,12 +17,12 @@ public class CommentFluentApi
         _commentService = commentService;
     }
 
-    public TaskCommentsFluentGetRequest GetTaskComments(string taskId)
+    public TaskCommentFluentQueryRequest GetTaskComments(string taskId)
     {
         // This request builder will eventually use the GetTaskCommentsAsyncEnumerableAsync or a similar paginated method.
         // For now, its internal implementation might use the older GetTaskCommentsAsync.
         // This change is about adding the AsyncEnumerable directly to the fluent API.
-        return new TaskCommentsFluentGetRequest(taskId, _commentService);
+        return new TaskCommentFluentQueryRequest(taskId, _commentService);
     }
 
     public async Task<CreateCommentResponse> CreateTaskCommentAsync(string taskId, CreateTaskCommentRequest createCommentRequest, bool? customTaskIds = null, string? teamId = null, CancellationToken cancellationToken = default)
