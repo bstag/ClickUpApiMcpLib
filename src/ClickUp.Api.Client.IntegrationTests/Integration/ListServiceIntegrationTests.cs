@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.IntegrationTests.TestInfrastructure;
-using ClickUp.Api.Client.Models; // For ClickUpList
 using ClickUp.Api.Client.Models.RequestModels.Lists;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

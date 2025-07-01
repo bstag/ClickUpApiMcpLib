@@ -25,6 +25,7 @@ using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Comments;
 using ClickUp.Api.Client.Models.Entities.Comments;
+using ClickUp.Api.Client.Models.Entities.Lists;
 // using ClickUp.Api.Client.Models.RequestModels.Tasks; // Duplicate
 // using ClickUp.Api.Client.Models.RequestModels.Comments; // Duplicate
 

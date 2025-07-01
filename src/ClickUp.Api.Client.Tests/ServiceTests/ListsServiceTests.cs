@@ -5,14 +5,15 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
-using ClickUp.Api.Client.Models; // For ClickUpList and related models if not directly in .Entities
-using ClickUp.Api.Client.Models.Entities; // For concrete entities used in Lists if any
+using ClickUp.Api.Client.Models.Entities;
+using ClickUp.Api.Client.Models.Entities.Folders; // For concrete entities used in Lists if any
 using ClickUp.Api.Client.Models.ResponseModels.Lists; // For GetListsResponse
 using ClickUp.Api.Client.Models.RequestModels.Lists; // If any request models are used by ListsService methods
 using ClickUp.Api.Client.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using ClickUp.Api.Client.Models.Entities.Lists;
 
 namespace ClickUp.Api.Client.Tests.ServiceTests
 {
@@ -49,18 +50,19 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         // }
 
         // Corrected CreateSampleClickUpListRaw based on actual Entities.Lists.List DTO
-        private ClickUp.Api.Client.Models.Entities.Lists.List CreateSampleClickUpListRaw(
+        private ClickUpList CreateSampleClickUpListRaw(
             string id = "list_1",
             string name = "Sample List",
-            ClickUp.Api.Client.Models.Entities.Folders.Folder? folder = null, // Optional folder
-            ClickUp.Api.Client.Models.Entities.Lists.ListPriorityInfo? priority = null) // Optional priority
+            Folder? folder = null, // Optional folder
+            ListPriorityInfo? priority = null) // Optional priority
         {
-            return new ClickUp.Api.Client.Models.Entities.Lists.List(
-                Id: id,
-                Name: name,
-                Folder: folder ?? CreateSampleFolderDto(id + "_folder", name + " Folder"), // Provide a default folder if null
-                Priority: priority // Can be null
-            );
+            return new ClickUpList
+            {
+                Id = id,
+                Name = name,
+                Folder = folder ?? CreateSampleFolderDto(id + "_folder", name + " Folder"), // Provide a default folder if null
+                Priority = priority // Can be null
+            };
         }
 
         // --- Tests for GetListsInFolderAsync ---
@@ -70,7 +72,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var folderId = "folder123";
-            var rawListsFromApi = new List<ClickUp.Api.Client.Models.Entities.Lists.List> { CreateSampleClickUpListRaw("list1", "List One") };
+            var rawListsFromApi = new List<ClickUpList> { CreateSampleClickUpListRaw("list1", "List One") };
             var apiResponse = new GetListsResponse(rawListsFromApi);
 
             _mockApiConnection
@@ -97,7 +99,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var folderId = "folder456";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetListsResponse(new List<ClickUp.Api.Client.Models.Entities.Lists.List>()));
+                .ReturnsAsync(new GetListsResponse(new List<ClickUpList>()));
 
             // Act
             await _listsService.GetListsInFolderAsync(folderId, archived: true);
@@ -115,7 +117,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var folderId = "folder789";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetListsResponse(new List<ClickUp.Api.Client.Models.Entities.Lists.List>()));
+                .ReturnsAsync(new GetListsResponse(new List<ClickUpList>()));
 
             // Act
             await _listsService.GetListsInFolderAsync(folderId, archived: false);
@@ -196,11 +198,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var folderId = "folder_ct_pass";
-            var cts = new CancellationTokenSource();
+            var cts = new CancellationTokenSource();    
             var expectedToken = cts.Token;
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetListsResponse>(It.IsAny<string>(), expectedToken))
-                .ReturnsAsync(new GetListsResponse(new List<ClickUp.Api.Client.Models.Entities.Lists.List>()));
+                .ReturnsAsync(new GetListsResponse(new List<ClickUpList>()));
 
             // Act
             await _listsService.GetListsInFolderAsync(folderId, cancellationToken: expectedToken);
@@ -323,7 +325,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var spaceId = "space123";
-            var expectedRawLists = new List<ClickUp.Api.Client.Models.Entities.Lists.List> { CreateSampleClickUpListRaw("list_fl1", "Folderless List One") };
+            var expectedRawLists = new List<ClickUpList> { CreateSampleClickUpListRaw("list_fl1", "Folderless List One") };
             var apiResponse = new GetListsResponse(expectedRawLists);
 
             _mockApiConnection
@@ -350,7 +352,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space456";
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetListsResponse(new List<ClickUp.Api.Client.Models.Entities.Lists.List>()));
+                .ReturnsAsync(new GetListsResponse(new List<ClickUpList>()));
 
             // Act
             await _listsService.GetFolderlessListsAsync(spaceId, archived: true);
@@ -435,7 +437,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var expectedToken = cts.Token;
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetListsResponse>(It.IsAny<string>(), expectedToken))
-                .ReturnsAsync(new GetListsResponse(new List<ClickUp.Api.Client.Models.Entities.Lists.List>()));
+                .ReturnsAsync(new GetListsResponse(new List<ClickUpList>()));
 
             // Act
             await _listsService.GetFolderlessListsAsync(spaceId, cancellationToken: expectedToken);
@@ -1207,9 +1209,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // --- Tests for GetFolderlessListsAsyncEnumerableAsync ---
-        private List<ClickUp.Api.Client.Models.Entities.Lists.List> CreateSampleRawDtoListsForPaging(int count, int pageNum) // Renamed for clarity
+        private List<ClickUpList> CreateSampleRawDtoListsForPaging(int count, int pageNum) // Renamed for clarity
         {
-            var lists = new List<ClickUp.Api.Client.Models.Entities.Lists.List>();
+            var lists = new List<ClickUpList>();
             for (int i = 0; i < count; i++)
             {
                 // Use the corrected CreateSampleClickUpListRaw helper
@@ -1229,7 +1231,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             _mockApiConnection.SetupSequence(api => api.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GetListsResponse(firstPageLists)) // Page 0 returns 2 items
                 .ReturnsAsync(new GetListsResponse(secondPageLists)) // Page 1 returns 1 item
-                .ReturnsAsync(new GetListsResponse(new List<ClickUp.Api.Client.Models.Entities.Lists.List>()));  // Page 2 returns 0 items (empty list signifies end)
+                .ReturnsAsync(new GetListsResponse(new List<ClickUpList>()));  // Page 2 returns 0 items (empty list signifies end)
 
             var allLists = new List<ClickUpList>();
 
@@ -1261,7 +1263,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var spaceId = "space_page_archived";
              _mockApiConnection.Setup(api => api.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetListsResponse(new List<ClickUp.Api.Client.Models.Entities.Lists.List>())); // Empty list to terminate quickly
+                .ReturnsAsync(new GetListsResponse(new List<ClickUpList>())); // Empty list to terminate quickly
 
             await foreach (var _ in _listsService.GetFolderlessListsAsyncEnumerableAsync(spaceId, archived: true, cancellationToken: CancellationToken.None)) { }
 
@@ -1277,7 +1279,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var spaceId = "space_page_empty";
             _mockApiConnection.Setup(api => api.GetAsync<GetListsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetListsResponse(new List<ClickUp.Api.Client.Models.Entities.Lists.List>())); // Empty list signifies end
+                .ReturnsAsync(new GetListsResponse(new List<ClickUpList>())); // Empty list signifies end
 
             var count = 0;
 

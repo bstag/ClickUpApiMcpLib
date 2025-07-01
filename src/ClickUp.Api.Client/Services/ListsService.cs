@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models;
+using ClickUp.Api.Client.Models.Entities.Lists;
+using ClickUp.Api.Client.Models.RequestModels.Lists;
+using ClickUp.Api.Client.Models.ResponseModels.Lists;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.RequestModels.Lists;
-using ClickUp.Api.Client.Models.ResponseModels.Lists; // Assuming GetListsResponse exists
 
 namespace ClickUp.Api.Client.Services
 {
@@ -68,13 +68,7 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken); // API returns {"lists": [...]}
-            return response?.Lists?.Select(list => new ClickUpList
-            {
-                Id = list.Id,
-                Name = list.Name,
-                Folder = list.Folder,
-                Priority = list.Priority
-            }) ?? Enumerable.Empty<ClickUpList>();
+            return response?.Lists ?? Enumerable.Empty<ClickUpList>();
         }
 
         /// <inheritdoc />
@@ -106,13 +100,7 @@ namespace ClickUp.Api.Client.Services
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken); // API returns {"lists": [...]}
-            return response?.Lists?.Select(list => new ClickUpList
-            {
-                Id = list.Id,
-                Name = list.Name,
-                Folder = list.Folder,
-                Priority = list.Priority
-            }) ?? Enumerable.Empty<ClickUpList>();
+            return response?.Lists ?? Enumerable.Empty<ClickUpList>();
         }
 
         /// <inheritdoc />
@@ -258,13 +246,7 @@ namespace ClickUp.Api.Client.Services
                     foreach (var list in response.Lists)
                     {
                         cancellationToken.ThrowIfCancellationRequested(); // Check before yielding each item
-                        yield return new ClickUpList
-                        {
-                            Id = list.Id,
-                            Name = list.Name,
-                            Folder = list.Folder,
-                            Priority = list.Priority
-                        };
+                        yield return list;
                     }
                     lastPageReached = !response.Lists.Any(); // This logic remains: if we got items, there might be more
                 }

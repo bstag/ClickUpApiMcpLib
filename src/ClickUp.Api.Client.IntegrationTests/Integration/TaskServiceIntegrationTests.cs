@@ -18,7 +18,8 @@ using System.Web; // For HttpUtility
 using RichardSzalay.MockHttp; // For MockHttpMessageHandler specific methods like When
 using ClickUp.Api.Client.Models.Common; // For Status
 using ClickUp.Api.Client.Models.ResponseModels.Tasks; // For TaskTimeInStatusResponse and GetBulkTasksTimeInStatusResponse
-using ClickUp.Api.Client.Models.Entities.Users; // For User
+using ClickUp.Api.Client.Models.Entities.Users;
+using ClickUp.Api.Client.Models.Entities.Lists; // For User
 
 namespace ClickUp.Api.Client.IntegrationTests.Integration
 {
@@ -564,9 +565,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             var taskInList1 = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "TaskInList1", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskInList1.Id);
 
-            ClickUp.Api.Client.Models.ClickUpList otherList = null;
+            ClickUpList otherList = null;
             if (CurrentTestMode != TestMode.Playback) otherList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(Name: "OtherList", Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null));
-            else otherList = new ClickUp.Api.Client.Models.ClickUpList { Id = otherListId, Name = "OtherListPlayback" }; // Simulated for playback
+            else otherList = new ClickUpList { Id = otherListId, Name = "OtherListPlayback" }; // Simulated for playback
 
             var taskInOtherList = await _taskService.CreateTaskAsync(otherList.Id, new CreateTaskRequest(Name: "TaskInOtherList", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskInOtherList.Id);
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskInList1Id, taskInList1.Id); Assert.Equal(taskInOtherListId, taskInOtherList.Id); }

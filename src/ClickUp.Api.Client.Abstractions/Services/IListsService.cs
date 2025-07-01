@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models;
+
+using ClickUp.Api.Client.Models.Entities.Lists;
 using ClickUp.Api.Client.Models.RequestModels.Lists;
 
 namespace ClickUp.Api.Client.Abstractions.Services

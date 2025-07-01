@@ -7,7 +7,7 @@ using Moq;
 
 using System.Threading;
 using System.Threading.Tasks;
-
+using ClickUp.Api.Client.Models.Entities.Lists;
 using Xunit;
 
 namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent;

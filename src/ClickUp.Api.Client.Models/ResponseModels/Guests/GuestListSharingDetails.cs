@@ -13,7 +13,7 @@ public record class GuestListSharingDetails
     List<string> Tasks,
 
     [property: JsonPropertyName("lists")]
-    List<List> Lists,
+    List<ClickUpList> Lists,
 
     [property: JsonPropertyName("folders")]
     List<string> Folders

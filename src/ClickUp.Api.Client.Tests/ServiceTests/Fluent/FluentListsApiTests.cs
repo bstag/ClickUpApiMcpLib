@@ -1,7 +1,7 @@
 using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Fluent;
-using ClickUp.Api.Client.Models;
+using ClickUp.Api.Client.Models.Entities.Lists;
 
 using Microsoft.Extensions.Logging;
 

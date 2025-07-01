@@ -11,6 +11,7 @@ The sections below cover the essential information you need to submit issues and
 3. [Coding Guidelines](#coding-guidelines)
 4. [Commit & PR Process](#commit--pr-process)
 5. [SDK Method Parameter Conventions](#sdk-method-parameter-conventions)
+6. [DTO Naming Conventions](#dto-naming-conventions)
 
 ---
 
@@ -88,6 +89,28 @@ public Task<CommentResponse> CreateTaskCommentAsync(
 ```
 
 If a specific identifier is implicitly contained in a lower-level ID (e.g., `taskId` uniquely identifies the list), you may omit the higher-level IDs **only if** the ClickUp API endpoint does not require them.
+
+---
+
+## DTO Naming Conventions
+
+To ensure consistency and improve discoverability across the SDK, Data Transfer Objects (DTOs) should follow a specific naming scheme:
+
+1.  **Request DTOs**:
+    *   Classes used as request bodies for API operations (typically for `POST` or `PUT` methods) MUST be suffixed with `Request`.
+    *   The convention is `ServiceNameOperationRequest`. For example, a DTO to create a task would be named `CreateTaskRequest`. If the service is implicitly known (e.g., `TasksService`), it might be shortened, but the operation and `Request` suffix are key.
+    *   Example: `CreateTaskRequest`, `UpdateListRequest`.
+
+2.  **Response DTOs**:
+    *   Classes that model the direct response from an API operation (typically for `GET`, `POST`, `PUT`, or `DELETE` methods that return data) MUST be suffixed with `Response`.
+    *   The convention is `ServiceNameOperationResponse`. For example, the response from an operation that retrieves a specific task would be `GetTaskResponse`.
+    *   Example: `GetTaskResponse`, `CreateFolderResponse`.
+
+3.  **Nested/Component Models**:
+    *   Models that are part of a larger request or response DTO, but are not top-level request/response DTOs themselves, should have descriptive names but generally AVOID the `Request` or `Response` suffix unless they themselves could also function as standalone request/response DTOs for other specific operations.
+    *   Suffixes like `Dto`, `Details`, `Info`, `Model`, `Body`, `Payload` should generally be avoided for new models in favor of more descriptive names or by adhering to the `Request`/`Response` suffix rule if they are indeed top-level DTOs. Existing models with these suffixes are being progressively refactored.
+
+This convention helps in quickly identifying the purpose of a model (request, response, or general component) and its associated API operation.
 
 ---
 

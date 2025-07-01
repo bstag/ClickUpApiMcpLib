@@ -1,11 +1,11 @@
 using System.Collections.Generic;
+
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Folders;
-using ClickUp.Api.Client.Models.Entities.Lists;
 using ClickUp.Api.Client.Models.Entities.Spaces;
 using ClickUp.Api.Client.Models.Entities.Users;
 
-namespace ClickUp.Api.Client.Models;
+namespace ClickUp.Api.Client.Models.Entities.Lists;
 
 /// <summary>
 /// Represents a ClickUp List, a container for tasks.

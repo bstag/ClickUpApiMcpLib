@@ -10,5 +10,5 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Lists;
 public record class GetListsResponse
 (
     [property: JsonPropertyName("lists")]
-    List<List> Lists
+    List<ClickUpList> Lists
 );
