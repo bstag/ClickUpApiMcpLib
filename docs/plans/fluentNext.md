@@ -143,22 +143,22 @@ The following phases outline a roadmap for further developing the Fluent API.
         *   GetAsyncEnumerableAsync(): Returning an IAsyncEnumerable<T> for easy iteration over all pages.
     *   **Value:** Long-term benefits of improved learnability, usability, and maintainability of the Fluent API.
     *   **Tasks:**
-        *   - [x] **Finalize Naming Strategy:** Confirm the proposed naming strategy for request builders and execution methods. (Confirmed: `[EntityName]Fluent[Action]Request` for single entity CUD, `[EntityName]FluentGetSingleRequest` for single entity Get, `[EntityName]FluentQueryRequest` for collections, `[EntityName]Fluent[SpecificAction]Request` for others. Execution: `ExecuteAsync()` for CUD/actions, `GetAsync()` for single/collection queries, `GetAsyncEnumerableAsync()` for `IAsyncEnumerable`.)
+        *   - [ ] **Finalize Naming Strategy:** Confirm the proposed naming strategy for request builders and execution methods. (Confirmed: `[EntityName]Fluent[Action]Request` for single entity CUD, `[EntityName]FluentGetSingleRequest` for single entity Get, `[EntityName]FluentQueryRequest` for collections, `[EntityName]Fluent[SpecificAction]Request` for others. Execution: `Execute[SpecificAction]Async()` for CUD/actions, `GetAsync()` for single/collection queries, `GetAsyncEnumerableAsync()` for `IAsyncEnumerable`.)
         *   - [ ] **Request Builder Class Renaming:** Audit and rename existing request builder classes according to the chosen strategy. Create tasks per service/entity:
-            *   - [x] Attachments: Review and rename request builders. (No specific request builders found for Attachments, only `AttachmentsFluentApi.cs`)
-            *   - [x] Authorization: Review and rename request builders (e.g., `GetAccessTokenFluentRequest`). (No specific request builder files found. `AuthorizationFluentApi.cs` likely handles this directly.)
-            *   - [x] Chat: Review and rename request builders (e.g., `ChatChannelsFluentGetRequest`). (No specific request builder files found. `ChatFluentApi.cs` likely handles this directly.)
-            *   - [x] Checklists: Review and rename request builders (e.g., `ChecklistFluentCreateRequest`, `ChecklistItemFluentEditRequest`). (No specific request builder files found. `ChecklistsFluentApi.cs` likely handles this directly.)
-            *   - [x] Comments: Review and rename request builders. (No specific request builder files found. `CommentsFluentApi.cs` likely handles this directly.)
-            *   - [x] CustomFields: Review and rename request builders. (No specific request builder files found. `CustomFieldsFluentApi.cs` likely handles this directly.)
-            *   - [x] Docs: Review and rename request builders. (No specific request builder files found. `DocsFluentApi.cs` likely handles this directly.)
-            *   - [x] Folders: Review and rename request builders. (No specific request builder files found. `FoldersFluentApi.cs` likely handles this directly.)
-            *   - [x] Goals: Review and rename request builders (e.g., `GoalsFluentGetRequest` to `GoalsFluentQueryRequest`). (No specific request builder files found. `GoalsFluentApi.cs` likely handles this directly.)
-            *   - [x] Guests: Review and rename request builders. (No specific request builder files found. `GuestsFluentApi.cs` likely handles this directly.)
-            *   - [x] Lists: Review and rename request builders. (No specific request builder files found. `ListsFluentApi.cs` likely handles this directly.)
-            *   - [x] Members: Review and rename request builders. (No specific request builder files found. `MembersFluentApi.cs` likely handles this directly.)
-            *   - [x] Roles: Review and rename request builders. (No specific request builder files found. `RolesFluentApi.cs` likely handles this directly.)
-            *   - [x] SharedHierarchy: Review and rename request builders. (No specific request builder files found. `SharedHierarchyFluentApi.cs` likely handles this directly.)
+            *   - [ ] Attachments: Review and rename request builders. (No specific request builders found for Attachments, only `AttachmentsFluentApi.cs`)
+            *   - [ ] Authorization: Review and rename request builders (e.g., `GetAccessTokenFluentRequest`). (No specific request builder files found. `AuthorizationFluentApi.cs` likely handles this directly.)
+            *   - [ ] Chat: Review and rename request builders (e.g., `ChatChannelsFluentGetRequest`). (No specific request builder files found. `ChatFluentApi.cs` likely handles this directly.)
+            *   - [ ] Checklists: Review and rename request builders (e.g., `ChecklistFluentCreateRequest`, `ChecklistItemFluentEditRequest`). (No specific request builder files found. `ChecklistsFluentApi.cs` likely handles this directly.)
+            *   - [ ] Comments: Review and rename request builders. (No specific request builder files found. `CommentsFluentApi.cs` likely handles this directly.)
+            *   - [ ] CustomFields: Review and rename request builders. (No specific request builder files found. `CustomFieldsFluentApi.cs` likely handles this directly.)
+            *   - [ ] Docs: Review and rename request builders. (No specific request builder files found. `DocsFluentApi.cs` likely handles this directly.)
+            *   - [ ] Folders: Review and rename request builders. (No specific request builder files found. `FoldersFluentApi.cs` likely handles this directly.)
+            *   - [ ] Goals: Review and rename request builders (e.g., `GoalsFluentGetRequest` to `GoalsFluentQueryRequest`). (No specific request builder files found. `GoalsFluentApi.cs` likely handles this directly.)
+            *   - [ ] Guests: Review and rename request builders. (No specific request builder files found. `GuestsFluentApi.cs` likely handles this directly.)
+            *   - [ ] Lists: Review and rename request builders. (No specific request builder files found. `ListsFluentApi.cs` likely handles this directly.)
+            *   - [ ] Members: Review and rename request builders. (No specific request builder files found. `MembersFluentApi.cs` likely handles this directly.)
+            *   - [ ] Roles: Review and rename request builders. (No specific request builder files found. `RolesFluentApi.cs` likely handles this directly.)
+            *   - [ ] SharedHierarchy: Review and rename request builders. (No specific request builder files found. `SharedHierarchyFluentApi.cs` likely handles this directly.)
             *   - [ ] Spaces: Review and rename request builders.
             *   - [ ] Tags: Review and rename request builders.
             *   - [ ] Tasks: Review and rename (e.g., `TasksRequest` to `TasksFluentQueryRequest`, `TaskFluentGetRequest` to `TaskFluentGetSingleRequest`).
