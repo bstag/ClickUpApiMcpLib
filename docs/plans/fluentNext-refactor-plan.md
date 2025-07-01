@@ -174,7 +174,7 @@ Each step contains:
                 HttpStatusCode.Unauthorized => new ClickUpApiAuthenticationException(baseMessage, response.StatusCode, apiErrorCode, responseContent),
                 HttpStatusCode.Forbidden => new ClickUpApiAuthenticationException(baseMessage, response.StatusCode, apiErrorCode, responseContent), // Or a more specific "Forbidden" exception
                 HttpStatusCode.NotFound => new ClickUpApiNotFoundException(baseMessage, response.StatusCode, apiErrorCode, responseContent),
-                (HttpStatusCode)429 => new ClickUpApiRateLimitException(baseMessage, response.StatusCode, apiErrorCode, responseContent, GetRetryAfter(response)),
+                HttpStatusCode.TooManyRequests => new ClickUpApiRateLimitException(baseMessage, response.StatusCode, apiErrorCode, responseContent, GetRetryAfter(response)),
                 >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError => new ClickUpApiRequestException(baseMessage, response.StatusCode, apiErrorCode, responseContent), // Catch-all for 4xx
                 >= HttpStatusCode.InternalServerError => new ClickUpApiServerException(baseMessage, response.StatusCode, apiErrorCode, responseContent),
                 _ => new ClickUpApiException(baseMessage, response.StatusCode, apiErrorCode, responseContent) // Default for unexpected status codes
