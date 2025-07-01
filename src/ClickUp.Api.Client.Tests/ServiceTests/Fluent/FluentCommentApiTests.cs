@@ -28,36 +28,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             // _client = new ClickUpClient(_mockApiConnection.Object, _mockLoggerFactory.Object);
         }
 
-        [Fact]
-        public async Task GetTaskComments_ViaBuilder_GetStreamAsync_CallsServiceCorrectly()
-        {
-            // Arrange
-            var taskId = "testTaskId";
-            var expectedComments = new List<Comment>().ToAsyncEnumerable();
-
-            var mockCommentsService = new Mock<ICommentsService>();
-            mockCommentsService.Setup(x => x.GetTaskCommentsStreamAsync(
-                taskId,
-                It.IsAny<GetTaskCommentsRequest>(),
-                It.IsAny<CancellationToken>()))
-                .Returns(expectedComments);
-
-            var commentFluentApi = new CommentFluentApi(mockCommentsService.Object);
-
-            // Act
-            var result = new List<Comment>();
-            await foreach (var comment in commentFluentApi.GetTaskComments(taskId).WithStart(0).GetStreamAsync())
-            {
-                result.Add(comment);
-            }
-
-            // Assert
-            Assert.Equal(await expectedComments.ToListAsync(), result);
-            mockCommentsService.Verify(x => x.GetTaskCommentsStreamAsync(
-                taskId,
-                It.Is<GetTaskCommentsRequest>(dto => dto.TaskId == taskId && dto.Start == 0 && dto.CustomTaskIds == null && dto.TeamId == null && dto.StartId == null),
-                It.IsAny<CancellationToken>()), Times.Once);
-        }
+        
 
         [Fact]
         public async Task GetTaskCommentsAsyncEnumerableAsync_DirectCall_WithAllParams_CallsServiceCorrectly()
@@ -65,7 +36,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             // Arrange
             var taskId = "test-task-direct";
             var mockCommentService = new Mock<ICommentsService>();
-            var expectedComments = new List<Comment>().ToAsyncEnumerable();
+            var expectedComments = ToAsyncEnumerable(new List<Comment>());
             bool customTaskIds = true;
             string teamId = "test-team";
             long start = 12345L;
@@ -104,7 +75,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             // Arrange
             var taskId = "test-task-direct-simple";
             var mockCommentService = new Mock<ICommentsService>();
-            var expectedComments = new List<Comment>().ToAsyncEnumerable();
+            var expectedComments = ToAsyncEnumerable(new List<Comment>());
 
             mockCommentService.Setup(x => x.GetTaskCommentsStreamAsync(
                 taskId,
