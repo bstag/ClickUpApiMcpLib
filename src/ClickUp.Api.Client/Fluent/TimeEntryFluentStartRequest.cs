@@ -69,7 +69,7 @@ public class TimeEntryFluentStartRequest
         return this;
     }
 
-    public async Task<TimeEntry> StartAsync(bool? customTaskIds = null, string? teamIdForCustomTaskIds = null, CancellationToken cancellationToken = default)
+    public async Task<TimeEntry> ExecuteAsync(bool? customTaskIds = null, string? teamIdForCustomTaskIds = null, CancellationToken cancellationToken = default)
     {
         var startTimeEntryRequest = new StartTimeEntryRequest(
             Description: _description,

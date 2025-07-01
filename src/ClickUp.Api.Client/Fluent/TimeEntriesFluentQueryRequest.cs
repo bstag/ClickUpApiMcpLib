@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class TimeEntriesFluentGetRequest
+public class TimeEntriesFluentQueryRequest
 {
     private long? _startDate;
     private long? _endDate;
@@ -21,55 +21,55 @@ public class TimeEntriesFluentGetRequest
     private readonly string _workspaceId;
     private readonly ITimeTrackingService _timeTrackingService;
 
-    public TimeEntriesFluentGetRequest(string workspaceId, ITimeTrackingService timeTrackingService)
+    public TimeEntriesFluentQueryRequest(string workspaceId, ITimeTrackingService timeTrackingService)
     {
         _workspaceId = workspaceId;
         _timeTrackingService = timeTrackingService;
     }
 
-    public TimeEntriesFluentGetRequest WithStartDate(long startDate)
+    public TimeEntriesFluentQueryRequest WithStartDate(long startDate)
     {
         _startDate = startDate;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithEndDate(long endDate)
+    public TimeEntriesFluentQueryRequest WithEndDate(long endDate)
     {
         _endDate = endDate;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithAssignee(int assignee)
+    public TimeEntriesFluentQueryRequest WithAssignee(int assignee)
     {
         _assignee = assignee;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithTaskId(string taskId)
+    public TimeEntriesFluentQueryRequest WithTaskId(string taskId)
     {
         _taskId = taskId;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithCustomTaskIds(bool customTaskIds)
+    public TimeEntriesFluentQueryRequest WithCustomTaskIds(bool customTaskIds)
     {
         _customTaskIds = customTaskIds;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithTeamIdForCustomTaskIds(string teamIdForCustomTaskIds)
+    public TimeEntriesFluentQueryRequest WithTeamIdForCustomTaskIds(string teamIdForCustomTaskIds)
     {
         _teamIdForCustomTaskIds = teamIdForCustomTaskIds;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithIncludeTaskTags(bool includeTaskTags)
+    public TimeEntriesFluentQueryRequest WithIncludeTaskTags(bool includeTaskTags)
     {
         _includeTaskTags = includeTaskTags;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithIncludeLocationNames(bool includeLocationNames)
+    public TimeEntriesFluentQueryRequest WithIncludeLocationNames(bool includeLocationNames)
     {
         _includeLocationNames = includeLocationNames;
         return this;
@@ -94,7 +94,7 @@ public class TimeEntriesFluentGetRequest
         );
     }
 
-    public IAsyncEnumerable<TimeEntry> GetStreamAsync(CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<TimeEntry> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
         var request = new GetTimeEntriesRequest
         {

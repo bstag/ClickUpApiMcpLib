@@ -6,139 +6,139 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class TasksRequest
+public class TasksFluentQueryRequest
 {
     private readonly GetTasksRequest _request = new();
     private readonly string _listId;
     private readonly ITasksService _tasksService;
 
-    public TasksRequest(string listId, ITasksService tasksService)
+    public TasksFluentQueryRequest(string listId, ITasksService tasksService)
     {
         _listId = listId;
         _tasksService = tasksService;
     }
 
-    public TasksRequest WithArchived(bool archived)
+    public TasksFluentQueryRequest WithArchived(bool archived)
     {
         _request.Archived = archived;
         return this;
     }
 
-    public TasksRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription)
+    public TasksFluentQueryRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription)
     {
         _request.IncludeMarkdownDescription = includeMarkdownDescription;
         return this;
     }
 
-    public TasksRequest WithPage(int page)
+    public TasksFluentQueryRequest WithPage(int page)
     {
         _request.Page = page;
         return this;
     }
 
-    public TasksRequest WithOrderBy(string orderBy)
+    public TasksFluentQueryRequest WithOrderBy(string orderBy)
     {
         _request.OrderBy = orderBy;
         return this;
     }
 
-    public TasksRequest WithReverse(bool reverse)
+    public TasksFluentQueryRequest WithReverse(bool reverse)
     {
         _request.Reverse = reverse;
         return this;
     }
 
-    public TasksRequest WithSubtasks(bool subtasks)
+    public TasksFluentQueryRequest WithSubtasks(bool subtasks)
     {
         _request.Subtasks = subtasks;
         return this;
     }
 
-    public TasksRequest WithStatuses(IEnumerable<string> statuses)
+    public TasksFluentQueryRequest WithStatuses(IEnumerable<string> statuses)
     {
         _request.Statuses = statuses;
         return this;
     }
 
-    public TasksRequest WithIncludeClosed(bool includeClosed)
+    public TasksFluentQueryRequest WithIncludeClosed(bool includeClosed)
     {
         _request.IncludeClosed = includeClosed;
         return this;
     }
 
-    public TasksRequest WithAssignees(IEnumerable<string> assignees)
+    public TasksFluentQueryRequest WithAssignees(IEnumerable<string> assignees)
     {
         _request.Assignees = assignees;
         return this;
     }
 
-    public TasksRequest WithWatchers(IEnumerable<string> watchers)
+    public TasksFluentQueryRequest WithWatchers(IEnumerable<string> watchers)
     {
         _request.Watchers = watchers;
         return this;
     }
 
-    public TasksRequest WithTags(IEnumerable<string> tags)
+    public TasksFluentQueryRequest WithTags(IEnumerable<string> tags)
     {
         _request.Tags = tags;
         return this;
     }
 
-    public TasksRequest WithDueDateGreaterThan(long dueDateGreaterThan)
+    public TasksFluentQueryRequest WithDueDateGreaterThan(long dueDateGreaterThan)
     {
         _request.DueDateGreaterThan = dueDateGreaterThan;
         return this;
     }
 
-    public TasksRequest WithDueDateLessThan(long dueDateLessThan)
+    public TasksFluentQueryRequest WithDueDateLessThan(long dueDateLessThan)
     {
         _request.DueDateLessThan = dueDateLessThan;
         return this;
     }
 
-    public TasksRequest WithDateCreatedGreaterThan(long dateCreatedGreaterThan)
+    public TasksFluentQueryRequest WithDateCreatedGreaterThan(long dateCreatedGreaterThan)
     {
         _request.DateCreatedGreaterThan = dateCreatedGreaterThan;
         return this;
     }
 
-    public TasksRequest WithDateCreatedLessThan(long dateCreatedLessThan)
+    public TasksFluentQueryRequest WithDateCreatedLessThan(long dateCreatedLessThan)
     {
         _request.DateCreatedLessThan = dateCreatedLessThan;
         return this;
     }
 
-    public TasksRequest WithDateUpdatedGreaterThan(long dateUpdatedGreaterThan)
+    public TasksFluentQueryRequest WithDateUpdatedGreaterThan(long dateUpdatedGreaterThan)
     {
         _request.DateUpdatedGreaterThan = dateUpdatedGreaterThan;
         return this;
     }
 
-    public TasksRequest WithDateUpdatedLessThan(long dateUpdatedLessThan)
+    public TasksFluentQueryRequest WithDateUpdatedLessThan(long dateUpdatedLessThan)
     {
         _request.DateUpdatedLessThan = dateUpdatedLessThan;
         return this;
     }
 
-    public TasksRequest WithDateDoneGreaterThan(long dateDoneGreaterThan)
+    public TasksFluentQueryRequest WithDateDoneGreaterThan(long dateDoneGreaterThan)
     {
         _request.DateDoneGreaterThan = dateDoneGreaterThan;
         return this;
     }
 
-    public TasksRequest WithDateDoneLessThan(long dateDoneLessThan)
+    public TasksFluentQueryRequest WithDateDoneLessThan(long dateDoneLessThan)
     {
         _request.DateDoneLessThan = dateDoneLessThan;
         return this;
     }
 
-    public TasksRequest WithCustomFields(string customFields)
+    public TasksFluentQueryRequest WithCustomFields(string customFields)
     {
         _request.CustomFields = customFields;
         return this;
     }
 
-    public TasksRequest WithCustomItems(IEnumerable<long> customItems)
+    public TasksFluentQueryRequest WithCustomItems(IEnumerable<long> customItems)
     {
         _request.CustomItems = customItems;
         return this;

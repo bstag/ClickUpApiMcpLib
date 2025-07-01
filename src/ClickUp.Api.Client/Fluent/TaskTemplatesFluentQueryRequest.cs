@@ -5,20 +5,20 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class TaskTemplatesFluentGetRequest
+public class TaskTemplatesFluentQueryRequest
 {
     private int? _page;
 
     private readonly string _workspaceId;
     private readonly ITemplatesService _templatesService;
 
-    public TaskTemplatesFluentGetRequest(string workspaceId, ITemplatesService templatesService)
+    public TaskTemplatesFluentQueryRequest(string workspaceId, ITemplatesService templatesService)
     {
         _workspaceId = workspaceId;
         _templatesService = templatesService;
     }
 
-    public TaskTemplatesFluentGetRequest WithPage(int page)
+    public TaskTemplatesFluentQueryRequest WithPage(int page)
     {
         _page = page;
         return this;

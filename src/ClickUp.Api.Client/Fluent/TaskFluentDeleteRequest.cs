@@ -30,7 +30,7 @@ public class TaskFluentDeleteRequest
         return this;
     }
 
-    public async Task DeleteAsync(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         // The method in ITasksService is now DeleteTaskAsync(string taskId, DeleteTaskRequest requestModel, CancellationToken token)
         await _tasksService.DeleteTaskAsync(

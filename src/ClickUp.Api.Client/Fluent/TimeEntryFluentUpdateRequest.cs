@@ -92,7 +92,7 @@ public class TimeEntryFluentUpdateRequest
         return this;
     }
 
-    public async Task<TimeEntry> UpdateAsync(bool? customTaskIds = null, string? teamIdForCustomTaskIds = null, CancellationToken cancellationToken = default)
+    public async Task<TimeEntry> ExecuteAsync(bool? customTaskIds = null, string? teamIdForCustomTaskIds = null, CancellationToken cancellationToken = default)
     {
         var updateTimeEntryRequest = new UpdateTimeEntryRequest(
             Description: _description,

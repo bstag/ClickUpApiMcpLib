@@ -17,9 +17,9 @@ public class TemplatesFluentApi
         _templatesService = templatesService;
     }
 
-    public TaskTemplatesFluentGetRequest GetTaskTemplates(string workspaceId)
+    public TaskTemplatesFluentQueryRequest GetTaskTemplates(string workspaceId)
     {
-        return new TaskTemplatesFluentGetRequest(workspaceId, _templatesService);
+        return new TaskTemplatesFluentQueryRequest(workspaceId, _templatesService);
     }
 
     /// <summary>

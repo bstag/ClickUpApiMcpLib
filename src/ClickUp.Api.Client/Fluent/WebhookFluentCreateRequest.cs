@@ -68,7 +68,7 @@ public class WebhookFluentCreateRequest
         return this;
     }
 
-    public async Task<Webhook> CreateAsync(CancellationToken cancellationToken = default)
+    public async Task<Webhook> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var createWebhookRequest = new CreateWebhookRequest(
             Endpoint: _endpoint ?? string.Empty,

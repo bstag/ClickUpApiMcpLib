@@ -33,7 +33,7 @@ public class TimeEntriesFluentAddTagsRequest
         return this;
     }
 
-    public async Task AddAsync(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var addTagsRequest = new AddTagsFromTimeEntriesRequest(
             TimeEntryIds: _timeEntryIds ?? new List<string>(),

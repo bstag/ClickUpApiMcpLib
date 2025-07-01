@@ -38,7 +38,7 @@ public class TimeEntriesFluentChangeTagNamesRequest
         return this;
     }
 
-    public async Task ChangeAsync(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var changeTagNamesRequest = new ChangeTagNamesFromTimeEntriesRequest(
             Name: _name ?? string.Empty,

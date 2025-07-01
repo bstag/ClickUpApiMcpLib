@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class WorkspaceFluentEditUserRequest
+public class UserFluentEditOnWorkspaceRequest
 {
     private string? _username;
     private int? _roleId;
@@ -16,32 +16,32 @@ public class WorkspaceFluentEditUserRequest
     private readonly string _userId;
     private readonly IUsersService _usersService;
 
-    public WorkspaceFluentEditUserRequest(string workspaceId, string userId, IUsersService usersService)
+    public UserFluentEditOnWorkspaceRequest(string workspaceId, string userId, IUsersService usersService)
     {
         _workspaceId = workspaceId;
         _userId = userId;
         _usersService = usersService;
     }
 
-    public WorkspaceFluentEditUserRequest WithUsername(string username)
+    public UserFluentEditOnWorkspaceRequest WithUsername(string username)
     {
         _username = username;
         return this;
     }
 
-    public WorkspaceFluentEditUserRequest WithRoleId(int roleId)
+    public UserFluentEditOnWorkspaceRequest WithRoleId(int roleId)
     {
         _roleId = roleId;
         return this;
     }
 
-    public WorkspaceFluentEditUserRequest WithAdmin(bool admin)
+    public UserFluentEditOnWorkspaceRequest WithAdmin(bool admin)
     {
         _admin = admin;
         return this;
     }
 
-    public async Task<User> EditAsync(CancellationToken cancellationToken = default)
+    public async Task<User> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var editUserRequest = new EditUserOnWorkspaceRequest(
             Username: _username ?? string.Empty,

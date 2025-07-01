@@ -159,7 +159,7 @@ public class TaskFluentUpdateRequest
         return this;
     }
 
-    public async Task<CuTask> UpdateAsync(bool? customTaskIds = null, string? teamId = null, CancellationToken cancellationToken = default)
+    public async Task<CuTask> ExecuteAsync(bool? customTaskIds = null, string? teamId = null, CancellationToken cancellationToken = default)
     {
         var updateTaskRequest = new UpdateTaskRequest(
             Name: _name,

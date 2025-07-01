@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class GoalsFluentGetRequest
+public class GoalsFluentQueryRequest
 {
     private readonly GetGoalsRequest _request = new();
     private readonly string _workspaceId;
     private readonly IGoalsService _goalsService;
 
-    public GoalsFluentGetRequest(string workspaceId, IGoalsService goalsService)
+    public GoalsFluentQueryRequest(string workspaceId, IGoalsService goalsService)
     {
         _workspaceId = workspaceId;
         _goalsService = goalsService;
     }
 
-    public GoalsFluentGetRequest WithIncludeCompleted(bool includeCompleted)
+    public GoalsFluentQueryRequest WithIncludeCompleted(bool includeCompleted)
     {
         _request.IncludeCompleted = includeCompleted;
         return this;

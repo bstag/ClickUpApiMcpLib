@@ -33,7 +33,7 @@ public class TimeEntriesFluentRemoveTagsRequest
         return this;
     }
 
-    public async Task RemoveAsync(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var removeTagsRequest = new RemoveTagsFromTimeEntriesRequest(
             TimeEntryIds: _timeEntryIds ?? new List<string>(),

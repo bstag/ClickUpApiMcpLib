@@ -19,9 +19,9 @@ public class GoalsFluentApi
         _goalsService = goalsService;
     }
 
-    public GoalsFluentGetRequest GetGoals(string workspaceId)
+    public GoalsFluentQueryRequest GetGoals(string workspaceId)
     {
-        return new GoalsFluentGetRequest(workspaceId, _goalsService);
+        return new GoalsFluentQueryRequest(workspaceId, _goalsService);
     }
 
     public GoalFluentCreateRequest CreateGoal(string workspaceId)

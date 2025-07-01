@@ -83,7 +83,7 @@ public class ViewFluentUpdateRequest
         return this;
     }
 
-    public async Task<UpdateViewResponse> UpdateAsync(CancellationToken cancellationToken = default)
+    public async Task<UpdateViewResponse> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var updateViewRequest = new UpdateViewRequest
         {

@@ -21,9 +21,9 @@ public class UsersFluentApi
         return await _usersService.GetUserFromWorkspaceAsync(workspaceId, userId, includeShared, cancellationToken);
     }
 
-    public WorkspaceFluentEditUserRequest EditUserOnWorkspace(string workspaceId, string userId)
+    public UserFluentEditOnWorkspaceRequest EditUserOnWorkspace(string workspaceId, string userId)
     {
-        return new WorkspaceFluentEditUserRequest(workspaceId, userId, _usersService);
+        return new UserFluentEditOnWorkspaceRequest(workspaceId, userId, _usersService);
     }
 
     public async Task RemoveUserFromWorkspaceAsync(string workspaceId, string userId, CancellationToken cancellationToken = default)

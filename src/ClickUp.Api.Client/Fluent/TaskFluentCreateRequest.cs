@@ -145,7 +145,7 @@ public class TaskFluentCreateRequest
         return this;
     }
 
-    public async Task<CuTask> CreateAsync(bool? customTaskIds = null, string? teamId = null, CancellationToken cancellationToken = default)
+    public async Task<CuTask> ExecuteAsync(bool? customTaskIds = null, string? teamId = null, CancellationToken cancellationToken = default)
     {
         var createTaskRequest = new CreateTaskRequest(
             Name: _name ?? string.Empty,

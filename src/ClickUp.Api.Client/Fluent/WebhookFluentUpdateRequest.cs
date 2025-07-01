@@ -47,7 +47,7 @@ public class WebhookFluentUpdateRequest
         return this;
     }
 
-    public async Task<Webhook> UpdateAsync(CancellationToken cancellationToken = default)
+    public async Task<Webhook> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var updateWebhookRequest = new UpdateWebhookRequest(
             Endpoint: _endpoint,

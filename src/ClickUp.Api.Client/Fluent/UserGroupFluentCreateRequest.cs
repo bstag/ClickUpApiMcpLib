@@ -40,7 +40,7 @@ public class UserGroupFluentCreateRequest
         return this;
     }
 
-    public async Task<UserGroup> CreateAsync(CancellationToken cancellationToken = default)
+    public async Task<UserGroup> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var createUserGroupRequest = new CreateUserGroupRequest(
             Name: _name ?? string.Empty,

@@ -16,9 +16,9 @@ public class TasksFluentApi
         _tasksService = tasksService;
     }
 
-    public TasksRequest Get(string listId)
+    public TasksFluentQueryRequest Get(string listId)
     {
-        return new TasksRequest(listId, _tasksService);
+        return new TasksFluentQueryRequest(listId, _tasksService);
     }
 
     public TasksFluentGetFilteredTeamRequest GetFilteredTeamTasks(string workspaceId)
@@ -36,9 +36,9 @@ public class TasksFluentApi
         return new TaskFluentUpdateRequest(taskId, _tasksService);
     }
 
-    public TaskFluentGetRequest GetTask(string taskId)
+    public TaskFluentGetSingleRequest GetTask(string taskId)
     {
-        return new TaskFluentGetRequest(taskId, _tasksService);
+        return new TaskFluentGetSingleRequest(taskId, _tasksService);
     }
 
     public TaskFluentDeleteRequest DeleteTask(string taskId)

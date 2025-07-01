@@ -41,7 +41,7 @@ public class TemplateFluentCreateTaskRequest
     //     return this;
     // }
 
-    public async Task<CuTask> CreateAsync(CancellationToken cancellationToken = default)
+    public async Task<CuTask> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var createTaskFromTemplateRequest = new CreateTaskFromTemplateRequest(
             Name: _name ?? string.Empty // Ensure Name is provided, matching DTO constructor if it's non-nullable for name

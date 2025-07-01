@@ -7,43 +7,43 @@ namespace ClickUp.Api.Client.Fluent;
 
 using ClickUp.Api.Client.Models.RequestModels.Tasks; // Added for GetTaskRequest
 
-public class TaskFluentGetRequest
+public class TaskFluentGetSingleRequest
 {
     private readonly GetTaskRequest _requestDto = new(); // Use the DTO
     private readonly string _taskId;
     private readonly ITasksService _tasksService;
 
-    public TaskFluentGetRequest(string taskId, ITasksService tasksService)
+    public TaskFluentGetSingleRequest(string taskId, ITasksService tasksService)
     {
         _taskId = taskId;
         _tasksService = tasksService;
     }
 
-    public TaskFluentGetRequest WithCustomTaskIds(bool customTaskIds)
+    public TaskFluentGetSingleRequest WithCustomTaskIds(bool customTaskIds)
     {
         _requestDto.CustomTaskIds = customTaskIds;
         return this;
     }
 
-    public TaskFluentGetRequest WithTeamId(string teamId)
+    public TaskFluentGetSingleRequest WithTeamId(string teamId)
     {
         _requestDto.TeamId = teamId;
         return this;
     }
 
-    public TaskFluentGetRequest WithIncludeSubtasks(bool includeSubtasks)
+    public TaskFluentGetSingleRequest WithIncludeSubtasks(bool includeSubtasks)
     {
         _requestDto.IncludeSubtasks = includeSubtasks;
         return this;
     }
 
-    public TaskFluentGetRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription)
+    public TaskFluentGetSingleRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription)
     {
         _requestDto.IncludeMarkdownDescription = includeMarkdownDescription;
         return this;
     }
 
-    public TaskFluentGetRequest WithCommentPage(int page)
+    public TaskFluentGetSingleRequest WithCommentPage(int page)
     {
         _requestDto.Page = page;
         return this;

@@ -55,7 +55,7 @@ public class SearchDocsFluentRequest
         return this;
     }
 
-    public async Task<SearchDocsResponse> SearchAsync(CancellationToken cancellationToken = default)
+    public async Task<SearchDocsResponse> GetAsync(CancellationToken cancellationToken = default)
     {
         var request = new SearchDocsRequest
         {
@@ -73,7 +73,7 @@ public class SearchDocsFluentRequest
         );
     }
 
-    public IAsyncEnumerable<Doc> SearchAllAsync(CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<Doc> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
         var request = new SearchDocsRequest
         {

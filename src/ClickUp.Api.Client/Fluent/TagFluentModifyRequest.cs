@@ -41,7 +41,7 @@ public class TagFluentModifyRequest
         return this;
     }
 
-    public async Task CreateAsync(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var modifyTagRequest = new ModifyTagRequest
         {
@@ -57,7 +57,7 @@ public class TagFluentModifyRequest
         );
     }
 
-    public async Task<Tag> EditAsync(CancellationToken cancellationToken = default)
+    public async Task<Tag> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(_originalTagName))
         {

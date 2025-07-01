@@ -40,7 +40,7 @@ public class UserGroupFluentUpdateRequest
         return this;
     }
 
-    public async Task<UserGroup> UpdateAsync(CancellationToken cancellationToken = default)
+    public async Task<UserGroup> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var updateUserGroupRequest = new UpdateUserGroupRequest(
             Name: _name,

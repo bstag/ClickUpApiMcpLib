@@ -17,9 +17,9 @@ public class TimeTrackingFluentApi
         _timeTrackingService = timeTrackingService;
     }
 
-    public TimeEntriesFluentGetRequest GetTimeEntries(string workspaceId)
+    public TimeEntriesFluentQueryRequest GetTimeEntries(string workspaceId)
     {
-        return new TimeEntriesFluentGetRequest(workspaceId, _timeTrackingService);
+        return new TimeEntriesFluentQueryRequest(workspaceId, _timeTrackingService);
     }
 
     public TimeEntryFluentCreateRequest CreateTimeEntry(string workspaceId)
