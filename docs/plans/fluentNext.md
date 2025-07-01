@@ -110,6 +110,9 @@ The following phases outline a roadmap for further developing the Fluent API.
             *   - [x] Refactor `ITasksService.GetTaskTimeInStatusAsync(...)` to accept a `GetTaskTimeInStatusRequest` object.
             *   - [x] Refactor `ITasksService.GetBulkTasksTimeInStatusAsync(...)` to accept a `GetBulkTasksTimeInStatusRequest` object.
             *   - [x] Refactor `ITasksService.CreateTaskFromTemplateAsync(...)` to remove unused query parameters from signature.
+        *   - [x] **ITimeTrackingService:** (Verified 2024-07-15, already implemented)
+            *   - [x] `GetTimeEntriesAsync` uses `GetTimeEntriesRequest` DTO.
+            *   - [x] `GetTimeEntriesAsyncEnumerableAsync` uses `GetTimeEntriesRequest` DTO.
         *   - [ ] **Other Services:** Identify and list other service methods requiring similar refactoring based on the audit. For each identified method:
             *   - [ ] Define the new `...Request` DTO.
             *   - [ ] Update the service interface and implementation.
