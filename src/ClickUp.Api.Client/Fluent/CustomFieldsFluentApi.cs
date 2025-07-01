@@ -16,22 +16,22 @@ public class CustomFieldsFluentApi
         _customFieldsService = customFieldsService;
     }
 
-    public async Task<IEnumerable<Field>> GetAccessibleCustomFieldsAsync(string listId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CustomFieldDefinition>> GetAccessibleCustomFieldsAsync(string listId, CancellationToken cancellationToken = default)
     {
         return await _customFieldsService.GetAccessibleCustomFieldsAsync(listId, cancellationToken);
     }
 
-    public async Task<IEnumerable<Field>> GetFolderCustomFieldsAsync(string folderId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CustomFieldDefinition>> GetFolderCustomFieldsAsync(string folderId, CancellationToken cancellationToken = default)
     {
         return await _customFieldsService.GetFolderCustomFieldsAsync(folderId, cancellationToken);
     }
 
-    public async Task<IEnumerable<Field>> GetSpaceCustomFieldsAsync(string spaceId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CustomFieldDefinition>> GetSpaceCustomFieldsAsync(string spaceId, CancellationToken cancellationToken = default)
     {
         return await _customFieldsService.GetSpaceCustomFieldsAsync(spaceId, cancellationToken);
     }
 
-    public async Task<IEnumerable<Field>> GetWorkspaceCustomFieldsAsync(string workspaceId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CustomFieldDefinition>> GetWorkspaceCustomFieldsAsync(string workspaceId, CancellationToken cancellationToken = default)
     {
         return await _customFieldsService.GetWorkspaceCustomFieldsAsync(workspaceId, cancellationToken);
     }
@@ -56,7 +56,7 @@ public class CustomFieldsFluentApi
     /// <param name="listId">The ID of the list.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Field"/>.</returns>
-    public async IAsyncEnumerable<Field> GetAccessibleCustomFieldsAsyncEnumerableAsync(
+    public async IAsyncEnumerable<CustomFieldDefinition> GetAccessibleCustomFieldsAsyncEnumerableAsync(
         string listId,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {

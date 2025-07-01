@@ -35,7 +35,7 @@ public class FluentCustomFieldsApiTests
     {
         // Arrange
         var listId = "testListId";
-        var expectedFields = new List<Field>();
+        var expectedFields = new List<CustomFieldDefinition>();
 
         var mockCustomFieldsService = new Mock<ICustomFieldsService>();
         mockCustomFieldsService.Setup(x => x.GetAccessibleCustomFieldsAsync(

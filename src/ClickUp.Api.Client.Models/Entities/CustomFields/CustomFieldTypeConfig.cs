@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ClickUp.Api.Client.Models.CustomFields;
+namespace ClickUp.Api.Client.Models.Entities.CustomFields;
 
 /// <summary>
 /// Represents the type-specific configuration for a Custom Field.

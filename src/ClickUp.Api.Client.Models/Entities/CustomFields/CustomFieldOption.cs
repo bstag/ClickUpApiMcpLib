@@ -1,4 +1,4 @@
-namespace ClickUp.Api.Client.Models.CustomFields;
+namespace ClickUp.Api.Client.Models.Entities.CustomFields;
 
 /// <summary>
 /// Represents an option within a Custom Field, typically used for 'Dropdown', 'Labels', or 'Rating' types.

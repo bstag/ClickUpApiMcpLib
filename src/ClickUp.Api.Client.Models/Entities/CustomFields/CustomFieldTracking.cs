@@ -1,4 +1,4 @@
-namespace ClickUp.Api.Client.Models.CustomFields;
+namespace ClickUp.Api.Client.Models.Entities.CustomFields;
 
 /// <summary>
 /// Represents the tracking configuration for certain Custom Field types, such as 'Progress (Automatic)' or 'Tasks' (relationship).

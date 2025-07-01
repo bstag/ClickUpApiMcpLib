@@ -33,7 +33,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist or is not accessible.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Custom Fields for this List.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-        Task<IEnumerable<Field>> GetAccessibleCustomFieldsAsync(
+        Task<IEnumerable<CustomFieldDefinition>> GetAccessibleCustomFieldsAsync(
             string listId,
             CancellationToken cancellationToken = default);
 
@@ -47,7 +47,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Folder with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Custom Fields for this Folder.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<IEnumerable<Field>> GetFolderCustomFieldsAsync(
+        Task<IEnumerable<CustomFieldDefinition>> GetFolderCustomFieldsAsync(
             string folderId,
             CancellationToken cancellationToken = default);
 
@@ -61,7 +61,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Space with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Custom Fields for this Space.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<IEnumerable<Field>> GetSpaceCustomFieldsAsync(
+        Task<IEnumerable<CustomFieldDefinition>> GetSpaceCustomFieldsAsync(
             string spaceId,
             CancellationToken cancellationToken = default);
 
@@ -75,7 +75,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Custom Fields for this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<IEnumerable<Field>> GetWorkspaceCustomFieldsAsync(
+        Task<IEnumerable<CustomFieldDefinition>> GetWorkspaceCustomFieldsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default);
 

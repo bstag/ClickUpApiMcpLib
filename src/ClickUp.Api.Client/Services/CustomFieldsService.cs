@@ -56,7 +56,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Field>> GetAccessibleCustomFieldsAsync(
+        public async Task<IEnumerable<CustomFieldDefinition>> GetAccessibleCustomFieldsAsync(
             string listId,
             CancellationToken cancellationToken = default)
         {
@@ -64,40 +64,40 @@ namespace ClickUp.Api.Client.Services
             // This endpoint retrieves all fields accessible by a List, including those from parent Folders, Spaces, and the Workspace.
             var endpoint = $"list/{listId}/field";
             var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
-            return response?.Fields ?? Enumerable.Empty<Field>();
+            return response?.Fields ?? Enumerable.Empty<CustomFieldDefinition>();
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Field>> GetFolderCustomFieldsAsync(
+        public async Task<IEnumerable<CustomFieldDefinition>> GetFolderCustomFieldsAsync(
             string folderId,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting custom fields for folder ID: {FolderId}", folderId);
             var endpoint = $"folder/{folderId}/field";
             var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
-            return response?.Fields ?? Enumerable.Empty<Field>();
+            return response?.Fields ?? Enumerable.Empty<CustomFieldDefinition>();
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Field>> GetSpaceCustomFieldsAsync(
+        public async Task<IEnumerable<CustomFieldDefinition>> GetSpaceCustomFieldsAsync(
             string spaceId,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting custom fields for space ID: {SpaceId}", spaceId);
             var endpoint = $"space/{spaceId}/field";
             var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
-            return response?.Fields ?? Enumerable.Empty<Field>();
+            return response?.Fields ?? Enumerable.Empty<CustomFieldDefinition>();
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Field>> GetWorkspaceCustomFieldsAsync(
+        public async Task<IEnumerable<CustomFieldDefinition>> GetWorkspaceCustomFieldsAsync(
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting custom fields for workspace ID: {WorkspaceId}", workspaceId);
             var endpoint = $"team/{workspaceId}/field"; // team_id is workspaceId
             var response = await _apiConnection.GetAsync<GetAccessibleCustomFieldsResponse>(endpoint, cancellationToken); // API returns {"fields": [...]}
-            return response?.Fields ?? Enumerable.Empty<Field>();
+            return response?.Fields ?? Enumerable.Empty<CustomFieldDefinition>();
         }
 
         /// <inheritdoc />

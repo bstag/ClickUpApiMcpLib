@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using ClickUp.Api.Client.Models.CustomFields; // For CustomFieldTypeConfig
+
+using ClickUp.Api.Client.Models.Entities.CustomFields; // For CustomFieldTypeConfig
 
 namespace ClickUp.Api.Client.Models.Entities.Templates;
 

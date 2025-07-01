@@ -1,7 +1,7 @@
 using System.Text.Json;
-using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Helpers; // For JsonSerializerOptionsHelper
 using Xunit;
+using ClickUp.Api.Client.Models.Entities.CustomFields;
 
 namespace ClickUp.Api.Client.Tests.Models.Entities
 {

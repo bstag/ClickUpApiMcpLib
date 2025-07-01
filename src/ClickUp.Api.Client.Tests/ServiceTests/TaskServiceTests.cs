@@ -1,7 +1,7 @@
 using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Models.Common;
-using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Checklists; // For Checklist
+using ClickUp.Api.Client.Models.Entities.CustomFields;
 using ClickUp.Api.Client.Models.Entities.Tags;       // For Tag
 using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.Entities.UserGroups; // Added for UserGroup

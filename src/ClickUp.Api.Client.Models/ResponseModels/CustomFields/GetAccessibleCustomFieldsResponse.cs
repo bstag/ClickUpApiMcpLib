@@ -10,5 +10,5 @@ namespace ClickUp.Api.Client.Models.ResponseModels.CustomFields;
 public record class GetAccessibleCustomFieldsResponse
 (
     [property: JsonPropertyName("fields")]
-    List<Field> Fields
+    List<CustomFieldDefinition> Fields
 );

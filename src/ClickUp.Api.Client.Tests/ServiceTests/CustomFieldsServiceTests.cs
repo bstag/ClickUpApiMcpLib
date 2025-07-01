@@ -35,25 +35,23 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Add other properties if needed by specific tests or field types
         }
 
-        private Field CreateSampleField(string id = "field_1") => new Field(
-            Id: id,
-            Name: $"Sample Field {id}",
-            Type: "text",
-            // Provide null or a constructed Entities.CustomFields.TypeConfig
-            TypeConfig: null,
-            // TypeConfig: new ClickUp.Api.Client.Models.Entities.CustomFields.TypeConfig(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null),
-            DateCreated: DateTimeOffset.UtcNow,
-            HideFromGuests: false,
-            Required: false,
-            Creator: null // Or a sample User object
-        );
+        private CustomFieldDefinition CreateSampleField(string id = "field_1") => new CustomFieldDefinition
+        {
+            Id = id,
+            Name = $"Sample Field {id}",
+            Type = "text",
+            TypeConfig = null, // TypeConfig
+            DateCreated = DateTimeOffset.UtcNow,
+            HideFromGuests = false, // HideFromGuests
+            Required = false // Required
+        };
 
         [Fact]
         public async Task GetAccessibleCustomFieldsAsync_ValidListId_BuildsCorrectUrlAndReturnsFields()
         {
             // Arrange
             var listId = "list_123";
-            var expectedFields = new List<Field> { CreateSampleField("field_abc") };
+            var expectedFields = new List<CustomFieldDefinition> { CreateSampleField("field_abc") };
             var apiResponse = new GetAccessibleCustomFieldsResponse(expectedFields); // Use constructor
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -195,7 +193,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var listId = "list_ct_pass";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<Field>());
+            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<CustomFieldDefinition>());
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
@@ -285,7 +283,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var folderId = "folder_456";
-            var expectedFields = new List<Field> { CreateSampleField("field_folder_1") };
+            var expectedFields = new List<CustomFieldDefinition> { CreateSampleField("field_folder_1") };
             var apiResponse = new GetAccessibleCustomFieldsResponse(expectedFields);
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>($"folder/{folderId}/field", It.IsAny<CancellationToken>()))
@@ -347,7 +345,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var folderId = "folder_ct_pass_fields";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<Field>());
+            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<CustomFieldDefinition>());
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
@@ -365,7 +363,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var spaceId = "space_789";
-            var expectedFields = new List<Field> { CreateSampleField("field_space_1") };
+            var expectedFields = new List<CustomFieldDefinition> { CreateSampleField("field_space_1") };
             var apiResponse = new GetAccessibleCustomFieldsResponse(expectedFields);
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>($"space/{spaceId}/field", It.IsAny<CancellationToken>()))
@@ -427,7 +425,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space_ct_pass_fields";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<Field>());
+            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<CustomFieldDefinition>());
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
@@ -445,7 +443,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_001"; // team_id is workspaceId
-            var expectedFields = new List<Field> { CreateSampleField("field_ws_1") };
+            var expectedFields = new List<CustomFieldDefinition> { CreateSampleField("field_ws_1") };
             var apiResponse = new GetAccessibleCustomFieldsResponse(expectedFields);
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>($"team/{workspaceId}/field", It.IsAny<CancellationToken>()))
@@ -507,7 +505,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_ct_pass_fields";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<Field>());
+            var expectedResponse = new GetAccessibleCustomFieldsResponse(new List<CustomFieldDefinition>());
             _mockApiConnection
                 .Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);

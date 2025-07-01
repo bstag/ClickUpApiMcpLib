@@ -1,4 +1,4 @@
-namespace ClickUp.Api.Client.Models.CustomFields;
+namespace ClickUp.Api.Client.Models.Entities.CustomFields;
 
 /// <summary>
 /// Defines the structure and properties of a Custom Field.
