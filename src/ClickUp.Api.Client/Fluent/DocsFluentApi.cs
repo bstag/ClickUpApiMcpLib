@@ -34,7 +34,7 @@ public class DocsFluentApi
         bool? includeDeleted = null,
         int? creatorId = null)
     {
-        return new SearchDocsFluentRequest(workspaceId, _docsService);
+        return new DocFluentSearchRequest(workspaceId, _docsService);
     }
 
     public DocFluentCreateRequest CreateDoc(string workspaceId, string name)
