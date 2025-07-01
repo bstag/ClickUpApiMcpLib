@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class SearchDocsFluentRequest
+public class DocFluentSearchRequest
 {
     private string? _query;
     private string? _parentId;
@@ -19,37 +19,37 @@ public class SearchDocsFluentRequest
     private readonly string _workspaceId;
     private readonly IDocsService _docsService;
 
-    public SearchDocsFluentRequest(string workspaceId, IDocsService docsService)
+    public DocFluentSearchRequest(string workspaceId, IDocsService docsService)
     {
         _workspaceId = workspaceId;
         _docsService = docsService;
     }
 
-    public SearchDocsFluentRequest WithQuery(string query)
+    public DocFluentSearchRequest WithQuery(string query)
     {
         _query = query;
         return this;
     }
 
-    public SearchDocsFluentRequest WithParentId(string parentId)
+    public DocFluentSearchRequest WithParentId(string parentId)
     {
         _parentId = parentId;
         return this;
     }
 
-    public SearchDocsFluentRequest WithParentType(int parentType)
+    public DocFluentSearchRequest WithParentType(int parentType)
     {
         _parentType = parentType;
         return this;
     }
 
-    public SearchDocsFluentRequest WithCursor(string cursor)
+    public DocFluentSearchRequest WithCursor(string cursor)
     {
         _cursor = cursor;
         return this;
     }
 
-    public SearchDocsFluentRequest WithLimit(int limit)
+    public DocFluentSearchRequest WithLimit(int limit)
     {
         _limit = limit;
         return this;

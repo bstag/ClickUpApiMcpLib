@@ -16,9 +16,9 @@ public class ChatFluentApi
         _chatService = chatService;
     }
 
-    public ChatChannelsFluentGetRequest GetChatChannels(string workspaceId)
+    public ChatChannelFluentQueryRequest GetChatChannels(string workspaceId)
     {
-        return new ChatChannelsFluentGetRequest(workspaceId, _chatService);
+        return new ChatChannelFluentQueryRequest(workspaceId, _chatService);
     }
 
     /// <summary>

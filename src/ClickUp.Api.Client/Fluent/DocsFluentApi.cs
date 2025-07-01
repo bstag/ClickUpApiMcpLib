@@ -20,7 +20,7 @@ public class DocsFluentApi
         _docsService = docsService;
     }
 
-    public SearchDocsFluentRequest SearchDocs(string workspaceId,
+    public DocFluentSearchRequest SearchDocs(string workspaceId,
         string? query = null,
         List<string>? spaceIds = null,
         List<string>? folderIds = null,
@@ -34,7 +34,7 @@ public class DocsFluentApi
         bool? includeDeleted = null,
         int? creatorId = null)
     {
-        return new SearchDocsFluentRequest(workspaceId, _docsService);
+        return new DocFluentSearchRequest(workspaceId, _docsService);
     }
 
     public DocFluentCreateRequest CreateDoc(string workspaceId, string name)

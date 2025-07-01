@@ -7,55 +7,55 @@ using System.Threading.Tasks;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class ChatChannelsFluentGetRequest
+public class ChatChannelFluentQueryRequest
 {
     private readonly GetChatChannelsRequest _request = new();
     private readonly string _workspaceId;
     private readonly IChatService _chatService;
 
-    public ChatChannelsFluentGetRequest(string workspaceId, IChatService chatService)
+    public ChatChannelFluentQueryRequest(string workspaceId, IChatService chatService)
     {
         _workspaceId = workspaceId;
         _chatService = chatService;
     }
 
-    public ChatChannelsFluentGetRequest WithDescriptionFormat(string descriptionFormat)
+    public ChatChannelFluentQueryRequest WithDescriptionFormat(string descriptionFormat)
     {
         _request.DescriptionFormat = descriptionFormat;
         return this;
     }
 
-    public ChatChannelsFluentGetRequest WithCursor(string cursor)
+    public ChatChannelFluentQueryRequest WithCursor(string cursor)
     {
         _request.Cursor = cursor;
         return this;
     }
 
-    public ChatChannelsFluentGetRequest WithLimit(int limit)
+    public ChatChannelFluentQueryRequest WithLimit(int limit)
     {
         _request.Limit = limit;
         return this;
     }
 
-    public ChatChannelsFluentGetRequest WithIsFollower(bool isFollower)
+    public ChatChannelFluentQueryRequest WithIsFollower(bool isFollower)
     {
         _request.IsFollower = isFollower;
         return this;
     }
 
-    public ChatChannelsFluentGetRequest WithIncludeHidden(bool includeHidden)
+    public ChatChannelFluentQueryRequest WithIncludeHidden(bool includeHidden)
     {
         _request.IncludeHidden = includeHidden;
         return this;
     }
 
-    public ChatChannelsFluentGetRequest WithWithCommentSince(long withCommentSince)
+    public ChatChannelFluentQueryRequest WithWithCommentSince(long withCommentSince)
     {
         _request.WithCommentSince = withCommentSince;
         return this;
     }
 
-    public ChatChannelsFluentGetRequest WithRoomTypes(IEnumerable<string> roomTypes)
+    public ChatChannelFluentQueryRequest WithRoomTypes(IEnumerable<string> roomTypes)
     {
         _request.RoomTypes = roomTypes;
         return this;

@@ -19,9 +19,9 @@ public class TaskChecklistsFluentApi
         return new ChecklistFluentCreateRequest(taskId, _taskChecklistsService);
     }
 
-    public ChecklistFluentEditRequest EditChecklist(string checklistId)
+    public ChecklistFluentUpdateRequest EditChecklist(string checklistId)
     {
-        return new ChecklistFluentEditRequest(checklistId, _taskChecklistsService);
+        return new ChecklistFluentUpdateRequest(checklistId, _taskChecklistsService);
     }
 
     public async Task DeleteChecklistAsync(string checklistId, CancellationToken cancellationToken = default)
@@ -34,9 +34,9 @@ public class TaskChecklistsFluentApi
         return new ChecklistItemFluentCreateRequest(checklistId, _taskChecklistsService);
     }
 
-    public ChecklistItemFluentEditRequest EditChecklistItem(string checklistId, string checklistItemId)
+    public ChecklistItemFluentUpdateRequest EditChecklistItem(string checklistId, string checklistItemId)
     {
-        return new ChecklistItemFluentEditRequest(checklistId, checklistItemId, _taskChecklistsService);
+        return new ChecklistItemFluentUpdateRequest(checklistId, checklistItemId, _taskChecklistsService);
     }
 
     public async Task DeleteChecklistItemAsync(string checklistId, string checklistItemId, CancellationToken cancellationToken = default)

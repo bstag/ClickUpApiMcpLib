@@ -14,12 +14,14 @@ public class AuthorizationFluentApi
 
     public AuthorizationFluentApi(IAuthorizationService authorizationService)
     {
+        if (authorizationService == null)
+            throw new ArgumentNullException(nameof(authorizationService));
         _authorizationService = authorizationService;
     }
 
-    public GetAccessTokenFluentRequest GetAccessToken()
+    public AccessTokenFluentGetSingleRequest GetAccessToken()
     {
-        return new GetAccessTokenFluentRequest(_authorizationService);
+        return new AccessTokenFluentGetSingleRequest(_authorizationService);
     }
 
     public async Task<User> GetAuthorizedUserAsync(CancellationToken cancellationToken = default)
