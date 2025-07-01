@@ -6,7 +6,7 @@
 This document enumerates the concrete refactor steps required to align the Core SDK **services** and the **FluentNext** layer under a single, consistent design philosophy.
 Each step contains:
 
-* _Why_ – the rationale for the change.
+* _Why_ – captures the motivation for the change. It should briefly outline the current pain points (e.g., inconsistent APIs, duplicated logic, hidden runtime errors), the desired end-state we are aiming for, and how the step contributes to that end-state (better developer ergonomics, lower cognitive load, improved maintainability and testability).
 * **Tasks** – check-boxes to be ticked off via PRs.
 * **Validation Rule** – how we confirm the step is complete (build & test gates, analyzers, etc.).
 
@@ -16,9 +16,9 @@ Each step contains:
 **Why:** Inconsistent parameter ordering across services causes cognitive load and usage errors.
 
 **Tasks**
-- [ ] 1.1 Create `CONTRIBUTING.md` at the repository root if it doesn't exist.
-- [ ] 1.2 Add a new section named "SDK Method Parameter Conventions" to `CONTRIBUTING.md`.
-- [ ] 1.3 In this new section, specify the canonical order for common identifiers: `workspaceId` (or `teamId`) → `spaceId` → `folderId` → `listId` → `taskId` → `entityId` (for sub-entities like comments, checklist items, etc.). Also specify that other required parameters come before optional parameters.
+- [X] 1.1 Create `CONTRIBUTING.md` at the repository root if it doesn't exist.
+- [X] 1.2 Add a new section named "SDK Method Parameter Conventions" to `CONTRIBUTING.md`.
+- [X] 1.3 In this new section, specify the canonical order for common identifiers: `workspaceId` (or `teamId`) → `spaceId` → `folderId` → `listId` → `taskId` → `entityId` (for sub-entities like comments, checklist items, etc.). Also specify that other required parameters come before optional parameters.
 - [ ] 1.4 Research and select a suitable Roslyn analyzer framework or create a new one for `ClickUp.IdOrderAnalyzer`.
     - [ ] 1.4.1 Define analyzer rules to detect incorrect parameter ordering in public methods of classes within `src/ClickUp.Api.Client/Services/**/*.cs` and `src/ClickUp.Api.Client/Fluent/**/*.cs`.
     - [ ] 1.4.2 Implement the `ClickUp.IdOrderAnalyzer` to flag violations.
