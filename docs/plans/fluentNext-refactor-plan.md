@@ -13,35 +13,11 @@ Each step contains:
 ---
 
 ## 1 · Unified Identifier Ordering
-**Why:** Inconsistent parameter ordering across services causes cognitive load and usage errors.
 
 **Tasks**
 - [X] 1.1 Create `CONTRIBUTING.md` at the repository root if it doesn't exist.
 - [X] 1.2 Add a new section named "SDK Method Parameter Conventions" to `CONTRIBUTING.md`.
 - [X] 1.3 In this new section, specify the canonical order for common identifiers: `workspaceId` (or `teamId`) → `spaceId` → `folderId` → `listId` → `taskId` → `entityId` (for sub-entities like comments, checklist items, etc.). Also specify that other required parameters come before optional parameters.
-- [ ] 1.4 Research and select a suitable Roslyn analyzer framework or create a new one for `ClickUp.IdOrderAnalyzer`.
-    - [ ] 1.4.1 Define analyzer rules to detect incorrect parameter ordering in public methods of classes within `src/ClickUp.Api.Client/Services/**/*.cs` and `src/ClickUp.Api.Client/Fluent/**/*.cs`.
-    - [ ] 1.4.2 Implement the `ClickUp.IdOrderAnalyzer` to flag violations.
-    - [ ] 1.4.3 Implement a corresponding code fixer for `ClickUp.IdOrderAnalyzer` to automatically reorder parameters.
-- [ ] 1.5 Integrate the `ClickUp.IdOrderAnalyzer` into the build process.
-- [ ] 1.6 Apply the analyzer and fixer to all relevant service interface methods in `src/ClickUp.Api.Client.Abstractions/Services/*.cs`.
-    - [ ] 1.6.1 Example: Review `IAttachmentsService.CreateTaskAttachmentAsync` parameters. Current: `(string taskId, Stream fileStream, string fileName, bool? customTaskIds = null, string? teamId = null, ...)` - `teamId` should ideally come before `taskId` if it's considered a broader scope, or be clearly documented if `taskId`'s context implies `teamId`. The rule is `workspaceId` (often `teamId`) first.
-- [ ] 1.7 Apply the analyzer and fixer to all relevant service implementation methods in `src/ClickUp.Api.Client/Services/*.cs`.
-    - [ ] 1.7.1 Example: `AttachmentsService.CreateTaskAttachmentAsync`.
-- [ ] 1.8 Apply the analyzer and fixer to all relevant fluent API builder methods in `src/ClickUp.Api.Client/Fluent/*.cs`.
-    - [ ] 1.8.1 Example: `AttachmentsFluentApi.Create` and `TaskAttachmentFluentCreateRequest` constructor.
-- [ ] 1.9 Update all unit tests in `src/ClickUp.Api.Client.Tests/` to reflect the new parameter orders.
-- [ ] 1.10 Update all integration tests in `src/ClickUp.Api.Client.IntegrationTests/` to reflect the new parameter orders.
-- [ ] 1.11 Update all examples in `examples/` to reflect the new parameter orders.
-
-**Validation Rule**
-```bash
-# Gate in CI
- dotnet build -warnaserror
- dotnet test
-# Analyzer must report 0 diagnostics for ID ordering in src/*
-# CONTRIBUTING.md must contain the specified section and ordering rule.
-```
 
 ---
 
