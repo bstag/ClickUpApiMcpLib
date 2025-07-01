@@ -14,6 +14,8 @@ public class AuthorizationFluentApi
 
     public AuthorizationFluentApi(IAuthorizationService authorizationService)
     {
+        if (authorizationService == null)
+            throw new ArgumentNullException(nameof(authorizationService));
         _authorizationService = authorizationService;
     }
 
