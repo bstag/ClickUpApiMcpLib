@@ -36,6 +36,10 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             ClientOptions = new ClickUpClientOptions();
             Configuration.GetSection("ClickUpApi").Bind(ClientOptions);
 
+            var testModeEnv = Environment.GetEnvironmentVariable("CLICKUP_SDK_TEST_MODE");
+            Enum.TryParse(testModeEnv, true, out TestMode mode); // Defaults to Passthrough (0) if parsing fails
+            CurrentTestMode = mode;
+
             // Validate essential configuration based on TestMode
             if (CurrentTestMode != TestMode.Playback)
             {
@@ -57,10 +61,6 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
             // For Playback mode, PersonalAccessToken and TestWorkspaceId might not be strictly necessary if all requests are mocked
             // and mock paths don't rely on them. However, they are loaded if present.
-
-            var testModeEnv = Environment.GetEnvironmentVariable("CLICKUP_SDK_TEST_MODE");
-            Enum.TryParse(testModeEnv, true, out TestMode mode); // Defaults to Passthrough (0) if parsing fails
-            CurrentTestMode = mode;
 
             // Define base path for recorded responses - relative to project output directory.
             // Adjust if tests run from a different working directory.
