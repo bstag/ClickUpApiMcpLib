@@ -8,5 +8,5 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Sharing;
 public record class SharedHierarchyResponse
 (
     [property: JsonPropertyName("shared")]
-    SharedHierarchyDetails Shared
+    SharedHierarchyDetailsResponse Shared
 );

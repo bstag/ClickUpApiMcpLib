@@ -151,19 +151,19 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateSpaceTagAsync_ValidRequest_CallsPostAsync()
         {
             var spaceId = "space123_create_tag";
-            var tagPayload = new TagPayload("New Tag", "#FFFFFF", "#000000");
-            var request = new ModifyTagRequest(tagPayload);
+            var tagPayload = new TagAttributes("New Tag", "#FFFFFF", "#000000");
+            var request = new SaveTagRequest(tagPayload);
 
             _mockApiConnection
-                .Setup(x => x.PostAsync<ModifyTagRequest>(
+                .Setup(x => x.PostAsync<SaveTagRequest>(
                     $"space/{spaceId}/tag",
-                    It.IsAny<ModifyTagRequest>(),
+                    It.IsAny<SaveTagRequest>(),
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             await _tagsService.CreateSpaceTagAsync(spaceId, request);
-            _mockApiConnection.Verify(x => x.PostAsync<ModifyTagRequest>(
+            _mockApiConnection.Verify(x => x.PostAsync<SaveTagRequest>(
                 $"space/{spaceId}/tag",
-                It.Is<ModifyTagRequest>(r => r.Tag.Name == "New Tag"),
+                It.Is<SaveTagRequest>(r => r.Tag.Name == "New Tag"),
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -171,10 +171,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateSpaceTagAsync_ApiConnectionThrowsHttpRequestException_PropagatesException()
         {
             var spaceId = "space_create_tag_http_ex";
-            var tagPayload = new TagPayload("Http Ex Tag", "#FF0000", "#00FF00");
-            var request = new ModifyTagRequest(tagPayload);
+            var tagPayload = new TagAttributes("Http Ex Tag", "#FF0000", "#00FF00");
+            var request = new SaveTagRequest(tagPayload);
             _mockApiConnection
-                .Setup(x => x.PostAsync<ModifyTagRequest>(It.IsAny<string>(), It.IsAny<ModifyTagRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync<SaveTagRequest>(It.IsAny<string>(), It.IsAny<SaveTagRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API call failed"));
             await Assert.ThrowsAsync<HttpRequestException>(() => _tagsService.CreateSpaceTagAsync(spaceId, request));
         }
@@ -183,10 +183,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateSpaceTagAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var spaceId = "space_create_tag_cancel_ex";
-            var tagPayload = new TagPayload("Cancel Ex Tag", "#0000FF", "#FFFF00");
-            var request = new ModifyTagRequest(tagPayload);
+            var tagPayload = new TagAttributes("Cancel Ex Tag", "#0000FF", "#FFFF00");
+            var request = new SaveTagRequest(tagPayload);
             _mockApiConnection
-                .Setup(x => x.PostAsync<ModifyTagRequest>(It.IsAny<string>(), It.IsAny<ModifyTagRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync<SaveTagRequest>(It.IsAny<string>(), It.IsAny<SaveTagRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API call timed out"));
             await Assert.ThrowsAsync<TaskCanceledException>(() => _tagsService.CreateSpaceTagAsync(spaceId, request, new CancellationTokenSource().Token));
         }
@@ -195,18 +195,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task CreateSpaceTagAsync_PassesCancellationTokenToApiConnection()
         {
             var spaceId = "space_create_tag_ct_pass";
-            var tagPayload = new TagPayload("CT Pass Tag", "#123456", "#654321");
-            var request = new ModifyTagRequest(tagPayload);
+            var tagPayload = new TagAttributes("CT Pass Tag", "#123456", "#654321");
+            var request = new SaveTagRequest(tagPayload);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             _mockApiConnection
-                .Setup(x => x.PostAsync<ModifyTagRequest>(
+                .Setup(x => x.PostAsync<SaveTagRequest>(
                     It.IsAny<string>(),
                     request,
                     expectedToken))
                 .Returns(Task.CompletedTask);
             await _tagsService.CreateSpaceTagAsync(spaceId, request, expectedToken);
-            _mockApiConnection.Verify(x => x.PostAsync<ModifyTagRequest>(
+            _mockApiConnection.Verify(x => x.PostAsync<SaveTagRequest>(
                 $"space/{spaceId}/tag",
                 request,
                 expectedToken), Times.Once);
@@ -220,23 +220,23 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space123_edit_tag";
             var originalTagName = "Old Tag Name";
             var encodedOriginalTagName = Uri.EscapeDataString(originalTagName);
-            var updatedPayload = new TagPayload("Updated Tag Name", "#FFFFFF", "#112233");
-            var request = new ModifyTagRequest(updatedPayload);
+            var updatedPayload = new TagAttributes("Updated Tag Name", "#FFFFFF", "#112233");
+            var request = new SaveTagRequest(updatedPayload);
             var returnedTagEntity = new Tag(updatedPayload.Name, updatedPayload.TagFg, updatedPayload.TagBg, CreateSampleUserForTag(1));
 
             _mockApiConnection
-                .Setup(x => x.PutAsync<ModifyTagRequest, Tag>(
+                .Setup(x => x.PutAsync<SaveTagRequest, Tag>(
                     $"space/{spaceId}/tag/{encodedOriginalTagName}",
-                    It.Is<ModifyTagRequest>(r => r.Tag.Name == updatedPayload.Name && r.Tag.TagFg == updatedPayload.TagFg && r.Tag.TagBg == updatedPayload.TagBg),
+                    It.Is<SaveTagRequest>(r => r.Tag.Name == updatedPayload.Name && r.Tag.TagFg == updatedPayload.TagFg && r.Tag.TagBg == updatedPayload.TagBg),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(returnedTagEntity);
             var result = await _tagsService.EditSpaceTagAsync(spaceId, originalTagName, request);
             Assert.NotNull(result);
             Assert.Equal(updatedPayload.Name, result.Name);
             Assert.Equal(updatedPayload.TagBg, result.TagBg);
-            _mockApiConnection.Verify(x => x.PutAsync<ModifyTagRequest, Tag>(
+            _mockApiConnection.Verify(x => x.PutAsync<SaveTagRequest, Tag>(
                 $"space/{spaceId}/tag/{encodedOriginalTagName}",
-                It.Is<ModifyTagRequest>(r => r.Tag.Name == updatedPayload.Name && r.Tag.TagFg == updatedPayload.TagFg && r.Tag.TagBg == updatedPayload.TagBg),
+                It.Is<SaveTagRequest>(r => r.Tag.Name == updatedPayload.Name && r.Tag.TagFg == updatedPayload.TagFg && r.Tag.TagBg == updatedPayload.TagBg),
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -245,10 +245,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var spaceId = "space_edit_tag_null_resp";
             var tagName = "SomeTag";
-            var payload = new TagPayload("Updated Tag", "#777777", "#888888");
-            var request = new ModifyTagRequest(payload);
+            var payload = new TagAttributes("Updated Tag", "#777777", "#888888");
+            var request = new SaveTagRequest(payload);
             _mockApiConnection
-                .Setup(x => x.PutAsync<ModifyTagRequest, Tag>(It.IsAny<string>(), It.IsAny<ModifyTagRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PutAsync<SaveTagRequest, Tag>(It.IsAny<string>(), It.IsAny<SaveTagRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Tag?)null);
             await Assert.ThrowsAsync<InvalidOperationException>(() => _tagsService.EditSpaceTagAsync(spaceId, tagName, request));
         }
@@ -258,10 +258,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var spaceId = "space_edit_tag_http_ex";
             var tagName = "ErrorTag";
-            var payload = new TagPayload("Http Ex Edit Tag", "#999999", "#AAAAAA");
-            var request = new ModifyTagRequest(payload);
+            var payload = new TagAttributes("Http Ex Edit Tag", "#999999", "#AAAAAA");
+            var request = new SaveTagRequest(payload);
             _mockApiConnection
-                .Setup(x => x.PutAsync<ModifyTagRequest, Tag>(It.IsAny<string>(), It.IsAny<ModifyTagRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PutAsync<SaveTagRequest, Tag>(It.IsAny<string>(), It.IsAny<SaveTagRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API call failed"));
             await Assert.ThrowsAsync<HttpRequestException>(() => _tagsService.EditSpaceTagAsync(spaceId, tagName, request));
         }
@@ -271,10 +271,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             var spaceId = "space_edit_tag_cancel_ex";
             var tagName = "CancelTag";
-            var payload = new TagPayload("Cancel Ex Edit Tag", "#BBBBBB", "#CCCCCC");
-            var request = new ModifyTagRequest(payload);
+            var payload = new TagAttributes("Cancel Ex Edit Tag", "#BBBBBB", "#CCCCCC");
+            var request = new SaveTagRequest(payload);
             _mockApiConnection
-                .Setup(x => x.PutAsync<ModifyTagRequest, Tag>(It.IsAny<string>(), It.IsAny<ModifyTagRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PutAsync<SaveTagRequest, Tag>(It.IsAny<string>(), It.IsAny<SaveTagRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("API call timed out"));
             await Assert.ThrowsAsync<TaskCanceledException>(() => _tagsService.EditSpaceTagAsync(spaceId, tagName, request, new CancellationTokenSource().Token));
         }
@@ -285,20 +285,20 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var spaceId = "space_edit_tag_ct_pass";
             var tagName = "CTTag";
             var encodedTagName = Uri.EscapeDataString(tagName);
-            var payload = new TagPayload("CT Pass Edit Tag", "#DDDDDD", "#EEEEEE");
-            var request = new ModifyTagRequest(payload);
+            var payload = new TagAttributes("CT Pass Edit Tag", "#DDDDDD", "#EEEEEE");
+            var request = new SaveTagRequest(payload);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var expectedTag = CreateSampleTagEntity("CT Pass Edit Tag", CreateSampleUserForTag(1));
 
             _mockApiConnection
-                .Setup(x => x.PutAsync<ModifyTagRequest, Tag>(
+                .Setup(x => x.PutAsync<SaveTagRequest, Tag>(
                     It.IsAny<string>(),
                     request,
                     expectedToken))
                 .ReturnsAsync(expectedTag);
             await _tagsService.EditSpaceTagAsync(spaceId, tagName, request, expectedToken);
-            _mockApiConnection.Verify(x => x.PutAsync<ModifyTagRequest, Tag>(
+            _mockApiConnection.Verify(x => x.PutAsync<SaveTagRequest, Tag>(
                 $"space/{spaceId}/tag/{encodedTagName}",
                 request,
                 expectedToken), Times.Once);

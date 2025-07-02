@@ -70,7 +70,7 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async System.Threading.Tasks.Task CreateSpaceTagAsync(
             string spaceId,
-            ModifyTagRequest modifyTagRequest, // Changed from CreateTagRequest
+            SaveTagRequest modifyTagRequest, // Changed from CreateTagRequest
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Creating space tag in space ID: {SpaceId}, Tag Name: {TagName}", spaceId, modifyTagRequest.Tag.Name);
@@ -85,7 +85,7 @@ namespace ClickUp.Api.Client.Services
         public async Task<Tag> EditSpaceTagAsync(
             string spaceId,
             string tagName, // This tagName is for identifying the tag to edit, part of the path
-            ModifyTagRequest modifyTagRequest, // Changed from UpdateTagRequest, this contains the new tag details
+            SaveTagRequest modifyTagRequest, // Changed from UpdateTagRequest, this contains the new tag details
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Editing space tag in space ID: {SpaceId}, Original Tag Name: {OriginalTagName}, New Tag Name: {NewTagName}", spaceId, tagName, modifyTagRequest.Tag.Name);
@@ -99,7 +99,7 @@ namespace ClickUp.Api.Client.Services
             // If EditTagResponse was intended for this, it should wrap a Tag.
             // For now, to match interface, let's assume direct Tag response or a simple wrapper.
             // Let's assume the API returns the Tag object directly for simplicity matching the interface.
-            var tag = await _apiConnection.PutAsync<ModifyTagRequest, Tag>(endpoint, modifyTagRequest, cancellationToken);
+            var tag = await _apiConnection.PutAsync<SaveTagRequest, Tag>(endpoint, modifyTagRequest, cancellationToken);
             if (tag == null)
             {
                 throw new InvalidOperationException($"API connection returned null response when editing tag '{tagName}' in space {spaceId}.");

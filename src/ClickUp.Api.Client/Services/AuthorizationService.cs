@@ -5,12 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models; // For ClickUpWorkspace
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ClickUp.Api.Client.Models.Entities.Users; // For User
 using ClickUp.Api.Client.Models.RequestModels.Authorization;
 using ClickUp.Api.Client.Models.ResponseModels.Authorization;
+using ClickUp.Api.Client.Models.Entities.WorkSpaces;
 // Removed: using ClickUp.Api.Client.Models.ResponseModels.Workspaces; // This caused ambiguity
 
 namespace ClickUp.Api.Client.Services

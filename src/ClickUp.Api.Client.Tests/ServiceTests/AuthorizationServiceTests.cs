@@ -4,16 +4,20 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+
 using ClickUp.Api.Client.Abstractions.Http;
-using ClickUp.Api.Client.Models; // For ClickUpWorkspace
 using ClickUp.Api.Client.Models.Common; // For Member
 using ClickUp.Api.Client.Models.Entities.Users;
+using ClickUp.Api.Client.Models.Entities.WorkSpaces;
 using ClickUp.Api.Client.Models.RequestModels.Authorization;
 using ClickUp.Api.Client.Models.ResponseModels.Authorization;
 using ClickUp.Api.Client.Models.ResponseModels.Workspaces; // For GetAuthorizedWorkspacesResponse
 using ClickUp.Api.Client.Services;
+
 using Microsoft.Extensions.Logging;
+
 using Moq;
+
 using Xunit;
 
 namespace ClickUp.Api.Client.Tests.ServiceTests

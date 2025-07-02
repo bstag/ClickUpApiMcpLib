@@ -30,7 +30,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.Chat
         [property: JsonPropertyName("reactions")] List<string>? Reactions,
         [property: JsonPropertyName("followers")] List<string>? Followers,
         [property: JsonPropertyName("content_format")] string? ContentFormat,
-        [property: JsonPropertyName("post_data")] CommentChatPostDataCreate? PostData,
+        [property: JsonPropertyName("post_data")] CreateCommentChatPostDataRequest? PostData,
         [property: JsonPropertyName("parent_message_id")] string? ParentMessageId
     );
 }

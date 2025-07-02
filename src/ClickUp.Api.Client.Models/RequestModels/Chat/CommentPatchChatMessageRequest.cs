@@ -19,7 +19,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.Chat
         [property: JsonPropertyName("group_assignee")] string? GroupAssignee,
         [property: JsonPropertyName("content")] string? Content,
         [property: JsonPropertyName("content_format")] string? ContentFormat,
-        [property: JsonPropertyName("post_data")] CommentChatPostDataPatch? PostData,
+        [property: JsonPropertyName("post_data")] UpdateCommentChatPostDataRequest? PostData,
         [property: JsonPropertyName("resolved")] bool? Resolved,
         [property: JsonPropertyName("parent_message_id")] string? ParentMessageId
     );

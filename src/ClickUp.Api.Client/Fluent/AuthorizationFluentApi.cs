@@ -1,10 +1,10 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Users;
-using ClickUp.Api.Client.Models;
 using ClickUp.Api.Client.Models.ResponseModels.Authorization;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.Entities.WorkSpaces;
 
 namespace ClickUp.Api.Client.Fluent;
 

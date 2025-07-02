@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Abstractions.Options;
 using ClickUp.Api.Client.Models.Entities.Users;
-using ClickUp.Api.Client.Models;
 using ClickUp.Api.Client.Models.Entities.Spaces;
 using ClickUp.Api.Client.Models.Entities.Folders;
 using ClickUp.Api.Client.Models.Entities.Tasks;
@@ -26,6 +25,7 @@ using ClickUp.Api.Client.Models.ResponseModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Comments;
 using ClickUp.Api.Client.Models.Entities.Comments;
 using ClickUp.Api.Client.Models.Entities.Lists;
+using ClickUp.Api.Client.Models.Entities.WorkSpaces;
 // using ClickUp.Api.Client.Models.RequestModels.Tasks; // Duplicate
 // using ClickUp.Api.Client.Models.RequestModels.Comments; // Duplicate
 

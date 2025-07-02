@@ -14,5 +14,5 @@ public record class UpdateUserGroupRequest
     string? Handle,
 
     [property: JsonPropertyName("members")]
-    UserGroupMembersUpdate? Members
+    UpdateUserGroupMembersRequest? Members
 );

@@ -12,8 +12,8 @@ public record class GetUserResponseMember
     InviteGuestToWorkspaceResponseUser User,
 
     [property: JsonPropertyName("invited_by")]
-    InvitedByUserInfo InvitedBy,
+    InvitedByUserInfoResponse InvitedBy,
 
     [property: JsonPropertyName("shared")]
-    GuestSharingDetails Shared
+    GuestSharingDetailsResponse Shared
 );

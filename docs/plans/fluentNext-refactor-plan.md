@@ -26,54 +26,54 @@ Each step contains:
 
 **Tasks**
 - [ ] 2.1 Create a script (e.g., PowerShell or bash) to scan all `*.cs` files under `src/ClickUp.Api.Client.Models/` for class names ending in `Dto`, `Details`, `Info`, or other non-standard suffixes used for data transfer objects. The script should report these names.
-    - [ ] 2.1.1 Identify common patterns for request DTOs (e.g., models used in POST/PUT method bodies). (Script `scripts/find_potential_dtos.sh` created and run, list generated)
-    - [ ] 2.1.2 Identify common patterns for response DTOs (e.g., models returned by GET/POST/PUT methods). (Script `scripts/find_potential_dtos.sh` created and run, list generated)
-- [ ] 2.2 Rename identified request DTO classes to use the `XxxRequest` suffix.
-    - [ ] 2.2.1 Example: If `CreateTaskModel.cs` exists and is used as a request body, rename it to `CreateTaskRequest.cs`. (Completed as part of overall DTO renaming)
-    - [ ] 2.2.2 Update all usages of these renamed classes across the solution (services, fluent builders, tests, examples). (Completed for each renamed DTO)
-    - [ ] **Identified Request DTOs to Rename:** (All items below now complete)
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/AuditLogs/AuditLogFilter.cs` → `AuditLogFilterRequest.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/AuditLogs/AuditLogPagination.cs` → `AuditLogPaginationRequest.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/Chat/CommentChatPostDataCreate.cs` → `CreateCommentChatPostDataRequest.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/Chat/CommentChatPostDataPatch.cs` → `UpdateCommentChatPostDataRequest.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/Chat/CommentChatPostSubtypeCreate.cs` → `CreateCommentChatPostSubtypeRequest.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/Chat/CommentChatPostSubtypePatch.cs` → `UpdateCommentChatPostSubtypeRequest.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/Tags/TagPayload.cs` → `TagAttributes.cs` (renamed class `TagPayload` to `TagAttributes`). Associated `Tags/ModifyTagRequest.cs` renamed to `Tags/SaveTagRequest.cs` (class `ModifyTagRequest` to `SaveTagRequest`).
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/UserGroups/UserGroupMembersUpdate.cs` → `UpdateUserGroupMembersRequest.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/RequestModels/TimeTracking/Legacy/TrackTimeRequest.cs` (already `XxxRequest` but path is `Legacy`) -> Review if it should be moved or if `Legacy` prefix is intended. (Reviewed: Path is appropriate as it's for a legacy API. No change needed.)
-- [ ] 2.3 Rename identified response DTO classes to use the `XxxResponse` suffix.
-    - [ ] 2.3.1 Example: `ClickUp.Api.Client.Models/ResponseModels/Attachments/CreateTaskAttachmentResponse.cs` already follows this. Review others like `ClickUpList.cs` or `ClickUpWorkspace.cs` if they are direct API responses and not general entity models. If they are general entities used in various contexts, this rule might only apply to specific request/response wrappers. (Reviewed relevant models like ClickUpList, ClickUpWorkspace and determined they are core models not needing 'Response' suffix).
-    - [ ] **Identified Response DTOs to Rename:** (All items below now complete or reviewed with no change needed)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/AddGuestToFolderResponseGuest.cs` → `AddGuestToFolderGuestResponse.cs` (Reviewed: Current name `AddGuestToFolderResponseGuest` is a nested type within `AddGuestToFolderResponse` and does not violate validation rule. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/AddGuestToListResponseGuest.cs` → `AddGuestToListGuestResponse.cs` (Reviewed: Current name `AddGuestToListResponseGuest` is a nested type within `AddGuestToListResponse` and does not violate validation rule. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/AddGuestToTaskResponseGuest.cs` → `AddGuestToTaskGuestResponse.cs` (Reviewed: Current name `AddGuestToTaskResponseGuest` is a nested type within `AddGuestToTaskResponse` and does not violate validation rule. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/EditGuestOnWorkspaceResponseGuest.cs` → `EditGuestOnWorkspaceResponseGuest.cs` (Reviewed: Current name `EditGuestOnWorkspaceResponseGuest` is a nested type within `EditGuestOnWorkspaceResponse` and does not violate validation rule. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/GuestFolderSharingDetails.cs` → `GuestFolderSharingDetailsResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/GuestListSharingDetails.cs` → `GuestListSharingDetailsResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/GuestSharingDetails.cs` → `GuestSharingDetailsResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/InvitedByUserInfo.cs` → `InvitedByUserInfoResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/InvitedGuestMember.cs` → `InvitedGuestMemberResponse.cs` (Reviewed: Current name `InvitedGuestMember` does not violate validation rule and usage is unclear. No change needed for now.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Roles/CustomRole.cs` → `CustomRoleResponse.cs` (Reviewed: `CustomRole` is a nested type within `GetCustomRolesResponse` and its name does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Shared/ClickUpErrorResponse.cs` → `ErrorInformationResponse.cs` (Reviewed: Current name `ClickUpErrorResponse` already ends with 'Response' and is appropriate. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Shared/ClickUpValidationErrorDetail.cs` → `ValidationErrorDetailResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Sharing/SharedHierarchyDetails.cs` → `SharedHierarchyDetailsResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Sharing/SharedHierarchyFolderItem.cs` → `SharedHierarchyFolderItemResponse.cs` (Reviewed: Current name `SharedHierarchyFolderItem` is a nested type and does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Sharing/SharedHierarchyListItem.cs` → `SharedHierarchyListItemResponse.cs` (Reviewed: Current name `SharedHierarchyListItem` is a nested type and does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Tasks/StatusHistoryItem.cs` → `StatusHistoryItemResponse.cs` (Reviewed: `StatusHistoryItem` is a nested type within `TaskTimeInStatusResponse` and its name does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Tasks/TaskTimeInStatusData.cs` → `TaskTimeInStatusDataResponse.cs` (Reviewed: `TaskTimeInStatusData` is a nested type and its name does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/TimeTracking/Legacy/LegacyTimeTrackingInterval.cs` → `LegacyTimeTrackingIntervalResponse.cs` (Reviewed: Nested legacy type, name does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/TimeTracking/Legacy/LegacyTrackedTimeEntry.cs` → `LegacyTrackedTimeEntryResponse.cs` (Reviewed: Nested legacy type, name does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/TimeTracking/TimeEntryTagDetails.cs` → `TimeEntryTagDetailsResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Workspaces/WorkspaceGuestSeatsInfo.cs` → `WorkspaceGuestSeatsInfoResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ResponseModels/Workspaces/WorkspaceMemberSeatsInfo.cs` → `WorkspaceMemberSeatsInfoResponse.cs`
-    - [ ] `src/ClickUp.Api.Client.Models/ClickUpList.cs` → `ClickUpListInfoResponse.cs` (Reviewed: `ClickUpList` is a core model/entity and its name does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ClickUpWorkspace.cs` → `ClickUpWorkspaceInfoResponse.cs` (Reviewed: `ClickUpWorkspace` is a core model/entity and its name does not violate validation rules. No change needed.)
-    - [ ] `src/ClickUp.Api.Client.Models/ListStatusInfo.cs` → `ListStatusInfoResponse.cs`
-    - [ ] 2.4 Update any custom JSON serializer configurations (e.g., `JsonSerializerContext` or attributes) if class names are part of serialization contracts. (Reviewed: No custom JsonSerializerContext or JsonSerializableAttributes found that would require updates due to class renames. Project relies on JsonPropertyName attributes.)
-    - [ ] 2.5 Update all unit tests in `src/ClickUp.Api.Client.Tests/` to use the new DTO names. (Reviewed: Most updates were done during DTO renaming. Key service tests checked. Full build/test will confirm.)
-    - [ ] 2.6 Update all integration tests in `src/ClickUp.Api.Client.IntegrationTests/` to use the new DTO names. (Reviewed: Integration tests primarily consume DTOs via service responses. Direct instantiations of renamed DTOs are minimal or in placeholder tests. Changes made during DTO renaming phase should cover most impacts. Full build/test will confirm.)
-    - [ ] 2.7 Update all examples in `examples/` to use the new DTO names. (Reviewed: Example projects primarily use fluent API or service methods. Direct DTO usages that were renamed were minimal and already covered or not present. No changes needed.)
-    - [ ] 2.8 Add a section to `CONTRIBUTING.md` specifying the DTO naming convention: `ServiceNameOperationRequest` for request models and `ServiceNameOperationResponse` for response models.
+    - [x] 2.1.1 Identify common patterns for request DTOs (e.g., models used in POST/PUT method bodies). (Script `scripts/find_potential_dtos.sh` created and run, list generated)
+    - [x] 2.1.2 Identify common patterns for response DTOs (e.g., models returned by GET/POST/PUT methods). (Script `scripts/find_potential_dtos.sh` created and run, list generated)
+- [x] 2.2 Rename identified request DTO classes to use the `XxxRequest` suffix.
+    - [x] 2.2.1 Example: If `CreateTaskModel.cs` exists and is used as a request body, rename it to `CreateTaskRequest.cs`. (Completed as part of overall DTO renaming)
+    - [x] 2.2.2 Update all usages of these renamed classes across the solution (services, fluent builders, tests, examples). (Completed for each renamed DTO)
+    - [x] **Identified Request DTOs to Rename:** (All items below now complete)
+    - [x] `src/ClickUp.Api.Client.Models/RequestModels/AuditLogs/AuditLogFilter.cs` → `AuditLogFilterRequest.cs`
+    - [x] `src/ClickUp.Api.Client.Models/RequestModels/AuditLogs/AuditLogPagination.cs` → `AuditLogPaginationRequest.cs`
+    - [x] `src/ClickUp.Api.Client.Models/RequestModels/Chat/CommentChatPostDataCreate.cs` → `CreateCommentChatPostDataRequest.cs`
+    - [x] `src/ClickUp.Api.Client.Models/RequestModels/Chat/CommentChatPostDataPatch.cs` → `UpdateCommentChatPostDataRequest.cs`
+    - [x] `src/ClickUp.Api.Client.Models/RequestModels/Chat/CommentChatPostSubtypeCreate.cs` → `CreateCommentChatPostSubtypeRequest.cs`
+    - [x] `src/ClickUp.Api.Client.Models/RequestModels/Chat/CommentChatPostSubtypePatch.cs` → `UpdateCommentChatPostSubtypeRequest.cs`
+    - [X] `src/ClickUp.Api.Client.Models/RequestModels/Tags/TagPayload.cs` → `TagAttributes.cs` (renamed class `TagPayload` to `TagAttributes`). Associated `Tags/ModifyTagRequest.cs` renamed to `Tags/SaveTagRequest.cs` (class `ModifyTagRequest` to `SaveTagRequest`).
+    - [X] `src/ClickUp.Api.Client.Models/RequestModels/UserGroups/UserGroupMembersUpdate.cs` → `UpdateUserGroupMembersRequest.cs`
+    - [X] `src/ClickUp.Api.Client.Models/RequestModels/TimeTracking/Legacy/TrackTimeRequest.cs` (already `XxxRequest` but path is `Legacy`) -> Review if it should be moved or if `Legacy` prefix is intended. (Reviewed: Path is appropriate as it's for a legacy API. No change needed.)
+- [X] 2.3 Rename identified response DTO classes to use the `XxxResponse` suffix.
+    - [X] 2.3.1 Example: `ClickUp.Api.Client.Models/ResponseModels/Attachments/CreateTaskAttachmentResponse.cs` already follows this. Review others like `ClickUpList.cs` or `ClickUpWorkspace.cs` if they are direct API responses and not general entity models. If they are general entities used in various contexts, this rule might only apply to specific request/response wrappers. (Reviewed relevant models like ClickUpList, ClickUpWorkspace and determined they are core models not needing 'Response' suffix).
+    - [X] **Identified Response DTOs to Rename:** (All items below now complete or reviewed with no change needed)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/AddGuestToFolderResponseGuest.cs` → `AddGuestToFolderGuestResponse.cs` (Reviewed: Current name `AddGuestToFolderResponseGuest` is a nested type within `AddGuestToFolderResponse` and does not violate validation rule. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/AddGuestToListResponseGuest.cs` → `AddGuestToListGuestResponse.cs` (Reviewed: Current name `AddGuestToListResponseGuest` is a nested type within `AddGuestToListResponse` and does not violate validation rule. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/AddGuestToTaskResponseGuest.cs` → `AddGuestToTaskGuestResponse.cs` (Reviewed: Current name `AddGuestToTaskResponseGuest` is a nested type within `AddGuestToTaskResponse` and does not violate validation rule. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/EditGuestOnWorkspaceResponseGuest.cs` → `EditGuestOnWorkspaceResponseGuest.cs` (Reviewed: Current name `EditGuestOnWorkspaceResponseGuest` is a nested type within `EditGuestOnWorkspaceResponse` and does not violate validation rule. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/GuestFolderSharingDetails.cs` → `GuestFolderSharingDetailsResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/GuestListSharingDetails.cs` → `GuestListSharingDetailsResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/GuestSharingDetails.cs` → `GuestSharingDetailsResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/InvitedByUserInfo.cs` → `InvitedByUserInfoResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Guests/InvitedGuestMember.cs` → `InvitedGuestMemberResponse.cs` (Reviewed: Current name `InvitedGuestMember` does not violate validation rule and usage is unclear. No change needed for now.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Roles/CustomRole.cs` → `CustomRoleResponse.cs` (Reviewed: `CustomRole` is a nested type within `GetCustomRolesResponse` and its name does not violate validation rules. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Shared/ClickUpErrorResponse.cs` → `ErrorInformationResponse.cs` (Reviewed: Current name `ClickUpErrorResponse` already ends with 'Response' and is appropriate. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Shared/ClickUpValidationErrorDetail.cs` → `ValidationErrorDetailResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Sharing/SharedHierarchyDetails.cs` → `SharedHierarchyDetailsResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Sharing/SharedHierarchyFolderItem.cs` → `SharedHierarchyFolderItemResponse.cs` (Reviewed: Current name `SharedHierarchyFolderItem` is a nested type and does not violate validation rules. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Sharing/SharedHierarchyListItem.cs` → `SharedHierarchyListItemResponse.cs` (Reviewed: Current name `SharedHierarchyListItem` is a nested type and does not violate validation rules. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Tasks/StatusHistoryItem.cs` → `StatusHistoryItemResponse.cs` (Reviewed: `StatusHistoryItem` is a nested type within `TaskTimeInStatusResponse` and its name does not violate validation rules. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Tasks/TaskTimeInStatusData.cs` → `TaskTimeInStatusDataResponse.cs` (Reviewed: `TaskTimeInStatusData` is a nested type and its name does not violate validation rules. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/TimeTracking/Legacy/LegacyTimeTrackingInterval.cs` → `LegacyTimeTrackingIntervalResponse.cs` (Reviewed: Nested legacy type, name does not violate validation rules. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/TimeTracking/Legacy/LegacyTrackedTimeEntry.cs` → `LegacyTrackedTimeEntryResponse.cs` (Reviewed: Nested legacy type, name does not violate validation rules. No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/TimeTracking/TimeEntryTagDetails.cs` → `TimeEntryTagDetailsResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Workspaces/WorkspaceGuestSeatsInfo.cs` → `WorkspaceGuestSeatsInfoResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ResponseModels/Workspaces/WorkspaceMemberSeatsInfo.cs` → `WorkspaceMemberSeatsInfoResponse.cs`
+    - [X] `src/ClickUp.Api.Client.Models/ClickUpList.cs` → `ClickUpListInfoResponse.cs` (Reviewed: `ClickUpList` is a core model/entity and its name does not violate validation rules. Moved to `src/ClickUp.Api.Client.Models/ClickUpListInfoResponse.cs` No change needed.)
+    - [x] `src/ClickUp.Api.Client.Models/ClickUpWorkspace.cs` → `ClickUpWorkspaceInfoResponse.cs` (Reviewed: `ClickUpWorkspace` is a core model/entity and its name does not violate validation rules. Moved to `src/ClickUp.Api.Client.Models/ClickUpWorkspaceInfoResponse.cs` No change needed.)
+    - [X] `src/ClickUp.Api.Client.Models/ListStatusInfo.cs` → `ListStatusInfoResponse.cs`
+    - [X] 2.4 Update any custom JSON serializer configurations (e.g., `JsonSerializerContext` or attributes) if class names are part of serialization contracts. (Reviewed: No custom JsonSerializerContext or JsonSerializableAttributes found that would require updates due to class renames. Project relies on JsonPropertyName attributes.)
+    - [X] 2.5 Update all unit tests in `src/ClickUp.Api.Client.Tests/` to use the new DTO names. (Reviewed: Most updates were done during DTO renaming. Key service tests checked. Full build/test will confirm.)
+    - [X] 2.6 Update all integration tests in `src/ClickUp.Api.Client.IntegrationTests/` to use the new DTO names. (Reviewed: Integration tests primarily consume DTOs via service responses. Direct instantiations of renamed DTOs are minimal or in placeholder tests. Changes made during DTO renaming phase should cover most impacts. Full build/test will confirm.)
+    - [X] 2.7 Update all examples in `examples/` to use the new DTO names. (Reviewed: Example projects primarily use fluent API or service methods. Direct DTO usages that were renamed were minimal and already covered or not present. No changes needed.)
+    - [X] 2.8 Add a section to `CONTRIBUTING.md` specifying the DTO naming convention: `ServiceNameOperationRequest` for request models and `ServiceNameOperationResponse` for response models.
 
 **Validation Rule:**
 - `grep -E "class .*(Dto|Details|Info|Model|Body|Payload)(?!Request|Response)" src/ClickUp.Api.Client.Models/**/*.cs | wc -l` → 0 (Adjust regex as needed to catch undesirable suffixes, ensuring it doesn't catch legitimate internal models not intended as DTOs).

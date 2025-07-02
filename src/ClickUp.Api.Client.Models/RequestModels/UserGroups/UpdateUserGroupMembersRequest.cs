@@ -6,7 +6,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.UserGroups;
 /// <summary>
 /// Represents the members to add or remove from a user group.
 /// </summary>
-public record class UserGroupMembersUpdate
+public record class UpdateUserGroupMembersRequest
 (
     [property: JsonPropertyName("add")]
     List<int>? Add,

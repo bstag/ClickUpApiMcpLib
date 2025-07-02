@@ -36,8 +36,8 @@ public class FluentWorkspacesApiTests
         // Arrange
         var workspaceId = "testWorkspaceId";
         var expectedResponse = new GetWorkspaceSeatsResponse(
-            new WorkspaceMemberSeatsInfo(1, 1, 0),
-            new WorkspaceGuestSeatsInfo(1, 1, 0)
+            new WorkspaceMemberSeatsInfoResponse(1, 1, 0),
+            new WorkspaceGuestSeatsInfoResponse(1, 1, 0)
         ); // Mock a response
 
         var mockWorkspacesService = new Mock<IWorkspacesService>();

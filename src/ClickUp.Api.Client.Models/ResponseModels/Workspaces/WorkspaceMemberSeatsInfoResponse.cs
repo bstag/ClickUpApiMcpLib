@@ -5,7 +5,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Workspaces;
 /// <summary>
 /// Represents information about member seats in a workspace.
 /// </summary>
-public record class WorkspaceMemberSeatsInfo
+public record class WorkspaceMemberSeatsInfoResponse
 (
     [property: JsonPropertyName("filled_members_seats")]
     int FilledMembersSeats,

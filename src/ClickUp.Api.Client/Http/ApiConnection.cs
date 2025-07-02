@@ -235,7 +235,7 @@ namespace ClickUp.Api.Client.Http
                         try
                         {
                             // Attempt to deserialize into a structure that includes detailed errors
-                            var validationErrorDto = JsonSerializer.Deserialize<Models.ResponseModels.Shared.ClickUpValidationErrorDetail>(rawErrorContent, JsonSerializerOptionsHelper.Options);
+                            var validationErrorDto = JsonSerializer.Deserialize<Models.ResponseModels.Shared.ValidationErrorDetailResponse>(rawErrorContent, JsonSerializerOptionsHelper.Options);
                             if (validationErrorDto?.DetailedErrors != null)
                             {
                                 // Convert Dictionary<string, List<string>> to IReadOnlyDictionary<string, IReadOnlyList<string>>

@@ -7,9 +7,9 @@ namespace ClickUp.Api.Client.Models.RequestModels.Chat
     /// </summary>
     /// <param name="Title">The title of the post.</param>
     /// <param name="Subtype">Optional: The subtype of the post, if applicable.</param>
-    public record CommentChatPostDataCreate
+    public record CreateCommentChatPostDataRequest
     (
         [property: JsonPropertyName("title")] string Title,
-        [property: JsonPropertyName("subtype")] CommentChatPostSubtypeCreate? Subtype
+        [property: JsonPropertyName("subtype")] CreateCommentChatPostSubtypeRequest? Subtype
     );
 }

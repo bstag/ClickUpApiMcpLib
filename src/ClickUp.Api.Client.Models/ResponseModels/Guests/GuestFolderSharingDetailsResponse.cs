@@ -7,7 +7,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Guests;
 /// <summary>
 /// Represents the sharing details for a guest on a folder.
 /// </summary>
-public record class GuestFolderSharingDetails
+public record class GuestFolderSharingDetailsResponse
 (
     [property: JsonPropertyName("tasks")]
     List<string> Tasks,

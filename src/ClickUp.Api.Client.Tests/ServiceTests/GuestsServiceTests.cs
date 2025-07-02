@@ -81,7 +81,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_test";
             var request = new InviteGuestToWorkspaceRequest("guest@example.com", false, true, true, false, true, 123);
             var sampleInvitedUserDto = new ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseUser(1, "guest1", "guest@example.com", "#00FF00", null, "G1", 0, null, null, null, DateTimeOffset.UtcNow);
-            var sampleInviterDto = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfo(99, "#FFFF00", "AdminInviter", "admin@example.com", "AI", null);
+            var sampleInviterDto = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfoResponse(99, "#FFFF00", "AdminInviter", "admin@example.com", "AI", null);
             var teamMember = new ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseTeamMember(sampleInvitedUserDto, sampleInviterDto, true, true, false, false, true);
             var responseTeam = new ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseTeam("id", "Test Workspace", "#123123", null, new List<ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseTeamMember>{ teamMember }, new List<Role>());
             var expectedResponse = new InviteGuestToWorkspaceResponse(responseTeam);
@@ -488,7 +488,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
             var dummyUser = new ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseUser(1, "u", "e", "c", null, "i", 0, null, null, null, DateTimeOffset.UtcNow);
-            var dummyInviter = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfo(2, "iu", "ie", "ic", null, "ii");
+            var dummyInviter = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfoResponse(2, "iu", "ie", "ic", null, "ii");
             var dummyMember = new ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseTeamMember(dummyUser, dummyInviter, false, false, false, false, false);
             var dummyTeam = new ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseTeam("id", "name", "c", null, new List<ClickUp.Api.Client.Models.ResponseModels.Guests.InviteGuestToWorkspaceResponseTeamMember>{dummyMember}, new List<Role>());
             var expectedResponse = new InviteGuestToWorkspaceResponse(dummyTeam);

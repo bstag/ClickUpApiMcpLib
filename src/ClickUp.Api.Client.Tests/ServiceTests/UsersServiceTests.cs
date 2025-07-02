@@ -51,7 +51,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         private GetUserResponseMember CreateSampleGetUserResponseMember(int userId = 1, string username = "Test User")
         {
             // InvitedBy should be ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfo
-            var invitedBy = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfo(
+            var invitedBy = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfoResponse(
                 Id: 99,
                 Color: "#FFF",
                 Username: "Inviter",
@@ -60,7 +60,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 ProfilePicture: null
             );
             // GuestSharingDetails requires Tasks, Lists, Folders in its constructor
-            var sharedDetails = new ClickUp.Api.Client.Models.ResponseModels.Guests.GuestSharingDetails(
+            var sharedDetails = new ClickUp.Api.Client.Models.ResponseModels.Guests.GuestSharingDetailsResponse(
                 Tasks: new List<string>(),
                 Lists: new List<string>(),
                 Folders: new List<string>()
@@ -143,8 +143,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_get_user_null_user_data";
             var userId = "user_null_user_data";
             // Create a GetUserResponseMember with a null User, but valid (though minimal) InvitedBy and Shared
-            var invitedByMinimal = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfo(0, null, string.Empty, string.Empty, null, null);
-            var sharedDetailsMinimal = new ClickUp.Api.Client.Models.ResponseModels.Guests.GuestSharingDetails(new List<string>(), new List<string>(), new List<string>());
+            var invitedByMinimal = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfoResponse(0, null, string.Empty, string.Empty, null, null);
+            var sharedDetailsMinimal = new ClickUp.Api.Client.Models.ResponseModels.Guests.GuestSharingDetailsResponse(new List<string>(), new List<string>(), new List<string>());
             var memberWithNullUser = new GetUserResponseMember(User: null!, InvitedBy: invitedByMinimal, Shared: sharedDetailsMinimal);
             var apiResponse = new GetUserResponse(memberWithNullUser);
             _mockApiConnection
@@ -298,8 +298,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var userId = "user_edit_null_user_data";
             var request = new EditUserOnWorkspaceRequest("NewName", false, 0); // CustomRole changed from null to 0
             // Create a GetUserResponseMember with a null User, but valid (though minimal) InvitedBy and Shared
-            var invitedByMinimal = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfo(0, null, string.Empty, string.Empty, null, null);
-            var sharedDetailsMinimal = new ClickUp.Api.Client.Models.ResponseModels.Guests.GuestSharingDetails(new List<string>(), new List<string>(), new List<string>());
+            var invitedByMinimal = new ClickUp.Api.Client.Models.ResponseModels.Guests.InvitedByUserInfoResponse(0, null, string.Empty, string.Empty, null, null);
+            var sharedDetailsMinimal = new ClickUp.Api.Client.Models.ResponseModels.Guests.GuestSharingDetailsResponse(new List<string>(), new List<string>(), new List<string>());
             var memberWithNullUser = new GetUserResponseMember(User: null!, InvitedBy: invitedByMinimal, Shared: sharedDetailsMinimal);
             var apiResponse = new GetUserResponse(memberWithNullUser);
             _mockApiConnection

@@ -1,19 +1,19 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ClickUp.Api.Client.Models.ResponseModels.Guests;
+namespace ClickUp.Api.Client.Models.ResponseModels.Sharing;
 
 /// <summary>
-/// Represents the sharing details for a guest.
+/// Represents the details of a shared hierarchy.
 /// </summary>
-public record class GuestSharingDetails
+public record class SharedHierarchyDetailsResponse
 (
     [property: JsonPropertyName("tasks")]
     List<string> Tasks,
 
     [property: JsonPropertyName("lists")]
-    List<string> Lists,
+    List<SharedHierarchyListItem> Lists,
 
     [property: JsonPropertyName("folders")]
-    List<string> Folders
+    List<SharedHierarchyFolderItem> Folders
 );

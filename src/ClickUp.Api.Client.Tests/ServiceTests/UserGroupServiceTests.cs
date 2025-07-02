@@ -347,7 +347,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_1";
-            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 3, 4 }, Rem: null);
+            var membersUpdate = new UpdateUserGroupMembersRequest(Add: new List<int> { 3, 4 }, Rem: null);
             var request = new UpdateUserGroupRequest(
                 Name: "Updated Group Name",
                 Handle: "updated_handle",
@@ -390,7 +390,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_null_api";
-            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 5 }, Rem: null);
+            var membersUpdate = new UpdateUserGroupMembersRequest(Add: new List<int> { 5 }, Rem: null);
             var request = new UpdateUserGroupRequest("Update Null", "upd_null", membersUpdate);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
@@ -407,7 +407,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_http_ex";
-            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 6 }, Rem: null);
+            var membersUpdate = new UpdateUserGroupMembersRequest(Add: new List<int> { 6 }, Rem: null);
             var request = new UpdateUserGroupRequest("Update HTTP", "upd_http", membersUpdate);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
@@ -424,7 +424,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_cancel_ex";
-            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 7 }, Rem: null);
+            var membersUpdate = new UpdateUserGroupMembersRequest(Add: new List<int> { 7 }, Rem: null);
             var request = new UpdateUserGroupRequest("Update Cancel", "upd_cancel", membersUpdate);
             _mockApiConnection
                 .Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(It.IsAny<string>(), request, It.IsAny<CancellationToken>()))
@@ -441,7 +441,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var groupId = "ug_update_ct_pass";
-            var membersUpdate = new UserGroupMembersUpdate(Add: new List<int> { 8 }, Rem: null);
+            var membersUpdate = new UpdateUserGroupMembersRequest(Add: new List<int> { 8 }, Rem: null);
             var request = new UpdateUserGroupRequest("Update CT", "upd_ct", membersUpdate);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;

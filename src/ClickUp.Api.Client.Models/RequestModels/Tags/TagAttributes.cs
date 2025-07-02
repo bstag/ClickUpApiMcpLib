@@ -5,7 +5,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.Tags;
 /// <summary>
 /// Represents the detailed payload for a Tag, including its name and colors.
 /// </summary>
-public class TagPayload
+public class TagAttributes
 {
     /// <summary>
     /// Gets or sets the name of the tag.
@@ -26,12 +26,12 @@ public class TagPayload
     public string TagBg { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TagPayload"/> class.
+    /// Initializes a new instance of the <see cref="TagAttributes"/> class.
     /// </summary>
     /// <param name="name">The name of the tag.</param>
     /// <param name="tagFg">The foreground color of the tag.</param>
     /// <param name="tagBg">The background color of the tag.</param>
-    public TagPayload(string name, string tagFg, string tagBg)
+    public TagAttributes(string name, string tagFg, string tagBg)
     {
         Name = name;
         TagFg = tagFg;
