@@ -41,12 +41,12 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws123_seats";
-            var memberSeatsInfo = new WorkspaceMemberSeatsInfo(
+            var memberSeatsInfo = new WorkspaceMemberSeatsInfoResponse(
                 FilledMembersSeats: 1,
                 TotalMemberSeats: 5,
                 EmptyMemberSeats: 4
             );
-            var guestSeatsInfo = new WorkspaceGuestSeatsInfo(
+            var guestSeatsInfo = new WorkspaceGuestSeatsInfoResponse(
                 FilledGuestSeats: 1,
                 TotalGuestSeats: 10,
                 EmptyGuestSeats: 9
@@ -131,8 +131,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var workspaceId = "ws_seats_ct_pass";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var memberSeatsInfo = new WorkspaceMemberSeatsInfo(0,0,0);
-            var guestSeatsInfo = new WorkspaceGuestSeatsInfo(0,0,0);
+            var memberSeatsInfo = new WorkspaceMemberSeatsInfoResponse(0,0,0);
+            var guestSeatsInfo = new WorkspaceGuestSeatsInfoResponse(0,0,0);
             var apiResponse = new GetWorkspaceSeatsResponse(memberSeatsInfo, guestSeatsInfo);
 
             _mockApiConnection

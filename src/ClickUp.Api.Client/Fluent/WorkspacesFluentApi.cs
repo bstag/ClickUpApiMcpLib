@@ -1,6 +1,7 @@
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models; // For ClickUpWorkspace
+using ClickUp.Api.Client.Models.Entities.WorkSpaces;
 using ClickUp.Api.Client.Models.ResponseModels.Workspaces;
+
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;

@@ -7,7 +7,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Shared
     /// Represents an error response from the ClickUp API with detailed validation errors.
     /// Extends <see cref="ClickUpErrorResponse"/> to include field-specific errors.
     /// </summary>
-    public class ClickUpValidationErrorDetail : ClickUpErrorResponse
+    public class ValidationErrorDetailResponse : ClickUpErrorResponse
     {
         /// <summary>
         /// Gets or sets the detailed field-specific validation errors.

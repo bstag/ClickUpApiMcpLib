@@ -11,7 +11,7 @@ public class UserGroupFluentUpdateRequest
 {
     private string? _name;
     private string? _handle;
-    private UserGroupMembersUpdate? _members;
+    private UpdateUserGroupMembersRequest? _members;
 
     private readonly string _groupId;
     private readonly IUserGroupsService _userGroupsService;
@@ -34,7 +34,7 @@ public class UserGroupFluentUpdateRequest
         return this;
     }
 
-    public UserGroupFluentUpdateRequest WithMembers(UserGroupMembersUpdate members)
+    public UserGroupFluentUpdateRequest WithMembers(UpdateUserGroupMembersRequest members)
     {
         _members = members;
         return this;

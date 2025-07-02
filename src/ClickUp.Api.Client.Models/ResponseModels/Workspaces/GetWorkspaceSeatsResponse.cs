@@ -8,8 +8,8 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Workspaces;
 public record class GetWorkspaceSeatsResponse
 (
     [property: JsonPropertyName("members")]
-    WorkspaceMemberSeatsInfo Members,
+    WorkspaceMemberSeatsInfoResponse Members,
 
     [property: JsonPropertyName("guests")]
-    WorkspaceGuestSeatsInfo Guests
+    WorkspaceGuestSeatsInfoResponse Guests
 );

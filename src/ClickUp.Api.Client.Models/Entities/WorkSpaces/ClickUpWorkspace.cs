@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using ClickUp.Api.Client.Models.Common; // For Member
-using ClickUp.Api.Client.Models.Entities.Users; // For User, if used elsewhere or as a general good practice
 
-namespace ClickUp.Api.Client.Models;
+using ClickUp.Api.Client.Models.Common; // For Member
+using ClickUp.Api.Client.Models.Entities.Users;
+
+namespace ClickUp.Api.Client.Models.Entities.WorkSpaces;
 
 /// <summary>
 /// Represents a ClickUp Workspace, also known as a Team in the API.

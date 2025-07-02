@@ -11,7 +11,7 @@ public record class AddGuestToListResponseGuest
     InviteGuestToWorkspaceResponseUser User,
 
     [property: JsonPropertyName("invited_by")]
-    InvitedByUserInfo InvitedBy,
+    InvitedByUserInfoResponse InvitedBy,
 
     [property: JsonPropertyName("can_see_time_spent")]
     bool? CanSeeTimeSpent,
@@ -23,5 +23,5 @@ public record class AddGuestToListResponseGuest
     bool? CanEditTags,
 
     [property: JsonPropertyName("shared")]
-    GuestListSharingDetails Shared
+    GuestListSharingDetailsResponse Shared
 );

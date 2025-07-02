@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 // Note: ClickUpWorkspace is in the root Models namespace
-using ClickUp.Api.Client.Models;
+using ClickUp.Api.Client.Models.Entities.WorkSpaces;
 
 
 namespace ClickUp.Api.Client.Models.ResponseModels.Authorization;

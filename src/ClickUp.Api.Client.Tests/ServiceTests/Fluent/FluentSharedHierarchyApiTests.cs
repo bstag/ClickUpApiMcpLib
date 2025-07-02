@@ -34,7 +34,7 @@ public class FluentSharedHierarchyApiTests
     {
         // Arrange
         var workspaceId = "testWorkspaceId";
-        var expectedResponse = new SharedHierarchyResponse(new SharedHierarchyDetails(
+        var expectedResponse = new SharedHierarchyResponse(new SharedHierarchyDetailsResponse(
             new List<string>(),
             new List<SharedHierarchyListItem>(),
             new List<SharedHierarchyFolderItem>()));

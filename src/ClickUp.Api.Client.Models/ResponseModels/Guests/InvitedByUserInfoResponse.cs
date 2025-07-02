@@ -5,7 +5,7 @@ namespace ClickUp.Api.Client.Models.ResponseModels.Guests;
 /// <summary>
 /// Represents information about the user who invited a guest.
 /// </summary>
-public record class InvitedByUserInfo
+public record class InvitedByUserInfoResponse
 (
     [property: JsonPropertyName("id")]
     int Id,

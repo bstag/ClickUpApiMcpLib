@@ -8,11 +8,11 @@ namespace ClickUp.Api.Client.Models.RequestModels.AuditLogs;
 public record class CreateWorkspaceAuditLogRequest
 (
     [property: JsonPropertyName("filter")]
-    AuditLogFilter? Filter,
+    AuditLogFilterRequest? Filter,
 
     [property: JsonPropertyName("applicability")]
     string Applicability,
 
     [property: JsonPropertyName("pagination")]
-    AuditLogPagination? Pagination
+    AuditLogPaginationRequest? Pagination
 );

@@ -9,5 +9,5 @@ namespace ClickUp.Api.Client.Models.ResponseModels.TimeTracking;
 public record class GetAllTagsFromTimeEntriesResponse
 (
     [property: JsonPropertyName("data")]
-    List<TimeEntryTagDetails> Data
+    List<TimeEntryTagDetailsResponse> Data
 );

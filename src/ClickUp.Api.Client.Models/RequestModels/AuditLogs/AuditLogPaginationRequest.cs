@@ -5,7 +5,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.AuditLogs;
 /// <summary>
 /// Represents the pagination settings for querying audit logs.
 /// </summary>
-public record class AuditLogPagination
+public record class AuditLogPaginationRequest
 (
     [property: JsonPropertyName("pageRows")]
     int? PageRows,

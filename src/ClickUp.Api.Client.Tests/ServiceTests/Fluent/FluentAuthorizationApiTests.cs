@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using ClickUp.Api.Client.Models.Entities.WorkSpaces;
 
 namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent;
 
@@ -87,7 +88,7 @@ public class FluentAuthorizationApiTests
     public async Task FluentAuthorizationApi_GetAuthorizedWorkspacesAsync_ShouldCallService()
     {
         // Arrange
-        var expectedWorkspaces = new List<Client.Models.ClickUpWorkspace>();
+        var expectedWorkspaces = new List<ClickUpWorkspace>();
         var mockAuthorizationService = new Mock<IAuthorizationService>();
         mockAuthorizationService.Setup(x => x.GetAuthorizedWorkspacesAsync(
             It.IsAny<CancellationToken>()))

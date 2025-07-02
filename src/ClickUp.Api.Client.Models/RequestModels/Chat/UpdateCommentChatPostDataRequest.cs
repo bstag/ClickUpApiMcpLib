@@ -8,9 +8,9 @@ namespace ClickUp.Api.Client.Models.RequestModels.Chat
     /// </summary>
     /// <param name="Title">Optional: New title for the post.</param>
     /// <param name="Subtype">Optional: New subtype for the post.</param>
-    public record CommentChatPostDataPatch
+    public record UpdateCommentChatPostDataRequest
     (
         [property: JsonPropertyName("title")] string? Title,
-        [property: JsonPropertyName("subtype")] CommentChatPostSubtypePatch? Subtype
+        [property: JsonPropertyName("subtype")] UpdateCommentChatPostSubtypeRequest? Subtype
     );
 }

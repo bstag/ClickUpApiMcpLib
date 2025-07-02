@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using System.Linq;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Fluent;
-using ClickUp.Api.Client.Models;
 using ClickUp.Api.Client.Models.Entities.Users;
 using Moq;
 using Xunit;
+using ClickUp.Api.Client.Models.Entities.WorkSpaces;
 
 namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
 {

@@ -7,6 +7,6 @@ namespace ClickUp.Api.Client.Services
 
     internal class ClickUpV3DataListResponse<T>
     {
-        public System.Collections.Generic.List<T>? Data { get; set; }
+        public List<T>? Data { get; set; }
     }
 }

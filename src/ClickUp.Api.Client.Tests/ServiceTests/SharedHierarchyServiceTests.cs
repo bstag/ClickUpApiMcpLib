@@ -32,7 +32,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // SharedHierarchyDetails does not contain Spaces.
             // Lists and Folders should be of type SharedHierarchyListItem and SharedHierarchyFolderItem respectively.
             // For now, providing empty lists for these as their specific DTOs are not yet read.
-            var sharedDetails = new SharedHierarchyDetails(
+            var sharedDetails = new SharedHierarchyDetailsResponse(
                 Tasks: new List<string>(),
                 Lists: new List<SharedHierarchyListItem>(),
                 Folders: new List<SharedHierarchyFolderItem>()

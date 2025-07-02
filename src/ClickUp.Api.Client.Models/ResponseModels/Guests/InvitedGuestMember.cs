@@ -19,7 +19,7 @@ public record InvitedGuestMember
     GuestUserInfo User,
 
     [property: JsonPropertyName("invited_by")]
-    InvitedByUserInfo? InvitedBy,
+    InvitedByUserInfoResponse? InvitedBy,
 
     [property: JsonPropertyName("can_see_time_spent")]
     bool? CanSeeTimeSpent,

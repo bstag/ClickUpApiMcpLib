@@ -1,4 +1,4 @@
-namespace ClickUp.Api.Client.Models;
+namespace ClickUp.Api.Client.Models.Entities.Lists;
 
 /// <summary>
 /// Represents the status display properties of a List itself (color, label).

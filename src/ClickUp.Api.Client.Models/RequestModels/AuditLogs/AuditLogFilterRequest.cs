@@ -6,7 +6,7 @@ namespace ClickUp.Api.Client.Models.RequestModels.AuditLogs;
 /// <summary>
 /// Represents the filter for querying audit logs.
 /// </summary>
-public record class AuditLogFilter
+public record class AuditLogFilterRequest
 (
     [property: JsonPropertyName("workspaceId")]
     string WorkspaceId,
