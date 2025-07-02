@@ -21,8 +21,8 @@ public record GetChatReactionsResponse
     /// <summary>
     /// Represents pagination metadata for chat reaction responses.
     /// </summary>
-    /// <param name="NextCursor">Cursor to retrieve the next page of reactions. Null if no more pages.</param>
-    /// <param name="PreviousCursor">Cursor to retrieve the previous page of reactions. Null if no previous page.</param>
+    /// <param name="NextCursor">NextCursor to retrieve the next page of reactions. Null if no more pages.</param>
+    /// <param name="PreviousCursor">NextCursor to retrieve the previous page of reactions. Null if no previous page.</param>
     public record ResponseMeta(
         [property: JsonPropertyName("next_cursor")]
         string? NextCursor,

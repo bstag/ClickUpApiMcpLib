@@ -74,9 +74,9 @@ public class ViewsFluentApi
         return new ViewFluentUpdateRequest(viewId, _viewsService);
     }
 
-    public async Task<GetViewTasksResponse> GetViewTasksAsync(string viewId, int page, CancellationToken cancellationToken = default)
+    public ViewTasksFluentGetRequest GetViewTasks(string viewId)
     {
-        return await _viewsService.GetViewTasksAsync(viewId, page, cancellationToken);
+        return new ViewTasksFluentGetRequest(viewId, _viewsService);
     }
 
     /// <summary>

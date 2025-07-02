@@ -73,7 +73,7 @@ namespace ClickUp.Api.Client.Services
             GetChatChannelsRequest requestModel,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting chat channels for workspace ID: {WorkspaceId}, Cursor: {Cursor}, Limit: {Limit}", workspaceId, requestModel.Cursor, requestModel.Limit);
+            _logger.LogInformation("Getting chat channels for workspace ID: {WorkspaceId}, NextCursor: {NextCursor}, Limit: {Limit}", workspaceId, requestModel.Cursor, requestModel.Limit);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels";
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(requestModel.DescriptionFormat)) queryParams["description_format"] = requestModel.DescriptionFormat;

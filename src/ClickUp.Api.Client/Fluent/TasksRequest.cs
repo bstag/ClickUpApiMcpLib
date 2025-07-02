@@ -144,9 +144,10 @@ public class TasksRequest
         return this;
     }
 
-    public async Task<GetTasksResponse> GetAsync(CancellationToken cancellationToken = default)
+    public async Task<Models.Common.Pagination.IPagedResult<Models.Entities.Tasks.CuTask>> GetAsync(CancellationToken cancellationToken = default)
     {
-        return await _tasksService.GetTasksAsync(_listId, _request, cancellationToken);
+        // Page is set on _request by WithPage()
+        return await _tasksService.GetTasksAsync(_listId, _request, _request.Page, cancellationToken);
     }
 
     public IAsyncEnumerable<Models.Entities.Tasks.CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)

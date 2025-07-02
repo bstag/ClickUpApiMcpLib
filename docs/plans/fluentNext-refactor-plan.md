@@ -86,7 +86,7 @@ Each step contains:
 **Why:** Paging parameters are re-invented in multiple services.
 
 **Tasks**
-- [ ] 3.1 Define `IPagedResult<T>` interface in `src/ClickUp.Api.Client.Models/Common/` (or a new `Pagination` namespace).
+- [X] 3.1 Define `IPagedResult<T>` interface in `src/ClickUp.Api.Client.Models/Common/` (or a new `Pagination` namespace).
     ```csharp
     // Possible IPagedResult<T> structure
     namespace ClickUp.Api.Client.Models.Common.Pagination;
@@ -101,24 +101,57 @@ Each step contains:
         bool HasPreviousPage { get; }
     }
     ```
-- [ ] 3.2 Implement a concrete `PagedResult<T>` class implementing `IPagedResult<T>`.
-- [ ] 3.3 Create helper extension method `AsPagedResult()` for `IApiConnection` or a dedicated pagination helper service that constructs `PagedResult<T>` from API responses that include pagination info (e.g. headers or a specific JSON structure).
-    - [ ] 3.3.1 Identify how ClickUp API returns pagination details (e.g., `last_page` field, `Link` headers, or if it's cursor-based). The current OpenAPI spec (e.g. for `GetTasks`) shows `page` and `last_page` parameters. The responses often include the items directly in an array, sometimes with a root object like `tasks`.
-- [ ] 3.4 Identify all service interface methods in `src/ClickUp.Api.Client.Abstractions/Services/*.cs` that currently return collections and support pagination (e.g., `GetTasks`, `GetComments`).
-    - [ ] 3.4.1 Refactor these methods to return `Task<IPagedResult<TModel>>` instead of `Task<IEnumerable<TModel>>` or `Task<List<TModel>>`.
-    - [ ] 3.4.2 Remove individual `page`, `pageSize` (or similar) parameters from these methods. The pagination parameters will now be handled by the fluent layer or a dedicated request object.
-- [ ] 3.5 Update corresponding service implementations in `src/ClickUp.Api.Client/Services/*.cs` to implement the new interface signatures and correctly populate `IPagedResult<T>`.
-- [ ] 3.6 Add fluent helper methods like `.Page(int pageNumber, int pageSize)` to relevant fluent builders in `src/ClickUp.Api.Client/Fluent/`.
+- [X] 3.2 Implement a concrete `PagedResult<T>` class implementing `IPagedResult<T>`.
+- [X] 3.3 Create helper extension method `AsPagedResult()` for `IApiConnection` or a dedicated pagination helper service that constructs `PagedResult<T>` from API responses that include pagination info (e.g. headers or a specific JSON structure).
+    - [X] 3.3.1 Identify how ClickUp API returns pagination details (e.g., `last_page` field, `Link` headers, or if it's cursor-based). The current OpenAPI spec (e.g. for `GetTasks`) shows `page` and `last_page` parameters. The responses often include the items directly in an array, sometimes with a root object like `tasks`. (Completed: Tasks API uses 'page' parameter and 'last_page' in response. Comments API uses 'start' and 'start_id' parameters.)
+- [X] 3.4 Identify all service interface methods in `src/ClickUp.Api.Client.Abstractions/Services/*.cs` that currently return collections and support pagination (e.g., `GetTasks`, `GetComments`).
+    - [X] 3.4.1 Refactor methods that return a single page with pagination metadata to return `Task<IPagedResult<TModel>>` instead of `Task<SpecificResponseDto>`.
+        - [X] `ITasksService.GetTasksAsync`
+        - [X] `ITasksService.GetFilteredTeamTasksAsync`
+        - [X] `IViewsService.GetViewTasksAsync`
+        - [X] `IDocsService.SearchDocsAsync` (Consider if this explicit page fetcher is still needed publicly if `SearchAllDocsAsync` is preferred. If kept, it should return `IPagedResult<Doc>`).
+    - [X] 3.4.2 Remove individual `page`, `pageSize` (or similar) parameters from these methods if they are to be wrapped by a request object that `IPagedResult` would consume. (Note: `GetViewTasksAsync` currently takes `int page` directly).
+- [X] 3.5 Update corresponding service implementations in `src/ClickUp.Api.Client/Services/*.cs` to implement the new interface signatures and correctly populate `IPagedResult<T>`.
+    - [X] For methods changed in 3.4.1:
+        - [X] `TaskService.GetTasksAsync`
+        - [X] `TaskService.GetFilteredTeamTasksAsync`
+        - [X] `ViewsService.GetViewTasksAsync`
+        - [X] `DocsService.SearchDocsAsync`
+    - [X] Introduce new `IAsyncEnumerable<DTO>` streaming methods or ensure existing ones are robust. (Partially complete, ongoing)
+        - [X] **Tasks Service**: (Reviewed and updated for consistency)
+            - [X] `ITasksService.GetTasksAsyncEnumerableAsync` (Exists - Review for consistency)
+            - [X] `ITasksService.GetFilteredTeamTasksAsyncEnumerableAsync` (Exists - Review for consistency)
+        - [X] **Comments Service**: (Reviewed, custom pagination logic is sound for API)
+            - [X] `ICommentService.GetTaskCommentsStreamAsync` (Exists - Review for consistency)
+            - [X] `ICommentService.GetChatViewCommentsStreamAsync` (Exists - Review for consistency)
+            - [X] `ICommentService.GetListCommentsStreamAsync` (Exists - Review for consistency)
+        - [X] **Docs Service**: (Reviewed and updated for consistency)
+            - [X] `IDocsService.SearchAllDocsAsync` (Exists - Uses `GetAllPaginatedDataAsync` helper, reviewed for efficiency)
+        - [X] **Services to investigate for potential new `IAsyncEnumerable<T>` methods if their GET endpoints are paginated:** (Partially complete, ongoing)
+            - [X] `IGoalsService`: `GetGoalsAsync` - (Not Paginated by API)
+            - [X] `IListsService`: `GetListsInFolderAsync` - (Not Paginated by API)
+            - [X] `IListsService`: `GetFolderlessListsAsync` - (Not Paginated by API. `GetFolderlessListsAsyncEnumerableAsync` already exists and handles custom pagination.)
+            - [X] `IViewsService`: (Reviewed)
+                - [X] `GetWorkspaceViewsAsync` - (Not Paginated by API)
+                - [X] `GetSpaceViewsAsync` - (Not Paginated by API)
+                - [X] `GetFolderViewsAsync` - (Not Paginated by API)
+                - [X] `GetListViewsAsync` - (Not Paginated by API)
+                - [X] `GetViewTasksAsync` - Already returns `IPagedResult<CuTask>`. Added `GetViewTasksAsyncEnumerableAsync`.
+            - [X] `ITimeTrackingService`:
+                - [X] `GetTimeEntriesAsync` - Changed to return `Task<IPagedResult<TimeEntry>>`. API supports `page` parameter. `IPagedResult` populated with an assumed page size of 100 for `HasNextPage` determination due to API limitations (no `last_page` or total count in response). Query parameters (dates, include flags) updated for consistency.
+                - [X] `GetTimeEntriesAsyncEnumerableAsync` - Exists. Reviewed and updated query parameter construction (dates, include flags) for consistency. Pagination logic remains sound (iterates pages until empty response).
+- [X] 3.6 Add fluent helper methods like `.Page(int pageNumber, int pageSize)` to relevant fluent builders in `src/ClickUp.Api.Client/Fluent/`. This applies if we decide to keep request objects for methods now returning `IPagedResult<T>`. Alternatively, if methods like `GetTasks(listId).Page(2,20)` are envisioned, this step changes. For `IAsyncEnumerable` methods, no `.Page()` is needed as they stream all.
     - [ ] 3.6.1 These methods should configure the pagination parameters on the underlying request object used by the service.
-    - [ ] 3.6.2 Example: A fluent call like `client.Tasks.Get().ForList("listId").Page(2, 20).ExecuteAsync()`
+    - [ ] 3.6.2 Example: A fluent call like `client.Tasks.Get().ForList("listId").Page(2, 20).ExecuteAsync()` (if `GetTasks()` still takes a request object that then gets passed to a service method returning `IPagedResult`).
 - [ ] 3.7 Update unit tests in `src/ClickUp.Api.Client.Tests/` for affected services and fluent builders.
-    - [ ] 3.7.1 Test that pagination parameters are correctly passed to the API.
+    - [ ] 3.7.1 Test that pagination parameters are correctly passed to the API for methods returning `IPagedResult<T>`.
     - [ ] 3.7.2 Test that API responses are correctly mapped to `IPagedResult<T>`.
+    - [ ] 3.7.3 Test new/updated `IAsyncEnumerable<T>` methods for correct streaming of all items.
 - [ ] 3.8 Update integration tests in `src/ClickUp.Api.Client.IntegrationTests/` for paginated endpoints.
-- [ ] 3.9 Update examples in `examples/` to demonstrate usage of the new pagination abstraction.
+- [ ] 3.9 Update examples in `examples/` to demonstrate usage of the new pagination abstraction (`IPagedResult<T>` and `IAsyncEnumerable<T>`).
 
 **Validation Rule:**
-- No public service methods in `src/ClickUp.Api.Client.Abstractions/Services/*.cs` that are known to be paginated by the ClickUp API should expose raw `page`/`pageSize` (or similar) parameters.
+- No public service methods in `src/ClickUp.Api.Client.Abstractions/Services/*.cs` that are known to be page-based paginated by the ClickUp API should expose raw `page`/`pageSize` (or similar) parameters directly if they return `IPagedResult<T>`.
 - Contract tests (or dedicated unit/integration tests) verify that services returning `IPagedResult<T>` correctly handle pagination parameters and map responses.
 - Fluent APIs for paginated resources should offer `.Page()` style helpers.
 

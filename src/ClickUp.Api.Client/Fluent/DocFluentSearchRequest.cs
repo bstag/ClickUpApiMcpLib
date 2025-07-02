@@ -55,14 +55,14 @@ public class DocFluentSearchRequest
         return this;
     }
 
-    public async Task<SearchDocsResponse> SearchAsync(CancellationToken cancellationToken = default)
+    public async Task<Models.Common.Pagination.IPagedResult<Doc>> SearchAsync(CancellationToken cancellationToken = default)
     {
         var request = new SearchDocsRequest
         {
             Query = _query ?? string.Empty,
             ParentId = _parentId,
             ParentType = _parentType,
-            Cursor = _cursor,
+            NextCursor = _cursor,
             Limit = _limit
         };
 
@@ -80,7 +80,7 @@ public class DocFluentSearchRequest
             Query = _query ?? string.Empty,
             ParentId = _parentId,
             ParentType = _parentType,
-            Cursor = _cursor,
+            NextCursor = _cursor,
             Limit = _limit
         };
 

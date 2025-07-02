@@ -44,11 +44,13 @@ public class TasksFluentGetFilteredTeamRequest
     public TasksFluentGetFilteredTeamRequest WithParentTaskId(string parentTaskId) { _request.ParentTaskId = parentTaskId; return this; }
     public TasksFluentGetFilteredTeamRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription) { _request.IncludeMarkdownDescription = includeMarkdownDescription; return this; }
 
-    public async Task<GetTasksResponse> GetAsync(System.Threading.CancellationToken cancellationToken = default)
+    public async Task<Models.Common.Pagination.IPagedResult<Models.Entities.Tasks.CuTask>> GetAsync(System.Threading.CancellationToken cancellationToken = default)
     {
+        // Page is set on _request by WithPage()
         return await _tasksService.GetFilteredTeamTasksAsync(
             _workspaceId,
             _request,
+            _request.Page, // Pass the page from the DTO
             cancellationToken
         );
     }

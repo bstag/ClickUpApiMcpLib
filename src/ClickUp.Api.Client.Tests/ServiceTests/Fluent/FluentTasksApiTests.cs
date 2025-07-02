@@ -33,16 +33,18 @@ public class FluentTasksApiTests
     {
         // Arrange
         var listId = "testListId";
-        var expectedResponse = new GetTasksResponse(new List<CuTask>(), true); // Mock a response
+        var tasksList = new List<CuTask>();
+        var pagedResult = new ClickUp.Api.Client.Models.Common.Pagination.PagedResult<CuTask>(tasksList, 1, 10, false);
 
         var mockTasksService = new Mock<ITasksService>();
+        // Ensure the setup matches the exact signature from ITasksService
         mockTasksService.Setup(x => x.GetTasksAsync(
-            It.IsAny<string>(),
-            It.IsAny<Client.Models.RequestModels.Tasks.GetTasksRequest>(),
+            listId, // Match specific listId
+            It.Is<GetTasksRequest>(r => r.Page == 1 && r.Archived == true), // Match specific request DTO properties
+            It.Is<int?>(p => p == 1), // Match specific page argument
             It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResponse);
+            .ReturnsAsync(pagedResult);
 
-        // Manually inject the mock service into the fluent API for testing
         var fluentTasksApi = new TasksFluentApi(mockTasksService.Object);
 
         // Act
@@ -52,13 +54,8 @@ public class FluentTasksApiTests
             .GetAsync();
 
         // Assert
-        Assert.Equal(expectedResponse, result);
-        mockTasksService.Verify(x => x.GetTasksAsync(
-            listId,
-            It.Is<Client.Models.RequestModels.Tasks.GetTasksRequest>(req =>
-                req.Archived == true &&
-                req.Page == 1),
-            It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Equal(tasksList, result.Items);
+        mockTasksService.VerifyAll(); // Verify all setups were met
     }
 
     [Fact]
@@ -66,14 +63,17 @@ public class FluentTasksApiTests
     {
         // Arrange
         var workspaceId = "testWorkspaceId";
-        var expectedResponse = new GetTasksResponse(new List<CuTask>(), true);
+        var tasksList = new List<CuTask>();
+        var pagedResult = new ClickUp.Api.Client.Models.Common.Pagination.PagedResult<CuTask>(tasksList, 0, 10, false);
 
         var mockTasksService = new Mock<ITasksService>();
+        // Ensure the setup matches the exact signature from ITasksService
         mockTasksService.Setup(x => x.GetFilteredTeamTasksAsync(
-                It.IsAny<string>(),
-                It.IsAny<GetFilteredTeamTasksRequest>(),
+                workspaceId, // Match specific workspaceId
+                It.Is<GetFilteredTeamTasksRequest>(r => r.Subtasks == true && r.IncludeClosed == false && r.Page == 0), // Match DTO
+                It.Is<int?>(p => p == 0), // Match specific page argument
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResponse);
+            .ReturnsAsync(pagedResult);
 
         var fluentTasksApi = new TasksFluentApi(mockTasksService.Object);
 
@@ -81,15 +81,11 @@ public class FluentTasksApiTests
         var result = await fluentTasksApi.GetFilteredTeamTasks(workspaceId)
             .WithSubtasks(true)
             .WithIncludeClosed(false)
+            .WithPage(0)
             .GetAsync();
 
         // Assert
-        Assert.Equal(expectedResponse, result);
-        mockTasksService.Verify(x => x.GetFilteredTeamTasksAsync(
-            workspaceId,
-            It.Is<GetFilteredTeamTasksRequest>(req =>
-                req.Subtasks == true &&
-                req.IncludeClosed == false),
-            It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Equal(tasksList, result.Items);
+        mockTasksService.VerifyAll(); // Verify all setups were met
     }
 }

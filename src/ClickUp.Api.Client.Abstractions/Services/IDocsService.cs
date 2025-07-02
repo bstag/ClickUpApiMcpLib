@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities.Docs;
 using ClickUp.Api.Client.Models.RequestModels.Docs;
 using ClickUp.Api.Client.Models.ResponseModels.Docs;
+using ClickUp.Api.Client.Models.Common.Pagination; // Added for IPagedResult
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -28,11 +29,11 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="workspaceId">The unique identifier of the Workspace in which to search for Docs.</param>
         /// <param name="searchDocsRequest">An object containing parameters for searching and filtering Docs, such as search query, parent ID, location type, etc.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="SearchDocsResponse"/> object, which includes a list of matching <see cref="Doc"/> objects and pagination information (cursor).</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IPagedResult{T}"/> of <see cref="Doc"/> objects and pagination details.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="searchDocsRequest"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to search for Docs in this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-        Task<SearchDocsResponse> SearchDocsAsync(
+        Task<IPagedResult<Doc>> SearchDocsAsync(
             string workspaceId,
             SearchDocsRequest searchDocsRequest,
             CancellationToken cancellationToken = default);
@@ -44,7 +45,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="workspaceId">The unique identifier of the Workspace in which to search for Docs.</param>
         /// <param name="baseSearchDocsRequest">
         /// An object containing parameters for searching and filtering Docs, such as search query, parent ID, location type, etc.
-        /// The 'Cursor' and 'Limit' properties of this request object will be ignored and managed by the helper.
+        /// The 'NextCursor' and 'Limit' properties of this request object will be ignored and managed by the helper.
         /// </param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Doc"/> objects, allowing asynchronous iteration over all matching Docs from all pages.</returns>

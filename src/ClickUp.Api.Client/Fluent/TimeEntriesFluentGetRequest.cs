@@ -17,6 +17,7 @@ public class TimeEntriesFluentGetRequest
     private string? _teamIdForCustomTaskIds;
     private bool? _includeTaskTags;
     private bool? _includeLocationNames;
+    private int? _page;
 
     private readonly string _workspaceId;
     private readonly ITimeTrackingService _timeTrackingService;
@@ -75,7 +76,13 @@ public class TimeEntriesFluentGetRequest
         return this;
     }
 
-    public async Task<IEnumerable<TimeEntry>> GetAsync(CancellationToken cancellationToken = default)
+    public TimeEntriesFluentGetRequest WithPage(int pageNumber)
+    {
+        _page = pageNumber;
+        return this;
+    }
+
+    public async Task<Models.Common.Pagination.IPagedResult<TimeEntry>> GetAsync(CancellationToken cancellationToken = default)
     {
         var request = new GetTimeEntriesRequest
         {
@@ -84,7 +91,8 @@ public class TimeEntriesFluentGetRequest
             Assignee = _assignee?.ToString(),
             TaskId = _taskId,
             IncludeTaskTags = _includeTaskTags,
-            IncludeLocationNames = _includeLocationNames
+            IncludeLocationNames = _includeLocationNames,
+            Page = _page
         };
 
         return await _timeTrackingService.GetTimeEntriesAsync(

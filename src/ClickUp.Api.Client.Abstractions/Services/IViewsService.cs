@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.Entities.Views; // Assuming View and CuTask DTOs are here
-using ClickUp.Api.Client.Models.RequestModels.Views; // Assuming Request DTOs are here
-using ClickUp.Api.Client.Models.ResponseModels.Views; // Assuming GetViewTasksResponse is here
+using ClickUp.Api.Client.Models.Entities.Views;
+using ClickUp.Api.Client.Models.RequestModels.Views;
+using ClickUp.Api.Client.Models.ResponseModels.Views;
+using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
+using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -180,14 +182,26 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Retrieves tasks that are visible within a specific View, with pagination.
         /// </summary>
         /// <param name="viewId">The ID of the View.</param>
-        /// <param name="page">The page number of results to retrieve (0-indexed). The ClickUp API requires this parameter for this endpoint.</param>
+        /// <param name="request">An object containing pagination parameters, specifically the page number.</param>
         /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetViewTasksResponse"/> object with a list of tasks and pagination information.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IPagedResult{T}"/> of <see cref="CuTask"/> objects and pagination information.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="viewId"/> or <paramref name="request"/> is null.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown for API-side errors.</exception>
+        Task<IPagedResult<CuTask>> GetViewTasksAsync(
+            string viewId,
+            GetViewTasksRequest request, // Changed from int page to GetViewTasksRequest
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves all tasks that are visible within a specific View, automatically handling pagination.
+        /// </summary>
+        /// <param name="viewId">The ID of the View.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>An asynchronous enumerable of <see cref="CuTask"/> objects.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="viewId"/> is null or empty.</exception>
         /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown for API-side errors.</exception>
-        Task<GetViewTasksResponse> GetViewTasksAsync(
+        IAsyncEnumerable<CuTask> GetViewTasksAsyncEnumerableAsync(
             string viewId,
-            int page,
             CancellationToken cancellationToken = default);
     }
 }

@@ -32,14 +32,17 @@ public class FluentDocsApiTests
     {
         // Arrange
         var workspaceId = "testWorkspaceId";
-        var expectedResponse = new SearchDocsResponse(new List<Doc>(), null, null, null);
+        var expectedDocsList = new List<Doc>();
+        var pagedResult = new ClickUp.Api.Client.Models.Common.Pagination.PagedResult<Doc>(
+            expectedDocsList, 0, 10, false // items, page, pageSize, hasNextPage
+        );
 
         var mockDocsService = new Mock<IDocsService>();
         mockDocsService.Setup(x => x.SearchDocsAsync(
             It.IsAny<string>(),
             It.IsAny<Client.Models.RequestModels.Docs.SearchDocsRequest>(),
             It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResponse);
+            .ReturnsAsync(pagedResult);
 
         var fluentDocsApi = new DocsFluentApi(mockDocsService.Object);
 
@@ -50,7 +53,8 @@ public class FluentDocsApiTests
             .SearchAsync();
 
         // Assert
-        Assert.Equal(expectedResponse, result);
+        Assert.Equal(expectedDocsList, result.Items);
+        Assert.Equal(pagedResult.HasNextPage, result.HasNextPage); // Example of asserting IPagedResult property
         mockDocsService.Verify(x => x.SearchDocsAsync(
             workspaceId,
             It.Is<Client.Models.RequestModels.Docs.SearchDocsRequest>(req =>

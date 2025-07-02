@@ -65,14 +65,15 @@ public class Worker : BackgroundService
 
                 _logger.LogDebug("Fetching tasks for List ID: {ListId}. Last poll time: {LastPollTime}", _workerSettings.ListIdForPolling, _lastPollTime);
 
-                GetTasksResponse? tasksResponse = await _tasksService.GetTasksAsync(_workerSettings.ListIdForPolling, getTasksRequest, stoppingToken);
+                // tasksService.GetTasksAsync now returns IPagedResult<CuTask> and expects page as 3rd argument
+                var tasksResponse = await _tasksService.GetTasksAsync(_workerSettings.ListIdForPolling, getTasksRequest, getTasksRequest.Page, stoppingToken);
 
-                if (tasksResponse != null && tasksResponse.Tasks != null)
+                if (tasksResponse != null && tasksResponse.Items != null) // Check Items property
                 {
-                    if (tasksResponse.Tasks.Any())
+                    if (tasksResponse.Items.Any())
                     {
-                        _logger.LogInformation("Found {TaskCount} tasks in list {ListId}.", tasksResponse.Tasks.Count, _workerSettings.ListIdForPolling);
-                        foreach (var task in tasksResponse.Tasks)
+                        _logger.LogInformation("Found {TaskCount} tasks in list {ListId}.", tasksResponse.Items.Count, _workerSettings.ListIdForPolling);
+                        foreach (var task in tasksResponse.Items) // Iterate over Items
                         {
                             // Use task.DateUpdated (DateTimeOffset?) directly
                             DateTimeOffset taskUpdateTime = task.DateUpdated ?? DateTimeOffset.MinValue;
