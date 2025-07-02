@@ -46,7 +46,7 @@ public class ViewFluentCreateRequest
 
     public ViewFluentCreateRequest WithPrivate(bool @private)
     {
-        _request.Settings = _request.Settings with { Sharing = @private ? "private" : "public" };
+        _request.Settings = _request.Settings! with { Sharing = @private ? "private" : "public" };
         return this;
     }
 

@@ -196,6 +196,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetUserGroupsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_ug_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetUserGroupsResponse(new List<UserGroup>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetUserGroupsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _userGroupsService.GetUserGroupsAsync(workspaceId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetUserGroupsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -295,6 +321,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _userGroupsService.CreateUserGroupAsync(workspaceId, request)
             );
+        }
+
+        [Fact]
+        public async Task CreateUserGroupAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_create_ug_op_cancel";
+            var request = new CreateUserGroupRequest("Cancel UG", "cancel_ug_handle", new List<int>());
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleUserGroup();
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateUserGroupRequest, UserGroup>(
+                    It.IsAny<string>(), It.IsAny<CreateUserGroupRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateUserGroupRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _userGroupsService.CreateUserGroupAsync(workspaceId, request, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -420,6 +473,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task UpdateUserGroupAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var groupId = "ug_update_op_cancel";
+            var membersUpdate = new UpdateUserGroupMembersRequest(Add: new List<int> { 7 }, Rem: null);
+            var request = new UpdateUserGroupRequest("Update Cancel", "upd_cancel", membersUpdate);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleUserGroup();
+
+            _mockApiConnection.Setup(x => x.PutAsync<UpdateUserGroupRequest, UserGroup>(
+                    It.IsAny<string>(), It.IsAny<UpdateUserGroupRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateUserGroupRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _userGroupsService.UpdateUserGroupAsync(groupId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task UpdateUserGroupAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -500,6 +581,31 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _userGroupsService.DeleteUserGroupAsync(groupId)
             );
+        }
+
+        [Fact]
+        public async Task DeleteUserGroupAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var groupId = "ug_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _userGroupsService.DeleteUserGroupAsync(groupId, cancellationTokenSource.Token));
         }
 
         [Fact]

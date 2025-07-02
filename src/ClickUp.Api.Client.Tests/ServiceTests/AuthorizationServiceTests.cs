@@ -238,9 +238,40 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             Assert.Equal(apiException.Message, actualException.Message);
         }
 
-        // --- Tests for TaskCanceledException and CancellationToken pass-through ---
+        // --- Tests for OperationCanceledException and CancellationToken pass-through ---
 
         // GetAccessTokenAsync
+        [Fact]
+        public async Task GetAccessTokenAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var clientId = "test_client_id";
+            var clientSecret = "test_client_secret";
+            var code = "test_code";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetAccessTokenResponse("dummy_token");
+
+            _mockApiConnection.Setup(x => x.PostAsync<GetAccessTokenRequest, GetAccessTokenResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<GetAccessTokenRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, GetAccessTokenRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel(); // Cancel the token
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _authorizationService.GetAccessTokenAsync(clientId, clientSecret, code, cancellationTokenSource.Token)
+            );
+        }
+
         [Fact]
         public async Task GetAccessTokenAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -274,6 +305,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // GetAuthorizedUserAsync
         [Fact]
+        public async Task GetAuthorizedUserAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyUser = new User(1, "dummy", "d@e.com", "#000", null, "D", null);
+            var dummyResponse = new GetAuthorizedUserResponse { User = dummyUser };
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetAuthorizedUserResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel(); // Cancel the token
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _authorizationService.GetAuthorizedUserAsync(cancellationTokenSource.Token)
+            );
+        }
+
+        [Fact]
         public async Task GetAuthorizedUserAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             _mockApiConnection
@@ -306,6 +365,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // GetAuthorizedWorkspacesAsync
+        [Fact]
+        public async Task GetAuthorizedWorkspacesAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyWorkspace = new ClickUpWorkspace { Id = "ws_dummy", Name = "Dummy WS", Color = "#123", Members = new List<Member>() };
+            var dummyResponse = new GetAuthorizedWorkspacesResponse { Workspaces = new List<ClickUpWorkspace> { dummyWorkspace } };
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetAuthorizedWorkspacesResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel(); // Cancel the token
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _authorizationService.GetAuthorizedWorkspacesAsync(cancellationTokenSource.Token)
+            );
+        }
+
         [Fact]
         public async Task GetAuthorizedWorkspacesAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {

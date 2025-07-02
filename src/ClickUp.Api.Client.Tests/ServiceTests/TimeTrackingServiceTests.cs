@@ -219,6 +219,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetTimeEntriesAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_te_op_cancel";
+            var request = new GetTimeEntriesRequest();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTimeEntriesResponse(new List<TimeEntry>(), 0, null);
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetTimeEntriesResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.GetTimeEntriesAsync(workspaceId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetTimeEntriesAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -369,6 +396,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task CreateTimeEntryAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_create_te_op_cancel";
+            var request = new CreateTimeEntryRequest(null, null, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), 0, null, null, "t", null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTimeEntryResponse { Data = CreateSampleTimeEntry() };
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateTimeEntryRequest, GetTimeEntryResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateTimeEntryRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateTimeEntryRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.CreateTimeEntryAsync(workspaceId, request, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task CreateTimeEntryAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -508,6 +562,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _timeTrackingService.GetTimeEntryAsync(workspaceId, timerId)
             );
+        }
+
+        [Fact]
+        public async Task GetTimeEntryAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_get_te_op_cancel";
+            var timerId = "te_get_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTimeEntryResponse { Data = CreateSampleTimeEntry() };
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetTimeEntryResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.GetTimeEntryAsync(workspaceId, timerId, cancellationToken: cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -673,6 +754,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task UpdateTimeEntryAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_update_te_op_cancel";
+            var timerId = "te_update_op_cancel";
+            var request = new UpdateTimeEntryRequest(null,null,null,null,null,null,null,null,null,null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTimeEntryResponse { Data = CreateSampleTimeEntry() };
+
+            _mockApiConnection.Setup(x => x.PutAsync<UpdateTimeEntryRequest, GetTimeEntryResponse>(
+                    It.IsAny<string>(), It.IsAny<UpdateTimeEntryRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateTimeEntryRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.UpdateTimeEntryAsync(workspaceId, timerId, request, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task UpdateTimeEntryAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -755,6 +864,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _timeTrackingService.DeleteTimeEntryAsync(workspaceId, timerId)
             );
+        }
+
+        [Fact]
+        public async Task DeleteTimeEntryAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_delete_te_op_cancel";
+            var timerId = "te_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.DeleteTimeEntryAsync(workspaceId, timerId, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -910,6 +1045,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetTimeEntryHistoryAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_te_hist_op_cancel";
+            var timerId = "te_hist_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTimeEntryHistoryResponse { History = new List<TimeEntryHistory>() };
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetTimeEntryHistoryResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.GetTimeEntryHistoryAsync(workspaceId, timerId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetTimeEntryHistoryAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -1046,6 +1208,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _timeTrackingService.GetRunningTimeEntryAsync(workspaceId)
             );
+        }
+
+        [Fact]
+        public async Task GetRunningTimeEntryAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_running_te_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTimeEntryResponse { Data = CreateSampleTimeEntry() };
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetTimeEntryResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.GetRunningTimeEntryAsync(workspaceId, cancellationToken: cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -1200,6 +1388,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task StartTimeEntryAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_start_te_op_cancel";
+            var request = new StartTimeEntryRequest(null, null, "t", null, workspaceId, null, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTimeEntryResponse { Data = CreateSampleTimeEntry() };
+
+            _mockApiConnection.Setup(x => x.PostAsync<StartTimeEntryRequest, GetTimeEntryResponse>(
+                    It.IsAny<string>(), It.IsAny<StartTimeEntryRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, StartTimeEntryRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.StartTimeEntryAsync(workspaceId, request, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task StartTimeEntryAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -1316,6 +1531,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _timeTrackingService.StopTimeEntryAsync(workspaceId)
             );
+        }
+
+        [Fact]
+        public async Task StopTimeEntryAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_stop_te_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTimeEntryResponse { Data = CreateSampleTimeEntry() };
+
+            _mockApiConnection.Setup(x => x.PostAsync<object, GetTimeEntryResponse>(
+                    It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, object, CancellationToken>((url, body, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.StopTimeEntryAsync(workspaceId, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -1442,6 +1683,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetAllTimeEntryTagsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_get_tags_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetAllTimeEntryTagsResponse { Data = new List<TaskTag>() };
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetAllTimeEntryTagsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.GetAllTimeEntryTagsAsync(workspaceId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetAllTimeEntryTagsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -1524,6 +1791,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _timeTrackingService.AddTagsToTimeEntriesAsync(workspaceId, request)
             );
+        }
+
+        [Fact]
+        public async Task AddTagsToTimeEntriesAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_add_tags_op_cancel";
+            var request = new AddTagsFromTimeEntriesRequest(new List<string>(), new List<TimeTrackingTagDefinition>());
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.PostAsync(
+                    It.IsAny<string>(), It.IsAny<AddTagsFromTimeEntriesRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, AddTagsFromTimeEntriesRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.AddTagsToTimeEntriesAsync(workspaceId, request, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -1613,6 +1906,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _timeTrackingService.RemoveTagsFromTimeEntriesAsync(workspaceId, request)
             );
+        }
+
+        [Fact]
+        public async Task RemoveTagsFromTimeEntriesAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_remove_tags_op_cancel";
+            var request = new RemoveTagsFromTimeEntriesRequest(new List<string>(), new List<TimeTrackingTagDefinition>());
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<RemoveTagsFromTimeEntriesRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, RemoveTagsFromTimeEntriesRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.RemoveTagsFromTimeEntriesAsync(workspaceId, request, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -1710,6 +2029,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _timeTrackingService.ChangeTimeEntryTagNameAsync(workspaceId, request)
             );
+        }
+
+        [Fact]
+        public async Task ChangeTimeEntryTagNameAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_change_tag_op_cancel";
+            var request = new UpdateTimeEntryRequest(null,null,null,null,null,null,null,null,null,null); // DTO is UpdateTimeEntryRequest
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.PutAsync( // Non-generic PutAsync
+                    It.IsAny<string>(), It.IsAny<UpdateTimeEntryRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateTimeEntryRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _timeTrackingService.ChangeTimeEntryTagNameAsync(workspaceId, request, cancellationTokenSource.Token));
         }
 
         [Fact]

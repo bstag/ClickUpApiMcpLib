@@ -45,7 +45,7 @@ public class CommentFluentApi
         string? teamId = null,
         long? start = null,
         string? startId = null, // Added to allow passing start_id if known
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         var requestModel = new GetTaskCommentsRequest(taskId) // TaskId is part of path, but DTO needs it for context
         {
@@ -67,7 +67,7 @@ public class CommentFluentApi
     public IAsyncEnumerable<Comment> GetListCommentsAsyncEnumerableAsync(
         string listId,
         long? start = null,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         return _commentService.GetListCommentsStreamAsync(listId, start, cancellationToken);
     }
@@ -82,7 +82,7 @@ public class CommentFluentApi
     public IAsyncEnumerable<Comment> GetChatViewCommentsAsyncEnumerableAsync(
         string viewId,
         long? start = null,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         return _commentService.GetChatViewCommentsStreamAsync(viewId, start, cancellationToken);
     }

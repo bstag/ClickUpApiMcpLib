@@ -36,6 +36,78 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // --- Tests for GetWorkspaceSeatsAsync ---
 
+        // --- Tests for GetAuthorizedWorkspacesAsync ---
+        [Fact]
+        public async Task GetAuthorizedWorkspacesAsync_ValidRequest_ReturnsResponse()
+        {
+            // Arrange
+            var expectedWorkspaces = new List<ClickUp.Api.Client.Models.Entities.WorkSpaces.ClickUpWorkspace>
+            {
+                new ClickUp.Api.Client.Models.Entities.WorkSpaces.ClickUpWorkspace { Id = "ws1", Name = "Workspace 1", Color = "#FF0000", Members = new List<ClickUp.Api.Client.Models.Common.Member>() }
+            };
+            var apiResponse = new ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse { Workspaces = expectedWorkspaces };
+            _mockApiConnection
+                .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse>(
+                    "team", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _workspacesService.GetAuthorizedWorkspacesAsync();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.NotNull(result.Workspaces);
+            Assert.Single(result.Workspaces);
+            Assert.Equal("ws1", result.Workspaces.First().Id);
+            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse>(
+                "team", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetAuthorizedWorkspacesAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse { Workspaces = new List<ClickUp.Api.Client.Models.Entities.WorkSpaces.ClickUpWorkspace>() };
+
+            _mockApiConnection.Setup(c => c.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _workspacesService.GetAuthorizedWorkspacesAsync(cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetAuthorizedWorkspacesAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        {
+            _mockApiConnection
+                .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TaskCanceledException("API call timed out"));
+            await Assert.ThrowsAsync<TaskCanceledException>(() => _workspacesService.GetAuthorizedWorkspacesAsync(new CancellationTokenSource().Token));
+        }
+
+        [Fact]
+        public async Task GetAuthorizedWorkspacesAsync_PassesCancellationTokenToApiConnection()
+        {
+            var cts = new CancellationTokenSource();
+            var expectedToken = cts.Token;
+            _mockApiConnection.Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse>(It.IsAny<string>(), expectedToken))
+                .ReturnsAsync(new ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse { Workspaces = new List<ClickUp.Api.Client.Models.Entities.WorkSpaces.ClickUpWorkspace>() });
+            await _workspacesService.GetAuthorizedWorkspacesAsync(expectedToken);
+            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Authorization.GetAuthorizedWorkspacesResponse>("team", expectedToken), Times.Once);
+        }
+
         [Fact]
         public async Task GetWorkspaceSeatsAsync_ValidWorkspaceId_ReturnsSeatsResponse()
         {
@@ -107,6 +179,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _workspacesService.GetWorkspaceSeatsAsync(workspaceId)
             );
+        }
+
+        [Fact]
+        public async Task GetWorkspaceSeatsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_seats_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyMemberSeats = new WorkspaceMemberSeatsInfoResponse(0,0,0);
+            var dummyGuestSeats = new WorkspaceGuestSeatsInfoResponse(0,0,0);
+            var dummyResponse = new GetWorkspaceSeatsResponse(dummyMemberSeats, dummyGuestSeats);
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetWorkspaceSeatsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _workspacesService.GetWorkspaceSeatsAsync(workspaceId, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -209,6 +309,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _workspacesService.GetWorkspacePlanAsync(workspaceId)
             );
+        }
+
+        [Fact]
+        public async Task GetWorkspacePlanAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_plan_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetWorkspacePlanResponse("Dummy Plan", 0);
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetWorkspacePlanResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _workspacesService.GetWorkspacePlanAsync(workspaceId, cancellationTokenSource.Token));
         }
 
         [Fact]

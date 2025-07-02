@@ -351,6 +351,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // GetFoldersAsync
         [Fact]
+        public async Task GetFoldersAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetFoldersResponse(new List<Folder>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetFoldersResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _foldersService.GetFoldersAsync(spaceId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetFoldersAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var spaceId = "space_cancel";
@@ -381,6 +407,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // CreateFolderAsync
+        [Fact]
+        public async Task CreateFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_create_op_cancel";
+            var request = new CreateFolderRequest("Cancel Folder");
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleFolder();
+
+            _mockApiConnection.Setup(c => c.PostAsync<CreateFolderRequest, Folder>(
+                    It.IsAny<string>(), It.IsAny<CreateFolderRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateFolderRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _foldersService.CreateFolderAsync(spaceId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task CreateFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -417,6 +470,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // GetFolderAsync
         [Fact]
+        public async Task GetFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_get_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleFolder();
+
+            _mockApiConnection.Setup(c => c.GetAsync<Folder>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _foldersService.GetFolderAsync(folderId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var folderId = "folder_get_cancel";
@@ -448,6 +527,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // UpdateFolderAsync
+        [Fact]
+        public async Task UpdateFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_update_op_cancel";
+            var request = new UpdateFolderRequest("Cancel Update");
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleFolder();
+
+            _mockApiConnection.Setup(c => c.PutAsync<UpdateFolderRequest, Folder>(
+                    It.IsAny<string>(), It.IsAny<UpdateFolderRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateFolderRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _foldersService.UpdateFolderAsync(folderId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task UpdateFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -484,6 +590,31 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // DeleteFolderAsync
         [Fact]
+        public async Task DeleteFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(c => c.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _foldersService.DeleteFolderAsync(folderId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task DeleteFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var folderId = "folder_delete_cancel";
@@ -514,6 +645,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // CreateFolderFromTemplateAsync
+        [Fact]
+        public async Task CreateFolderFromTemplateAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_tpl_op_cancel";
+            var templateId = "tpl_op_cancel";
+            var request = new CreateFolderFromTemplateRequest { Name = "Cancel Template Folder" };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleFolder();
+
+            _mockApiConnection.Setup(c => c.PostAsync<CreateFolderFromTemplateRequest, Folder>(
+                    It.IsAny<string>(), It.IsAny<CreateFolderFromTemplateRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateFolderFromTemplateRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _foldersService.CreateFolderFromTemplateAsync(spaceId, templateId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task CreateFolderFromTemplateAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {

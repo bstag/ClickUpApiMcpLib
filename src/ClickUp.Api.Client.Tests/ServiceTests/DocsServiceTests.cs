@@ -237,7 +237,63 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         // --- GetPagesAsync Tests (Placeholder - Service method not fully implemented) ---
         // Add tests when GetPagesAsync is implemented in DocsService.cs
 
+        // --- GetDocAsync (OperationCanceled) ---
+        [Fact]
+        public async Task GetDocAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_get_doc_op_cancel";
+            var docId = "doc_get_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpV3DataResponse<Doc> { Data = CreateSampleDoc() };
+
+            _mockApiConnection.Setup(c => c.GetAsync<ClickUpV3DataResponse<Doc>>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _docsService.GetDocAsync(workspaceId, docId, cancellationTokenSource.Token));
+        }
+
         // --- CreatePageAsync (Add missing tests) ---
+        [Fact]
+        public async Task CreatePageAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_cp_op_cancel";
+            var docId = "doc_cp_op_cancel";
+            var request = new CreatePageRequest(null, "Cancel Page", null, "Content", "text/plain", null, null, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpV3DataResponse<Page> { Data = CreateSamplePage() };
+
+            _mockApiConnection.Setup(c => c.PostAsync<CreatePageRequest, ClickUpV3DataResponse<Page>>(
+                    It.IsAny<string>(), It.IsAny<CreatePageRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreatePageRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _docsService.CreatePageAsync(workspaceId, docId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task CreatePageAsync_ValidRequest_ReturnsPage()
         {
@@ -317,6 +373,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // --- SearchDocsAsync (Add missing tests) ---
         [Fact]
+        public async Task SearchDocsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_search_op_cancel";
+            var request = new SearchDocsRequest { Query = "cancel_query" };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new SearchDocsResponse(new List<Doc>(), null, 0, false);
+
+            _mockApiConnection.Setup(c => c.GetAsync<SearchDocsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _docsService.SearchDocsAsync(workspaceId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task SearchDocsAsync_ApiError_ThrowsHttpRequestException()
         {
             var workspaceId = "ws_search_err";
@@ -381,6 +464,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // --- CreateDocAsync (Add missing tests) ---
+        [Fact]
+        public async Task CreateDocAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_create_doc_op_cancel";
+            var request = new CreateDocRequest("Cancel Doc", null, "private", false, null, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpV3DataResponse<Doc> { Data = CreateSampleDoc() };
+
+            _mockApiConnection.Setup(c => c.PostAsync<CreateDocRequest, ClickUpV3DataResponse<Doc>>(
+                    It.IsAny<string>(), It.IsAny<CreateDocRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateDocRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _docsService.CreateDocAsync(workspaceId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task CreateDocAsync_ApiError_ThrowsHttpRequestException()
         {
@@ -455,6 +565,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // --- GetDocPageListingAsync Tests ---
+        [Fact]
+        public async Task GetDocPageListingAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_pl_op_cancel";
+            var docId = "doc_pl_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpV3DataListResponse<DocPageListingItem> { Data = new List<DocPageListingItem>() };
+
+            _mockApiConnection.Setup(c => c.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _docsService.GetDocPageListingAsync(workspaceId, docId, cancellationToken: cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task GetDocPageListingAsync_ValidRequest_BuildsUrlAndReturnsListing()
         {
@@ -582,6 +719,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // --- GetDocPagesAsync Tests ---
         [Fact]
+        public async Task GetDocPagesAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_gp_op_cancel";
+            var docId = "doc_gp_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpV3DataListResponse<Page> { Data = new List<Page>() };
+
+            _mockApiConnection.Setup(c => c.GetAsync<ClickUpV3DataListResponse<Page>>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _docsService.GetDocPagesAsync(workspaceId, docId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetDocPagesAsync_ValidRequest_BuildsUrlAndReturnsPages()
         {
             // Arrange
@@ -706,6 +870,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // --- GetPageAsync Tests ---
         [Fact]
+        public async Task GetPageAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_gpage_op_cancel";
+            var docId = "doc_gpage_op_cancel";
+            var pageId = "page_gpage_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpV3DataResponse<Page> { Data = CreateSamplePage() };
+
+            _mockApiConnection.Setup(c => c.GetAsync<ClickUpV3DataResponse<Page>>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _docsService.GetPageAsync(workspaceId, docId, pageId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetPageAsync_ValidRequest_BuildsUrlAndReturnsPage()
         {
             // Arrange
@@ -829,6 +1021,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // --- EditPageAsync Tests ---
+        [Fact]
+        public async Task EditPageAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_epage_op_cancel";
+            var docId = "doc_epage_op_cancel";
+            var pageId = "page_epage_op_cancel";
+            var request = new EditPageRequest("Cancel Page Edit", "ST", "Cancel content", "html", null, null, null, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(c => c.PutAsync(
+                    It.IsAny<string>(), It.IsAny<EditPageRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, EditPageRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _docsService.EditPageAsync(workspaceId, docId, pageId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task EditPageAsync_ValidRequest_CallsPutAsync()
         {

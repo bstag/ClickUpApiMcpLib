@@ -140,6 +140,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetTaskTemplatesAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_op_cancel";
+            var page = 0;
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTaskTemplatesResponse(new List<TaskTemplate>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetTaskTemplatesResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _templatesService.GetTaskTemplatesAsync(workspaceId, page, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetTaskTemplatesAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange

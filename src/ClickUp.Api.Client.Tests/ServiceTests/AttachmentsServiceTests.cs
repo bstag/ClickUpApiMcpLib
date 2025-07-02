@@ -160,6 +160,47 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task CreateTaskAttachmentAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "test-task-id";
+            var fileName = "test-file.txt";
+            var fileContent = "This is a test file.";
+            using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            var mockUser = new User(Id: 1, Username: "dummy", Email: "dummy@example.com", Color: "", ProfilePicture: null, Initials: "DU", ProfileInfo: null);
+            var dummyResponse = new CreateTaskAttachmentResponse("id", "v", DateTimeOffset.UtcNow, "title", "ext", null, null, "url", null, null, false, "pid", 0,0,0, mockUser, false, null, 0,0, null, null);
+
+
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<MultipartFormDataContent>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, MultipartFormDataContent, CancellationToken>((url, content, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse); // Provide a dummy response for the non-cancelled path
+
+            cancellationTokenSource.Cancel(); // Cancel the token
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _attachmentsService.CreateTaskAttachmentAsync(
+                    taskId,
+                    memoryStream,
+                    fileName,
+                    false,
+                    null,
+                    cancellationTokenSource.Token) // Pass the cancelled token
+            );
+        }
+
+        [Fact]
         public async Task CreateTaskAttachmentAsync_ApiConnectionThrowsException_PropagatesException()
         {
             // Arrange

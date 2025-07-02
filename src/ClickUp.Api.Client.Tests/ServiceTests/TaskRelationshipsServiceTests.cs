@@ -140,6 +140,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task AddDependencyAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_dep_op_cancel";
+            var dependsOnTaskId = "task_dep_op_cancel_target";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.PostAsync<AddDependencyRequest>(
+                    It.IsAny<string>(), It.IsAny<AddDependencyRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, AddDependencyRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskRelationshipsService.AddDependencyAsync(taskId, dependsOnTaskId: dependsOnTaskId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task AddDependencyAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -290,6 +316,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task DeleteDependencyAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_del_dep_op_cancel";
+            var dependsOnTargetId = "task_del_dep_op_cancel_target";
+            var requestModel = new DeleteDependencyRequest(dependsOnTaskId: dependsOnTargetId);
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskRelationshipsService.DeleteDependencyAsync(taskId, requestModel, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task DeleteDependencyAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -431,6 +484,36 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task AddTaskLinkAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_link_op_cancel";
+            var linksToTaskId = "task_link_to_op_cancel";
+            var requestModel = new AddTaskLinkRequest();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponseTask = CreateSampleCuTask(taskId, "Dummy Task");
+            var dummyApiResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTaskResponse(dummyResponseTask);
+
+
+            _mockApiConnection.Setup(x => x.PostAsync<object, ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTaskResponse>(
+                    It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, object, CancellationToken>((url, body, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyApiResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskRelationshipsService.AddTaskLinkAsync(taskId, linksToTaskId, requestModel, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task AddTaskLinkAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -534,6 +617,35 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, new DeleteTaskLinkRequest())
             );
+        }
+
+        [Fact]
+        public async Task DeleteTaskLinkAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_unlink_op_cancel";
+            var linksToTaskId = "task_unlink_to_op_cancel";
+            var requestModel = new DeleteTaskLinkRequest();
+            var cancellationTokenSource = new CancellationTokenSource();
+            // DeleteAsync in this service currently returns null, so no dummy response needed for the ReturnsAsync part
+            // if we were testing a DeleteAsync<T> that returns something.
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask); // DeleteAsync is void
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskRelationshipsService.DeleteTaskLinkAsync(taskId, linksToTaskId, requestModel, cancellationTokenSource.Token));
         }
 
         [Fact]
