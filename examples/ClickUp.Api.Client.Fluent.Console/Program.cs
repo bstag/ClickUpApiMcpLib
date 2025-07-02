@@ -57,9 +57,9 @@ try
                                        .WithStatuses(new[] { "open", "in progress" })
                                        .GetAsync();
 
-            if (tasksResponse.Tasks.Any())
+            if (tasksResponse.Items.Any())
             {
-                foreach (var task in tasksResponse.Tasks)
+                foreach (var task in tasksResponse.Items)
                 {
                     Console.WriteLine($"    - Task: {task.Name} (ID: {task.Id})");
                 }
@@ -80,9 +80,9 @@ try
                                                 .WithSubtasks(true)
                                                 .WithIncludeClosed(false)
                                                 .GetAsync();
-            if (filteredTasksResponse.Tasks.Any())
+            if (filteredTasksResponse.Items.Any())
             {
-                foreach (var task in filteredTasksResponse.Tasks)
+                foreach (var task in filteredTasksResponse.Items)
                 {
                     Console.WriteLine($"    - Filtered Task: {task.Name} (ID: {task.Id})");
                 }
@@ -177,9 +177,9 @@ try
                                                 .WithQuery("test")
                                                 .WithLimit(5)
                                                 .SearchAsync();
-            if (searchDocsResponse.Docs.Any())
+            if (searchDocsResponse.Items.Any())
             {
-                foreach (var doc in searchDocsResponse.Docs)
+                foreach (var doc in searchDocsResponse.Items)
                 {
                     Console.WriteLine($"    - Doc: {doc.Name} (ID: {doc.Id})");
                 }
@@ -424,9 +424,9 @@ try
                                                     .WithStartDate(DateTimeOffset.UtcNow.AddDays(-7).ToUnixTimeMilliseconds())
                                                     .WithEndDate(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
                                                     .GetAsync();
-            if (timeEntries.Any())
+            if (timeEntries.Items.Any())
             {
-                foreach (var entry in timeEntries)
+                foreach (var entry in timeEntries.Items)
                 {
                     Console.WriteLine($"    - Time Entry: {entry.Description} (ID: {entry.Id})");
                 }

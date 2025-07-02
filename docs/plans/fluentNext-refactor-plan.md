@@ -110,7 +110,7 @@ Each step contains:
         - [X] `ITasksService.GetFilteredTeamTasksAsync`
         - [X] `IViewsService.GetViewTasksAsync`
         - [X] `IDocsService.SearchDocsAsync` (Consider if this explicit page fetcher is still needed publicly if `SearchAllDocsAsync` is preferred. If kept, it should return `IPagedResult<Doc>`).
-    - [ ] 3.4.2 Remove individual `page`, `pageSize` (or similar) parameters from these methods if they are to be wrapped by a request object that `IPagedResult` would consume. (Note: `GetViewTasksAsync` currently takes `int page` directly).
+    - [X] 3.4.2 Remove individual `page`, `pageSize` (or similar) parameters from these methods if they are to be wrapped by a request object that `IPagedResult` would consume. (Note: `GetViewTasksAsync` currently takes `int page` directly).
 - [X] 3.5 Update corresponding service implementations in `src/ClickUp.Api.Client/Services/*.cs` to implement the new interface signatures and correctly populate `IPagedResult<T>`.
     - [X] For methods changed in 3.4.1:
         - [X] `TaskService.GetTasksAsync`
@@ -140,7 +140,7 @@ Each step contains:
             - [X] `ITimeTrackingService`:
                 - [X] `GetTimeEntriesAsync` - Changed to return `Task<IPagedResult<TimeEntry>>`. API supports `page` parameter. `IPagedResult` populated with an assumed page size of 100 for `HasNextPage` determination due to API limitations (no `last_page` or total count in response). Query parameters (dates, include flags) updated for consistency.
                 - [X] `GetTimeEntriesAsyncEnumerableAsync` - Exists. Reviewed and updated query parameter construction (dates, include flags) for consistency. Pagination logic remains sound (iterates pages until empty response).
-- [ ] 3.6 Add fluent helper methods like `.Page(int pageNumber, int pageSize)` to relevant fluent builders in `src/ClickUp.Api.Client/Fluent/`. This applies if we decide to keep request objects for methods now returning `IPagedResult<T>`. Alternatively, if methods like `GetTasks(listId).Page(2,20)` are envisioned, this step changes. For `IAsyncEnumerable` methods, no `.Page()` is needed as they stream all.
+- [X] 3.6 Add fluent helper methods like `.Page(int pageNumber, int pageSize)` to relevant fluent builders in `src/ClickUp.Api.Client/Fluent/`. This applies if we decide to keep request objects for methods now returning `IPagedResult<T>`. Alternatively, if methods like `GetTasks(listId).Page(2,20)` are envisioned, this step changes. For `IAsyncEnumerable` methods, no `.Page()` is needed as they stream all.
     - [ ] 3.6.1 These methods should configure the pagination parameters on the underlying request object used by the service.
     - [ ] 3.6.2 Example: A fluent call like `client.Tasks.Get().ForList("listId").Page(2, 20).ExecuteAsync()` (if `GetTasks()` still takes a request object that then gets passed to a service method returning `IPagedResult`).
 - [ ] 3.7 Update unit tests in `src/ClickUp.Api.Client.Tests/` for affected services and fluent builders.

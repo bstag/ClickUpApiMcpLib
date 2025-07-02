@@ -94,8 +94,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
-            Assert.Equal("te1", result.First().Id);
+            Assert.NotNull(result.Items);
+            Assert.Single(result.Items);
+            Assert.Equal("te1", result.Items.First().Id);
             _mockApiConnection.Verify(x => x.GetAsync<GetTimeEntriesResponse>(
                 $"team/{workspaceId}/time_entries", // Default URL with no query params from empty request
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -130,22 +131,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await _timeTrackingService.GetTimeEntriesAsync(workspaceId, request);
 
             // Assert
-            var formattedStartDate = Uri.EscapeDataString(request.StartDate.Value.ToString());
-            var formattedEndDate = Uri.EscapeDataString(request.EndDate.Value.ToString());
-            var assigneesCsv = Uri.EscapeDataString(request.Assignee); // Assignee is already a string "123,456"
+            // The service converts DateTimeOffset to ISO 8601 string ("O" format), then BuildQueryString URL encodes it.
+            // The 'page' parameter is NOT added if request.Page is null for GetTimeEntriesRequest
+            var queryParams = new Dictionary<string, string?>
+            {
+                { "start_date", request.StartDate.Value.ToString("O") },
+                { "end_date", request.EndDate.Value.ToString("O") },
+                { "assignee", request.Assignee },
+                { "include_task_tags", "true" },
+                { "include_location_names", "false" },
+                { "space_id", "space_x" },
+                { "folder_id", "folder_y" },
+                { "list_id", "list_z" },
+                { "task_id", "task_abc" }
+                // No "page" parameter if request.Page is null
+            };
+            if (request.Page.HasValue) // Add page only if it's in the request DTO
+            {
+                queryParams["page"] = request.Page.Value.ToString();
+            }
 
-            var expectedUrl = $"team/{workspaceId}/time_entries" +
-                              $"?start_date={formattedStartDate}" +
-                              $"&end_date={formattedEndDate}" +
-                              $"&assignee={assigneesCsv}" + // request.Assignee is already "123,456", so Uri.EscapeDataString handles the comma
-                              $"&include_task_tags=true" +
-                              $"&include_location_names=false" +
-                              $"&space_id=space_x" +
-                              $"&folder_id=folder_y" +
-                              $"&list_id=list_z" +
-                              $"&task_id=task_abc";
+            string expectedQueryString = "?" + string.Join("&", queryParams.Where(kvp => kvp.Value != null).Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value!)}"));
+            if (expectedQueryString == "?") expectedQueryString = ""; // Handle case with no query params
+            var expectedUrl = $"team/{workspaceId}/time_entries{expectedQueryString}";
+
             _mockApiConnection.Verify(x => x.GetAsync<GetTimeEntriesResponse>(
-                It.Is<string>(url => url == expectedUrl), // Use It.Is for robust comparison
+                expectedUrl,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -164,7 +175,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Empty(result);
+            Assert.NotNull(result.Items);
+            Assert.Empty(result.Items);
         }
 
         [Fact]
@@ -186,7 +198,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Empty(result);
+            Assert.NotNull(result.Items);
+            Assert.Empty(result.Items);
         }
 
         [Fact]
@@ -1804,10 +1817,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             await foreach (var _ in _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(workspaceId, request, CancellationToken.None)) { }
 
-            var formattedStartDate = Uri.EscapeDataString(request.StartDate.Value.ToString());
+            var queryParams = new Dictionary<string, string?>
+            {
+                { "start_date", request.StartDate.Value.ToString("O") },
+                { "assignee", "user1" },
+                { "page", "0" }
+            };
+            string expectedQueryString = "?" + string.Join("&", queryParams.Where(kvp => kvp.Value != null).Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value!)}"));
+            var expectedUrl = $"team/{workspaceId}/time_entries{expectedQueryString}";
+
             // Assert
             _mockApiConnection.Verify(api => api.GetAsync<GetTimeEntriesResponse>(
-                It.Is<string>(s => s.Contains($"team/{workspaceId}/time_entries") && s.Contains($"start_date={formattedStartDate}") && s.Contains("assignee=user1") && s.Contains("page=0")),
+                expectedUrl,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 

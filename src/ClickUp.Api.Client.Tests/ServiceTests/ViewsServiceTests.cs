@@ -360,14 +360,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(apiResponse);
 
-            var result = await _viewsService.GetViewTasksAsync(viewId, page);
+            var request = new GetViewTasksRequest { Page = page };
+            var result = await _viewsService.GetViewTasksAsync(viewId, request);
 
             Assert.NotNull(result);
-            Assert.NotNull(result.Tasks);
-            // Adjusted assertion: Count will be 0 if we pass an empty list.
-            // If sample CuTasks were created, this would match their count.
-            Assert.Empty(result.Tasks);
-            Assert.False(result.LastPage);
+            Assert.NotNull(result.Items);
+            Assert.Empty(result.Items);
+            Assert.True(result.HasNextPage);
             _mockApiConnection.Verify(x => x.GetAsync<GetViewTasksResponse>(
                 $"view/{viewId}/task?page={page}", It.IsAny<CancellationToken>()), Times.Once);
         }
@@ -381,7 +380,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<GetViewTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((GetViewTasksResponse?)null);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _viewsService.GetViewTasksAsync(viewId, page));
+            var request = new GetViewTasksRequest { Page = page };
+            // Act
+            var result = await _viewsService.GetViewTasksAsync(viewId, request);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result.Items);
+            Assert.False(result.HasNextPage); // PagedResult.Empty() sets HasNextPage to false
+            Assert.Equal(page, result.Page);
         }
 
         [Fact]
@@ -397,7 +404,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<GetViewTasksResponse>(It.IsAny<string>(), token))
                 .ReturnsAsync(apiResponse);
 
-            await _viewsService.GetViewTasksAsync(viewId, page, token);
+            var request = new GetViewTasksRequest { Page = page };
+            await _viewsService.GetViewTasksAsync(viewId, request, token);
 
             _mockApiConnection.Verify(x => x.GetAsync<GetViewTasksResponse>(
                 $"view/{viewId}/task?page={page}", token), Times.Once);

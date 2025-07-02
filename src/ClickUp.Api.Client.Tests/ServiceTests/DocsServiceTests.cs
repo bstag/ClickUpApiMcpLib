@@ -64,7 +64,20 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedResponse.NextPageId, result.NextPageId);
+            bool expectedHasNextPage = !(expectedResponse.LastPage ?? false) || !string.IsNullOrEmpty(expectedResponse.NextPageId);
+            if (expectedResponse.LastPage.HasValue) // If LastPage is provided, it's the primary determinant
+            {
+                expectedHasNextPage = !expectedResponse.LastPage.Value;
+            }
+            else if (expectedResponse.NextPageId != null) // Otherwise, NextPageId determines it
+            {
+                expectedHasNextPage = true;
+            }
+            else // If neither is present, assume no next page
+            {
+                expectedHasNextPage = false;
+            }
+            Assert.Equal(expectedHasNextPage, result.HasNextPage);
             _mockApiConnection.Verify(c => c.GetAsync<SearchDocsResponse>(
                 $"/v3/workspaces/{workspaceId}/docs?q=test%20query&limit=10&cursor=cursor123",
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -325,8 +338,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(c => c.GetAsync<SearchDocsResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((SearchDocsResponse?)null);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _docsService.SearchDocsAsync(workspaceId, request));
+            // Act
+            var result = await _docsService.SearchDocsAsync(workspaceId, request);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result.Items);
+            Assert.False(result.HasNextPage);
+            Assert.Equal(0, result.Page);
         }
 
         [Fact]

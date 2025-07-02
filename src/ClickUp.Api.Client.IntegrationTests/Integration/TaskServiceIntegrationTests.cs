@@ -409,10 +409,10 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             var getTasksRequest = new GetTasksRequest { Statuses = new List<string> { defaultStatusValueToTest } };
             var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
 
-            Assert.NotNull(response); Assert.NotNull(response.Tasks);
-            Assert.Contains(response.Tasks, t => t.Id == task1.Id && t.Status.StatusValue == defaultStatusValueToTest);
-            if (statusForTask2 != defaultStatusValueToTest) Assert.DoesNotContain(response.Tasks, t => t.Id == task2.Id);
-            else Assert.Contains(response.Tasks, t => t.Id == task2.Id && t.Status.StatusValue == defaultStatusValueToTest);
+            Assert.NotNull(response); Assert.NotNull(response.Items);
+            Assert.Contains(response.Items, t => t.Id == task1.Id && t.Status.StatusValue == defaultStatusValueToTest);
+            if (statusForTask2 != defaultStatusValueToTest) Assert.DoesNotContain(response.Items, t => t.Id == task2.Id);
+            else Assert.Contains(response.Items, t => t.Id == task2.Id && t.Status.StatusValue == defaultStatusValueToTest);
         }
 
         [Fact]
@@ -450,11 +450,11 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             var getTasksRequest = new GetTasksRequest { Assignees = new List<string> { userIdToTest } };
             var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
 
-            Assert.NotNull(response); Assert.NotNull(response.Tasks);
-            Assert.Contains(response.Tasks, t => t.Id == taskAssigned.Id);
-            Assert.All(response.Tasks, task => Assert.Contains(task.Assignees ?? new List<User>(), a => a.Id == userIdIntToTest)); // Compare int ID with int ID
+            Assert.NotNull(response); Assert.NotNull(response.Items);
+            Assert.Contains(response.Items, t => t.Id == taskAssigned.Id);
+            Assert.All(response.Items, task => Assert.Contains(task.Assignees ?? new List<User>(), a => a.Id == userIdIntToTest)); // Compare int ID with int ID
              // Verifying taskUnassigned is NOT present is tricky due to auto-assignment behavior. The mock JSON should only return assigned tasks.
-            if (CurrentTestMode == TestMode.Playback) Assert.DoesNotContain(response.Tasks, t => t.Id == taskUnassigned.Id);
+            if (CurrentTestMode == TestMode.Playback) Assert.DoesNotContain(response.Items, t => t.Id == taskUnassigned.Id);
         }
 
         [Fact]
@@ -493,11 +493,11 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             var getTasksRequestLT = new GetTasksRequest { DueDateLessThan = dayAfterTomorrowTimestampMs };
             var responseLT = await _taskService.GetTasksAsync(_testListId, getTasksRequestLT);
-            Assert.NotNull(responseLT?.Tasks); Assert.Contains(responseLT.Tasks, t => t.Id == taskDueToday.Id); Assert.DoesNotContain(responseLT.Tasks, t => t.Id == taskDueNextWeek.Id);
+            Assert.NotNull(responseLT?.Items); Assert.Contains(responseLT.Items, t => t.Id == taskDueToday.Id); Assert.DoesNotContain(responseLT.Items, t => t.Id == taskDueNextWeek.Id);
 
             var getTasksRequestGT = new GetTasksRequest { DueDateGreaterThan = tomorrowTimestampMs };
             var responseGT = await _taskService.GetTasksAsync(_testListId, getTasksRequestGT);
-            Assert.NotNull(responseGT?.Tasks); Assert.DoesNotContain(responseGT.Tasks, t => t.Id == taskDueToday.Id); Assert.Contains(responseGT.Tasks, t => t.Id == taskDueNextWeek.Id);
+            Assert.NotNull(responseGT?.Items); Assert.DoesNotContain(responseGT.Items, t => t.Id == taskDueToday.Id); Assert.Contains(responseGT.Items, t => t.Id == taskDueNextWeek.Id);
         }
 
         [Fact]
@@ -533,9 +533,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             var getTasksRequest = new GetTasksRequest { Tags = new List<string> { tagName } };
             var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
-            Assert.NotNull(response?.Tasks);
-            Assert.Contains(response.Tasks, t => t.Id == taskWithTag.Id && t.Tags?.Any(tag => tag.Name == tagName) == true);
-            Assert.DoesNotContain(response.Tasks, t => t.Id == taskWithoutTag.Id);
+            Assert.NotNull(response?.Items);
+            Assert.Contains(response.Items, t => t.Id == taskWithTag.Id && t.Tags?.Any(tag => tag.Name == tagName) == true);
+            Assert.DoesNotContain(response.Items, t => t.Id == taskWithoutTag.Id);
         }
 
         [Fact]
@@ -574,9 +574,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
 
             var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
-            var response = await _taskService.GetFilteredTeamTasksAsync(workspaceId: _testWorkspaceId, requestModel: requestModel); Assert.NotNull(response?.Tasks);
-            Assert.Contains(response.Tasks, t => t.Id == taskInList1.Id);
-            Assert.DoesNotContain(response.Tasks, t => t.Id == taskInOtherList.Id);
+            var response = await _taskService.GetFilteredTeamTasksAsync(workspaceId: _testWorkspaceId, requestModel: requestModel); Assert.NotNull(response?.Items);
+            Assert.Contains(response.Items, t => t.Id == taskInList1.Id);
+            Assert.DoesNotContain(response.Items, t => t.Id == taskInOtherList.Id);
         }
 
         [Fact]
@@ -721,7 +721,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             var getTasksRequestGT = new GetTasksRequest { DateCreatedGreaterThan = pointInTimeAfterFirstTask };
             var responseGT = await _taskService.GetTasksAsync(_testListId, getTasksRequestGT);
-            Assert.NotNull(responseGT?.Tasks); Assert.DoesNotContain(responseGT.Tasks, t => t.Id == taskNow.Id); Assert.Contains(responseGT.Tasks, t => t.Id == taskLater.Id);
+            Assert.NotNull(responseGT?.Items); Assert.DoesNotContain(responseGT.Items, t => t.Id == taskNow.Id); Assert.Contains(responseGT.Items, t => t.Id == taskLater.Id);
 
             var pointInTimeBeforeSecondTask = CurrentTestMode == TestMode.Playback ? fixedDateCreatedLessThan : DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); // Point before taskLater effectively
             if (CurrentTestMode != TestMode.Playback)
@@ -747,7 +747,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             var getTasksRequestLT = new GetTasksRequest { DateCreatedLessThan = pointInTimeBeforeSecondTask };
             var responseLT = await _taskService.GetTasksAsync(_testListId, getTasksRequestLT);
-            Assert.NotNull(responseLT?.Tasks); Assert.Contains(responseLT.Tasks, t => t.Id == taskNow.Id); Assert.DoesNotContain(responseLT.Tasks, t => t.Id == taskLater.Id);
+            Assert.NotNull(responseLT?.Items); Assert.Contains(responseLT.Items, t => t.Id == taskNow.Id); Assert.DoesNotContain(responseLT.Items, t => t.Id == taskLater.Id);
         }
 
         [Fact]
@@ -785,15 +785,15 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             var getTasksRequestReversed = new GetTasksRequest { OrderBy = "due_date", Reverse = true };
             var responseReversed = await _taskService.GetTasksAsync(_testListId, getTasksRequestReversed);
-            Assert.NotNull(responseReversed?.Tasks); Assert.True(responseReversed.Tasks.Count >= 3);
-            var relevantTasksReversed = responseReversed.Tasks.Where(t => t.Id == taskDueToday.Id || t.Id == taskDueTomorrow.Id || t.Id == taskDueDayAfter.Id).ToList();
+            Assert.NotNull(responseReversed?.Items); Assert.True(responseReversed.Items.Count >= 3);
+            var relevantTasksReversed = responseReversed.Items.Where(t => t.Id == taskDueToday.Id || t.Id == taskDueTomorrow.Id || t.Id == taskDueDayAfter.Id).ToList();
             Assert.Equal(3, relevantTasksReversed.Count);
             Assert.Equal(taskDueDayAfter.Id, relevantTasksReversed[0].Id); Assert.Equal(taskDueTomorrow.Id, relevantTasksReversed[1].Id); Assert.Equal(taskDueToday.Id, relevantTasksReversed[2].Id);
 
             var getTasksRequestNatural = new GetTasksRequest { OrderBy = "due_date", Reverse = false };
             var responseNatural = await _taskService.GetTasksAsync(_testListId, getTasksRequestNatural);
-            Assert.NotNull(responseNatural?.Tasks); Assert.True(responseNatural.Tasks.Count >= 3);
-            var relevantTasksNatural = responseNatural.Tasks.Where(t => t.Id == taskDueToday.Id || t.Id == taskDueTomorrow.Id || t.Id == taskDueDayAfter.Id).ToList();
+            Assert.NotNull(responseNatural?.Items); Assert.True(responseNatural.Items.Count >= 3);
+            var relevantTasksNatural = responseNatural.Items.Where(t => t.Id == taskDueToday.Id || t.Id == taskDueTomorrow.Id || t.Id == taskDueDayAfter.Id).ToList();
             Assert.Equal(3, relevantTasksNatural.Count);
             Assert.Equal(taskDueToday.Id, relevantTasksNatural[0].Id); Assert.Equal(taskDueTomorrow.Id, relevantTasksNatural[1].Id); Assert.Equal(taskDueDayAfter.Id, relevantTasksNatural[2].Id);
         }

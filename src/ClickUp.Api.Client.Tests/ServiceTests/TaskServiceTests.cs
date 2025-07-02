@@ -211,7 +211,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
-            var expectedEndpoint = $"team/{workspaceId}/task?date_done_gt={dateDoneGreaterThan}&date_done_lt={dateDoneLessThan}&parent={parentTaskId}&include_markdown_description=true";
+            var expectedEndpoint = $"team/{workspaceId}/task?page=0&date_done_gt={dateDoneGreaterThan}&date_done_lt={dateDoneLessThan}&parent={parentTaskId}&include_markdown_description=true";
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
@@ -251,7 +251,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
-            var expectedEndpoint = $"team/{workspaceId}/task?order_by={orderBy}&date_done_lt={dateDoneLessThan}&include_markdown_description=false&statuses[]={Uri.EscapeDataString(statuses[0])}&statuses[]={Uri.EscapeDataString(statuses[1])}&assignees[]={assignees[0]}&assignees[]={assignees[1]}";
+            var expectedEndpoint = $"team/{workspaceId}/task?page=0&order_by={orderBy}&date_done_lt={dateDoneLessThan}&include_markdown_description=false&statuses[]={Uri.EscapeDataString(statuses[0])}&statuses[]={Uri.EscapeDataString(statuses[1])}&assignees[]={assignees[0]}&assignees[]={assignees[1]}";
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
@@ -315,13 +315,20 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse?)null);
 
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _taskService.GetFilteredTeamTasksAsync(
-                    workspaceId: workspaceId,
-                    requestModel: new GetFilteredTeamTasksRequest(), // Fixed: Added requestModel parameter
-                    cancellationToken: CancellationToken.None)
-            );
+            // Act
+            var result = await _taskService.GetFilteredTeamTasksAsync(
+                workspaceId: workspaceId,
+                requestModel: new GetFilteredTeamTasksRequest(),
+                cancellationToken: CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result.Items);
+            Assert.False(result.HasNextPage);
+            // Verify the mock was called with page=0
+            _mockApiConnection.Verify(x => x.GetAsync<GetTasksResponse>(
+                $"team/{workspaceId}/task?page=0", // Ensure this matches the URL built by the service
+                It.IsAny<CancellationToken>()), Times.Once);
         }
 
         // --- Start of tests for GetFilteredTeamTasksAsyncEnumerableAsync ---
@@ -481,7 +488,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             _mockApiConnection.Verify(x => x.GetAsync<GetTasksResponse>(
-                $"team/{workspaceId}/task", // Base endpoint without other params
+                $"team/{workspaceId}/task?page=0", // Base endpoint now includes page=0
                 expectedToken), Times.Once);
         }
     }

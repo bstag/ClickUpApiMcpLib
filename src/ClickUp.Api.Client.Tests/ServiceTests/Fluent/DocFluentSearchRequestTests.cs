@@ -55,8 +55,12 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
         [Fact]
         public async Task SearchAsync_CallsServiceWithCorrectParameters()
         {
+            var docsList = new List<ClickUp.Api.Client.Models.Entities.Docs.Doc>();
+            var pagedResult = new ClickUp.Api.Client.Models.Common.Pagination.PagedResult<ClickUp.Api.Client.Models.Entities.Docs.Doc>(
+                docsList, 0, 10, false // items, page, pageSize, hasNextPage
+            );
             _mockService.Setup(x => x.SearchDocsAsync(WorkspaceId, It.IsAny<ClickUp.Api.Client.Models.RequestModels.Docs.SearchDocsRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ClickUp.Api.Client.Models.ResponseModels.Docs.SearchDocsResponse(null, null, null, null)).Verifiable();
+                .ReturnsAsync(pagedResult).Verifiable();
             var req = new DocFluentSearchRequest(WorkspaceId, _mockService.Object).WithQuery("abc").WithLimit(2);
             await req.SearchAsync();
             _mockService.Verify(x => x.SearchDocsAsync(WorkspaceId, It.Is<ClickUp.Api.Client.Models.RequestModels.Docs.SearchDocsRequest>(r => r.Query == "abc" && r.Limit == 2), It.IsAny<CancellationToken>()), Times.Once);

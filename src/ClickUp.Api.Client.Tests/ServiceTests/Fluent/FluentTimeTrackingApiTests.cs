@@ -36,14 +36,18 @@ public class FluentTimeTrackingApiTests
     {
         // Arrange
         var workspaceId = "testWorkspaceId";
-        var expectedTimeEntries = new List<TimeEntry>();
+        var expectedTimeEntriesList = new List<TimeEntry>();
+        // Create a PagedResult for the mock to return
+        var pagedResult = new ClickUp.Api.Client.Models.Common.Pagination.PagedResult<TimeEntry>(
+            expectedTimeEntriesList, 0, 10, false // items, page, pageSize, hasNextPage
+        );
 
         var mockTimeTrackingService = new Mock<ITimeTrackingService>();
         mockTimeTrackingService.Setup(x => x.GetTimeEntriesAsync(
             It.IsAny<string>(),
             It.IsAny<Client.Models.RequestModels.TimeTracking.GetTimeEntriesRequest>(),
             It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedTimeEntries);
+            .ReturnsAsync(pagedResult); // Return the IPagedResult
 
         var fluentTimeTrackingApi = new TimeTrackingFluentApi(mockTimeTrackingService.Object);
 
@@ -54,7 +58,7 @@ public class FluentTimeTrackingApiTests
             .GetAsync();
 
         // Assert
-        Assert.Equal(expectedTimeEntries, result);
+        Assert.Equal(expectedTimeEntriesList, result.Items); // Assert against the .Items property
         mockTimeTrackingService.Verify(x => x.GetTimeEntriesAsync(
             workspaceId,
             It.Is<Client.Models.RequestModels.TimeTracking.GetTimeEntriesRequest>(req =>
