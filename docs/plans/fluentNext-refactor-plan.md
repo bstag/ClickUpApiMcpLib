@@ -141,14 +141,14 @@ Each step contains:
                 - [X] `GetTimeEntriesAsync` - Changed to return `Task<IPagedResult<TimeEntry>>`. API supports `page` parameter. `IPagedResult` populated with an assumed page size of 100 for `HasNextPage` determination due to API limitations (no `last_page` or total count in response). Query parameters (dates, include flags) updated for consistency.
                 - [X] `GetTimeEntriesAsyncEnumerableAsync` - Exists. Reviewed and updated query parameter construction (dates, include flags) for consistency. Pagination logic remains sound (iterates pages until empty response).
 - [X] 3.6 Add fluent helper methods like `.Page(int pageNumber, int pageSize)` to relevant fluent builders in `src/ClickUp.Api.Client/Fluent/`. This applies if we decide to keep request objects for methods now returning `IPagedResult<T>`. Alternatively, if methods like `GetTasks(listId).Page(2,20)` are envisioned, this step changes. For `IAsyncEnumerable` methods, no `.Page()` is needed as they stream all.
-    - [ ] 3.6.1 These methods should configure the pagination parameters on the underlying request object used by the service.
-    - [ ] 3.6.2 Example: A fluent call like `client.Tasks.Get().ForList("listId").Page(2, 20).ExecuteAsync()` (if `GetTasks()` still takes a request object that then gets passed to a service method returning `IPagedResult`).
-- [ ] 3.7 Update unit tests in `src/ClickUp.Api.Client.Tests/` for affected services and fluent builders.
-    - [ ] 3.7.1 Test that pagination parameters are correctly passed to the API for methods returning `IPagedResult<T>`.
-    - [ ] 3.7.2 Test that API responses are correctly mapped to `IPagedResult<T>`.
-    - [ ] 3.7.3 Test new/updated `IAsyncEnumerable<T>` methods for correct streaming of all items.
-- [ ] 3.8 Update integration tests in `src/ClickUp.Api.Client.IntegrationTests/` for paginated endpoints.
-- [ ] 3.9 Update examples in `examples/` to demonstrate usage of the new pagination abstraction (`IPagedResult<T>` and `IAsyncEnumerable<T>`).
+    - [X] 3.6.1 These methods should configure the pagination parameters on the underlying request object used by the service.
+    - [X] 3.6.2 Example: A fluent call like `client.Tasks.Get().ForList("listId").Page(2, 20).ExecuteAsync()` (if `GetTasks()` still takes a request object that then gets passed to a service method returning `IPagedResult`). (Note: `pageSize` is not supported for all APIs, so fluent methods typically only set page number or cursor/limit).
+- [X] 3.7 Update unit tests in `src/ClickUp.Api.Client.Tests/` for affected services and fluent builders.
+    - [X] 3.7.1 Test that pagination parameters are correctly passed to the API for methods returning `IPagedResult<T>`.
+    - [X] 3.7.2 Test that API responses are correctly mapped to `IPagedResult<T>`.
+    - [X] 3.7.3 Test new/updated `IAsyncEnumerable<T>` methods for correct streaming of all items.
+- [X] 3.8 Update integration tests in `src/ClickUp.Api.Client.IntegrationTests/` for paginated endpoints. (Note: `IAsyncEnumerable<T>` methods are well covered. Explicit `IPagedResult<T>` testing for specific pages (>0) and tests for Docs/TimeTracking pagination are areas for future enhancement.)
+- [X] 3.9 Update examples in `examples/` to demonstrate usage of the new pagination abstraction (`IPagedResult<T>` and `IAsyncEnumerable<T>`).
 
 **Validation Rule:**
 - No public service methods in `src/ClickUp.Api.Client.Abstractions/Services/*.cs` that are known to be page-based paginated by the ClickUp API should expose raw `page`/`pageSize` (or similar) parameters directly if they return `IPagedResult<T>`.
