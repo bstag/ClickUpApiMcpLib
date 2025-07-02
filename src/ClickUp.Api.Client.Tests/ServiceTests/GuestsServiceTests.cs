@@ -585,8 +585,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws_edit_op_cancel";
             var guestId = "guest_edit_op_cancel";
-            var request = new EditGuestOnWorkspaceRequest(false, false, false, false, 0, false);
-            var cancellationTokenSource = new CancellationTokenSource();
+            var request = new EditGuestOnWorkspaceRequest(
+                CanEditTags: false,
+                CanSeeTimeEstimated: false,
+                CanSeeTimeSpent: false,
+                CanCreateViews: false,
+                CustomRoleId: null, // Changed from 0 to null
+                CanSeePointsEstimated: false
+            ); var cancellationTokenSource = new CancellationTokenSource();
             var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
 
             _mockApiConnection.Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(
