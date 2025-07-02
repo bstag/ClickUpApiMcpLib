@@ -45,7 +45,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <param name="workspaceId">The unique identifier of the Workspace in which to search for Docs.</param>
         /// <param name="baseSearchDocsRequest">
         /// An object containing parameters for searching and filtering Docs, such as search query, parent ID, location type, etc.
-        /// The 'Cursor' and 'Limit' properties of this request object will be ignored and managed by the helper.
+        /// The 'NextCursor' and 'Limit' properties of this request object will be ignored and managed by the helper.
         /// </param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Doc"/> objects, allowing asynchronous iteration over all matching Docs from all pages.</returns>

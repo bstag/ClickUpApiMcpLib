@@ -52,7 +52,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_test";
-            var request = new SearchDocsRequest { Query = "test query", Limit = 10, Cursor = "cursor123" };
+            var request = new SearchDocsRequest { Query = "test query", Limit = 10, NextCursor = "cursor123" };
             var expectedDocs = new List<Doc> { CreateSampleDoc() };
             var expectedResponse = new SearchDocsResponse(expectedDocs, "next_cursor_id", expectedDocs.Count, true);
             _mockApiConnection

@@ -66,15 +66,15 @@ namespace ClickUp.Api.Client.Services
             SearchDocsRequest searchDocsRequest,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Searching docs in workspace ID: {WorkspaceId}, Query: {Query}, Cursor: {Cursor}, Limit: {Limit}",
-                workspaceId, searchDocsRequest.Query, searchDocsRequest.Cursor, searchDocsRequest.Limit);
+            _logger.LogInformation("Searching docs in workspace ID: {WorkspaceId}, Query: {Query}, NextCursor: {NextCursor}, Limit: {Limit}",
+                workspaceId, searchDocsRequest.Query, searchDocsRequest.NextCursor, searchDocsRequest.Limit);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs";
             var queryParams = new Dictionary<string, string?>();
 
             // Populate all relevant query params from searchDocsRequest
             if (!string.IsNullOrEmpty(searchDocsRequest.Query)) queryParams["q"] = searchDocsRequest.Query; // 'q' is used by ClickUp for query
             if (searchDocsRequest.Limit.HasValue) queryParams["limit"] = searchDocsRequest.Limit.Value.ToString();
-            if (!string.IsNullOrEmpty(searchDocsRequest.Cursor)) queryParams["cursor"] = searchDocsRequest.Cursor; // ClickUp uses 'next_cursor' in query, but request DTO has 'Cursor'
+            if (!string.IsNullOrEmpty(searchDocsRequest.NextCursor)) queryParams["cursor"] = searchDocsRequest.NextCursor; // ClickUp uses 'next_cursor' in query, but request DTO has 'NextCursor'
 
             // Correcting query param names based on typical API conventions / OpenAPI spec for SearchDocs
             if (!string.IsNullOrEmpty(searchDocsRequest.ParentId)) queryParams["parent_id"] = searchDocsRequest.ParentId;
@@ -83,12 +83,12 @@ namespace ClickUp.Api.Client.Services
             if (searchDocsRequest.IncludeDeleted.HasValue) queryParams["deleted"] = searchDocsRequest.IncludeDeleted.Value.ToString().ToLower();
             if (searchDocsRequest.CreatorId.HasValue) queryParams["creator"] = searchDocsRequest.CreatorId.Value.ToString();
             // Note: OpenAPI for "Search Docs" uses "next_cursor" as a query param for pagination, not "cursor".
-            // The SearchDocsRequest DTO uses "Cursor". If the API strictly needs "next_cursor", this needs alignment.
+            // The SearchDocsRequest DTO uses "NextCursor". If the API strictly needs "next_cursor", this needs alignment.
             // For now, assuming "cursor" from DTO is what we send. The response contains "next_cursor".
             // Let's assume for the request, 'cursor' is the parameter name if it's for fetching the *next* page.
             // If it's the *first* page, cursor is usually omitted.
-            // The SearchDocsRequest.Cursor should represent the cursor for the *next* page to fetch.
-            // If SearchDocsRequest.Cursor is null/empty, it implies fetching the first page.
+            // The SearchDocsRequest.NextCursor should represent the cursor for the *next* page to fetch.
+            // If SearchDocsRequest.NextCursor is null/empty, it implies fetching the first page.
 
             endpoint += BuildQueryString(queryParams);
 
@@ -101,7 +101,7 @@ namespace ClickUp.Api.Client.Services
             }
 
             var items = response.Docs ?? Enumerable.Empty<Doc>();
-            int pseudoPageNumber = string.IsNullOrEmpty(searchDocsRequest.Cursor) ? 0 : 1;
+            int pseudoPageNumber = string.IsNullOrEmpty(searchDocsRequest.NextCursor) ? 0 : 1;
             int pageSize = searchDocsRequest.Limit ?? items.Count();
             if (pageSize == 0 && items.Any()) pageSize = items.Count();
 
@@ -175,7 +175,7 @@ namespace ClickUp.Api.Client.Services
                 async (currentCursor, ct) =>
                 {
                     // Clone the base request and update cursor for this specific call
-                    var pageRequest = baseSearchDocsRequest with { Cursor = currentCursor, Limit = null }; // Limit is handled by API if not set, or could be exposed
+                    var pageRequest = baseSearchDocsRequest with { NextCursor = currentCursor, Limit = null }; // Limit is handled by API if not set, or could be exposed
 
                     var endpoint = $"{BaseEndpoint}/{workspaceId}/docs";
                     var queryParams = new Dictionary<string, string?>();
@@ -190,7 +190,7 @@ namespace ClickUp.Api.Client.Services
                     // The 'limit' parameter for the underlying API call can be omitted if the API default is acceptable,
                     // or it could be set to a reasonable default (e.g., 100, the max per OpenAPI spec for searchDocs).
                     // For now, we'll let the API use its default page size.
-                    if (!string.IsNullOrEmpty(pageRequest.Cursor)) queryParams["cursor"] = pageRequest.Cursor;
+                    if (!string.IsNullOrEmpty(pageRequest.NextCursor)) queryParams["cursor"] = pageRequest.NextCursor;
 
 
                     endpoint += BuildQueryString(queryParams);

@@ -62,7 +62,7 @@ public class DocFluentSearchRequest
             Query = _query ?? string.Empty,
             ParentId = _parentId,
             ParentType = _parentType,
-            Cursor = _cursor,
+            NextCursor = _cursor,
             Limit = _limit
         };
 
@@ -80,7 +80,7 @@ public class DocFluentSearchRequest
             Query = _query ?? string.Empty,
             ParentId = _parentId,
             ParentType = _parentType,
-            Cursor = _cursor,
+            NextCursor = _cursor,
             Limit = _limit
         };
 

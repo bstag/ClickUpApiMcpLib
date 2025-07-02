@@ -54,8 +54,8 @@ public record SearchDocsRequest
     /// <summary>
     /// Gets or sets the cursor for pagination, used to retrieve the next set of results.
     /// </summary>
-    [JsonPropertyName("cursor")]
-    public string? Cursor { get; init; }
+    [JsonPropertyName("nect_cursor")]
+    public string? NextCursor { get; init; }
 
     /// <summary>
     /// Gets or sets the Parent ID to filter by (e.g., Doc ID for pages).
