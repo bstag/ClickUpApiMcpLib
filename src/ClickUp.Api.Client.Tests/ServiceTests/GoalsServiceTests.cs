@@ -567,6 +567,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // GetGoalsAsync
         [Fact]
+        public async Task GetGoalsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGoalsResponse(new List<Goal>(), new List<GoalFolder>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetGoalsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _goalsService.GetGoalsAsync(workspaceId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetGoalsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var workspaceId = "ws_cancel";
@@ -597,6 +623,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // CreateGoalAsync
+        [Fact]
+        public async Task CreateGoalAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_create_op_cancel";
+            var request = new CreateGoalRequest("Cancel Goal", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "D", false, new List<int>(), "#fff", workspaceId, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGoalResponse(CreateSampleGoal());
+
+            _mockApiConnection.Setup(c => c.PostAsync<CreateGoalRequest, GetGoalResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateGoalRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateGoalRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _goalsService.CreateGoalAsync(workspaceId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task CreateGoalAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -632,6 +685,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // GetGoalAsync
         [Fact]
+        public async Task GetGoalAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var goalId = "goal_get_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGoalResponse(CreateSampleGoal());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetGoalResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _goalsService.GetGoalAsync(goalId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetGoalAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var goalId = "goal_get_cancel";
@@ -662,6 +741,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // UpdateGoalAsync
+        [Fact]
+        public async Task UpdateGoalAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var goalId = "goal_update_op_cancel";
+            var request = new UpdateGoalRequest(Name: "Cancel Update", DueDate: null, Description: null, RemoveOwners: null, AddOwners: null, Color: null, Archived: null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGoalResponse(CreateSampleGoal());
+
+            _mockApiConnection.Setup(c => c.PutAsync<UpdateGoalRequest, GetGoalResponse>(
+                    It.IsAny<string>(), It.IsAny<UpdateGoalRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateGoalRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _goalsService.UpdateGoalAsync(goalId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task UpdateGoalAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -697,6 +803,31 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // DeleteGoalAsync
         [Fact]
+        public async Task DeleteGoalAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var goalId = "goal_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(c => c.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _goalsService.DeleteGoalAsync(goalId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task DeleteGoalAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var goalId = "goal_delete_cancel";
@@ -726,6 +857,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // CreateKeyResultAsync
+        [Fact]
+        public async Task CreateKeyResultAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var goalId = "goal_kr_create_op_cancel";
+            var request = new CreateKeyResultRequest("Cancel KR", new List<int>(), "type", 0, 0, "unit", new List<string>(), new List<string>(), goalId);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new CreateKeyResultResponse(CreateSampleKeyResult());
+
+            _mockApiConnection.Setup(c => c.PostAsync<CreateKeyResultRequest, CreateKeyResultResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateKeyResultRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateKeyResultRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _goalsService.CreateKeyResultAsync(goalId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task CreateKeyResultAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -760,6 +918,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // EditKeyResultAsync
+        [Fact]
+        public async Task EditKeyResultAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var keyResultId = "kr_edit_op_cancel";
+            var request = new EditKeyResultRequest(StepsCurrent: null, Note: "Cancel Edit KR", Name: null, Owners: null, AddOwners: null, RemoveOwners: null, TaskIds: null, ListIds: null, Archived: null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new EditKeyResultResponse(CreateSampleKeyResult());
+
+            _mockApiConnection.Setup(c => c.PutAsync<EditKeyResultRequest, EditKeyResultResponse>(
+                    It.IsAny<string>(), It.IsAny<EditKeyResultRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, EditKeyResultRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _goalsService.EditKeyResultAsync(keyResultId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task EditKeyResultAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -804,6 +989,31 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // DeleteKeyResultAsync
+        [Fact]
+        public async Task DeleteKeyResultAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var keyResultId = "kr_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(c => c.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _goalsService.DeleteKeyResultAsync(keyResultId, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task DeleteKeyResultAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {

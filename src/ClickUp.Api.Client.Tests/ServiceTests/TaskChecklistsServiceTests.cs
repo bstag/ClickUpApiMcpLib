@@ -148,6 +148,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task CreateChecklistAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_cl_op_cancel";
+            var request = new CreateChecklistRequest(Name: "Cancel Ex Checklist");
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new CreateChecklistResponse { Checklist = CreateSampleChecklist() };
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateChecklistRequest, CreateChecklistResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateChecklistRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateChecklistRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskChecklistsService.CreateChecklistAsync(taskId, request, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task CreateChecklistAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -234,6 +261,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task EditChecklistAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var checklistId = "cl_edit_op_cancel";
+            var request = new EditChecklistRequest(Name: "Edit Cancel Ex", Position: null);
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.PutAsync(
+                    It.IsAny<string>(), It.IsAny<EditChecklistRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, EditChecklistRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskChecklistsService.EditChecklistAsync(checklistId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task EditChecklistAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -310,6 +363,31 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _taskChecklistsService.DeleteChecklistAsync(checklistId)
             );
+        }
+
+        [Fact]
+        public async Task DeleteChecklistAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var checklistId = "cl_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskChecklistsService.DeleteChecklistAsync(checklistId, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -452,6 +530,36 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task CreateChecklistItemAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var checklistId = "cl_item_op_cancel";
+            var request = new CreateChecklistItemRequest(Name: "Cancel Ex Item", Assignee: null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyChecklist = CreateSampleChecklist(checklistId); // Create a dummy parent checklist
+            dummyChecklist = dummyChecklist with { Items = new List<ChecklistItem> { CreateSampleChecklistItem("cli_dummy") } }; // Add a dummy item
+            var dummyResponse = new CreateChecklistItemResponse { Checklist = dummyChecklist };
+
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateChecklistItemRequest, CreateChecklistItemResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateChecklistItemRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateChecklistItemRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskChecklistsService.CreateChecklistItemAsync(checklistId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task CreateChecklistItemAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -588,6 +696,36 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task EditChecklistItemAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var checklistId = "cl_edit_item_op_cancel";
+            var checklistItemId = "cli_edit_op_cancel";
+            var request = new EditChecklistItemRequest(Name: "Edit Cancel Ex Item", Assignee: null, Resolved: null, Parent: null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyChecklist = CreateSampleChecklist(checklistId);
+            dummyChecklist = dummyChecklist with { Items = new List<ChecklistItem> { CreateSampleChecklistItem(checklistItemId) } };
+            var dummyResponse = new EditChecklistItemResponse { Checklist = dummyChecklist };
+
+            _mockApiConnection.Setup(x => x.PutAsync<EditChecklistItemRequest, EditChecklistItemResponse>(
+                    It.IsAny<string>(), It.IsAny<EditChecklistItemRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, EditChecklistItemRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskChecklistsService.EditChecklistItemAsync(checklistId, checklistItemId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task EditChecklistItemAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -671,6 +809,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _taskChecklistsService.DeleteChecklistItemAsync(checklistId, checklistItemId)
             );
+        }
+
+        [Fact]
+        public async Task DeleteChecklistItemAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var checklistId = "cl_del_item_op_cancel";
+            var checklistItemId = "cli_del_item_op_cancel_child";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskChecklistsService.DeleteChecklistItemAsync(checklistId, checklistItemId, cancellationTokenSource.Token));
         }
 
         [Fact]

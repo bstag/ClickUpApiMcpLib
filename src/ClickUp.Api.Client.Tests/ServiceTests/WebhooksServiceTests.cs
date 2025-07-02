@@ -129,6 +129,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetWebhooksAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_wh_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetWebhooksResponse(new List<Webhook>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetWebhooksResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _webhooksService.GetWebhooksAsync(workspaceId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetWebhooksAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -255,6 +281,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _webhooksService.CreateWebhookAsync(workspaceId, request)
             );
+        }
+
+        [Fact]
+        public async Task CreateWebhookAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_create_wh_op_cancel";
+            var request = new CreateWebhookRequest("https://example.com/cancel-wh", new List<string>(), null, null, null, null, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new CreateWebhookResponse("dummy_id", CreateSampleWebhook());
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateWebhookRequest, CreateWebhookResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateWebhookRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateWebhookRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _webhooksService.CreateWebhookAsync(workspaceId, request, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -389,6 +442,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task UpdateWebhookAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var webhookId = "wh_update_op_cancel";
+            var request = new UpdateWebhookRequest("https://example.com/update-cancel", new List<string>(), "active", null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new UpdateWebhookResponse(webhookId, CreateSampleWebhook());
+
+            _mockApiConnection.Setup(x => x.PutAsync<UpdateWebhookRequest, UpdateWebhookResponse>(
+                    It.IsAny<string>(), It.IsAny<UpdateWebhookRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateWebhookRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _webhooksService.UpdateWebhookAsync(webhookId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task UpdateWebhookAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -467,6 +547,31 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _webhooksService.DeleteWebhookAsync(webhookId)
             );
+        }
+
+        [Fact]
+        public async Task DeleteWebhookAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var webhookId = "wh_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _webhooksService.DeleteWebhookAsync(webhookId, cancellationTokenSource.Token));
         }
 
         [Fact]

@@ -174,6 +174,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetUserFromWorkspaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_get_user_op_cancel";
+            var userId = "user_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetUserResponse(CreateSampleGetUserResponseMember());
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetUserResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _usersService.GetUserFromWorkspaceAsync(workspaceId, userId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetUserFromWorkspaceAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -330,6 +357,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task EditUserOnWorkspaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_edit_user_op_cancel";
+            var userId = "user_edit_op_cancel";
+            var request = new EditUserOnWorkspaceRequest("NewName", false, 0);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetUserResponse(CreateSampleGetUserResponseMember());
+
+            _mockApiConnection.Setup(x => x.PutAsync<EditUserOnWorkspaceRequest, GetUserResponse>(
+                    It.IsAny<string>(), It.IsAny<EditUserOnWorkspaceRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, EditUserOnWorkspaceRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _usersService.EditUserOnWorkspaceAsync(workspaceId, userId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task EditUserOnWorkspaceAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -412,6 +467,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _usersService.RemoveUserFromWorkspaceAsync(workspaceId, userId)
             );
+        }
+
+        [Fact]
+        public async Task RemoveUserFromWorkspaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_remove_user_op_cancel";
+            var userId = "user_remove_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _usersService.RemoveUserFromWorkspaceAsync(workspaceId, userId, cancellationTokenSource.Token));
         }
 
         [Fact]

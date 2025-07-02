@@ -34,6 +34,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// </summary>
         /// <param name="listId">The unique identifier of the List from which to retrieve Tasks.</param>
         /// <param name="requestModel">An object containing various filtering and sorting options such as archived status, pagination, ordering, subtasks, statuses, assignees, tags, due dates, creation dates, update dates, completion dates, custom fields, and custom items.</param>
+        /// <param name="page">Optional. The page number of results to retrieve (0-indexed). If not provided, the page from <paramref name="requestModel"/> will be used, or default to 0.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetTasksResponse"/> object with the list of Tasks and pagination details.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> or <paramref name="requestModel"/> is null.</exception>
@@ -131,6 +132,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// statuses, assignees, tags, due dates, creation dates, update dates, completion dates, custom fields, custom task ID settings,
         /// custom items, parent task ID, and inclusion of Markdown in descriptions.
         /// </param>
+        /// <param name="page">Optional. The page number of results to retrieve (0-indexed). If not provided, the page from <paramref name="requestModel"/> will be used, or default to 0.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetTasksResponse"/> object with the list of matching Tasks and pagination details.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="requestModel"/> is null.</exception>

@@ -133,6 +133,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetTaskMembersAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetMembersResponse(new List<Member>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetMembersResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _membersService.GetTaskMembersAsync(taskId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetTaskMembersAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -244,6 +270,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _membersService.GetListMembersAsync(listId)
             );
+        }
+
+        [Fact]
+        public async Task GetListMembersAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetMembersResponse(new List<Member>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetMembersResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _membersService.GetListMembersAsync(listId, cancellationTokenSource.Token));
         }
 
         [Fact]

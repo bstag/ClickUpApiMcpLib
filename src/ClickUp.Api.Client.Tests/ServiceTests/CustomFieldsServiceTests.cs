@@ -70,6 +70,84 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetWorkspaceCustomFieldsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_op_cancel_get";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetAccessibleCustomFieldsResponse(new List<CustomFieldDefinition>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _customFieldsService.GetWorkspaceCustomFieldsAsync(workspaceId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetSpaceCustomFieldsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_op_cancel_get";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetAccessibleCustomFieldsResponse(new List<CustomFieldDefinition>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _customFieldsService.GetSpaceCustomFieldsAsync(spaceId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetFolderCustomFieldsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_op_cancel_get";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetAccessibleCustomFieldsResponse(new List<CustomFieldDefinition>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _customFieldsService.GetFolderCustomFieldsAsync(folderId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task SetCustomFieldValueAsync_ValidRequest_CallsPostAsyncWithCorrectUrlAndBody()
         {
             // Arrange
@@ -176,6 +254,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // GetAccessibleCustomFieldsAsync
         [Fact]
+        public async Task GetAccessibleCustomFieldsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetAccessibleCustomFieldsResponse(new List<CustomFieldDefinition>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetAccessibleCustomFieldsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _customFieldsService.GetAccessibleCustomFieldsAsync(listId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetAccessibleCustomFieldsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var listId = "list_cancel";
@@ -206,6 +310,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // SetCustomFieldValueAsync
+        [Fact]
+        public async Task SetCustomFieldValueAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_set_op_cancel";
+            var fieldId = "field_set_op_cancel";
+            var request = new ConcreteSetCustomFieldValueRequest { Value = "Cancel Value" };
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(c => c.PostAsync<SetCustomFieldValueRequest>(
+                    It.IsAny<string>(), It.IsAny<SetCustomFieldValueRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, SetCustomFieldValueRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _customFieldsService.SetCustomFieldValueAsync(taskId, fieldId, request, cancellationToken: cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task SetCustomFieldValueAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -245,6 +376,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // RemoveCustomFieldValueAsync
+        [Fact]
+        public async Task RemoveCustomFieldValueAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_remove_op_cancel";
+            var fieldId = "field_remove_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(c => c.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _customFieldsService.RemoveCustomFieldValueAsync(taskId, fieldId, cancellationToken: cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task RemoveCustomFieldValueAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {

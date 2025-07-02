@@ -472,6 +472,37 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // InviteGuestToWorkspaceAsync
         [Fact]
+        public async Task InviteGuestToWorkspaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_invite_op_cancel";
+            var request = new InviteGuestToWorkspaceRequest("opcancel@example.com", false, false, false, false, false, 0);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyUserDto = new InviteGuestToWorkspaceResponseUser(1, "dummy", "d@e.com", "#fff", null, "D", 0, null, null, null, DateTimeOffset.UtcNow);
+            var dummyInviterDto = new InvitedByUserInfoResponse(2, "dummyI", "ie@example.com", "#000", null, "DI"); // Corrected email
+            var dummyMember = new InviteGuestToWorkspaceResponseTeamMember(dummyUserDto, dummyInviterDto, false, false, false, false, false);
+            var dummyTeam = new InviteGuestToWorkspaceResponseTeam("tid", "tname", "tcolor", null, new List<InviteGuestToWorkspaceResponseTeamMember> { dummyMember }, new List<Role>());
+            var dummyResponse = new InviteGuestToWorkspaceResponse(dummyTeam);
+
+            _mockApiConnection.Setup(c => c.PostAsync<InviteGuestToWorkspaceRequest, InviteGuestToWorkspaceResponse>(
+                    It.IsAny<string>(), It.IsAny<InviteGuestToWorkspaceRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, InviteGuestToWorkspaceRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.InviteGuestToWorkspaceAsync(workspaceId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task InviteGuestToWorkspaceAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var workspaceId = "ws_invite_cancel";
@@ -499,6 +530,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // GetGuestAsync
         [Fact]
+        public async Task GetGuestAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_get_op_cancel";
+            var guestId = "guest_get_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetGuestResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.GetGuestAsync(workspaceId, guestId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetGuestAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var workspaceId = "ws_get_cancel";
@@ -521,6 +579,40 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // EditGuestOnWorkspaceAsync
+        [Fact]
+        public async Task EditGuestOnWorkspaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_edit_op_cancel";
+            var guestId = "guest_edit_op_cancel";
+            var request = new EditGuestOnWorkspaceRequest(
+                CanEditTags: false,
+                CanSeeTimeEstimated: false,
+                CanSeeTimeSpent: false,
+                CanCreateViews: false,
+                CustomRoleId: null, // Changed from 0 to null
+                CanSeePointsEstimated: false
+            ); var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
+
+            _mockApiConnection.Setup(c => c.PutAsync<EditGuestOnWorkspaceRequest, GetGuestResponse>(
+                    It.IsAny<string>(), It.IsAny<EditGuestOnWorkspaceRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, EditGuestOnWorkspaceRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.EditGuestOnWorkspaceAsync(workspaceId, guestId, request, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task EditGuestOnWorkspaceAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -547,6 +639,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // RemoveGuestFromWorkspaceAsync
         [Fact]
+        public async Task RemoveGuestFromWorkspaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_remove_op_cancel";
+            var guestId = "guest_remove_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(c => c.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.RemoveGuestFromWorkspaceAsync(workspaceId, guestId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task RemoveGuestFromWorkspaceAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var workspaceId = "ws_remove_cancel";
@@ -568,6 +686,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // AddGuestToTaskAsync
+        [Fact]
+        public async Task AddGuestToTaskAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_add_op_cancel";
+            var guestId = "guest_add_op_cancel";
+            var request = new AddGuestToItemRequest { PermissionLevel = 1 };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
+
+            _mockApiConnection.Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(
+                    It.IsAny<string>(), It.IsAny<AddGuestToItemRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, AddGuestToItemRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.AddGuestToTaskAsync(taskId, guestId, request, null, null, null, cancellationTokenSource.Token));
+        }
         /*
         [Fact]
         public async Task AddGuestToTaskAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
@@ -612,6 +757,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
 
         // RemoveGuestFromTaskAsync
+        [Fact]
+        public async Task RemoveGuestFromTaskAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_rem_op_cancel";
+            var guestId = "guest_rem_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
+
+            _mockApiConnection.Setup(c => c.DeleteAsync<GetGuestResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.RemoveGuestFromTaskAsync(taskId, guestId, null, null, null, cancellationTokenSource.Token));
+        }
         /*
         [Fact]
         public async Task RemoveGuestFromTaskAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
@@ -652,6 +823,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // AddGuestToListAsync
         [Fact]
+        public async Task AddGuestToListAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_add_op_cancel";
+            var guestId = "guest_list_add_op_cancel";
+            var request = new AddGuestToItemRequest { PermissionLevel = 2 };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
+
+            _mockApiConnection.Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(
+                    It.IsAny<string>(), It.IsAny<AddGuestToItemRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, AddGuestToItemRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.AddGuestToListAsync(listId, guestId, request, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task AddGuestToListAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var listId = "list_add_cancel";
@@ -688,6 +887,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // RemoveGuestFromListAsync
         [Fact]
+        public async Task RemoveGuestFromListAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_rem_op_cancel";
+            var guestId = "guest_list_rem_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
+
+            _mockApiConnection.Setup(c => c.DeleteAsync<GetGuestResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.RemoveGuestFromListAsync(listId, guestId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task RemoveGuestFromListAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var listId = "list_rem_cancel";
@@ -720,6 +946,34 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // AddGuestToFolderAsync
+        [Fact]
+        public async Task AddGuestToFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_add_op_cancel";
+            var guestId = "guest_folder_add_op_cancel";
+            var request = new AddGuestToItemRequest { PermissionLevel = 3 };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
+
+            _mockApiConnection.Setup(c => c.PostAsync<AddGuestToItemRequest, GetGuestResponse>(
+                    It.IsAny<string>(), It.IsAny<AddGuestToItemRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, AddGuestToItemRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.AddGuestToFolderAsync(folderId, guestId, request, cancellationToken: cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task AddGuestToFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -756,6 +1010,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         // RemoveGuestFromFolderAsync
+        [Fact]
+        public async Task RemoveGuestFromFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_rem_op_cancel";
+            var guestId = "guest_folder_rem_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetGuestResponse { Guest = CreateSampleGuest() };
+
+            _mockApiConnection.Setup(c => c.DeleteAsync<GetGuestResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _guestsService.RemoveGuestFromFolderAsync(folderId, guestId, cancellationToken: cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task RemoveGuestFromFolderAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {

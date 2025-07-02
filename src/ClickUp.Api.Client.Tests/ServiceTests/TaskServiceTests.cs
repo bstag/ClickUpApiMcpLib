@@ -406,7 +406,62 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
         // --- End of tests for GetFilteredTeamTasksAsyncEnumerableAsync ---
 
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for GetTasksAsync ---
+        [Fact]
+        public async Task GetTasksAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_op_cancel";
+            var requestModel = new GetTasksRequest();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTasksResponse(new List<CuTask>(), true);
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetTasksResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.GetTasksAsync(listId, requestModel, cancellationToken: cancellationTokenSource.Token));
+        }
+
         // --- Tests for TaskCanceledException and CancellationToken pass-through for GetTaskAsync ---
+        [Fact]
+        public async Task GetTaskAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_get_op_cancel";
+            var requestModel = new GetTaskRequest();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleTask(taskId);
+
+            _mockApiConnection.Setup(x => x.GetAsync<CuTask>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.GetTaskAsync(taskId, requestModel, cancellationTokenSource.Token));
+        }
+
         [Fact]
         public async Task GetTaskAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
@@ -445,6 +500,53 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             _mockApiConnection.Verify(x => x.GetAsync<CuTask>(
                 $"task/{taskId}",
                 expectedToken), Times.Once);
+        }
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for CreateTaskAsync ---
+        [Fact]
+        public async Task CreateTaskAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_create_op_cancel";
+            var request = new CreateTaskRequest(
+                Name: "Cancel Task",
+                Description: null,
+                Assignees: null,
+                GroupAssignees: null,
+                Tags: null,
+                Status: null,
+                Priority: null,
+                DueDate: null,
+                DueDateTime: null,
+                TimeEstimate: null,
+                StartDate: null,
+                StartDateTime: null,
+                NotifyAll: null,
+                Parent: null,
+                LinksTo: null,
+                CheckRequiredCustomFields: null,
+                CustomFields: null,
+                CustomItemId: null,
+                ListId: null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleTask();
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateTaskRequest, CuTask>(
+                    It.IsAny<string>(), It.IsAny<CreateTaskRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateTaskRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.CreateTaskAsync(listId, request, cancellationToken: cancellationTokenSource.Token));
         }
 
         // --- Tests for TaskCanceledException and CancellationToken pass-through for GetFilteredTeamTasksAsync ---
@@ -491,5 +593,200 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 $"team/{workspaceId}/task?page=0", // Base endpoint now includes page=0
                 expectedToken), Times.Once);
         }
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for UpdateTaskAsync ---
+        [Fact]
+        public async Task UpdateTaskAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_update_op_cancel";
+            var request = new UpdateTaskRequest(
+                Name: "Cancel Update",
+                Description: null,
+                Status: null,
+                Priority: null,
+                DueDate: null,
+                DueDateTime: null,
+                Parent: null,
+                TimeEstimate: null,
+                StartDate: null,
+                StartDateTime: null,
+                Assignees: null,
+                GroupAssignees: null,
+                Archived: null,
+                CustomFields: null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleTask(taskId);
+
+            _mockApiConnection.Setup(x => x.PutAsync<UpdateTaskRequest, CuTask>(
+                    It.IsAny<string>(), It.IsAny<UpdateTaskRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateTaskRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.UpdateTaskAsync(taskId, request, cancellationToken: cancellationTokenSource.Token));
+        }
+        // NOTE: Existing TaskCanceledException and PassesCancellationTokenToApiConnection tests for UpdateTaskAsync are missing, should be added if not present elsewhere.
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for DeleteTaskAsync ---
+        [Fact]
+        public async Task DeleteTaskAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_delete_op_cancel";
+            var requestModel = new DeleteTaskRequest();
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.DeleteTaskAsync(taskId, requestModel, cancellationTokenSource.Token));
+        }
+        // NOTE: Existing TaskCanceledException and PassesCancellationTokenToApiConnection tests for DeleteTaskAsync are missing.
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for MergeTasksAsync ---
+        [Fact]
+        public async Task MergeTasksAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var targetTaskId = "target_merge_op_cancel";
+            var sourceTaskId = "source_merge_op_cancel";
+            var request = new MergeTasksRequest { SourceTaskIds = new List<string> { sourceTaskId } };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleTask(targetTaskId);
+
+            _mockApiConnection.Setup(x => x.PostAsync<object, CuTask>( // Assuming payload is object for merge
+                    It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, object, CancellationToken>((url, body, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.MergeTasksAsync(targetTaskId, request, cancellationTokenSource.Token));
+        }
+        // NOTE: Existing TaskCanceledException and PassesCancellationTokenToApiConnection tests for MergeTasksAsync are missing.
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for GetTaskTimeInStatusAsync ---
+        [Fact]
+        public async Task GetTaskTimeInStatusAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_time_status_op_cancel";
+            var requestModel = new GetTaskTimeInStatusRequest();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyTimeData = new TaskTimeInStatusData { ByMinute = null, Since = null };
+            var dummyStatusHistoryItem = new StatusHistoryItem { Status = "open", TotalTime = dummyTimeData };
+            var dummyResponse = new TaskTimeInStatusResponse
+            {
+                TotalTime = dummyTimeData,
+                StatusHistory = new List<StatusHistoryItem> { dummyStatusHistoryItem },
+                CurrentStatus = dummyStatusHistoryItem
+            };
+
+            _mockApiConnection.Setup(x => x.GetAsync<TaskTimeInStatusResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.GetTaskTimeInStatusAsync(taskId, requestModel, cancellationTokenSource.Token));
+        }
+        // NOTE: Existing TaskCanceledException and PassesCancellationTokenToApiConnection tests for GetTaskTimeInStatusAsync are missing.
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for GetBulkTasksTimeInStatusAsync ---
+        [Fact]
+        public async Task GetBulkTasksTimeInStatusAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var requestModel = new GetBulkTasksTimeInStatusRequest(new List<string> { "task1_bulk_op_cancel" });
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetBulkTasksTimeInStatusResponse(); // Initialize empty
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetBulkTasksTimeInStatusResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.GetBulkTasksTimeInStatusAsync(requestModel, cancellationTokenSource.Token));
+        }
+        // NOTE: Existing TaskCanceledException and PassesCancellationTokenToApiConnection tests for GetBulkTasksTimeInStatusAsync are missing.
+
+        // --- Tests for TaskCanceledException and CancellationToken pass-through for CreateTaskFromTemplateAsync ---
+        [Fact]
+        public async Task CreateTaskFromTemplateAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_tpl_op_cancel";
+            var templateId = "tpl_op_cancel";
+            var request = new CreateTaskFromTemplateRequest(Name: "Cancel Template Task");
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleTask();
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateTaskFromTemplateRequest, CuTask>(
+                    It.IsAny<string>(), It.IsAny<CreateTaskFromTemplateRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateTaskFromTemplateRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _taskService.CreateTaskFromTemplateAsync(listId, templateId, request, cancellationTokenSource.Token));
+        }
+        // NOTE: Existing TaskCanceledException and PassesCancellationTokenToApiConnection tests for CreateTaskFromTemplateAsync are missing.
     }
 }

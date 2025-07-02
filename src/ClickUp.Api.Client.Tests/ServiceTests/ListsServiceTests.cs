@@ -93,6 +93,272 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task CreateListFromTemplateInSpaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_tpl_s_op_cancel";
+            var templateId = "template_s_op_cancel";
+            var request = new CreateListFromTemplateRequest { Name = "Cancel Ex Template List Space" };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpList { Id = "list_dummy_tpl_s", Name = "Dummy Template List Space" };
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateListFromTemplateRequest, ClickUpList>(
+                    It.IsAny<string>(), It.IsAny<CreateListFromTemplateRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateListFromTemplateRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.CreateListFromTemplateInSpaceAsync(spaceId, templateId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task CreateListFromTemplateInFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_tpl_f_op_cancel";
+            var templateId = "template_f_op_cancel";
+            var request = new CreateListFromTemplateRequest { Name = "Cancel Ex Template List Folder" };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpList { Id = "list_dummy_tpl_f", Name = "Dummy Template List Folder" };
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateListFromTemplateRequest, ClickUpList>(
+                    It.IsAny<string>(), It.IsAny<CreateListFromTemplateRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateListFromTemplateRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.CreateListFromTemplateInFolderAsync(folderId, templateId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task RemoveTaskFromListAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_remove_task_op_cancel";
+            var taskId = "task_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.RemoveTaskFromListAsync(listId, taskId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task AddTaskToListAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_add_task_op_cancel";
+            var taskId = "task_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.PostAsync<object>(
+                    It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, object, CancellationToken>((url, body, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.AddTaskToListAsync(listId, taskId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task DeleteListAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.DeleteListAsync(listId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task UpdateListAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_update_op_cancel";
+            var request = new UpdateListRequest("Update Cancel Ex", null, null, null, null, null, null, null, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpList { Id = listId, Name = "Dummy Updated List" };
+
+            _mockApiConnection.Setup(x => x.PutAsync<UpdateListRequest, ClickUpList>(
+                    It.IsAny<string>(), It.IsAny<UpdateListRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateListRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.UpdateListAsync(listId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetListAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_get_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpList { Id = listId, Name = "Dummy List" };
+
+            _mockApiConnection.Setup(x => x.GetAsync<ClickUpList>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.GetListAsync(listId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task CreateFolderlessListAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_fl_create_op_cancel";
+            var request = new CreateListRequest("Cancel Ex FL List", null, null, null, null, null, null, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpList { Id = "list_dummy_fl", Name = "Dummy FL List" };
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateListRequest, ClickUpList>(
+                    It.IsAny<string>(), It.IsAny<CreateListRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateListRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.CreateFolderlessListAsync(spaceId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetFolderlessListsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_fl_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetListsResponse(new List<ClickUpList>());
+
+            _mockApiConnection.Setup(x => x.GetAsync<GetListsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.GetFolderlessListsAsync(spaceId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task CreateListInFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_create_op_cancel";
+            var request = new CreateListRequest("Cancel Ex List", null, null, null, null, null, null, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new ClickUpList { Id = "list_dummy", Name = "Dummy List" };
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateListRequest, ClickUpList>(
+                    It.IsAny<string>(), It.IsAny<CreateListRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateListRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.CreateListInFolderAsync(folderId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetListsInFolderAsync_WithArchivedTrue_BuildsCorrectUrl()
         {
             // Arrange
@@ -176,6 +442,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _listsService.GetListsInFolderAsync(folderId)
             );
+        }
+
+        [Fact]
+        public async Task GetListsInFolderAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var folderId = "folder_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetListsResponse(new List<ClickUpList>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetListsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _listsService.GetListsInFolderAsync(folderId, cancellationToken: cancellationTokenSource.Token));
         }
 
         [Fact]

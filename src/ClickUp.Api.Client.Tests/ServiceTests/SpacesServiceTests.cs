@@ -180,6 +180,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetSpacesAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetSpacesResponse(new List<Space>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetSpacesResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _spacesService.GetSpacesAsync(workspaceId, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetSpacesAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -297,6 +323,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task CreateSpaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_create_op_cancel";
+            var request = new CreateSpaceRequest("Cancel Ex Space", false, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleSpace();
+
+            _mockApiConnection.Setup(x => x.PostAsync<CreateSpaceRequest, Space>(
+                    It.IsAny<string>(), It.IsAny<CreateSpaceRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateSpaceRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _spacesService.CreateSpaceAsync(workspaceId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task CreateSpaceAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -393,6 +446,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _spacesService.GetSpaceAsync(spaceId)
             );
+        }
+
+        [Fact]
+        public async Task GetSpaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_get_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleSpace();
+
+            _mockApiConnection.Setup(x => x.GetAsync<Space>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _spacesService.GetSpaceAsync(spaceId, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -508,6 +587,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task UpdateSpaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_update_op_cancel";
+            var request = new UpdateSpaceRequest(Name: "Update Cancel Ex", Color: null, Private: null, AdminCanManage: null, MultipleAssignees: null, Features: null, Archived: null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleSpace();
+
+            _mockApiConnection.Setup(x => x.PutAsync<UpdateSpaceRequest, Space>(
+                    It.IsAny<string>(), It.IsAny<UpdateSpaceRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateSpaceRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _spacesService.UpdateSpaceAsync(spaceId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task UpdateSpaceAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
@@ -585,6 +691,31 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<HttpRequestException>(() =>
                 _spacesService.DeleteSpaceAsync(spaceId)
             );
+        }
+
+        [Fact]
+        public async Task DeleteSpaceAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_delete_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _spacesService.DeleteSpaceAsync(spaceId, cancellationTokenSource.Token));
         }
 
         [Fact]

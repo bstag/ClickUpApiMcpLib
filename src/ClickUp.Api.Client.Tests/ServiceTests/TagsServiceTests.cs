@@ -123,6 +123,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetSpaceTagsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetSpaceTagsResponse(new List<Tag>());
+
+            _mockApiConnection.Setup(c => c.GetAsync<GetSpaceTagsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _tagsService.GetSpaceTagsAsync(spaceId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetSpaceTagsAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var spaceId = "space_cancel_ex";
@@ -177,6 +203,33 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.PostAsync<SaveTagRequest>(It.IsAny<string>(), It.IsAny<SaveTagRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API call failed"));
             await Assert.ThrowsAsync<HttpRequestException>(() => _tagsService.CreateSpaceTagAsync(spaceId, request));
+        }
+
+        [Fact]
+        public async Task CreateSpaceTagAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_create_tag_op_cancel";
+            var tagPayload = new TagAttributes("Cancel Ex Tag", "#0000FF", "#FFFF00");
+            var request = new SaveTagRequest(tagPayload);
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.PostAsync<SaveTagRequest>(
+                    It.IsAny<string>(), It.IsAny<SaveTagRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, SaveTagRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _tagsService.CreateSpaceTagAsync(spaceId, request, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -267,6 +320,35 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task EditSpaceTagAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_edit_tag_op_cancel";
+            var tagName = "CancelTag";
+            var payload = new TagAttributes("Cancel Ex Edit Tag", "#BBBBBB", "#CCCCCC");
+            var request = new SaveTagRequest(payload);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleTagEntity();
+
+            _mockApiConnection.Setup(x => x.PutAsync<SaveTagRequest, Tag>(
+                    It.IsAny<string>(), It.IsAny<SaveTagRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, SaveTagRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _tagsService.EditSpaceTagAsync(spaceId, tagName, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task EditSpaceTagAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var spaceId = "space_edit_tag_cancel_ex";
@@ -328,6 +410,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API call failed"));
             await Assert.ThrowsAsync<HttpRequestException>(() => _tagsService.DeleteSpaceTagAsync(spaceId, tagName));
+        }
+
+        [Fact]
+        public async Task DeleteSpaceTagAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var spaceId = "space_delete_tag_op_cancel";
+            var tagName = "CancelDeleteTag";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _tagsService.DeleteSpaceTagAsync(spaceId, tagName, cancellationTokenSource.Token));
         }
 
         [Fact]
@@ -407,6 +515,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task AddTagToTaskAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_add_tag_op_cancel";
+            var tagName = "CancelAddTag";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.PostAsync<object>(
+                    It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, object, CancellationToken>((url, body, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _tagsService.AddTagToTaskAsync(taskId, tagName, cancellationToken: cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task AddTagToTaskAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             var taskId = "task_add_tag_cancel_ex";
@@ -479,6 +613,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("API call failed"));
             await Assert.ThrowsAsync<HttpRequestException>(() => _tagsService.RemoveTagFromTaskAsync(taskId, tagName));
+        }
+
+        [Fact]
+        public async Task RemoveTagFromTaskAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_remove_tag_op_cancel";
+            var tagName = "CancelRemoveTag";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(x => x.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _tagsService.RemoveTagFromTaskAsync(taskId, tagName, cancellationToken: cancellationTokenSource.Token));
         }
 
         [Fact]

@@ -1,5 +1,4 @@
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Docs;
 using ClickUp.Api.Client.Models.RequestModels.Docs; // Contains SearchDocsRequest and LocationType
 using ClickUp.Api.Client.Models.ResponseModels.Docs;
@@ -90,7 +89,7 @@ public class DocsFluentApi
         string workspaceId,
         bool? includeArchived = null,
         bool? includeDeleted = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         var searchRequest = new SearchDocsRequest
         {
@@ -132,6 +131,7 @@ public class DocsFluentApi
         int? creatorId = null,
         CancellationToken cancellationToken = default)
     {
+        int? parentTypeValue = parentType.HasValue ? parentType.Value : null;
         var searchRequest = new SearchDocsRequest
         {
             Query = query,
@@ -141,7 +141,10 @@ public class DocsFluentApi
             TaskIds = taskIds?.ToList(),
             IncludeArchived = includeArchived,
             ParentId = parentId,
+            // ParentType = parentTypeValue, // Original line with issue
+#pragma warning disable CS8601 // Possible null reference assignment.
             ParentType = parentType.HasValue ? parentType.Value : null,
+#pragma warning restore CS8601 // Possible null reference assignment.
             IncludeDeleted = includeDeleted,
             CreatorId = creatorId
         };

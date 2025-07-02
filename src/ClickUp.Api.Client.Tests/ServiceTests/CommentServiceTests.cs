@@ -100,6 +100,250 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task CreateThreadedCommentAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var commentId = "comment_thread_op_cancel_create";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyUser = new User(0, "", "", "", null, "");
+            var dummyComment = new Comment { Id = "1", User = dummyUser, CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } }, CommentText = "Test", Resolved = false, Reactions = new List<ReactionEntry>(), Date = "0", ReplyCount = "0" };
+            var dummyResponse = new CreateCommentResponse { Id = "1", Comment = dummyComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateCommentRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.CreateThreadedCommentAsync(commentId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetThreadedCommentsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var commentId = "comment_thread_op_cancel_get";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetListCommentsResponse(new List<Comment>());
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.GetThreadedCommentsAsync(commentId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task DeleteCommentAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var commentId = "comment_op_cancel_delete";
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            _mockApiConnection.Setup(api => api.DeleteAsync(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .Returns(System.Threading.Tasks.Task.CompletedTask);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.DeleteCommentAsync(commentId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task UpdateCommentAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var commentId = "comment_op_cancel";
+            var request = new UpdateCommentRequest("Updated", null, false, null);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyUser = new User(0, "", "", "", null, "");
+            var dummyResponse = new Comment { Id = commentId, User = dummyUser, CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Updated" } }, CommentText = "Updated", Resolved = false, Reactions = new List<ReactionEntry>(), Date = "0", ReplyCount = "0" };
+
+            _mockApiConnection.Setup(api => api.PutAsync<UpdateCommentRequest, Comment>(
+                    It.IsAny<string>(), It.IsAny<UpdateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateCommentRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.UpdateCommentAsync(commentId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetListCommentsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_op_cancel_get";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetListCommentsResponse(new List<Comment>());
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.GetListCommentsAsync(listId, null, null, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task CreateListCommentAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var listId = "list_op_cancel";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyUser = new User(0, "", "", "", null, "");
+            var dummyComment = new Comment { Id = "1", User = dummyUser, CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } }, CommentText = "Test", Resolved = false, Reactions = new List<ReactionEntry>(), Date = "0", ReplyCount = "0" };
+            var dummyResponse = new CreateCommentResponse { Id = "1", Comment = dummyComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateCommentRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.CreateListCommentAsync(listId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetChatViewCommentsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var viewId = "view_op_cancel_get";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetListCommentsResponse(new List<Comment>()); // Uses GetListCommentsResponse
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetListCommentsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.GetChatViewCommentsAsync(viewId, null, null, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task CreateChatViewCommentAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var viewId = "view_op_cancel";
+            var request = new CreateCommentRequest { CommentText = "Test" };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyUser = new User(0, "", "", "", null, "");
+            var dummyComment = new Comment { Id = "1", User = dummyUser, CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } }, CommentText = "Test", Resolved = false, Reactions = new List<ReactionEntry>(), Date = "0", ReplyCount = "0" };
+            var dummyResponse = new CreateCommentResponse { Id = "1", Comment = dummyComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateCommentRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateCommentRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.CreateChatViewCommentAsync(viewId, request, cancellationTokenSource.Token));
+        }
+
+        [Fact]
+        public async Task GetTaskCommentsAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_op_cancel_get";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = new GetTaskCommentsResponse(new List<Comment>());
+
+            _mockApiConnection.Setup(api => api.GetAsync<GetTaskCommentsResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.GetTaskCommentsAsync(new GetTaskCommentsRequest(taskId), cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetTaskCommentsAsync_IAsyncEnumerable_ReturnsEmpty_WhenNoComments()
         {
             // Arrange
@@ -807,6 +1051,35 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
 
         // --- Tests for TaskCanceledException and CancellationToken pass-through ---
+
+        [Fact]
+        public async Task CreateTaskCommentAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var taskId = "task_op_cancel";
+            var request = new CreateTaskCommentRequest(CommentText: "Test", Assignee: null, GroupAssignee: null, NotifyAll: false);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyUser = new User(0, "", "", "", null, "");
+            var dummyComment = new Comment { Id = "1", User = dummyUser, CommentTextEntries = new List<CommentTextEntry> { new CommentTextEntry { Text = "Test" } }, CommentText = "Test", Resolved = false, Reactions = new List<ReactionEntry>(), Date = "0", ReplyCount = "0" };
+            var dummyResponse = new CreateCommentResponse { Id = "1", Comment = dummyComment };
+
+            _mockApiConnection.Setup(api => api.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>(
+                    It.IsAny<string>(), It.IsAny<CreateTaskCommentRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateTaskCommentRequest, CancellationToken>((url, req, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _commentService.CreateTaskCommentAsync(taskId, request, null, null, cancellationTokenSource.Token));
+        }
 
         [Fact]
         public async Task CreateTaskCommentAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()

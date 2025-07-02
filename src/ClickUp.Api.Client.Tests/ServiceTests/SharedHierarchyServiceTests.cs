@@ -131,6 +131,32 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
+        public async Task GetSharedHierarchyAsync_OperationCanceled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var workspaceId = "ws_op_cancel";
+            var cancellationTokenSource = new CancellationTokenSource();
+            var dummyResponse = CreateSampleSharedHierarchyResponse();
+
+            _mockApiConnection.Setup(c => c.GetAsync<SharedHierarchyResponse>(
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CancellationToken>((url, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+                })
+                .ReturnsAsync(dummyResponse);
+
+            cancellationTokenSource.Cancel();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _sharedHierarchyService.GetSharedHierarchyAsync(workspaceId, cancellationTokenSource.Token));
+        }
+
+        [Fact]
         public async Task GetSharedHierarchyAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
