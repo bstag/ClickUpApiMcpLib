@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using ClickUp.Api.Client.Models.Entities.Tasks; // CuTask DTO
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
+using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
 
 namespace ClickUp.Api.Client.Services
 {
@@ -64,18 +65,29 @@ namespace ClickUp.Api.Client.Services
 
 
         /// <inheritdoc />
-        public async Task<GetTasksResponse> GetTasksAsync(
+        public async Task<IPagedResult<CuTask>> GetTasksAsync(
             string listId,
             GetTasksRequest requestModel,
+            int? page = null, // Added to match interface, but requestModel.Page is primary
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting tasks for list ID: {ListId}, Page: {Page}", listId, requestModel.Page);
+            // Prioritize page from requestModel if available, else use the direct parameter.
+            // The interface change added 'page' for flexibility, but DTO should be source of truth.
+            if (page.HasValue && !requestModel.Page.HasValue)
+            {
+                requestModel.Page = page.Value;
+            }
+            int currentPage = requestModel.Page ?? 0; // Default to page 0 if not set
+
+            _logger.LogInformation("Getting tasks for list ID: {ListId}, Page: {Page}", listId, currentPage);
             var endpoint = $"list/{listId}/task";
             var queryParams = new Dictionary<string, string?>();
 
             if (requestModel.Archived.HasValue) queryParams["archived"] = requestModel.Archived.Value.ToString().ToLower();
             if (requestModel.IncludeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = requestModel.IncludeMarkdownDescription.Value.ToString().ToLower();
-            if (requestModel.Page.HasValue) queryParams["page"] = requestModel.Page.Value.ToString();
+
+            queryParams["page"] = currentPage.ToString(); // Always include page
+
             if (!string.IsNullOrEmpty(requestModel.OrderBy)) queryParams["order_by"] = requestModel.OrderBy;
             if (requestModel.Reverse.HasValue) queryParams["reverse"] = requestModel.Reverse.Value.ToString().ToLower();
             if (requestModel.Subtasks.HasValue) queryParams["subtasks"] = requestModel.Subtasks.Value.ToString().ToLower();
@@ -106,11 +118,20 @@ namespace ClickUp.Api.Client.Services
             if (queryString == "?") queryString = string.Empty;
 
             var response = await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+
             if (response == null)
             {
-                throw new InvalidOperationException($"API connection returned null response when getting tasks for list {listId}.");
+                _logger.LogWarning("API connection returned null response when getting tasks for list {ListId}. Returning empty paged result.", listId);
+                return PagedResult<CuTask>.Empty(currentPage);
             }
-            return response;
+
+            var items = response.Tasks ?? Enumerable.Empty<CuTask>();
+            return new PagedResult<CuTask>(
+                items,
+                currentPage,
+                items.Count(), // PageSize for this specific page
+                response.LastPage == false // HasNextPage
+            );
         }
 
         /// <inheritdoc />
@@ -381,11 +402,12 @@ namespace ClickUp.Api.Client.Services
                 _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
                 pagedRequestModel.Page = currentPage; // Set current page for this iteration
 
-                var response = await GetTasksAsync(listId, pagedRequestModel, cancellationToken).ConfigureAwait(false);
+                // GetTasksAsync now returns IPagedResult<CuTask>
+                var pagedResult = await GetTasksAsync(listId, pagedRequestModel, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                if (response?.Tasks != null && response.Tasks.Any())
+                if (pagedResult?.Items != null && pagedResult.Items.Any())
                 {
-                    foreach (var task in response.Tasks)
+                    foreach (var task in pagedResult.Items)
                     {
                         if (cancellationToken.IsCancellationRequested)
                         {
@@ -393,13 +415,11 @@ namespace ClickUp.Api.Client.Services
                         }
                         yield return task;
                     }
-                    // If response.LastPage is true, it's the last page.
-                    // If response.LastPage is false or null, it's not the last page.
-                    lastPage = response.LastPage == true;
+                    lastPage = !pagedResult.HasNextPage;
                 }
                 else
                 {
-                    lastPage = true; // No response or no tasks implies last page or an issue
+                    lastPage = true; // No items implies last page or an issue
                 }
 
                 if (!lastPage)
@@ -410,12 +430,12 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetTasksResponse> GetFilteredTeamTasksAsync(
+        public async Task<IPagedResult<CuTask>> GetFilteredTeamTasksAsync(
             string workspaceId,
             GetFilteredTeamTasksRequest requestModel,
+            int? page = null, // Added to match interface, but requestModel.Page is primary
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, requestModel.Page);
             if (string.IsNullOrWhiteSpace(workspaceId))
             {
                 throw new ArgumentNullException(nameof(workspaceId));
@@ -425,10 +445,19 @@ namespace ClickUp.Api.Client.Services
                 throw new ArgumentNullException(nameof(requestModel));
             }
 
+            // Prioritize page from requestModel if available, else use the direct parameter.
+            if (page.HasValue && !requestModel.Page.HasValue)
+            {
+                requestModel.Page = page.Value;
+            }
+            int currentPage = requestModel.Page ?? 0; // Default to page 0 if not set
+
+            _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, currentPage);
+
             var endpoint = $"team/{workspaceId}/task";
             var queryParams = new Dictionary<string, string?>();
 
-            if (requestModel.Page.HasValue) queryParams["page"] = requestModel.Page.Value.ToString();
+            queryParams["page"] = currentPage.ToString(); // Always include page
             if (!string.IsNullOrEmpty(requestModel.OrderBy)) queryParams["order_by"] = requestModel.OrderBy;
             if (requestModel.Reverse.HasValue) queryParams["reverse"] = requestModel.Reverse.Value.ToString().ToLower();
             if (requestModel.Subtasks.HasValue) queryParams["subtasks"] = requestModel.Subtasks.Value.ToString().ToLower();
@@ -447,13 +476,13 @@ namespace ClickUp.Api.Client.Services
 
             if (!string.IsNullOrEmpty(requestModel.CustomFields)) queryParams["custom_fields"] = requestModel.CustomFields;
             if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
-            if (!string.IsNullOrEmpty(requestModel.TeamIdForCustomTaskIds)) queryParams["team_id"] = requestModel.TeamIdForCustomTaskIds;
+            if (!string.IsNullOrEmpty(requestModel.TeamIdForCustomTaskIds)) queryParams["team_id"] = requestModel.TeamIdForCustomTaskIds; // Note: This is 'team_id' in query, not 'workspace_id'
 
             var queryString = BuildQueryString(queryParams);
 
             var arrayParams = new List<string>();
             if (requestModel.SpaceIds != null && requestModel.SpaceIds.Any()) arrayParams.Add(BuildQueryStringFromArray("space_ids", requestModel.SpaceIds));
-            if (requestModel.ProjectIds != null && requestModel.ProjectIds.Any()) arrayParams.Add(BuildQueryStringFromArray("project_ids", requestModel.ProjectIds));
+            if (requestModel.ProjectIds != null && requestModel.ProjectIds.Any()) arrayParams.Add(BuildQueryStringFromArray("project_ids", requestModel.ProjectIds)); // project_ids is likely folder_ids
             if (requestModel.ListIds != null && requestModel.ListIds.Any()) arrayParams.Add(BuildQueryStringFromArray("list_ids", requestModel.ListIds));
             if (requestModel.Statuses != null && requestModel.Statuses.Any()) arrayParams.Add(BuildQueryStringFromArray("statuses", requestModel.Statuses));
             if (requestModel.Assignees != null && requestModel.Assignees.Any()) arrayParams.Add(BuildQueryStringFromArray("assignees", requestModel.Assignees));
@@ -467,12 +496,20 @@ namespace ClickUp.Api.Client.Services
             if (queryString == "?") queryString = string.Empty;
 
             var response = await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+
             if (response == null)
             {
-                // Consider a more specific message or logging
-                throw new InvalidOperationException($"API connection returned null response when getting filtered team tasks for workspace {workspaceId}.");
+                _logger.LogWarning("API connection returned null response when getting filtered team tasks for workspace {WorkspaceId}. Returning empty paged result.", workspaceId);
+                return PagedResult<CuTask>.Empty(currentPage);
             }
-            return response;
+
+            var items = response.Tasks ?? Enumerable.Empty<CuTask>();
+            return new PagedResult<CuTask>(
+                items,
+                currentPage,
+                items.Count(), // PageSize for this specific page
+                response.LastPage == false // HasNextPage
+            );
         }
 
         /// <inheritdoc />
@@ -531,24 +568,25 @@ namespace ClickUp.Api.Client.Services
                 _logger.LogDebug("Fetching page {PageNumber} for filtered team tasks in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
                 pagedRequestModel.Page = currentPage; // Set the current page for this request
 
-                var response = await GetFilteredTeamTasksAsync(
+                // GetFilteredTeamTasksAsync now returns IPagedResult<CuTask>
+                var pagedResult = await GetFilteredTeamTasksAsync(
                     workspaceId: workspaceId,
                     requestModel: pagedRequestModel, // Pass the modified request model
                     cancellationToken: cancellationToken
                 ).ConfigureAwait(false);
 
-                if (response?.Tasks != null && response.Tasks.Any())
+                if (pagedResult?.Items != null && pagedResult.Items.Any())
                 {
-                    foreach (var task in response.Tasks)
+                    foreach (var task in pagedResult.Items)
                     {
                         cancellationToken.ThrowIfCancellationRequested(); // Check before yielding each item
                         yield return task;
                     }
-                    lastPage = response.LastPage == true;
+                    lastPage = !pagedResult.HasNextPage;
                 }
                 else
                 {
-                    lastPage = true;
+                    lastPage = true; // No items implies last page or an issue
                 }
 
                 if (!lastPage)

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
+using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -39,9 +40,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this List.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<GetTasksResponse> GetTasksAsync(
+        Task<IPagedResult<CuTask>> GetTasksAsync(
             string listId,
             GetTasksRequest requestModel,
+            int? page = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -134,9 +136,10 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="requestModel"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<GetTasksResponse> GetFilteredTeamTasksAsync(
+        Task<IPagedResult<CuTask>> GetFilteredTeamTasksAsync(
             string workspaceId,
             GetFilteredTeamTasksRequest requestModel,
+            int? page = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>

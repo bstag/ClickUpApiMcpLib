@@ -10,9 +10,11 @@ using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Views; // View, CuTask DTOs
 using ClickUp.Api.Client.Models.RequestModels.Views;
-using ClickUp.Api.Client.Models.ResponseModels.Views; // GetViewTasksResponse and potential GetViewsResponse, GetViewResponse
+using ClickUp.Api.Client.Models.ResponseModels.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
+using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask
 
 namespace ClickUp.Api.Client.Services
 {
@@ -221,21 +223,83 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetViewTasksResponse> GetViewTasksAsync(
+        public async Task<IPagedResult<CuTask>> GetViewTasksAsync(
             string viewId,
-            int page,
+            GetViewTasksRequest request, // Changed from int page
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting view tasks for view ID: {ViewId}, Page: {Page}", viewId, page);
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            _logger.LogInformation("Getting view tasks for view ID: {ViewId}, Page: {Page}", viewId, request.Page);
             var endpoint = $"view/{viewId}/task";
             var queryParams = new Dictionary<string, string?>
             {
-                { "page", page.ToString() } // 'page' is a required query parameter
+                { "page", request.Page.ToString() }
             };
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetViewTasksResponse>(endpoint, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for GetViewTasksAsync (View ID: {viewId}, Page: {page}).");
+
+            if (response == null)
+            {
+                _logger.LogWarning("API connection returned null response for GetViewTasksAsync, View ID: {ViewId}, Page: {Page}. Returning empty paged result.", viewId, request.Page);
+                return PagedResult<CuTask>.Empty(request.Page);
+            }
+
+            var items = response.Tasks ?? Enumerable.Empty<CuTask>();
+            return new PagedResult<CuTask>(
+                items,
+                request.Page,
+                items.Count(), // PageSize for this specific page
+                response.LastPage == false // HasNextPage
+            );
+        }
+
+        /// <summary>
+        /// Retrieves all tasks that are visible within a specific View, automatically handling pagination.
+        /// </summary>
+        /// <param name="viewId">The ID of the View.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>An asynchronous enumerable of <see cref="CuTask"/> objects.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="viewId"/> is null or empty.</exception>
+        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown for API-side errors.</exception>
+        public async IAsyncEnumerable<CuTask> GetViewTasksAsyncEnumerableAsync(
+            string viewId,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(viewId)) throw new ArgumentNullException(nameof(viewId));
+
+            _logger.LogInformation("Streaming all tasks for view ID: {ViewId}", viewId);
+            int currentPage = 0;
+            bool lastPageReached;
+
+            do
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var requestDto = new GetViewTasksRequest { Page = currentPage };
+                _logger.LogDebug("Fetching page {PageNumber} for tasks in view ID {ViewId} via async enumerable.", currentPage, viewId);
+
+                IPagedResult<CuTask> pagedResult = await GetViewTasksAsync(viewId, requestDto, cancellationToken).ConfigureAwait(false);
+
+                if (pagedResult?.Items != null && pagedResult.Items.Any())
+                {
+                    foreach (var task in pagedResult.Items)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        yield return task;
+                    }
+                    lastPageReached = !pagedResult.HasNextPage;
+                }
+                else
+                {
+                    lastPageReached = true; // No items implies last page or error
+                }
+
+                if (!lastPageReached)
+                {
+                    currentPage++;
+                }
+            } while (!lastPageReached);
+            _logger.LogInformation("Finished streaming tasks for view ID: {ViewId}", viewId);
         }
     }
 }

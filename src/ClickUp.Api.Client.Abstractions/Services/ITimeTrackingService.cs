@@ -37,7 +37,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access time entries for this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-        Task<IEnumerable<TimeEntry>> GetTimeEntriesAsync(
+        Task<Models.Common.Pagination.IPagedResult<TimeEntry>> GetTimeEntriesAsync(
             string workspaceId,
             GetTimeEntriesRequest request,
             CancellationToken cancellationToken = default);

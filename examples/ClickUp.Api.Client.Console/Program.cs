@@ -162,16 +162,18 @@ public class Program
             else Log.Warning("[TASKS] Failed to create task.");
 
             Log.Information("[TASKS] 4. Getting tasks for list ID: {ListId}...", listIdForTaskOps);
-            GetTasksResponse? getTasksResponse = await taskService.GetTasksAsync(listIdForTaskOps, new GetTasksRequest { IncludeClosed = true }); // Ensure GetTasksRequest is used directly
-            if (getTasksResponse != null && getTasksResponse.Tasks.Any())
+            var getTasksRequestDto = new GetTasksRequest { IncludeClosed = true, Page = 0 };
+            var pagedTasksResponse = await taskService.GetTasksAsync(listIdForTaskOps, getTasksRequestDto, getTasksRequestDto.Page, CancellationToken.None);
+            if (pagedTasksResponse != null && pagedTasksResponse.Items.Any())
             {
-                Log.Information("[TASKS] Found {TaskCount} tasks in list {ListId}:", getTasksResponse.Tasks.Count, listIdForTaskOps);
-                foreach (var task in getTasksResponse.Tasks.Take(5))
+                Log.Information("[TASKS] Found {TaskCount} tasks on page {Page} in list {ListId}:", pagedTasksResponse.Items.Count, pagedTasksResponse.Page, listIdForTaskOps);
+                foreach (var task in pagedTasksResponse.Items.Take(5))
                 {
                     Log.Information("- Task ID: {TaskId}, Name: {TaskName}, Status: {Status}", task.Id, task.Name, task.Status?.StatusValue);
                 }
-                if (getTasksResponse.Tasks.Count > 5) Log.Information("... and more tasks not listed here.");
-            } else Log.Warning("[TASKS] No tasks found in list {ListId}", listIdForTaskOps);
+                if (pagedTasksResponse.Items.Count > 5) Log.Information("... and more tasks not listed here.");
+                if (pagedTasksResponse.HasNextPage) Log.Information("... More pages available.");
+            } else Log.Warning("[TASKS] No tasks found in list {ListId} for page {Page}", listIdForTaskOps, getTasksRequestDto.Page);
             // Removed filtered tasks example as it's no longer relevant or has been moved to another example.
             // TODO add back.
             if (!string.IsNullOrWhiteSpace(taskIdForCommentOps) && !taskIdForCommentOps.Contains("YOUR_") && authorizedUser != null)

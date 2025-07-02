@@ -62,31 +62,57 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<TimeEntry>> GetTimeEntriesAsync(
+        public async Task<Models.Common.Pagination.IPagedResult<TimeEntry>> GetTimeEntriesAsync(
             string workspaceId,
-            GetTimeEntriesRequest request, // This request DTO should contain all query parameters
+            GetTimeEntriesRequest request,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting time entries for workspace ID: {WorkspaceId}", workspaceId);
+            _logger.LogInformation("Getting time entries for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, request.Page ?? 0);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries";
             var queryParams = new Dictionary<string, string?>();
 
             // Populate queryParams from request DTO properties
-            if (request.StartDate.HasValue) queryParams["start_date"] = request.StartDate.Value.ToString();
-            if (request.EndDate.HasValue) queryParams["end_date"] = request.EndDate.Value.ToString();
+            if (request.StartDate.HasValue) queryParams["start_date"] = request.StartDate.Value.ToString("O"); // ISO 8601
+            if (request.EndDate.HasValue) queryParams["end_date"] = request.EndDate.Value.ToString("O"); // ISO 8601
             if (!string.IsNullOrEmpty(request.Assignee)) queryParams["assignee"] = request.Assignee;
             if (request.IncludeTaskTags.HasValue) queryParams["include_task_tags"] = request.IncludeTaskTags.Value.ToString().ToLower();
             if (request.IncludeLocationNames.HasValue) queryParams["include_location_names"] = request.IncludeLocationNames.Value.ToString().ToLower();
-            // TODO: Add include_task_url, include_lists, etc. from GetTimeEntriesRequest if they exist
+            if (request.IncludeTaskUrl.HasValue) queryParams["include_task_url"] = request.IncludeTaskUrl.Value.ToString().ToLower();
+            // TODO: Add include_lists, etc. from GetTimeEntriesRequest if they exist
+
             if (!string.IsNullOrEmpty(request.SpaceId)) queryParams["space_id"] = request.SpaceId;
             if (!string.IsNullOrEmpty(request.FolderId)) queryParams["folder_id"] = request.FolderId;
             if (!string.IsNullOrEmpty(request.ListId)) queryParams["list_id"] = request.ListId;
             if (!string.IsNullOrEmpty(request.TaskId)) queryParams["task_id"] = request.TaskId;
-           
+            if (request.Page.HasValue) queryParams["page"] = request.Page.Value.ToString();
+
+            // CustomFields and CustomItems might require special handling if they are complex types
+            // For now, assuming they are simple strings as per DTO.
+            if (!string.IsNullOrEmpty(request.CustomFields)) queryParams["custom_fields"] = request.CustomFields;
+            if (!string.IsNullOrEmpty(request.CustomItems)) queryParams["custom_items"] = request.CustomItems;
+
+
             endpoint += BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetTimeEntriesResponse>(endpoint, cancellationToken);
-            return response?.Data ?? Enumerable.Empty<TimeEntry>();
+
+            var items = response?.Data ?? Enumerable.Empty<TimeEntry>();
+            int currentPage = request.Page ?? 0;
+
+            // ClickUp's Get Tasks endpoint (similar structure) uses a fixed page size of 100 if not specified.
+            // We'll assume the same for time entries as the API doesn't provide page size or total count.
+            const int assumedPageSizeWhenFull = 100;
+            bool hasNextPage = items.Count() == assumedPageSizeWhenFull;
+
+            // Since total_count is not reliably returned by this specific endpoint in GetTimeEntriesResponse,
+            // we pass 0 for totalCount and totalPages.
+            // PageSize is also an assumption here.
+            return new Models.Common.Pagination.PagedResult<TimeEntry>(
+                items,
+                currentPage,
+                items.Count(), // Actual number of items on this page can serve as this page's size
+                hasNextPage
+            );
         }
 
         /// <inheritdoc />
@@ -330,18 +356,25 @@ namespace ClickUp.Api.Client.Services
 
                 var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries";
                 var queryParams = new Dictionary<string, string?>();
-                if (request.StartDate.HasValue) queryParams["start_date"] = request.StartDate.Value.ToString();
-                if (request.EndDate.HasValue) queryParams["end_date"] = request.EndDate.Value.ToString();
+                if (request.StartDate.HasValue) queryParams["start_date"] = request.StartDate.Value.ToString("O"); // ISO 8601
+                if (request.EndDate.HasValue) queryParams["end_date"] = request.EndDate.Value.ToString("O"); // ISO 8601
                 if (!string.IsNullOrEmpty(request.Assignee)) queryParams["assignee"] = request.Assignee;
                 if (request.IncludeTaskTags.HasValue) queryParams["include_task_tags"] = request.IncludeTaskTags.Value.ToString().ToLower();
                 if (request.IncludeLocationNames.HasValue) queryParams["include_location_names"] = request.IncludeLocationNames.Value.ToString().ToLower();
+                if (request.IncludeTaskUrl.HasValue) queryParams["include_task_url"] = request.IncludeTaskUrl.Value.ToString().ToLower();
+
                 if (!string.IsNullOrEmpty(request.SpaceId)) queryParams["space_id"] = request.SpaceId;
                 if (!string.IsNullOrEmpty(request.FolderId)) queryParams["folder_id"] = request.FolderId;
                 if (!string.IsNullOrEmpty(request.ListId)) queryParams["list_id"] = request.ListId;
                 if (!string.IsNullOrEmpty(request.TaskId)) queryParams["task_id"] = request.TaskId;
+
+                if (!string.IsNullOrEmpty(request.CustomFields)) queryParams["custom_fields"] = request.CustomFields;
+                if (!string.IsNullOrEmpty(request.CustomItems)) queryParams["custom_items"] = request.CustomItems;
+
                 queryParams["page"] = currentPage.ToString();
 
                 var fullEndpoint = endpoint + BuildQueryString(queryParams);
+                _logger.LogDebug("Fetching time entries page {CurrentPage} from endpoint: {FullEndpoint}", currentPage, fullEndpoint);
                 var responseWrapper = await _apiConnection.GetAsync<GetTimeEntriesResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
 
                 if (responseWrapper == null || responseWrapper.Data == null || !responseWrapper.Data.Any())

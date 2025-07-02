@@ -55,7 +55,7 @@ public class DocFluentSearchRequest
         return this;
     }
 
-    public async Task<SearchDocsResponse> SearchAsync(CancellationToken cancellationToken = default)
+    public async Task<Models.Common.Pagination.IPagedResult<Doc>> SearchAsync(CancellationToken cancellationToken = default)
     {
         var request = new SearchDocsRequest
         {
