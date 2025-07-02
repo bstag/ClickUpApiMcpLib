@@ -9,6 +9,7 @@ using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.Entities.Comments;
+using CuComment = ClickUp.Api.Client.Models.Entities.Comments.Comment; // Alias for Comment
 using ClickUp.Api.Client.Models.RequestModels.Comments;
 using ClickUp.Api.Client.Models.ResponseModels.Comments; // For CreateCommentResponse and potential GetCommentsResponse
 using Microsoft.Extensions.Logging;
@@ -56,7 +57,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async IAsyncEnumerable<Comment> GetListCommentsStreamAsync(
+        public async IAsyncEnumerable<CuComment> GetListCommentsStreamAsync(
             string listId,
             long? start = null,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -84,7 +85,7 @@ namespace ClickUp.Api.Client.Services
                 }
                 else
                 {
-                    Comment? lastComment = null;
+                    CuComment? lastComment = null;
                     foreach (var comment in commentsPage)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -103,7 +104,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async IAsyncEnumerable<Comment> GetChatViewCommentsStreamAsync(
+        public async IAsyncEnumerable<CuComment> GetChatViewCommentsStreamAsync(
             string viewId,
             long? start = null,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -131,7 +132,7 @@ namespace ClickUp.Api.Client.Services
                 }
                 else
                 {
-                    Comment? lastComment = null;
+                    CuComment? lastComment = null;
                     foreach (var comment in commentsPage)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -150,7 +151,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async IAsyncEnumerable<Comment> GetTaskCommentsStreamAsync(
+        public async IAsyncEnumerable<CuComment> GetTaskCommentsStreamAsync(
             string taskId, // TaskId remains separate as it's part of the path
             GetTaskCommentsRequest requestModel,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -183,7 +184,7 @@ namespace ClickUp.Api.Client.Services
                 }
                 else
                 {
-                    Comment? lastComment = null;
+                    CuComment? lastComment = null;
                     foreach (var comment in commentsPage)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -208,7 +209,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Comment>> GetTaskCommentsAsync(
+        public async Task<IPagedResult<Comment>> GetTaskCommentsAsync(
             GetTaskCommentsRequest requestModel,
             CancellationToken cancellationToken = default)
         {
@@ -225,7 +226,77 @@ namespace ClickUp.Api.Client.Services
             // but the actual API call might return a wrapper like GetTaskCommentsResponse which contains a list of comments.
             // Assuming _apiConnection.GetAsync correctly deserializes to GetTaskCommentsResponse.
             var responseWrapper = await _apiConnection.GetAsync<GetTaskCommentsResponse>(endpoint, cancellationToken);
-            return responseWrapper?.Comments ?? Enumerable.Empty<Comment>();
+            var comments = responseWrapper?.Comments ?? Enumerable.Empty<Comment>().ToList();
+
+            // For cursor-based, 'page' is synthetic (0 for first call).
+            // 'isLastPage' is true if fewer items than page size are returned.
+            bool isLastPage = comments.Count < DefaultCommentPageSize;
+
+            return PaginationHelpers.CreatePagedResult(
+                comments,
+                0, // Synthetic page number for cursor-based
+                DefaultCommentPageSize,
+                isLastPage);
+        }
+
+        /// <inheritdoc />
+        /// <param name="apiConnection">The API connection to use for making requests.</param>
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public CommentService(IApiConnection apiConnection, ILogger<CommentService> logger)
+        {
+            _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<CommentService>.Instance;
+        }
+
+        private string BuildQueryString(Dictionary<string, string?> queryParams)
+        {
+            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
+            {
+                return string.Empty;
+            }
+
+            var sb = new StringBuilder("?");
+            foreach (var kvp in queryParams)
+            {
+                if (kvp.Value != null)
+                {
+                    if (sb.Length > 1) sb.Append('&');
+                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
+                }
+            }
+            return sb.ToString();
+        }
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<Comment>> GetTaskCommentsAsync(
+            GetTaskCommentsRequest requestModel,
+            CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Getting task comments for task ID: {TaskId}, Start: {Start}, StartId: {StartId}", requestModel.TaskId, requestModel.Start, requestModel.StartId);
+            var endpoint = $"task/{requestModel.TaskId}/comment";
+            var queryParams = new Dictionary<string, string?>();
+            if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
+            if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
+            if (requestModel.Start.HasValue) queryParams["start"] = requestModel.Start.Value.ToString();
+            if (!string.IsNullOrEmpty(requestModel.StartId)) queryParams["start_id"] = requestModel.StartId;
+            endpoint += BuildQueryString(queryParams);
+
+            // The interface ICommentsService.GetTaskCommentsAsync returns Task<IEnumerable<Comment>>
+            // but the actual API call might return a wrapper like GetTaskCommentsResponse which contains a list of comments.
+            // Assuming _apiConnection.GetAsync correctly deserializes to GetTaskCommentsResponse.
+            var responseWrapper = await _apiConnection.GetAsync<GetTaskCommentsResponse>(endpoint, cancellationToken);
+            var comments = responseWrapper?.Comments ?? Enumerable.Empty<Comment>().ToList();
+
+            // For cursor-based, 'page' is synthetic (0 for first call).
+            // 'isLastPage' is true if fewer items than page size are returned.
+            bool isLastPage = comments.Count < DefaultCommentPageSize;
+
+            return PaginationHelpers.CreatePagedResult(
+                comments,
+                0, // Synthetic page number for cursor-based
+                DefaultCommentPageSize,
+                isLastPage);
         }
 
         /// <inheritdoc />
@@ -252,7 +323,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Comment>> GetChatViewCommentsAsync(
+        public async Task<IPagedResult<Comment>> GetChatViewCommentsAsync(
             string viewId,
             long? start = null,
             string? startId = null,
@@ -265,8 +336,16 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken);
-            return response?.Comments ?? Enumerable.Empty<Comment>();
+            var responseWrapper = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken);
+            var comments = responseWrapper?.Comments ?? Enumerable.Empty<Comment>().ToList();
+
+            bool isLastPage = comments.Count < DefaultCommentPageSize;
+
+            return PaginationHelpers.CreatePagedResult(
+                comments,
+                0, // Synthetic page number
+                DefaultCommentPageSize,
+                isLastPage);
         }
 
         /// <inheritdoc />
@@ -286,7 +365,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Comment>> GetListCommentsAsync(
+        public async Task<IPagedResult<Comment>> GetListCommentsAsync(
             string listId,
             long? start = null,
             string? startId = null,
@@ -299,8 +378,16 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
             endpoint += BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken);
-            return response?.Comments ?? Enumerable.Empty<Comment>();
+            var responseWrapper = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken);
+            var comments = responseWrapper?.Comments ?? Enumerable.Empty<Comment>().ToList();
+
+            bool isLastPage = comments.Count < DefaultCommentPageSize;
+
+            return PaginationHelpers.CreatePagedResult(
+                comments,
+                0, // Synthetic page number
+                DefaultCommentPageSize,
+                isLastPage);
         }
 
         /// <inheritdoc />
@@ -384,6 +471,7 @@ namespace ClickUp.Api.Client.Services
 
         Task ICommentsService.UpdateCommentAsync(string commentId, UpdateCommentRequest updateCommentRequest, CancellationToken cancellationToken)
         {
+            // Call the public method that returns Task<Comment> and return its Task part.
             return UpdateCommentAsync(commentId, updateCommentRequest, cancellationToken);
         }
 

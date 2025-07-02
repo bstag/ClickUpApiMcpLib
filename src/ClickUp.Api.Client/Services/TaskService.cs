@@ -63,8 +63,61 @@ namespace ClickUp.Api.Client.Services
         }
 
 
+using ClickUp.Api.Client.Helpers; // Added for PaginationHelpers
+using ClickUp.Api.Client.Models.Common.Pagination; // Added for IPagedResult
+
+namespace ClickUp.Api.Client.Services
+{
+    /// <summary>
+    /// Implements the <see cref="ITasksService"/> interface for interacting with ClickUp Tasks.
+    /// </summary>
+    public class TaskService : ITasksService
+    {
+        private readonly IApiConnection _apiConnection;
+        private readonly ILogger<TaskService> _logger;
+        private const int DefaultPageSize = 100; // ClickUp API default page size for tasks
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TaskService"/> class.
+        /// </summary>
+        /// <param name="apiConnection">The API connection to use for making requests.</param>
+        /// <param name="logger">The logger for this service.</param>
+        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
+        public TaskService(IApiConnection apiConnection, ILogger<TaskService> logger)
+        {
+            _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
+            _logger = logger ?? NullLogger<TaskService>.Instance;
+        }
+
+        private string BuildQueryString(Dictionary<string, string?> queryParams)
+        {
+            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
+            {
+                return string.Empty;
+            }
+
+            var sb = new StringBuilder("?");
+            foreach (var kvp in queryParams)
+            {
+                if (kvp.Value != null)
+                {
+                    if (sb.Length > 1) sb.Append('&');
+                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
+                }
+            }
+            return sb.ToString();
+        }
+
+        private string BuildQueryStringFromArray<T>(string key, IEnumerable<T>? values)
+        {
+            if (values == null || !values.Any()) return string.Empty;
+            // Format: key[]=value1&key[]=value2
+            return string.Join("&", values.Select(v => $"{Uri.EscapeDataString(key)}[]={Uri.EscapeDataString(v?.ToString() ?? string.Empty)}"));
+        }
+
+
         /// <inheritdoc />
-        public async Task<GetTasksResponse> GetTasksAsync(
+        public async Task<IPagedResult<CuTask>> GetTasksAsync(
             string listId,
             GetTasksRequest requestModel,
             CancellationToken cancellationToken = default)
@@ -110,7 +163,12 @@ namespace ClickUp.Api.Client.Services
             {
                 throw new InvalidOperationException($"API connection returned null response when getting tasks for list {listId}.");
             }
-            return response;
+
+            return PaginationHelpers.CreatePagedResult(
+                response.Tasks,
+                requestModel.Page ?? 0,
+                DefaultPageSize,
+                response.LastPage ?? true);
         }
 
         /// <inheritdoc />
@@ -410,7 +468,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<GetTasksResponse> GetFilteredTeamTasksAsync(
+        public async Task<IPagedResult<CuTask>> GetFilteredTeamTasksAsync(
             string workspaceId,
             GetFilteredTeamTasksRequest requestModel,
             CancellationToken cancellationToken = default)
@@ -472,7 +530,12 @@ namespace ClickUp.Api.Client.Services
                 // Consider a more specific message or logging
                 throw new InvalidOperationException($"API connection returned null response when getting filtered team tasks for workspace {workspaceId}.");
             }
-            return response;
+
+            return PaginationHelpers.CreatePagedResult(
+                response.Tasks,
+                requestModel.Page ?? 0,
+                DefaultPageSize,
+                response.LastPage ?? true);
         }
 
         /// <inheritdoc />

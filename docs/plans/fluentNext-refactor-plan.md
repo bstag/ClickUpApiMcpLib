@@ -86,7 +86,7 @@ Each step contains:
 **Why:** Paging parameters are re-invented in multiple services.
 
 **Tasks**
-- [ ] 3.1 Define `IPagedResult<T>` interface in `src/ClickUp.Api.Client.Models/Common/` (or a new `Pagination` namespace).
+- [x] 3.1 Define `IPagedResult<T>` interface in `src/ClickUp.Api.Client.Models/Common/` (or a new `Pagination` namespace).
     ```csharp
     // Possible IPagedResult<T> structure
     namespace ClickUp.Api.Client.Models.Common.Pagination;
@@ -101,9 +101,9 @@ Each step contains:
         bool HasPreviousPage { get; }
     }
     ```
-- [ ] 3.2 Implement a concrete `PagedResult<T>` class implementing `IPagedResult<T>`.
-- [ ] 3.3 Create helper extension method `AsPagedResult()` for `IApiConnection` or a dedicated pagination helper service that constructs `PagedResult<T>` from API responses that include pagination info (e.g. headers or a specific JSON structure).
-    - [ ] 3.3.1 Identify how ClickUp API returns pagination details (e.g., `last_page` field, `Link` headers, or if it's cursor-based). The current OpenAPI spec (e.g. for `GetTasks`) shows `page` and `last_page` parameters. The responses often include the items directly in an array, sometimes with a root object like `tasks`.
+- [x] 3.2 Implement a concrete `PagedResult<T>` class implementing `IPagedResult<T>`.
+- [x] 3.3 Create helper extension method `AsPagedResult()` for `IApiConnection` or a dedicated pagination helper service that constructs `PagedResult<T>` from API responses that include pagination info (e.g. headers or a specific JSON structure).
+    - [x] 3.3.1 Identify how ClickUp API returns pagination details (e.g., `last_page` field, `Link` headers, or if it's cursor-based). The current OpenAPI spec (e.g. for `GetTasks`) shows `page` and `last_page` parameters. The responses often include the items directly in an array, sometimes with a root object like `tasks`. (Identified: page-based uses `page` param and `last_page` in response. Cursor-based uses `start`/`start_id`.)
 - [ ] 3.4 Identify all service interface methods in `src/ClickUp.Api.Client.Abstractions/Services/*.cs` that currently return collections and support pagination (e.g., `GetTasks`, `GetComments`).
     - [ ] 3.4.1 Refactor these methods to return `Task<IPagedResult<TModel>>` instead of `Task<IEnumerable<TModel>>` or `Task<List<TModel>>`.
     - [ ] 3.4.2 Remove individual `page`, `pageSize` (or similar) parameters from these methods. The pagination parameters will now be handled by the fluent layer or a dedicated request object.

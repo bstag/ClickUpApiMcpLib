@@ -39,7 +39,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this List.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<GetTasksResponse> GetTasksAsync(
+        Task<Models.Common.Pagination.IPagedResult<CuTask>> GetTasksAsync(
             string listId,
             GetTasksRequest requestModel,
             CancellationToken cancellationToken = default);
@@ -134,7 +134,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="requestModel"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<GetTasksResponse> GetFilteredTeamTasksAsync(
+        Task<Models.Common.Pagination.IPagedResult<CuTask>> GetFilteredTeamTasksAsync(
             string workspaceId,
             GetFilteredTeamTasksRequest requestModel,
             CancellationToken cancellationToken = default);

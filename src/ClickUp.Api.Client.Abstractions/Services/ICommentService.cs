@@ -30,10 +30,37 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <returns>A task that represents the asynchronous operation. The task result contains an enumerable collection of <see cref="Comment"/> objects for the specified task.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="requestModel"/> or its required TaskId is null or empty.</exception>
         /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies customTaskIds as true but teamId is not provided.</exception>
+using ClickUp.Api.Client.Models.Common.Pagination;
+
+namespace ClickUp.Api.Client.Abstractions.Services
+{
+    /// <summary>
+    /// Service interface for ClickUp Comment operations.
+    /// </summary>
+    /// <remarks>
+    /// This service provides methods for managing comments on Tasks, Lists, and Chat Views,
+    /// including creating, retrieving, updating, and deleting comments, as well as handling threaded comments.
+    /// Covered API Endpoints:
+    /// - Task Comments: `GET /task/{task_id}/comment`, `POST /task/{task_id}/comment`
+    /// - Chat View Comments: `GET /view/{view_id}/comment`, `POST /view/{view_id}/comment`
+    /// - List Comments: `GET /list/{list_id}/comment`, `POST /list/{list_id}/comment`
+    /// - General Comment Operations: `PUT /comment/{comment_id}`, `DELETE /comment/{comment_id}`
+    /// - Threaded Comments: `GET /comment/{comment_id}/reply`, `POST /comment/{comment_id}/reply`
+    /// </remarks>
+    public interface ICommentsService
+    {
+        /// <summary>
+        /// Retrieves all comments associated with a specific task.
+        /// </summary>
+        /// <param name="requestModel">The request model containing parameters like Task ID, custom task ID flags, team ID, and pagination options (start, startId).</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IPagedResult{Comment}"/> objects for the specified task.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="requestModel"/> or its required TaskId is null or empty.</exception>
+        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies customTaskIds as true but teamId is not provided.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the task with the specified ID does not exist or is not accessible.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this task.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-        Task<IEnumerable<Comment>> GetTaskCommentsAsync(
+        Task<IPagedResult<Comment>> GetTaskCommentsAsync(
             GetTaskCommentsRequest requestModel,
             CancellationToken cancellationToken = default);
 
@@ -125,9 +152,9 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Chat view with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this view.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<IEnumerable<Comment>> GetChatViewCommentsAsync(
+        Task<IPagedResult<Comment>> GetChatViewCommentsAsync(
             string viewId,
-            long? start = null,
+            long? start = null, // This 'start' is for cursor, page for IPagedResult will be synthetic
             string? startId = null,
             CancellationToken cancellationToken = default);
 
@@ -159,9 +186,9 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access comments for this List.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<IEnumerable<Comment>> GetListCommentsAsync(
+        Task<IPagedResult<Comment>> GetListCommentsAsync(
             string listId,
-            long? start = null,
+            long? start = null, // This 'start' is for cursor, page for IPagedResult will be synthetic
             string? startId = null,
             CancellationToken cancellationToken = default);
 
