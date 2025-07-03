@@ -83,28 +83,8 @@ public class TasksRequest
 
     public IAsyncEnumerable<CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
-        // Create a new GetTasksRequestParameters instance to pass to the service method,
-        // copying configured values. Page will be handled by the enumerable.
-        var serviceParameters = new GetTasksRequestParameters
-        {
-            Archived = _parameters.Archived,
-            IncludeMarkdownDescription = _parameters.IncludeMarkdownDescription,
-            SortBy = _parameters.SortBy,
-            Subtasks = _parameters.Subtasks,
-            Statuses = _parameters.Statuses,
-            IncludeClosed = _parameters.IncludeClosed,
-            AssigneeIds = _parameters.AssigneeIds,
-            Tags = _parameters.Tags,
-            DueDateRange = _parameters.DueDateRange,
-            DateCreatedRange = _parameters.DateCreatedRange,
-            DateUpdatedRange = _parameters.DateUpdatedRange,
-            CustomFields = _parameters.CustomFields,
-            CustomItems = _parameters.CustomItems,
-            SpaceIds = _parameters.SpaceIds,
-            ProjectIds = _parameters.ProjectIds,
-            ListIds = _parameters.ListIds // Include ListIds from parameters if set, though primary listId is path param
-        };
-        // Page is omitted as the service's AsyncEnumerable method handles pagination.
-        return _tasksService.GetTasksAsyncEnumerableAsync(_listId, serviceParameters, cancellationToken);
+        // Pass the _parameters object directly to the service method.
+        // The service method handles pagination automatically for AsyncEnumerable.
+        return _tasksService.GetTasksAsyncEnumerableAsync(_listId, _parameters, cancellationToken);
     }
 }

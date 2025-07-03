@@ -75,28 +75,8 @@ public class TasksFluentGetFilteredTeamRequest
 
     public IAsyncEnumerable<CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
-        // Create a new GetTasksRequestParameters instance to pass to the service method,
-        // copying configured values. Page will be handled by the enumerable.
-        var serviceParameters = new GetTasksRequestParameters
-        {
-            Page = _parameters.Page, // Though enumerable handles pages, pass initial if set
-            SortBy = _parameters.SortBy,
-            Subtasks = _parameters.Subtasks,
-            SpaceIds = _parameters.SpaceIds,
-            ProjectIds = _parameters.ProjectIds,
-            ListIds = _parameters.ListIds,
-            Statuses = _parameters.Statuses,
-            IncludeClosed = _parameters.IncludeClosed,
-            AssigneeIds = _parameters.AssigneeIds,
-            Tags = _parameters.Tags,
-            DueDateRange = _parameters.DueDateRange,
-            DateCreatedRange = _parameters.DateCreatedRange,
-            DateUpdatedRange = _parameters.DateUpdatedRange,
-            CustomFields = _parameters.CustomFields,
-            CustomItems = _parameters.CustomItems,
-            IncludeMarkdownDescription = _parameters.IncludeMarkdownDescription,
-            Archived = _parameters.Archived
-        };
-        return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(_workspaceId, serviceParameters, cancellationToken);
+        // Pass the _parameters object directly to the service method.
+        // The service method handles pagination automatically for AsyncEnumerable.
+        return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(_workspaceId, _parameters, cancellationToken);
     }
 }
