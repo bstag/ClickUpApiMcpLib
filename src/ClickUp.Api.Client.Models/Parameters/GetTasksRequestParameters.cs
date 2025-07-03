@@ -41,12 +41,12 @@ public class GetTasksRequestParameters
     {
         var parameters = new List<KeyValuePair<string, string>>();
 
-        SpaceIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("space_ids", id.ToString())));
-        ProjectIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("project_ids", id.ToString())));
-        ListIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("list_ids", id)));
-        AssigneeIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("assignees", id.ToString())));
-        Statuses?.ToList().ForEach(s => parameters.Add(new KeyValuePair<string, string>("statuses", Uri.EscapeDataString(s))));
-        Tags?.ToList().ForEach(t => parameters.Add(new KeyValuePair<string, string>("tags", Uri.EscapeDataString(t))));
+        SpaceIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("space_ids[]", id.ToString())));
+        ProjectIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("project_ids[]", id.ToString())));
+        ListIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("list_ids[]", id)));
+        AssigneeIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("assignees[]", id.ToString())));
+        Statuses?.ToList().ForEach(s => parameters.Add(new KeyValuePair<string, string>("statuses[]", Uri.EscapeDataString(s))));
+        Tags?.ToList().ForEach(t => parameters.Add(new KeyValuePair<string, string>("tags[]", Uri.EscapeDataString(t))));
 
         if (IncludeClosed.HasValue) parameters.Add(new KeyValuePair<string, string>("include_closed", IncludeClosed.Value.ToString().ToLowerInvariant()));
         if (Subtasks.HasValue) parameters.Add(new KeyValuePair<string, string>("subtasks", Subtasks.Value.ToString().ToLowerInvariant()));
