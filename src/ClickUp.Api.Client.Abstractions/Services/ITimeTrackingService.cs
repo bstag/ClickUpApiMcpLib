@@ -3,41 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities.TimeTracking;
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
-
-namespace ClickUp.Api.Client.Abstractions.Services
-{
-    /// <summary>
-    /// Service interface for ClickUp Time Tracking operations.
-    /// </summary>
-    /// <remarks>
-    /// This service provides methods for creating, retrieving, updating, deleting, and managing time entries
-    /// and their associated tags within a Workspace. It also includes functionality for starting and stopping timers.
-    /// Covered API Endpoints (non-exhaustive list):
-    /// - Get Time Entries: `GET /team/{team_id}/time_entries`
-    /// - Create Time Entry: `POST /team/{team_id}/time_entries`
-    /// - Get Single Time Entry: `GET /team/{team_id}/time_entries/{timer_id}`
-    /// - Update Time Entry: `PUT /team/{team_id}/time_entries/{timer_id}`
-    /// - Delete Time Entry: `DELETE /team/{team_id}/time_entries/{timer_id}`
-    /// - Get Time Entry History: `GET /team/{team_id}/time_entries/{timer_id}/history`
-    /// - Get Running Time Entry: `GET /team/{team_id}/time_entries/current`
-    /// - Start Timer: `POST /team/{team_id}/time_entries/start`
-    /// - Stop Timer: `POST /team/{team_id}/time_entries/stop`
-    /// - Time Entry Tags: `GET /team/{team_id}/time_entries/tags`, `POST /team/{team_id}/time_entries/tags`, `DELETE /team/{team_id}/time_entries/tags`, `PUT /team/{team_id}/time_entries/tags`
-    /// </remarks>
-    public interface ITimeTrackingService
-    {
-        /// <summary>
-        /// Retrieves a list of time entries for a specified Workspace (Team), with various filtering options.
-        /// </summary>
-        /// <param name="workspaceId">The unique identifier of the Workspace (Team).</param>
-        /// <param name="request">A <see cref="GetTimeEntriesRequest"/> object containing filter criteria such as date ranges, assignees, and task IDs.</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains an enumerable collection of <see cref="TimeEntry"/> objects matching the filter criteria.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="request"/> is null.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access time entries for this Workspace.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-﻿using System; // Required for Action
+using System; // Required for Action
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
