@@ -69,8 +69,8 @@ public class GetTasksRequestParameters
 
         if (SortBy != null)
         {
-            // ToQueryParameters itself returns a Dictionary, adapt this or make SortOption also return List<KVP>
-            var sortParams = SortBy.ToQueryParameters("order_by", "reverse");
+            // Use the explicit method for order_by + reverse convention
+            var sortParams = SortBy.ToOrderByReverseParameters("order_by", "reverse");
             foreach (var entry in sortParams)
             {
                 parameters.Add(new KeyValuePair<string, string>(entry.Key, entry.Value));
