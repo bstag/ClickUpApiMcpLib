@@ -383,7 +383,7 @@ try
         // Example: Spaces API - Get spaces
         // IMPORTANT: Replace "YOUR_WORKSPACE_ID"
         var workspaceIdForSpaces = settings.WorkspaceId ?? "YOUR_WORKSPACE_ID_FOR_SPACES";
-        if (workspaceIdForSpaces != "YOUR_WORKSPACE_ID_FOR_SPaces") // Corrected typo here from SPACES to Spaces
+        if (workspaceIdForSpaces != "YOUR_WORKSPACE_ID_FOR_SPACES")
         {
             Console.WriteLine($"\n  Fetching spaces for workspace '{workspaceIdForSpaces}'...");
             var spaces = await client.Spaces.GetSpacesAsync(workspaceIdForSpaces);
