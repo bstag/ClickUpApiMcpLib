@@ -9,7 +9,8 @@ using ClickUp.Api.Client.Models.Entities.Users; // For User model within respons
 using ClickUp.Api.Client.Services;
 using Moq;
 using Xunit;
-using System.Collections.Generic; // For List<string>
+using System.Collections.Generic;
+using ClickUp.Api.Client.Models.Exceptions; // For List<string>
 
 namespace ClickUp.Api.Client.Tests.ServiceTests
 {
@@ -141,14 +142,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fileContent = "This is a test file.";
             using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
 
-            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>( // Changed to CreateTaskAttachmentResponse
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
                     It.IsAny<string>(),
                     It.IsAny<MultipartFormDataContent>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CreateTaskAttachmentResponse?)null); // Changed to CreateTaskAttachmentResponse
+                .ReturnsAsync((CreateTaskAttachmentResponse?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            var expectedException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _attachmentsService.CreateTaskAttachmentAsync(
                     taskId,
                     memoryStream,
@@ -157,6 +158,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     null,
                     CancellationToken.None)
             );
+
+            Assert.NotNull(expectedException);
+            Assert.Equal($"Failed to create attachment for task {taskId}, or the API returned an unexpected null or invalid response.", expectedException.Message);
         }
 
         [Fact]
@@ -209,14 +213,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fileContent = "This is a test file.";
             using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
 
+            var expectedException = new ClickUpApiNotFoundException("Resource not found", System.Net.HttpStatusCode.NotFound, "NF_TEST_001", "{\"err\":\"Resource not found\",\"ECODE\":\"NF_TEST_001\"}");
             _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
                     It.IsAny<string>(),
                     It.IsAny<MultipartFormDataContent>(),
                     It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new HttpRequestException("API call failed"));
+                .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<HttpRequestException>(() =>
+            var actualException = await Assert.ThrowsAsync<ClickUpApiNotFoundException>(() =>
                 _attachmentsService.CreateTaskAttachmentAsync(
                     taskId,
                     memoryStream,

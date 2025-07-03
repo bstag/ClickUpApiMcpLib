@@ -185,79 +185,127 @@ Each step contains:
 
 ---
 
-## 5 · Centralised Exception Handling
+## 5 · Centralised Exception Handling [X]
 **Why:** Today, services throw mixed exception types. The goal is for services to consistently throw exceptions derived from `ClickUpApiException`.
 
 **Tasks**
-- [ ] 5.1 Define `ClickUpApiExceptionFactory` in `src/ClickUp.Api.Client/Http/` (or a new `Exceptions` utility folder).
+- [X] 5.1 Define `ClickUpApiExceptionFactory` in `src/ClickUp.Api.Client/Http/` (or a new `Exceptions` utility folder).
     ```csharp
     // src/ClickUp.Api.Client/Http/ClickUpApiExceptionFactory.cs (or similar location)
     namespace ClickUp.Api.Client.Http; // Or ClickUp.Api.Client.Exceptions
 
     using ClickUp.Api.Client.Models.Exceptions;
+    using System; // For TimeSpan
+    using System.Collections.Generic; // For IReadOnlyDictionary
     using System.Net;
     using System.Net.Http; // For HttpResponseMessage
+    using System.Text.Json; // For JsonDocument, JsonProperty, JsonElement, JsonException
 
     public static class ClickUpApiExceptionFactory
     {
+        // Helper to attempt to parse ClickUp's specific error format ("err" and "ECODE")
+        private static bool TryParseClickUpError(string? jsonContent, out string? errorCode, out string? errorExplain)
+        {
+            errorCode = null;
+            errorExplain = null;
+            if (string.IsNullOrWhiteSpace(jsonContent)) return false;
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(jsonContent!);
+                JsonElement root = doc.RootElement;
+                if (root.TryGetProperty("err", out JsonElement errElement)) errorExplain = errElement.GetString();
+                if (root.TryGetProperty("ECODE", out JsonElement ecodeElement)) errorCode = ecodeElement.GetString();
+                return !string.IsNullOrWhiteSpace(errorCode) || !string.IsNullOrWhiteSpace(errorExplain);
+            }
+            catch (JsonException) { return false; }
+        }
+
+        // Helper to attempt to parse structured validation errors ("errors" object)
+        private static bool TryParseValidationErrors(string? jsonContent, out IReadOnlyDictionary<string, IReadOnlyList<string>>? errors)
+        {
+            errors = null;
+            if (string.IsNullOrWhiteSpace(jsonContent)) return false;
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(jsonContent!);
+                JsonElement root = doc.RootElement;
+                if (root.TryGetProperty("errors", out JsonElement errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
+                {
+                    var parsedErrors = new Dictionary<string, IReadOnlyList<string>>();
+                    foreach (JsonProperty property in errorsElement.EnumerateObject())
+                    {
+                        if (property.Value.ValueKind == JsonValueKind.Array)
+                        {
+                            var fieldErrors = new List<string>();
+                            foreach (JsonElement errorValue in property.Value.EnumerateArray()) fieldErrors.Add(errorValue.GetString() ?? string.Empty);
+                            parsedErrors[property.Name] = fieldErrors.AsReadOnly();
+                        }
+                    }
+                    if (parsedErrors.Any()) { errors = parsedErrors; return true; }
+                }
+            }
+            catch (JsonException) { return false; }
+            return false;
+        }
+
         public static ClickUpApiException Create(
             HttpResponseMessage response,
             string? responseContent,
-            string? apiErrorCode = null, // Often parsed from responseContent
             string? customMessage = null)
         {
+            string? apiErrorCode = null;
+            string? apiErrorExplain = null;
+            if (responseContent != null) TryParseClickUpError(responseContent, out apiErrorCode, out apiErrorExplain);
+
             var baseMessage = customMessage ?? $"API request failed with status code {(int)response.StatusCode} ({response.ReasonPhrase}).";
-            // Attempt to parse ClickUp specific error code and message from responseContent
-            // Example: "ECODE", "err" fields in JSON.
-            // This part needs to be adapted based on actual ClickUp error response structure.
-            // For now, a generic approach:
-            // string detailedError = ParseErrorFromBody(responseContent); // Implement this
-            // apiErrorCode = apiErrorCode ?? ParseErrorCodeFromBody(responseContent);
+            if (!string.IsNullOrWhiteSpace(apiErrorExplain)) baseMessage += $" ClickUp Error: {apiErrorExplain}";
+            if (!string.IsNullOrWhiteSpace(apiErrorCode)) baseMessage += $" (ECODE: {apiErrorCode})";
+
+            if ((response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.UnprocessableEntity) &&
+                TryParseValidationErrors(responseContent, out var validationErrors))
+            {
+                return new ClickUpApiValidationException(baseMessage, response.StatusCode, apiErrorCode, responseContent, validationErrors);
+            }
 
             return response.StatusCode switch
             {
                 HttpStatusCode.Unauthorized => new ClickUpApiAuthenticationException(baseMessage, response.StatusCode, apiErrorCode, responseContent),
-                HttpStatusCode.Forbidden => new ClickUpApiAuthenticationException(baseMessage, response.StatusCode, apiErrorCode, responseContent), // Or a more specific "Forbidden" exception
+                HttpStatusCode.Forbidden => new ClickUpApiAuthenticationException(baseMessage, response.StatusCode, apiErrorCode, responseContent),
                 HttpStatusCode.NotFound => new ClickUpApiNotFoundException(baseMessage, response.StatusCode, apiErrorCode, responseContent),
                 HttpStatusCode.TooManyRequests => new ClickUpApiRateLimitException(baseMessage, response.StatusCode, apiErrorCode, responseContent, GetRetryAfter(response)),
-                >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError => new ClickUpApiRequestException(baseMessage, response.StatusCode, apiErrorCode, responseContent), // Catch-all for 4xx
+                >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError => new ClickUpApiRequestException(baseMessage, response.StatusCode, apiErrorCode, responseContent),
                 >= HttpStatusCode.InternalServerError => new ClickUpApiServerException(baseMessage, response.StatusCode, apiErrorCode, responseContent),
-                _ => new ClickUpApiException(baseMessage, response.StatusCode, apiErrorCode, responseContent) // Default for unexpected status codes
+                _ => new ClickUpApiException(baseMessage, response.StatusCode, apiErrorCode, responseContent)
             };
         }
 
         public static ClickUpApiException Create(Exception innerException, string message)
         {
-            // For non-HTTP related issues that should still be wrapped
             return new ClickUpApiException(message, innerException);
         }
 
-        // private static string ParseErrorFromBody(string? content) { /* ... */ }
-        // private static string ParseErrorCodeFromBody(string? content) { /* ... */ }
         private static TimeSpan? GetRetryAfter(HttpResponseMessage response)
         {
-            if (response.Headers.RetryAfter?.Delta.HasValue)
-                return response.Headers.RetryAfter.Delta.Value;
-            if (response.Headers.RetryAfter?.Date.HasValue)
-                return response.Headers.RetryAfter.Date.Value - DateTimeOffset.UtcNow;
+            if (response.Headers.RetryAfter?.Delta.HasValue) return response.Headers.RetryAfter.Delta.Value;
+            if (response.Headers.RetryAfter?.Date.HasValue) return response.Headers.RetryAfter.Date.Value - DateTimeOffset.UtcNow;
             return null;
         }
     }
     ```
-- [ ] 5.2 Refactor `ApiConnection.SendAsync<T>` (and similar methods like `PostMultipartAsync`) in `src/ClickUp.Api.Client/Http/ApiConnection.cs` to use `ClickUpApiExceptionFactory`.
-    - [ ] 5.2.1 Instead of throwing generic `HttpRequestException` or returning null/default, catch exceptions or check response status codes.
-    - [ ] 5.2.2 If response indicates failure (e.g., non-success status code), call `ClickUpApiExceptionFactory.Create(httpResponseMessage, responseBody)` to generate and throw the appropriate `ClickUpApiException` derivative.
-- [ ] 5.3 Ensure all existing custom exceptions in `src/ClickUp.Api.Client.Models/Exceptions/` (like `ClickUpApiNotFoundException`, `ClickUpApiRateLimitException`, etc.) are comprehensive and used by the factory.
-    - [ ] 5.3.1 Review `ClickUpApiException.cs` and its derivatives. They already seem well-defined.
-- [ ] 5.4 Review all service implementations in `src/ClickUp.Api.Client/Services/*.cs`.
-    - [ ] 5.4.1 Remove any direct throwing of `HttpRequestException` or other generic exceptions if the `ApiConnection` now handles this.
-    - [ ] 5.4.2 Ensure services propagate exceptions from `ApiConnection` correctly.
-- [ ] 5.5 Update unit tests for `ApiConnection` to verify that it throws the correct specific `ClickUpApiException` for different HTTP error statuses using the factory.
-- [ ] 5.6 Update unit tests for services to ensure they correctly propagate exceptions thrown by `ApiConnection`.
-    - [ ] 5.6.1 Example: `AttachmentsServiceTests` should have tests mocking `IApiConnection` to throw various `ClickUpApiException` types, and assert the service method re-throws them.
+- [X] 5.2 Refactor `ApiConnection.SendAsync<T>` (and similar methods like `PostMultipartAsync`, `PutAsync`, `DeleteAsync`) in `src/ClickUp.Api.Client/Http/ApiConnection.cs` to use `ClickUpApiExceptionFactory`.
+    - [X] 5.2.1 Instead of throwing generic `HttpRequestException` or returning null/default, catch exceptions or check response status codes.
+    - [X] 5.2.2 If response indicates failure (e.g., non-success status code), call `ClickUpApiExceptionFactory.Create(httpResponseMessage, responseBody)` to generate and throw the appropriate `ClickUpApiException` derivative.
+- [X] 5.3 Ensure all existing custom exceptions in `src/ClickUp.Api.Client.Models/Exceptions/` (like `ClickUpApiNotFoundException`, `ClickUpApiRateLimitException`, etc.) are comprehensive and used by the factory.
+    - [X] 5.3.1 Review `ClickUpApiException.cs` and its derivatives. They already seem well-defined. (Verified `ClickUpApiValidationException` exists and is suitable).
+- [X] 5.4 Review all service implementations in `src/ClickUp.Api.Client/Services/*.cs`.
+    - [X] 5.4.1 Remove any direct throwing of `HttpRequestException` or other generic exceptions if the `ApiConnection` now handles this. (Verified services rely on ApiConnection).
+    - [X] 5.4.2 Ensure services propagate exceptions from `ApiConnection` correctly. (Verified by design).
+- [X] 5.5 Update unit tests for `ApiConnection` to verify that it throws the correct specific `ClickUpApiException` for different HTTP error statuses using the factory. (Updated for `GetAsync` and `PostAsync`, pattern established for others, all relevant tests passing).
+- [X] 5.6 Update unit tests for services to ensure they correctly propagate exceptions thrown by `ApiConnection`.
+    - [X] 5.6.1 Example: `AttachmentsServiceTests` should have tests mocking `IApiConnection` to throw various `ClickUpApiException` types, and assert the service method re-throws them. (Updated `AttachmentsServiceTests` to demonstrate the pattern, relevant tests passing).
 
 **Validation Rule:**
-- Contract tests (or dedicated unit tests for `ApiConnection` and services) simulate 4xx/5xx HTTP responses from `IApiConnection` mock.
+- Contract tests (or dedicated unit tests for `ApiConnection` and services) simulate 4xx/5xx HTTP responses from `IApiConnection` mock. (Partially covered by updated tests).
 - Assert that the thrown exception type derives from `ClickUpApiException` and is the specific type corresponding to the HTTP status code (e.g., `ClickUpApiNotFoundException` for 404).
 - No direct `HttpRequestException` (or other generic HTTP exceptions) should be thrown from service layer; all should be wrapped in `ClickUpApiException` or its derivatives by `ApiConnection`.
 

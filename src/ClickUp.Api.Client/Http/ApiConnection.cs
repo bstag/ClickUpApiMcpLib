@@ -192,91 +192,9 @@ namespace ClickUp.Api.Client.Http
             // A more sophisticated approach would be to deserialize rawErrorContent into a ClickUpError DTO.
             string? apiErrorCode = null;
             string errorMessage = $"API request failed with status code {response.StatusCode}. Raw content: {rawErrorContent}";
-            Models.ResponseModels.Shared.ClickUpErrorResponse? errorDto = null;
-
-            if (!string.IsNullOrWhiteSpace(rawErrorContent))
-            {
-                try
-                {
-                    errorDto = JsonSerializer.Deserialize<Models.ResponseModels.Shared.ClickUpErrorResponse>(rawErrorContent, JsonSerializerOptionsHelper.Options);
-                    if (errorDto != null)
-                    {
-                        apiErrorCode = errorDto.ErrorCode;
-                        errorMessage = string.IsNullOrWhiteSpace(errorDto.ErrorMessage) ? errorMessage : errorDto.ErrorMessage;
-                    }
-                }
-                catch (JsonException)
-                {
-                    // If deserialization fails, keep the original generic error message and null apiErrorCode.
-                    // The rawErrorContent will still be part of the exception.
-                }
-            }
-
-            switch (response.StatusCode)
-            {
-                case HttpStatusCode.Unauthorized:
-                case HttpStatusCode.Forbidden:
-                    throw new ClickUpApiAuthenticationException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent);
-                case HttpStatusCode.NotFound:
-                    throw new ClickUpApiNotFoundException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent);
-                case HttpStatusCode.TooManyRequests:
-                    TimeSpan? retryAfterDelta = null;
-                    DateTimeOffset? retryAfterDate = null;
-                    if (response.Headers.RetryAfter?.Delta.HasValue ?? false)
-                        retryAfterDelta = response.Headers.RetryAfter.Delta;
-                    if (response.Headers.RetryAfter?.Date.HasValue ?? false)
-                        retryAfterDate = response.Headers.RetryAfter.Date;
-                    throw new ClickUpApiRateLimitException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent, retryAfterDelta, retryAfterDate);
-                case HttpStatusCode.BadRequest:
-                case HttpStatusCode.UnprocessableEntity: // Often used for validation errors
-                    IReadOnlyDictionary<string, IReadOnlyList<string>>? validationErrors = null;
-                    if (!string.IsNullOrWhiteSpace(rawErrorContent))
-                    {
-                        try
-                        {
-                            // Attempt to deserialize into a structure that includes detailed errors
-                            var validationErrorDto = JsonSerializer.Deserialize<Models.ResponseModels.Shared.ValidationErrorDetailResponse>(rawErrorContent, JsonSerializerOptionsHelper.Options);
-                            if (validationErrorDto?.DetailedErrors != null)
-                            {
-                                // Convert Dictionary<string, List<string>> to IReadOnlyDictionary<string, IReadOnlyList<string>>
-                                var tempErrors = new Dictionary<string, IReadOnlyList<string>>();
-                                foreach (var kvp in validationErrorDto.DetailedErrors)
-                                {
-                                    if (kvp.Value != null) // Ensure the list of errors is not null
-                                    {
-                                        tempErrors[kvp.Key] = kvp.Value.AsReadOnly();
-                                    }
-                                }
-                                validationErrors = tempErrors;
-
-                                // Optionally, update the main error message if the detailed one is more specific
-                                // and the original errorDto didn't provide a message (e.g. if it was just "Validation Error")
-                                if (errorDto != null && !string.IsNullOrWhiteSpace(validationErrorDto.ErrorMessage) &&
-                                    (string.IsNullOrWhiteSpace(errorDto.ErrorMessage) || errorDto.ErrorMessage.Contains("failed with status code"))) // be careful not to overwrite a good message
-                                {
-                                    errorMessage = validationErrorDto.ErrorMessage;
-                                }
-                                if (errorDto != null && !string.IsNullOrWhiteSpace(validationErrorDto.ErrorCode))
-                                {
-                                    apiErrorCode = validationErrorDto.ErrorCode;
-                                }
-                            }
-                        }
-                        catch (JsonException)
-                        {
-                            // If deserialization into the detailed structure fails, proceed with no detailed errors.
-                            // The rawErrorContent is still available in the exception.
-                        }
-                    }
-                    throw new ClickUpApiValidationException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent, validationErrors);
-                case HttpStatusCode.InternalServerError:
-                case HttpStatusCode.BadGateway:
-                case HttpStatusCode.ServiceUnavailable:
-                case HttpStatusCode.GatewayTimeout:
-                    throw new ClickUpApiServerException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent);
-                default:
-                    throw new ClickUpApiException(errorMessage, response.StatusCode, apiErrorCode, rawErrorContent);
-            }
+            // Use the factory to create and throw the appropriate exception.
+            // The factory will handle parsing the error content and selecting the exception type.
+            throw ClickUpApiExceptionFactory.Create(response, rawErrorContent);
         }
 
         /// <inheritdoc />
