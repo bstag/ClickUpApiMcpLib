@@ -27,6 +27,7 @@ public class GetTasksRequestParameters
     public bool? IncludeMarkdownDescription { get; set; }
     public IEnumerable<CustomFieldFilter>? CustomFields { get; set; }
     public IEnumerable<int>? CustomItems { get; set; } // For custom task types (0 for task, 1 for milestone, etc.)
+    public bool? Archived { get; set; }
 
     /// <summary>
     /// Converts the set parameters into a dictionary suitable for an HTTP query.
@@ -39,16 +40,6 @@ public class GetTasksRequestParameters
     public Dictionary<string, string> ToDictionary()
     {
         var parameters = new Dictionary<string, string>();
-
-        // Helper to add list parameters. The IApiConnection or a QueryStringBuilder
-        // will be responsible for formatting these correctly (e.g. key[]=val1&amp;key[]=val2 or key=val1,val2)
-        void AddListParameter<T>(string key, IEnumerable<T>? values) // This helper is not currently used, but kept for potential future use.
-        {
-            if (values?.Any() ?? false)
-            {
-                parameters[key] = string.Join(",", values.Select(v => Uri.EscapeDataString(v?.ToString() ?? string.Empty)));
-            }
-        }
 
         if (SpaceIds?.Any() ?? false) parameters["space_ids"] = string.Join(",", SpaceIds);
         if (ProjectIds?.Any() ?? false) parameters["project_ids"] = string.Join(",", ProjectIds);
@@ -95,6 +86,8 @@ public class GetTasksRequestParameters
         }
 
         if (CustomItems?.Any() ?? false) parameters["custom_items"] = string.Join(",", CustomItems);
+
+        if (Archived.HasValue) parameters["archived"] = Archived.Value.ToString().ToLowerInvariant();
 
         return parameters;
     }

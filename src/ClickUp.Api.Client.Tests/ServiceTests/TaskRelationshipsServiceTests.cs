@@ -276,10 +276,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
-        public async Task DeleteDependencyAsync_NeitherDependsOnNorDependencyOf_ThrowsArgumentException()
+        public void DeleteDependencyAsync_NeitherDependsOnNorDependencyOf_ThrowsArgumentException() // Changed to void
         {
             // Arrange
-            var taskId = "task_del_no_specific_dep";
+            // var taskId = "task_del_no_specific_dep"; // Unused
 
             // Act & Assert
             // Validation is now in DTO constructor
@@ -289,7 +289,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
-        public async Task DeleteDependencyAsync_BothDependsOnAndDependencyOf_ThrowsArgumentException()
+        public void DeleteDependencyAsync_BothDependsOnAndDependencyOf_ThrowsArgumentException() // Changed to void
         {
             // Arrange
             // Validation is now in DTO constructor

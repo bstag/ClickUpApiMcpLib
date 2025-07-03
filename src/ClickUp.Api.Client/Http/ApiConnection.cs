@@ -190,8 +190,8 @@ namespace ClickUp.Api.Client.Http
             // Attempt to parse ClickUp specific error code and message if a standard format exists
             // For now, we'll use a generic message and pass rawErrorContent.
             // A more sophisticated approach would be to deserialize rawErrorContent into a ClickUpError DTO.
-            string? apiErrorCode = null;
-            string errorMessage = $"API request failed with status code {response.StatusCode}. Raw content: {rawErrorContent}";
+            // string? apiErrorCode = null; // This was unused as ClickUpApiExceptionFactory handles parsing.
+            // string errorMessage = $"API request failed with status code {response.StatusCode}. Raw content: {rawErrorContent}"; // This was unused as ClickUpApiExceptionFactory handles creating the message.
             // Use the factory to create and throw the appropriate exception.
             // The factory will handle parsing the error content and selecting the exception type.
             throw ClickUpApiExceptionFactory.Create(response, rawErrorContent);

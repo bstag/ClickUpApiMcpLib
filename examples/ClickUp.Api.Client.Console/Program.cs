@@ -162,8 +162,14 @@ public class Program
             else Log.Warning("[TASKS] Failed to create task.");
 
             Log.Information("[TASKS] 4. Getting tasks for list ID: {ListId}...", listIdForTaskOps);
-            var getTasksRequestDto = new GetTasksRequest { IncludeClosed = true, Page = 0 };
-            var pagedTasksResponse = await taskService.GetTasksAsync(listIdForTaskOps, getTasksRequestDto, getTasksRequestDto.Page, CancellationToken.None);
+            var pagedTasksResponse = await taskService.GetTasksAsync(
+                listIdForTaskOps,
+                parameters => {
+                    parameters.IncludeClosed = true;
+                    parameters.Page = 0; // Explicitly setting page 0
+                },
+                CancellationToken.None);
+
             if (pagedTasksResponse != null && pagedTasksResponse.Items.Any())
             {
                 Log.Information("[TASKS] Found {TaskCount} tasks on page {Page} in list {ListId}:", pagedTasksResponse.Items.Count, pagedTasksResponse.Page, listIdForTaskOps);
@@ -173,7 +179,7 @@ public class Program
                 }
                 if (pagedTasksResponse.Items.Count > 5) Log.Information("... and more tasks not listed here.");
                 if (pagedTasksResponse.HasNextPage) Log.Information("... More pages available.");
-            } else Log.Warning("[TASKS] No tasks found in list {ListId} for page {Page}", listIdForTaskOps, getTasksRequestDto.Page);
+            } else Log.Warning("[TASKS] No tasks found in list {ListId} for page {Page}", listIdForTaskOps, 0); // Reflecting page 0 was requested
             // Removed filtered tasks example as it's no longer relevant or has been moved to another example.
             // TODO add back.
             if (!string.IsNullOrWhiteSpace(taskIdForCommentOps) && !taskIdForCommentOps.Contains("YOUR_") && authorizedUser != null)

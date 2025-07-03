@@ -218,7 +218,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown if an API call fails during the pagination process.</exception>
         IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
-            GetTasksRequest requestModel,
+            GetTasksRequestParameters requestModel, // Changed from GetTasksRequest
             CancellationToken cancellationToken = default
         );
 
@@ -238,7 +238,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown if an API call fails during the pagination process.</exception>
         IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(
             string workspaceId,
-            GetFilteredTeamTasksRequest requestModel,
+            GetTasksRequestParameters requestModel, // Changed from GetFilteredTeamTasksRequest
             CancellationToken cancellationToken = default
         );
     }

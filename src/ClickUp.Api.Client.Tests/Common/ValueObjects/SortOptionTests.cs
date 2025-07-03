@@ -13,7 +13,7 @@ public class SortOptionTests
         var sortOption = new SortOption("name", SortDirection.Ascending);
 
         // Act
-        var queryParams = sortOption.ToQueryParameters();
+        var queryParams = sortOption.ToQueryParameters(orderByParamName: "order_by"); // Explicitly choose overload
 
         // Assert
         var expected = new Dictionary<string, string>
@@ -31,7 +31,7 @@ public class SortOptionTests
         var sortOption = new SortOption("created_date", SortDirection.Descending);
 
         // Act
-        var queryParams = sortOption.ToQueryParameters();
+        var queryParams = sortOption.ToQueryParameters(orderByParamName: "order_by"); // Explicitly choose overload
 
         // Assert
         var expected = new Dictionary<string, string>

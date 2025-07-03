@@ -65,8 +65,13 @@ public class Worker : BackgroundService
 
                 _logger.LogDebug("Fetching tasks for List ID: {ListId}. Last poll time: {LastPollTime}", _workerSettings.ListIdForPolling, _lastPollTime);
 
-                // tasksService.GetTasksAsync now returns IPagedResult<CuTask> and expects page as 3rd argument
-                var tasksResponse = await _tasksService.GetTasksAsync(_workerSettings.ListIdForPolling, getTasksRequest, getTasksRequest.Page, stoppingToken);
+                var tasksResponse = await _tasksService.GetTasksAsync(
+                    _workerSettings.ListIdForPolling,
+                    parameters => {
+                        parameters.IncludeClosed = false;
+                        // parameters.Page = 0; // Page is handled by IPagedResult, or if you want a specific page to start
+                    },
+                    stoppingToken);
 
                 if (tasksResponse != null && tasksResponse.Items != null) // Check Items property
                 {

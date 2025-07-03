@@ -37,6 +37,7 @@ public class CommentFluentApi
     /// <param name="customTaskIds">Optional. If true, the taskId is treated as a custom task ID.</param>
     /// <param name="teamId">Optional. The Workspace ID, required if customTaskIds is true.</param>
     /// <param name="start">Optional. A Unix timestamp (in milliseconds) to start fetching comments from.</param>
+    /// <param name="startId">Optional. The ID of the comment to start fetching from (for pagination).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Comment"/>.</returns>
     public IAsyncEnumerable<Comment> GetTaskCommentsAsyncEnumerableAsync(
