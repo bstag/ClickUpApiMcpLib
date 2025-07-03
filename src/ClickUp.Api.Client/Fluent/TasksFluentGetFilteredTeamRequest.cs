@@ -51,32 +51,35 @@ public class TasksFluentGetFilteredTeamRequest
 
     public async Task<IPagedResult<CuTask>> GetAsync(CancellationToken cancellationToken = default)
     {
-        return await _tasksService.GetFilteredTeamTasksAsync(_workspaceId, p =>
-        {
-            p.Page = _parameters.Page;
-            p.SortBy = _parameters.SortBy;
-            p.Subtasks = _parameters.Subtasks;
-            p.SpaceIds = _parameters.SpaceIds;
-            p.ProjectIds = _parameters.ProjectIds;
-            p.ListIds = _parameters.ListIds;
-            p.Statuses = _parameters.Statuses;
-            p.IncludeClosed = _parameters.IncludeClosed;
-            p.AssigneeIds = _parameters.AssigneeIds;
-            p.Tags = _parameters.Tags;
-            p.DueDateRange = _parameters.DueDateRange;
-            p.DateCreatedRange = _parameters.DateCreatedRange;
-            p.DateUpdatedRange = _parameters.DateUpdatedRange;
-            p.CustomFields = _parameters.CustomFields;
-            p.CustomItems = _parameters.CustomItems;
-            p.IncludeMarkdownDescription = _parameters.IncludeMarkdownDescription;
-            p.Archived = _parameters.Archived;
-        }, cancellationToken);
+        return await _tasksService.GetFilteredTeamTasksAsync(_workspaceId, CopyParametersFrom(_parameters), cancellationToken);
     }
 
     public IAsyncEnumerable<CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
-        // Pass the _parameters object directly to the service method.
-        // The service method handles pagination automatically for AsyncEnumerable.
         return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(_workspaceId, _parameters, cancellationToken);
+    }
+
+    private static Action<GetTasksRequestParameters> CopyParametersFrom(GetTasksRequestParameters source)
+    {
+        return target =>
+        {
+            target.Page = source.Page;
+            target.SortBy = source.SortBy;
+            target.Subtasks = source.Subtasks;
+            target.SpaceIds = source.SpaceIds;
+            target.ProjectIds = source.ProjectIds;
+            target.ListIds = source.ListIds;
+            target.Statuses = source.Statuses;
+            target.IncludeClosed = source.IncludeClosed;
+            target.AssigneeIds = source.AssigneeIds;
+            target.Tags = source.Tags;
+            target.DueDateRange = source.DueDateRange;
+            target.DateCreatedRange = source.DateCreatedRange;
+            target.DateUpdatedRange = source.DateUpdatedRange;
+            target.CustomFields = source.CustomFields;
+            target.CustomItems = source.CustomItems;
+            target.IncludeMarkdownDescription = source.IncludeMarkdownDescription;
+            target.Archived = source.Archived;
+        };
     }
 }

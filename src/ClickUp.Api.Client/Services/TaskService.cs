@@ -308,42 +308,42 @@ namespace ClickUp.Api.Client.Services
 
             _logger.LogInformation("Getting tasks as an async enumerable for list ID: {ListId}, Parameters: {@Parameters}", listId, parameters);
 
-            var currentParameters = new GetTasksRequestParameters // Create a mutable copy for pagination
-            {
-                SpaceIds = parameters.SpaceIds, ProjectIds = parameters.ProjectIds, ListIds = parameters.ListIds,
-                AssigneeIds = parameters.AssigneeIds, Statuses = parameters.Statuses, Tags = parameters.Tags,
-                IncludeClosed = parameters.IncludeClosed, Subtasks = parameters.Subtasks,
-                DueDateRange = parameters.DueDateRange, DateCreatedRange = parameters.DateCreatedRange, DateUpdatedRange = parameters.DateUpdatedRange,
-                SortBy = parameters.SortBy, IncludeMarkdownDescription = parameters.IncludeMarkdownDescription,
-                CustomFields = parameters.CustomFields, CustomItems = parameters.CustomItems
-                // Page is handled internally by the loop starting from parameters.Page or 0
-            };
-
             int currentPage = parameters.Page ?? 0;
             bool lastPage;
 
             do
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                currentParameters.Page = currentPage;
                 _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
 
-                var queryParamsList = currentParameters.ToQueryParametersList();
-                var fullEndpoint = $"list/{listId}/task" + UrlBuilderHelper.BuildQueryString(queryParamsList);
-                var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
+                // Temporarily set the page for this iteration without modifying the original parameters
+                var originalPage = parameters.Page;
+                parameters.Page = currentPage;
+                
+                try
+                {
+                    var queryParamsList = parameters.ToQueryParametersList();
+                    var fullEndpoint = $"list/{listId}/task" + UrlBuilderHelper.BuildQueryString(queryParamsList);
+                    var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
 
-                if (response?.Tasks != null && response.Tasks.Any())
-                {
-                    foreach (var task in response.Tasks)
+                    if (response?.Tasks != null && response.Tasks.Any())
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        yield return task;
+                        foreach (var task in response.Tasks)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            yield return task;
+                        }
+                        lastPage = response.LastPage == true; // ClickUp API indicates if it's the last page
                     }
-                    lastPage = response.LastPage == true; // ClickUp API indicates if it's the last page
+                    else
+                    {
+                        lastPage = true;
+                    }
                 }
-                else
+                finally
                 {
-                    lastPage = true;
+                    // Restore the original page value
+                    parameters.Page = originalPage;
                 }
 
                 if (!lastPage)
@@ -401,42 +401,42 @@ namespace ClickUp.Api.Client.Services
 
             _logger.LogInformation("Getting filtered team tasks as an async enumerable for workspace ID: {WorkspaceId}, Parameters: {@Parameters}", workspaceId, parameters);
 
-            var currentParameters = new GetTasksRequestParameters // Create a mutable copy
-            {
-                SpaceIds = parameters.SpaceIds, ProjectIds = parameters.ProjectIds, ListIds = parameters.ListIds,
-                AssigneeIds = parameters.AssigneeIds, Statuses = parameters.Statuses, Tags = parameters.Tags,
-                IncludeClosed = parameters.IncludeClosed, Subtasks = parameters.Subtasks,
-                DueDateRange = parameters.DueDateRange, DateCreatedRange = parameters.DateCreatedRange, DateUpdatedRange = parameters.DateUpdatedRange,
-                SortBy = parameters.SortBy, IncludeMarkdownDescription = parameters.IncludeMarkdownDescription,
-                CustomFields = parameters.CustomFields, CustomItems = parameters.CustomItems
-                // Page is handled internally
-            };
-
             int currentPage = parameters.Page ?? 0;
             bool lastPage;
 
             do
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                currentParameters.Page = currentPage;
                 _logger.LogDebug("Fetching page {PageNumber} for filtered team tasks in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
 
-                var queryParamsList = currentParameters.ToQueryParametersList();
-                var fullEndpoint = $"team/{workspaceId}/task" + UrlBuilderHelper.BuildQueryString(queryParamsList);
-                var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
+                // Temporarily set the page for this iteration without modifying the original parameters
+                var originalPage = parameters.Page;
+                parameters.Page = currentPage;
 
-                if (response?.Tasks != null && response.Tasks.Any())
+                try
                 {
-                    foreach (var task in response.Tasks)
+                    var queryParamsList = parameters.ToQueryParametersList();
+                    var fullEndpoint = $"team/{workspaceId}/task" + UrlBuilderHelper.BuildQueryString(queryParamsList);
+                    var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
+
+                    if (response?.Tasks != null && response.Tasks.Any())
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        yield return task;
+                        foreach (var task in response.Tasks)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            yield return task;
+                        }
+                        lastPage = response.LastPage == true;
                     }
-                    lastPage = response.LastPage == true;
+                    else
+                    {
+                        lastPage = true;
+                    }
                 }
-                else
+                finally
                 {
-                    lastPage = true;
+                    // Restore the original page value
+                    parameters.Page = originalPage;
                 }
 
                 if (!lastPage)

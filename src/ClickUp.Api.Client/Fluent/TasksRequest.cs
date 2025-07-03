@@ -55,36 +55,35 @@ public class TasksRequest
 
     public async Task<IPagedResult<CuTask>> GetAsync(CancellationToken cancellationToken = default)
     {
-        // The configureParameters action in ITasksService.GetTasksAsync will effectively use the state of _parameters
-        return await _tasksService.GetTasksAsync(_listId, p =>
-        {
-            p.Archived = _parameters.Archived;
-            p.IncludeMarkdownDescription = _parameters.IncludeMarkdownDescription;
-            p.Page = _parameters.Page;
-            p.SortBy = _parameters.SortBy;
-            p.Subtasks = _parameters.Subtasks;
-            p.Statuses = _parameters.Statuses;
-            p.IncludeClosed = _parameters.IncludeClosed;
-            p.AssigneeIds = _parameters.AssigneeIds;
-            p.Tags = _parameters.Tags;
-            p.DueDateRange = _parameters.DueDateRange;
-            p.DateCreatedRange = _parameters.DateCreatedRange;
-            p.DateUpdatedRange = _parameters.DateUpdatedRange;
-            p.CustomFields = _parameters.CustomFields;
-            p.CustomItems = _parameters.CustomItems;
-            p.SpaceIds = _parameters.SpaceIds;
-            p.ProjectIds = _parameters.ProjectIds;
-            // ListIds is typically implicitly set by the _listId path parameter for this specific service call,
-            // but GetTasksRequestParameters can hold it if needed for other contexts (like GetFilteredTeamTasksAsync).
-            // For GetTasksAsync(listId, ...), _parameters.ListIds will be ignored by the service method implementation,
-            // as the primary listId is taken from the path.
-        }, cancellationToken);
+        return await _tasksService.GetTasksAsync(_listId, CopyParametersFrom(_parameters), cancellationToken);
     }
 
     public IAsyncEnumerable<CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
-        // Pass the _parameters object directly to the service method.
-        // The service method handles pagination automatically for AsyncEnumerable.
         return _tasksService.GetTasksAsyncEnumerableAsync(_listId, _parameters, cancellationToken);
+    }
+
+    private static Action<GetTasksRequestParameters> CopyParametersFrom(GetTasksRequestParameters source)
+    {
+        return target =>
+        {
+            target.Archived = source.Archived;
+            target.IncludeMarkdownDescription = source.IncludeMarkdownDescription;
+            target.Page = source.Page;
+            target.SortBy = source.SortBy;
+            target.Subtasks = source.Subtasks;
+            target.Statuses = source.Statuses;
+            target.IncludeClosed = source.IncludeClosed;
+            target.AssigneeIds = source.AssigneeIds;
+            target.Tags = source.Tags;
+            target.DueDateRange = source.DueDateRange;
+            target.DateCreatedRange = source.DateCreatedRange;
+            target.DateUpdatedRange = source.DateUpdatedRange;
+            target.CustomFields = source.CustomFields;
+            target.CustomItems = source.CustomItems;
+            target.SpaceIds = source.SpaceIds;
+            target.ProjectIds = source.ProjectIds;
+            target.ListIds = source.ListIds;
+        };
     }
 }
