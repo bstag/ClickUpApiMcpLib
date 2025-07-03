@@ -290,7 +290,7 @@ namespace ClickUp.Api.Client.Tests.Http
         [InlineData(HttpStatusCode.NotFound, typeof(ClickUpApiNotFoundException), "Post Not Found", "POST_NF_001")]
         public async Task PostAsync_ThrowsCorrectException_ForErrorStatusCodes(HttpStatusCode statusCode, Type exceptionType, string errMessage, string ecode)
         {
-            var responseJson = $"{{\"err\":\"{errMessage}\",\"ECODE\":\"{ecode}\"}}";
+            var responseJson = JsonSerializer.Serialize(new { err = errMessage, ECODE = ecode });
             var httpResponseMessage = new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
