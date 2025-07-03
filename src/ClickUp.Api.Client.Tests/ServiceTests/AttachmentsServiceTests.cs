@@ -9,7 +9,8 @@ using ClickUp.Api.Client.Models.Entities.Users; // For User model within respons
 using ClickUp.Api.Client.Services;
 using Moq;
 using Xunit;
-using System.Collections.Generic; // For List<string>
+using System.Collections.Generic;
+using ClickUp.Api.Client.Models.Exceptions; // For List<string>
 
 namespace ClickUp.Api.Client.Tests.ServiceTests
 {
@@ -141,14 +142,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fileContent = "This is a test file.";
             using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
 
-            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>( // Changed to CreateTaskAttachmentResponse
+            _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
                     It.IsAny<string>(),
                     It.IsAny<MultipartFormDataContent>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CreateTaskAttachmentResponse?)null); // Changed to CreateTaskAttachmentResponse
+                .ReturnsAsync((CreateTaskAttachmentResponse?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            var expectedException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _attachmentsService.CreateTaskAttachmentAsync(
                     taskId,
                     memoryStream,
@@ -157,7 +158,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     null,
                     CancellationToken.None)
             );
-            Assert.Same(expectedException, actualException);
+
+            Assert.NotNull(expectedException);
+            Assert.Equal("The API connection returned null.", expectedException.Message);
         }
 
         [Fact]

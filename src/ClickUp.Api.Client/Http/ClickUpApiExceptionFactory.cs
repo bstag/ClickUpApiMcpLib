@@ -140,9 +140,9 @@ public static class ClickUpApiExceptionFactory
 
     private static TimeSpan? GetRetryAfter(HttpResponseMessage response)
     {
-        if (response.Headers.RetryAfter?.Delta.HasValue)
+        if (response.Headers.RetryAfter?.Delta.HasValue == true)
             return response.Headers.RetryAfter.Delta.Value;
-        if (response.Headers.RetryAfter?.Date.HasValue)
+        if (response.Headers.RetryAfter?.Date.HasValue == true)
             return response.Headers.RetryAfter.Date.Value - DateTimeOffset.UtcNow;
         return null;
     }
