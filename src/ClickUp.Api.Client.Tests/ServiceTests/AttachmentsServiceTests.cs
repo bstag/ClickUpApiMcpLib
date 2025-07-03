@@ -174,7 +174,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cancellationTokenSource = new CancellationTokenSource();
 
             var mockUser = new User(Id: 1, Username: "dummy", Email: "dummy@example.com", Color: "", ProfilePicture: null, Initials: "DU", ProfileInfo: null);
-            var dummyResponse = new CreateTaskAttachmentResponse("id", "v", DateTimeOffset.UtcNow, "title", "ext", null, null, "url", null, null, false, "pid", 0,0,0, mockUser, false, null, 0,0, null, null);
+            var dummyResponse = new CreateTaskAttachmentResponse("id", "v", DateTimeOffset.UtcNow, "title", "ext", string.Empty, string.Empty, "url", string.Empty, string.Empty, false, "pid", 0,0,0, mockUser, false, string.Empty, 0,0, null, string.Empty);
 
 
             _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(

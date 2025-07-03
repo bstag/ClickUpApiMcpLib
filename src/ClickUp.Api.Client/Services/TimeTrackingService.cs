@@ -39,23 +39,34 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<TimeTrackingService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string> queryParams)
+        private string BuildQueryString(Dictionary<string, string?> queryParams) // Accepts nullable string values
         {
             if (queryParams == null || !queryParams.Any())
             {
                 return string.Empty;
             }
 
-            var sb = new StringBuilder("?");
+            var sb = new StringBuilder(); // Start empty, will add '?' if params exist
             var first = true;
             foreach (var kvp in queryParams)
             {
-                if (!first)
+                if (kvp.Value == null) // Skip parameters with null values
+                {
+                    continue;
+                }
+
+                if (first)
+                {
+                    sb.Append('?');
+                    first = false;
+                }
+                else
                 {
                     sb.Append('&');
                 }
+                // Values should be URL-encoded. Assuming ToDictionary methods on parameter objects do not do this,
+                // or do it inconsistently. It's safer to encode here.
                 sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                first = false;
             }
             return sb.ToString();
         }
@@ -77,8 +88,10 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting time entries for workspace ID: {WorkspaceId}, Parameters: {@Parameters}", workspaceId, parameters);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries";
 
-            var queryDict = parameters.ToDictionary();
-            var response = await _apiConnection.GetAsync<GetTimeEntriesResponse>(endpoint, queryDict, cancellationToken);
+            var queryDictString = parameters.ToDictionary();
+            var queryDictNullable = queryDictString.ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
+            var fullEndpoint = endpoint + BuildQueryString(queryDictNullable); // Use BuildQueryString with converted dict
+            var response = await _apiConnection.GetAsync<GetTimeEntriesResponse>(fullEndpoint, cancellationToken); // Corrected GetAsync call
 
             var items = response?.Data ?? Enumerable.Empty<TimeEntry>();
 

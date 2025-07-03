@@ -38,29 +38,39 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<TaskService>.Instance;
         }
 
-        // This helper can be removed if IApiConnection.GetAsync handles Dictionary<string,string> directly
-        // by formatting it correctly for the ClickUp API (including array expansion).
-        private string BuildQueryString(Dictionary<string, string> queryParams)
+        // This helper is used to construct the query string for GET requests.
+        private string BuildQueryString(Dictionary<string, string?> queryParams) // Accepts nullable string values
         {
             if (queryParams == null || !queryParams.Any())
             {
                 return string.Empty;
             }
 
-            var sb = new StringBuilder("?");
+            var sb = new StringBuilder(); // Start empty, will add '?' if params exist
             var first = true;
             foreach (var kvp in queryParams)
             {
-                if (!first)
+                if (kvp.Value == null) // Skip parameters with null values
+                {
+                    continue;
+                }
+
+                if (first)
+                {
+                    sb.Append('?');
+                    first = false;
+                }
+                else
                 {
                     sb.Append('&');
                 }
-                // Assuming IApiConnection or another layer will handle URL encoding of values if necessary,
-                // and proper formatting of arrays (e.g. key[]=v1&key[]=v2).
-                // GetTasksRequestParameters.ToDictionary() already URI encodes simple string values for arrays,
-                // and JSON serializes custom_fields.
-                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={kvp.Value}");
-                first = false;
+                // Values from GetTasksRequestParameters.ToDictionary() are already appropriately formatted (e.g., URI escaped, JSON serialized for complex types if needed by that method)
+                // Here, we just append them. If ToDictionary() doesn't do full URI encoding for values, it might be needed here.
+                // However, GetTasksRequestParameters.ToDictionary() should be the one ensuring values are safe for a URL.
+                // For simple key-value pairs where value is already a string, direct append is fine.
+                // Uri.EscapeDataString for kvp.Value might be redundant if ToDictionary already handles it.
+                // Let's assume ToDictionary prepares values adequately for now.
+                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
             }
             return sb.ToString();
         }
@@ -82,9 +92,10 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting tasks for list ID: {ListId}, Parameters: {@Parameters}", listId, parameters);
             var endpoint = $"list/{listId}/task";
 
-            var queryDict = parameters.ToDictionary();
-            // Pass dictionary directly to IApiConnection, assuming it handles formatting (including array expansion)
-            var response = await _apiConnection.GetAsync<GetTasksResponse>(endpoint, queryDict, cancellationToken);
+            var queryDictString = parameters.ToDictionary();
+            var queryDictNullable = queryDictString.ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
+            var fullEndpoint = endpoint + BuildQueryString(queryDictNullable);
+            var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken);
 
             if (response == null)
             {
@@ -138,9 +149,9 @@ namespace ClickUp.Api.Client.Services
             if (requestModel.IncludeSubtasks.HasValue) queryParams["include_subtasks"] = requestModel.IncludeSubtasks.Value.ToString().ToLower();
             if (requestModel.IncludeMarkdownDescription.HasValue) queryParams["include_markdown_description"] = requestModel.IncludeMarkdownDescription.Value.ToString().ToLower();
             if (requestModel.Page.HasValue) queryParams["page"] = requestModel.Page.Value.ToString();
-            endpoint += BuildQueryString(queryParams);
+            var fullEndpoint = endpoint + BuildQueryString(queryParams);
 
-            var task = await _apiConnection.GetAsync<CuTask>(endpoint, cancellationToken);
+            var task = await _apiConnection.GetAsync<CuTask>(fullEndpoint, cancellationToken);
             if (task == null)
             {
                 throw new InvalidOperationException($"API connection returned null response when getting task {taskId}.");
@@ -265,9 +276,9 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
-            endpoint += BuildQueryString(queryParams);
+            var fullEndpoint = endpoint + BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<TaskTimeInStatusResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<TaskTimeInStatusResponse>(fullEndpoint, cancellationToken);
             if (response == null)
             {
                 throw new InvalidOperationException($"API connection returned null response when getting task time in status for task {taskId}.");
@@ -290,9 +301,9 @@ namespace ClickUp.Api.Client.Services
             queryParams["task_ids"] = string.Join(",", requestModel.TaskIds); // Comma-separated list
             if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
-            endpoint += BuildQueryString(queryParams);
+            var fullEndpoint = endpoint + BuildQueryString(queryParams);
 
-            var response = await _apiConnection.GetAsync<GetBulkTasksTimeInStatusResponse>(endpoint, cancellationToken);
+            var response = await _apiConnection.GetAsync<GetBulkTasksTimeInStatusResponse>(fullEndpoint, cancellationToken);
             if (response == null)
             {
                 throw new InvalidOperationException($"API connection returned null response when getting bulk tasks time in status.");
@@ -352,9 +363,10 @@ namespace ClickUp.Api.Client.Services
                 currentParameters.Page = currentPage;
                 _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
 
-                var queryDict = currentParameters.ToDictionary();
-                // No need for BuildQueryStringFromParams if IApiConnection.GetAsync handles Dictionary directly
-                var response = await _apiConnection.GetAsync<GetTasksResponse>($"list/{listId}/task", queryDict, cancellationToken).ConfigureAwait(false);
+                var queryDictString = currentParameters.ToDictionary();
+                var queryDictNullable = queryDictString.ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
+                var fullEndpoint = $"list/{listId}/task" + BuildQueryString(queryDictNullable);
+                var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Tasks != null && response.Tasks.Any())
                 {
@@ -395,9 +407,10 @@ namespace ClickUp.Api.Client.Services
             _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Parameters: {@Parameters}", workspaceId, parameters);
             var endpoint = $"team/{workspaceId}/task";
 
-            var queryDict = parameters.ToDictionary();
-            // Pass dictionary directly to IApiConnection
-            var response = await _apiConnection.GetAsync<GetTasksResponse>(endpoint, queryDict, cancellationToken);
+            var queryDictString = parameters.ToDictionary();
+            var queryDictNullable = queryDictString.ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
+            var fullEndpoint = endpoint + BuildQueryString(queryDictNullable);
+            var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken);
 
             if (response == null)
             {
@@ -445,9 +458,10 @@ namespace ClickUp.Api.Client.Services
                 currentParameters.Page = currentPage;
                 _logger.LogDebug("Fetching page {PageNumber} for filtered team tasks in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
 
-                var queryDict = currentParameters.ToDictionary();
-                // Pass dictionary directly to IApiConnection
-                var response = await _apiConnection.GetAsync<GetTasksResponse>($"team/{workspaceId}/task", queryDict, cancellationToken).ConfigureAwait(false);
+                var queryDictString = currentParameters.ToDictionary();
+                var queryDictNullable = queryDictString.ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
+                var fullEndpoint = $"team/{workspaceId}/task" + BuildQueryString(queryDictNullable);
+                var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Tasks != null && response.Tasks.Any())
                 {

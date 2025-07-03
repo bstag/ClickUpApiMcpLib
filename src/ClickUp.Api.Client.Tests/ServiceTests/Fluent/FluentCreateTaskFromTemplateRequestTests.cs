@@ -28,8 +28,8 @@ public class FluentCreateTaskFromTemplateRequestTests
         var listId = "testListId";
         var templateId = "testTemplateId";
         var name = "testTaskName";
-        var customTaskIds = true;
-        var teamId = "testTeamId";
+        // var customTaskIds = true; // Unused
+        // var teamId = "testTeamId"; // Unused
         var expectedTask = new CuTask(
             Id: "taskId",
             CustomId: null,

@@ -4,12 +4,10 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities.TimeTracking;
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
 using System; // Required for Action
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+// Removed duplicate System.Collections.Generic, System.Threading, System.Threading.Tasks
 using ClickUp.Api.Client.Models.Common.ValueObjects;
-using ClickUp.Api.Client.Models.Entities.TimeTracking;
-using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
+// Removed duplicate ClickUp.Api.Client.Models.Entities.TimeTracking
+// Removed duplicate ClickUp.Api.Client.Models.RequestModels.TimeTracking
 using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
 using ClickUp.Api.Client.Models.Parameters; // For GetTimeEntriesRequestParameters
 
