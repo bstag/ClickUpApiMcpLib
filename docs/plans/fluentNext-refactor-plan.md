@@ -148,7 +148,7 @@ Each step contains:
     - [X] 3.7.2 Test that API responses are correctly mapped to `IPagedResult<T>`.
     - [X] 3.7.3 Test new/updated `IAsyncEnumerable<T>` methods for correct streaming of all items.
 - [X] 3.8 Update integration tests in `src/ClickUp.Api.Client.IntegrationTests/` for paginated endpoints. (Note: `IAsyncEnumerable<T>` methods are well covered. Explicit `IPagedResult<T>` testing for specific pages (>0) and tests for Docs/TimeTracking pagination are areas for future enhancement.)
-- [X] 3.9 Update examples in `examples/` to demonstrate usage of the new pagination abstraction (`IPagedResult<T>` and `IAsyncEnumerable<T>`).
+- [X] 3.9 Update examples in `examples/` to demonstrate usage of the new pagination abstraction (`IPagedResult<T>` and `IAsyncEnumerable<T>`). (Fluent Console example updated and verified)
 
 **Validation Rule:**
 - No public service methods in `src/ClickUp.Api.Client.Abstractions/Services/*.cs` that are known to be page-based paginated by the ClickUp API should expose raw `page`/`pageSize` (or similar) parameters directly if they return `IPagedResult<T>`.
@@ -358,7 +358,7 @@ Each step contains:
     - [X] 6.6.5 `TimeTrackingService.GetTimeEntriesAsync`
     - [X] 6.6.6 `TimeTrackingService.GetTimeEntriesAsyncEnumerableAsync`
 - [X] **6.7 Update fluent API builders (`src/ClickUp.Api.Client/Fluent/**/*.cs`) to provide methods for setting these value objects or configuring parameter objects.**
-    - [X] 6.7.1 For `TasksFluentGetRequest` (and `TasksFluentGetFilteredTeamRequest`): (All methods confirmed implemented)
+    - [X] 6.7.1 For `TasksFluentGetRequest` (and `TasksFluentGetFilteredTeamRequest`): (All methods confirmed implemented and used in Fluent Console Example where applicable)
         - [X] `.WithDueDateBetween(DateTimeOffset start, DateTimeOffset end)`
         - [X] `.OrderBy(string fieldName, SortDirection direction)`
         - [X] `.IncludeClosedTasks(bool include = true)`
@@ -375,7 +375,7 @@ Each step contains:
         - [X] `.ForList(string listId)` (Implemented as constructor param or `WithListIds`)
         - [X] `.CreatedBetween(DateTimeOffset start, DateTimeOffset end)`
         - [X] `.UpdatedBetween(DateTimeOffset start, DateTimeOffset end)`
-    - [X] 6.7.2 For `TimeTrackingFluentGetRequest` (new or existing builder for time entries):
+    - [X] 6.7.2 For `TimeTrackingFluentGetRequest` (new or existing builder for time entries): (Relevant methods used in Fluent Console Example)
         - [X] `.ForTeam(string teamId)` (Covered by constructor `workspaceId`)
         - [X] `.WithinRange(DateTimeOffset start, DateTimeOffset end)` (Implemented as `WithTimeRange`)
         - [X] `.WithAssignees(IEnumerable<long> assigneeIds)` (Implemented as singular `WithAssignee(long id)` based on API spec)
