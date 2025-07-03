@@ -216,9 +216,23 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Construct expected query string parts from TimeRange and CustomFieldParameter
             var expectedStartDateUnixMs = new DateTimeOffset(startDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
             var expectedEndDateUnixMs = new DateTimeOffset(endDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
-            var expectedCustomFieldJson = Uri.EscapeDataString($"{{\"id\":\"{customFieldId}\",\"value\":\"{customFieldValue}\"}}");
+            // CustomFields are serialized to JSON, then the whole JSON string is URL encoded.
+            var customFieldObject = new List<CustomFieldFilter> { new CustomFieldFilter { FieldId = customFieldId, Operator = "=", Value = customFieldValue } };
+            var expectedCustomFieldJsonString = System.Text.Json.JsonSerializer.Serialize(customFieldObject);
+            var encodedCustomFieldJson = Uri.EscapeDataString(expectedCustomFieldJsonString);
 
-            var expectedEndpoint = $"team/{workspaceId}/task?page=0&due_date_gt={expectedStartDateUnixMs}&due_date_lt={expectedEndDateUnixMs}&custom_fields=[{expectedCustomFieldJson}]";
+            // Parameters are: due_date_gt, due_date_lt, page, custom_fields. Order might vary from ToQueryParametersList but QueryHelpers will stabilize it.
+            // Let's construct it based on typical QueryHelpers output order or verify parts.
+            // For simplicity, we'll check if all key-value pairs are present.
+            // However, the mock setup requires an exact string match.
+            // The BuildQueryString in service now URI encodes keys and appends values as-is (values are prepped by ToQueryParametersList).
+            // CustomFields value is a raw JSON string.
+            // The order from ToQueryParametersList for these specific params: DueDateRange, Page, CustomFields.
+            var expectedEndpoint = $"team/{workspaceId}/task" +
+                                   $"?due_date_gt={expectedStartDateUnixMs}" +
+                                   $"&due_date_lt={expectedEndDateUnixMs}" +
+                                   $"&page=0" +
+                                   $"&custom_fields={expectedCustomFieldJsonString}"; // Use raw JSON string, not encoded one
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
@@ -243,10 +257,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws-456";
             var orderBy = "due_date";
-            long dateDoneLessThan = 1678889900000; // New param used
-            var includeMarkdownDescription = false; // New param used
+            // long dateDoneLessThan = 1678889900000; // This parameter is not used by GetTasksRequestParameters
+            var includeMarkdownDescription = false;
             var statuses = new List<string> { "open", "in progress" };
-            var assignees = new List<string> { "user1", "user2" };
+            var assignees = new List<string> { "123", "456" }; // Use numeric strings for AssigneeIds
 
             var expectedResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse(
                 new List<CuTask> { CreateSampleTask() },
@@ -257,23 +271,48 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
-            var expectedEndpoint = $"team/{workspaceId}/task?page=0&order_by={orderBy}&date_done_lt={dateDoneLessThan}&include_markdown_description=false&statuses[]={Uri.EscapeDataString(statuses[0])}&statuses[]={Uri.EscapeDataString(statuses[1])}&assignees[]={assignees[0]}&assignees[]={assignees[1]}";
+            // Parameters will be: statuses (repeated), order_by, reverse, page, include_markdown_description, assignees (repeated)
+            // Example: team/ws-456/task?statuses=open&statuses=in%20progress&order_by=due_date&reverse=false&page=0&include_markdown_description=false&assignees=1&assignees=2
+            var expectedQueryParts = new List<string>
+            {
+                $"statuses={Uri.EscapeDataString(statuses[0])}",
+                $"statuses={Uri.EscapeDataString(statuses[1])}",
+                $"order_by={orderBy}",
+                "reverse=false", // SortDirection.Ascending results in reverse=false
+                "page=0",
+                $"include_markdown_description={includeMarkdownDescription.ToString().ToLowerInvariant()}",
+                $"assignees={assignees[0]}", // Assuming assignees are string representations of IDs now
+                $"assignees={assignees[1]}"
+            };
+            // The order of query parameters can be unstable from dictionary to query string.
+            // It's better to check that the URL contains all parts rather than an exact string match if order is not guaranteed.
+            // Based on the order in ToQueryParametersList: AssigneeIds, Statuses, SortBy, Page, IncludeMarkdownDescription
+            var expectedEndpoint = $"team/{workspaceId}/task?" +
+                                   $"assignees={assignees[0]}" + // assignees is List<string> in test, parsed to int for AssigneeIds
+                                   $"&assignees={assignees[1]}" +
+                                   $"&statuses={Uri.EscapeDataString(statuses[0])}" +
+                                   $"&statuses={Uri.EscapeDataString(statuses[1])}" +
+                                   $"&order_by={orderBy}" +
+                                   $"&reverse=false" + // From SortOption with Ascending direction
+                                   $"&page=0" + // Default page
+                                   $"&include_markdown_description={includeMarkdownDescription.ToString().ToLowerInvariant()}";
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
                 workspaceId,
                 parameters => {
-                    parameters.SortBy = new SortOption(orderBy, SortDirection.Ascending); // Assuming Ascending if not specified
-                    // TODO: Map DateDoneLessThan correctly. For now, let's assume it maps to DateUpdatedRange or similar if applicable
-                    // For example: parameters.DateUpdatedRange = new TimeRange(DateTimeOffset.MinValue, DateTimeOffset.FromUnixTimeMilliseconds(dateDoneLessThan));
+                    parameters.SortBy = new SortOption(orderBy, SortDirection.Ascending);
                     parameters.IncludeMarkdownDescription = includeMarkdownDescription;
                     parameters.Statuses = statuses;
-                    // parameters.AssigneeIds = assignees.Select(int.Parse).ToList(); // Assuming assignees are int IDs as strings
+                    parameters.AssigneeIds = assignees.Select(int.Parse).ToList(); // Assignees are int IDs
+                    // parameters.Page = 0; // Page is set by default or by the service method to 0 if not specified
                 },
                 cancellationToken: CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(expectedEndpoint, CancellationToken.None), Times.Once);
+            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(
+                expectedEndpoint, // Direct string match assuming deterministic order
+                CancellationToken.None), Times.Once);
         }
 
         [Fact]

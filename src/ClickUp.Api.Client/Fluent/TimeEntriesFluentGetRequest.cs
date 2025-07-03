@@ -82,6 +82,12 @@ public class TimeEntriesFluentGetRequest
         return this;
     }
 
+    public TimeEntriesFluentGetRequest WithIncludeTimers(bool includeTimers = true)
+    {
+        _parameters.IncludeTimers = includeTimers;
+        return this;
+    }
+
     public TimeEntriesFluentGetRequest WithPage(int pageNumber)
     {
         _parameters.Page = pageNumber;
@@ -105,6 +111,7 @@ public class TimeEntriesFluentGetRequest
             config.IncludeTaskTags = _parameters.IncludeTaskTags;
             config.IncludeLocationNames = _parameters.IncludeLocationNames;
             config.Page = _parameters.Page;
+            config.IncludeTimers = _parameters.IncludeTimers; // Added IncludeTimers
         }, cancellationToken);
     }
 
@@ -115,7 +122,21 @@ public class TimeEntriesFluentGetRequest
         // The 'Page' property within _parameters will be ignored by the service layer for async enumerable.
         return _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(
             _workspaceId,
-            _parameters,
+            new GetTimeEntriesRequestParameters
+            {
+                TimeRange = _parameters.TimeRange,
+                AssigneeUserId = _parameters.AssigneeUserId,
+                TaskId = _parameters.TaskId,
+                ListId = _parameters.ListId,
+                FolderId = _parameters.FolderId,
+                SpaceId = _parameters.SpaceId,
+                IncludeTaskTags = _parameters.IncludeTaskTags,
+                IncludeLocationNames = _parameters.IncludeLocationNames,
+                Page = _parameters.Page, // Page is illustrative; service enumerable handles actual paging.
+                IncludeTimers = _parameters.IncludeTimers,
+                CustomTaskIds = _parameters.CustomTaskIds,
+                TeamIdForCustomTaskIds = _parameters.TeamIdForCustomTaskIds
+            },
             cancellationToken
         );
     }

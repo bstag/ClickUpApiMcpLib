@@ -11,7 +11,7 @@ namespace ClickUp.Api.Client.Tests.Parameters;
 public class GetTasksRequestParametersTests
 {
     [Fact]
-    public void ToDictionary_WithAllParametersSet_ShouldProduceCorrectDictionary()
+    public void ToQueryParametersList_WithAllParametersSet_ShouldProduceCorrectList()
     {
         // Arrange
         var startDate = new DateTimeOffset(2023, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -20,7 +20,7 @@ public class GetTasksRequestParametersTests
         {
             SpaceIds = new List<long> { 123, 456 },
             ProjectIds = new List<long> { 789 }, // Folders
-            ListIds = new List<long> { 101, 102 },
+            ListIds = new List<string> { "101", "102" }, // Changed to string
             AssigneeIds = new List<int> { 201, 202 },
             Statuses = new List<string> { "Open", "In Progress" },
             Tags = new List<string> { "frontend", "api task" },
@@ -41,53 +41,59 @@ public class GetTasksRequestParametersTests
         };
 
         // Act
-        var dictionary = parameters.ToDictionary();
+        var kvpList = parameters.ToQueryParametersList(); // Already changed in a previous step, this is just for context
 
         // Assert
-        Assert.Equal("123,456", dictionary["space_ids"]);
-        Assert.Equal("789", dictionary["project_ids"]);
-        Assert.Equal("101,102", dictionary["list_ids"]);
-        Assert.Equal("201,202", dictionary["assignees"]);
-        Assert.Equal($"Open,{Uri.EscapeDataString("In Progress")}", dictionary["statuses"]);
-        Assert.Equal($"frontend,{Uri.EscapeDataString("api task")}", dictionary["tags"]);
-        Assert.Equal("true", dictionary["include_closed"]);
-        Assert.Equal("true", dictionary["subtasks"]);
-        Assert.Equal(startDate.ToUnixTimeMilliseconds().ToString(), dictionary["due_date_gt"]);
-        Assert.Equal(endDate.ToUnixTimeMilliseconds().ToString(), dictionary["due_date_lt"]);
-        Assert.Equal(startDate.AddDays(-5).ToUnixTimeMilliseconds().ToString(), dictionary["date_created_gt"]);
-        Assert.Equal(endDate.AddDays(-5).ToUnixTimeMilliseconds().ToString(), dictionary["date_created_lt"]);
-        Assert.Equal(startDate.AddDays(-2).ToUnixTimeMilliseconds().ToString(), dictionary["date_updated_gt"]);
-        Assert.Equal(endDate.AddDays(-2).ToUnixTimeMilliseconds().ToString(), dictionary["date_updated_lt"]);
-        Assert.Equal("due_date", dictionary["order_by"]);
-        Assert.Equal("true", dictionary["reverse"]); // Descending
-        Assert.Equal("1", dictionary["page"]);
-        Assert.Equal("true", dictionary["include_markdown_description"]);
+        Assert.Contains(new KeyValuePair<string, string>("space_ids", "123"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("space_ids", "456"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("project_ids", "789"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("list_ids", "101"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("list_ids", "102"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("assignees", "201"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("assignees", "202"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("statuses", Uri.EscapeDataString("Open")), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("statuses", Uri.EscapeDataString("In Progress")), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("tags", Uri.EscapeDataString("frontend")), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("tags", Uri.EscapeDataString("api task")), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("include_closed", "true"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("subtasks", "true"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("due_date_gt", startDate.ToUnixTimeMilliseconds().ToString()), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("due_date_lt", endDate.ToUnixTimeMilliseconds().ToString()), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("date_created_gt", startDate.AddDays(-5).ToUnixTimeMilliseconds().ToString()), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("date_created_lt", endDate.AddDays(-5).ToUnixTimeMilliseconds().ToString()), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("date_updated_gt", startDate.AddDays(-2).ToUnixTimeMilliseconds().ToString()), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("date_updated_lt", endDate.AddDays(-2).ToUnixTimeMilliseconds().ToString()), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("order_by", "due_date"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("reverse", "true"), kvpList); // Descending
+        Assert.Contains(new KeyValuePair<string, string>("page", "1"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("include_markdown_description", "true"), kvpList);
 
         var expectedCustomFieldsJson = JsonSerializer.Serialize(parameters.CustomFields);
-        Assert.Equal(expectedCustomFieldsJson, dictionary["custom_fields"]);
+        Assert.Contains(new KeyValuePair<string, string>("custom_fields", expectedCustomFieldsJson), kvpList);
 
-        Assert.Equal("0,1", dictionary["custom_items"]);
+        Assert.Contains(new KeyValuePair<string, string>("custom_items", "0"), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("custom_items", "1"), kvpList);
     }
 
     [Fact]
-    public void ToDictionary_WithMinimalParameters_ShouldProduceCorrectDictionary()
+    public void ToQueryParametersList_WithMinimalParameters_ShouldProduceCorrectList() // Method name already changed
     {
         // Arrange
         var parameters = new GetTasksRequestParameters
         {
-            ListIds = new List<long> { 999 }
+            ListIds = new List<string> { "999" } // Changed to string
         };
 
         // Act
-        var dictionary = parameters.ToDictionary();
+        var kvpList = parameters.ToQueryParametersList();
 
         // Assert
-        Assert.Single(dictionary);
-        Assert.Equal("999", dictionary["list_ids"]);
+        Assert.Single(kvpList);
+        Assert.Equal(new KeyValuePair<string,string>("list_ids", "999"), kvpList.First());
     }
 
     [Fact]
-    public void ToDictionary_ArrayParameters_ShouldBeCommaSeparatedAndEscaped()
+    public void ToQueryParametersList_ArrayParameters_ShouldBeMultipleKeyValuePairsAndEscaped() // Method name already changed
     {
         // Arrange
         var parameters = new GetTasksRequestParameters
@@ -97,15 +103,18 @@ public class GetTasksRequestParametersTests
         };
 
         // Act
-        var dictionary = parameters.ToDictionary();
+        var kvpList = parameters.ToQueryParametersList();
 
         // Assert
-        Assert.Equal($"To%20Do,{Uri.EscapeDataString("Another Status With Space")}", dictionary["statuses"]);
-        Assert.Equal($"tag1,{Uri.EscapeDataString("tag with space")}", dictionary["tags"]);
+        Assert.Contains(new KeyValuePair<string, string>("statuses", Uri.EscapeDataString("To Do")), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("statuses", Uri.EscapeDataString("Another Status With Space")), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("tags", Uri.EscapeDataString("tag1")), kvpList);
+        Assert.Contains(new KeyValuePair<string, string>("tags", Uri.EscapeDataString("tag with space")), kvpList);
+        Assert.Equal(4, kvpList.Count); // Ensure only these parameters are present
     }
 
     [Fact]
-    public void ToDictionary_CustomFields_ShouldBeJsonSerialized()
+    public void ToQueryParametersList_CustomFields_ShouldBeJsonSerialized() // Method name already changed
     {
         // Arrange
         var customFieldFilters = new List<CustomFieldFilter>
@@ -120,23 +129,23 @@ public class GetTasksRequestParametersTests
         var expectedJson = JsonSerializer.Serialize(customFieldFilters);
 
         // Act
-        var dictionary = parameters.ToDictionary();
+        var kvpList = parameters.ToQueryParametersList();
 
         // Assert
-        Assert.True(dictionary.ContainsKey("custom_fields"));
-        Assert.Equal(expectedJson, dictionary["custom_fields"]);
+        Assert.Contains(new KeyValuePair<string, string>("custom_fields", expectedJson), kvpList);
+        Assert.Single(kvpList); // Ensure only this parameter is present
     }
 
     [Fact]
-    public void ToDictionary_WhenNoParametersSet_ShouldReturnEmptyDictionary()
+    public void ToQueryParametersList_WhenNoParametersSet_ShouldReturnEmptyList() // Method name already changed
     {
         // Arrange
         var parameters = new GetTasksRequestParameters();
 
         // Act
-        var dictionary = parameters.ToDictionary();
+        var kvpList = parameters.ToQueryParametersList();
 
         // Assert
-        Assert.Empty(dictionary);
+        Assert.Empty(kvpList);
     }
 }

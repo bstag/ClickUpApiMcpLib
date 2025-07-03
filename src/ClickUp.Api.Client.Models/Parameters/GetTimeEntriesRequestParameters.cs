@@ -18,34 +18,36 @@ public class GetTimeEntriesRequestParameters
     public bool? IncludeTaskTags { get; set; }
     public bool? IncludeLocationNames { get; set; }
     public int? Page { get; set; }
+    public bool? IncludeTimers { get; set; }
 
     // Parameters for custom task ID handling, if applicable to the service method
     public bool? CustomTaskIds { get; set; }
     public string? TeamIdForCustomTaskIds { get; set; } // Workspace ID for custom task IDs
 
-    public Dictionary<string, string> ToDictionary()
+    public List<KeyValuePair<string, string>> ToQueryParametersList()
     {
-        var parameters = new Dictionary<string, string>();
+        var parameters = new List<KeyValuePair<string, string>>();
 
         if (TimeRange != null)
         {
             // API uses start_date and end_date for this endpoint
-            parameters["start_date"] = TimeRange.StartDate.ToUnixTimeMilliseconds().ToString();
-            parameters["end_date"] = TimeRange.EndDate.ToUnixTimeMilliseconds().ToString();
+            parameters.Add(new KeyValuePair<string, string>("start_date", TimeRange.StartDate.ToUnixTimeMilliseconds().ToString()));
+            parameters.Add(new KeyValuePair<string, string>("end_date", TimeRange.EndDate.ToUnixTimeMilliseconds().ToString()));
         }
 
-        if (AssigneeUserId.HasValue) parameters["assignee"] = AssigneeUserId.Value.ToString();
-        if (!string.IsNullOrWhiteSpace(TaskId)) parameters["task_id"] = TaskId;
-        if (!string.IsNullOrWhiteSpace(ListId)) parameters["list_id"] = ListId;
-        if (!string.IsNullOrWhiteSpace(FolderId)) parameters["folder_id"] = FolderId;
-        if (!string.IsNullOrWhiteSpace(SpaceId)) parameters["space_id"] = SpaceId;
+        if (AssigneeUserId.HasValue) parameters.Add(new KeyValuePair<string, string>("assignee", AssigneeUserId.Value.ToString()));
+        if (!string.IsNullOrWhiteSpace(TaskId)) parameters.Add(new KeyValuePair<string, string>("task_id", TaskId));
+        if (!string.IsNullOrWhiteSpace(ListId)) parameters.Add(new KeyValuePair<string, string>("list_id", ListId));
+        if (!string.IsNullOrWhiteSpace(FolderId)) parameters.Add(new KeyValuePair<string, string>("folder_id", FolderId));
+        if (!string.IsNullOrWhiteSpace(SpaceId)) parameters.Add(new KeyValuePair<string, string>("space_id", SpaceId));
 
-        if (IncludeTaskTags.HasValue) parameters["include_task_tags"] = IncludeTaskTags.Value.ToString().ToLowerInvariant();
-        if (IncludeLocationNames.HasValue) parameters["include_location_names"] = IncludeLocationNames.Value.ToString().ToLowerInvariant();
-        if (Page.HasValue) parameters["page"] = Page.Value.ToString();
+        if (IncludeTaskTags.HasValue) parameters.Add(new KeyValuePair<string, string>("include_task_tags", IncludeTaskTags.Value.ToString().ToLowerInvariant()));
+        if (IncludeLocationNames.HasValue) parameters.Add(new KeyValuePair<string, string>("include_location_names", IncludeLocationNames.Value.ToString().ToLowerInvariant()));
+        if (Page.HasValue) parameters.Add(new KeyValuePair<string, string>("page", Page.Value.ToString()));
+        if (IncludeTimers.HasValue) parameters.Add(new KeyValuePair<string, string>("include_timers", IncludeTimers.Value.ToString().ToLowerInvariant()));
 
-        if (CustomTaskIds.HasValue) parameters["custom_task_ids"] = CustomTaskIds.Value.ToString().ToLowerInvariant();
-        if (!string.IsNullOrWhiteSpace(TeamIdForCustomTaskIds)) parameters["team_id"] = TeamIdForCustomTaskIds; // This is the query param name if custom_task_ids is true
+        if (CustomTaskIds.HasValue) parameters.Add(new KeyValuePair<string, string>("custom_task_ids", CustomTaskIds.Value.ToString().ToLowerInvariant()));
+        if (!string.IsNullOrWhiteSpace(TeamIdForCustomTaskIds)) parameters.Add(new KeyValuePair<string, string>("team_id", TeamIdForCustomTaskIds)); // This is the query param name if custom_task_ids is true
 
         return parameters;
     }

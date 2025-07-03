@@ -6,19 +6,26 @@ namespace ClickUp.Api.Client.Models.Common.ValueObjects;
 /// <summary>
 /// Represents a range of time defined by a start and end date.
 /// </summary>
-/// <param name="StartDate">The start date of the time range. Its UTC representation will be used for conversion.</param>
-/// <param name="EndDate">The end date of the time range. Its UTC representation will be used for conversion.</param>
-public record TimeRange(DateTimeOffset StartDate, DateTimeOffset EndDate)
+public record TimeRange
 {
-    // Compact constructor removed due to persistent build issues in the environment.
-    // Validation is temporarily moved to ToQueryParameters.
-    // public TimeRange
-    // {
-    //     if (StartDate > EndDate)
-    //     {
-    //         throw new ArgumentException("StartDate cannot be after EndDate.", nameof(StartDate));
-    //     }
-    // }
+    public DateTimeOffset StartDate { get; }
+    public DateTimeOffset EndDate { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TimeRange"/> record.
+    /// </summary>
+    /// <param name="startDate">The start date of the time range. Its UTC representation will be used for conversion.</param>
+    /// <param name="endDate">The end date of the time range. Its UTC representation will be used for conversion.</param>
+    /// <exception cref="ArgumentException">Thrown if startDate is after endDate.</exception>
+    public TimeRange(DateTimeOffset startDate, DateTimeOffset endDate)
+    {
+        if (startDate > endDate)
+        {
+            throw new ArgumentException("StartDate cannot be after EndDate.", nameof(startDate));
+        }
+        StartDate = startDate;
+        EndDate = endDate;
+    }
 
     /// <summary>
     /// Converts the TimeRange to a dictionary of query parameters.
@@ -28,15 +35,10 @@ public record TimeRange(DateTimeOffset StartDate, DateTimeOffset EndDate)
     /// <returns>A dictionary containing the start and end dates as Unix time in milliseconds, based on their UTC representation.</returns>
     public Dictionary<string, string> ToQueryParameters(string startDateParamName = "start_date", string endDateParamName = "end_date")
     {
-        // Temporary placement of validation due to build issues with compact constructor.
-        if (this.StartDate > this.EndDate)
-        {
-            throw new ArgumentException("StartDate cannot be after EndDate.", nameof(StartDate));
-        }
         return new Dictionary<string, string>
         {
-            { startDateParamName, this.StartDate.ToUnixTimeMilliseconds().ToString() },
-            { endDateParamName, this.EndDate.ToUnixTimeMilliseconds().ToString() }
+            { startDateParamName, StartDate.ToUnixTimeMilliseconds().ToString() },
+            { endDateParamName, EndDate.ToUnixTimeMilliseconds().ToString() }
         };
     }
 }

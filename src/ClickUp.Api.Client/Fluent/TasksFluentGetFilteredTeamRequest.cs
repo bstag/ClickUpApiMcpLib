@@ -28,7 +28,7 @@ public class TasksFluentGetFilteredTeamRequest
     public TasksFluentGetFilteredTeamRequest WithSubtasks(bool subtasks) { _parameters.Subtasks = subtasks; return this; }
     public TasksFluentGetFilteredTeamRequest WithSpaceIds(IEnumerable<long> spaceIds) { _parameters.SpaceIds = spaceIds.ToList(); return this; }
     public TasksFluentGetFilteredTeamRequest WithProjectIds(IEnumerable<long> projectIds) { _parameters.ProjectIds = projectIds.ToList(); return this; }
-    public TasksFluentGetFilteredTeamRequest WithListIds(IEnumerable<long> listIds) { _parameters.ListIds = listIds.ToList(); return this; }
+    public TasksFluentGetFilteredTeamRequest WithListIds(IEnumerable<string> listIds) { _parameters.ListIds = listIds.ToList(); return this; } // Changed to string
     public TasksFluentGetFilteredTeamRequest WithStatuses(IEnumerable<string> statuses) { _parameters.Statuses = statuses.ToList(); return this; }
     public TasksFluentGetFilteredTeamRequest WithIncludeClosed(bool includeClosed) { _parameters.IncludeClosed = includeClosed; return this; }
     public TasksFluentGetFilteredTeamRequest WithAssignees(IEnumerable<int> assigneeIds) { _parameters.AssigneeIds = assigneeIds.ToList(); return this; }
