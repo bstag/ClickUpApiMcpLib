@@ -16,7 +16,7 @@ public class TimeRangeTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => new TimeRange(startDate, endDate));
-        Assert.Equal("StartDate cannot be after EndDate. (Parameter 'StartDate')", exception.Message);
+        Assert.Equal("StartDate cannot be after EndDate. (Parameter 'startDate')", exception.Message);
     }
 
     [Fact]

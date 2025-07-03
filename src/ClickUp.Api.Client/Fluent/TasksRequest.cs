@@ -22,7 +22,7 @@ public class TasksRequest
     {
         _listId = listId;
         _tasksService = tasksService;
-        _parameters.ListIds = new List<long> { long.Parse(listId) }; // Pre-set ListId for this request type
+        _parameters.ListIds = new List<string> { listId }; // Pre-set ListId for this request type, now as string
     }
 
     public TasksRequest WithArchived(bool archived) { _parameters.Archived = archived; return this; }
