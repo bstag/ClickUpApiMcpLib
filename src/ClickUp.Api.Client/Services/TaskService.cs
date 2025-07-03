@@ -50,12 +50,11 @@ namespace ClickUp.Api.Client.Services
             var first = true;
             foreach (var kvp in queryParams)
             {
-                // Values from ToQueryParametersList are assumed to be appropriately escaped if they represent complex data (like individual statuses or tags).
-                // Keys are generally safe but escaping them doesn't hurt.
-                // The value itself should not be double-escaped here.
+                // Always escape both key and value to ensure proper URL encoding
+                // This handles special characters like {, ", spaces, etc. in parameter values
                 sb.Append(first ? '?' : '&');
                 first = false;
-                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={kvp.Value}"); // Only escape key, value is pre-formatted
+                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
             }
             return sb.ToString();
         }
