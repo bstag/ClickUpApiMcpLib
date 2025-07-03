@@ -11,7 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
+using ClickUp.Api.Client.Models.Parameters;
+using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
 using Xunit;
 
 namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent;
@@ -44,10 +45,17 @@ public class FluentTimeTrackingApiTests
 
         var mockTimeTrackingService = new Mock<ITimeTrackingService>();
         mockTimeTrackingService.Setup(x => x.GetTimeEntriesAsync(
-            It.IsAny<string>(),
-            It.IsAny<Client.Models.RequestModels.TimeTracking.GetTimeEntriesRequest>(),
-            It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult); // Return the IPagedResult
+                It.IsAny<string>(),
+                It.Is<Action<GetTimeEntriesRequestParameters>>(configureParameters =>
+                {
+                    var parameters = new GetTimeEntriesRequestParameters();
+                    configureParameters(parameters);
+                    return parameters.TimeRange != null &&
+                           parameters.TimeRange.StartDate == DateTimeOffset.FromUnixTimeMilliseconds(1234567890L) &&
+                           parameters.TimeRange.EndDate == DateTimeOffset.FromUnixTimeMilliseconds(9876543210L);
+                }),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
 
         var fluentTimeTrackingApi = new TimeTrackingFluentApi(mockTimeTrackingService.Object);
 
@@ -61,7 +69,7 @@ public class FluentTimeTrackingApiTests
         Assert.Equal(expectedTimeEntriesList, result.Items); // Assert against the .Items property
         mockTimeTrackingService.Verify(x => x.GetTimeEntriesAsync(
             workspaceId,
-            It.Is<Client.Models.RequestModels.TimeTracking.GetTimeEntriesRequest>(req =>
+            It.Is<GetTimeEntriesRequest>(req =>
                 req.StartDate == DateTimeOffset.FromUnixTimeMilliseconds(1234567890L) &&
                 req.EndDate == DateTimeOffset.FromUnixTimeMilliseconds(9876543210L)),
             It.IsAny<CancellationToken>()), Times.Once);

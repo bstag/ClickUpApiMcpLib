@@ -6,6 +6,7 @@ using ClickUp.Api.Client.Models.Parameters; // For GetTimeEntriesRequestParamete
 using ClickUp.Api.Client.Models.Entities.TimeTracking;
 using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
 using Microsoft.Extensions.DependencyInjection;
+using RichardSzalay.MockHttp;
 using Xunit;
 using Xunit.Abstractions;
 

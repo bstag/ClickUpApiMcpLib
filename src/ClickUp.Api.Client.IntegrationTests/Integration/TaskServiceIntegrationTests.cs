@@ -455,7 +455,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             // var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
             var response = await _taskService.GetTasksAsync(_testListId, parameters =>
             {
-                parameters.AssigneeIds = new List<long> { userIdIntToTest }; // Changed to AssigneeIds (long)
+                parameters.AssigneeIds = new List<int> { userIdIntToTest }; // Changed to AssigneeIds (long)
             });
 
             Assert.NotNull(response); Assert.NotNull(response.Items);
@@ -597,7 +597,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             // var response = await _taskService.GetFilteredTeamTasksAsync(workspaceId: _testWorkspaceId, requestModel: requestModel); Assert.NotNull(response?.Items);
             var response = await _taskService.GetFilteredTeamTasksAsync(_testWorkspaceId, parameters =>
             {
-                parameters.ListIds = new List<string> { _testListId };
+                parameters.ListIds = new List<long> { long.Parse(_testListId) };
             });
             Assert.NotNull(response?.Items);
             Assert.Contains(response.Items, t => t.Id == taskInList1.Id);
@@ -660,7 +660,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             var retrievedTasks = new List<CuTask>();
             // var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
             // await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, requestModel))
-            var parameters = new Models.Parameters.GetTasksRequestParameters { ListIds = new List<string> { _testListId } };
+            var parameters = new Models.Parameters.GetTasksRequestParameters { ListIds = new List<long> { long.Parse(_testListId) } };
             await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, parameters))
             {
                 retrievedTasks.Add(task);
