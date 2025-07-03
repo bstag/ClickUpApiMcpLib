@@ -1,23 +1,30 @@
-using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities.TimeTracking;
-using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
+using System; // For DateTimeOffset
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Models.Common.ValueObjects; // For TimeRange
+using ClickUp.Api.Client.Models.Entities.TimeTracking;
+using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
 
 namespace ClickUp.Api.Client.Fluent;
 
 public class TimeEntriesFluentGetRequest
 {
-    private long? _startDate;
-    private long? _endDate;
-    private int? _assignee;
+    private TimeRange? _timeRange;
+    private long? _assigneeUserId; // Changed from int? _assignee to long? _assigneeUserId
     private string? _taskId;
-    private bool? _customTaskIds;
-    private string? _teamIdForCustomTaskIds;
+    // CustomTaskIds and TeamIdForCustomTaskIds are not general filters for GetTimeEntries,
+    // they are usually for specific create/update operations if a task ID is involved.
+    // We'll remove them here as they are not on the refactored GetTimeEntriesAsync service method.
+    // private bool? _customTaskIds;
+    // private string? _teamIdForCustomTaskIds;
     private bool? _includeTaskTags;
     private bool? _includeLocationNames;
     private int? _page;
+    private string? _spaceId;
+    private string? _folderId;
+    private string? _listId;
 
     private readonly string _workspaceId;
     private readonly ITimeTrackingService _timeTrackingService;
@@ -28,49 +35,53 @@ public class TimeEntriesFluentGetRequest
         _timeTrackingService = timeTrackingService;
     }
 
-    public TimeEntriesFluentGetRequest WithStartDate(long startDate)
+    public TimeEntriesFluentGetRequest WithTimeRange(DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        _startDate = startDate;
+        _timeRange = new TimeRange(startDate, endDate);
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithEndDate(long endDate)
+    public TimeEntriesFluentGetRequest WithAssignee(long assigneeUserId) // Changed from int to long
     {
-        _endDate = endDate;
+        _assigneeUserId = assigneeUserId;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithAssignee(int assignee)
-    {
-        _assignee = assignee;
-        return this;
-    }
-
-    public TimeEntriesFluentGetRequest WithTaskId(string taskId)
+    public TimeEntriesFluentGetRequest ForTask(string taskId)
     {
         _taskId = taskId;
+        _listId = null; _folderId = null; _spaceId = null; // Ensure exclusivity
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithCustomTaskIds(bool customTaskIds)
+    public TimeEntriesFluentGetRequest ForList(string listId)
     {
-        _customTaskIds = customTaskIds;
+        _listId = listId;
+        _taskId = null; _folderId = null; _spaceId = null; // Ensure exclusivity
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithTeamIdForCustomTaskIds(string teamIdForCustomTaskIds)
+    public TimeEntriesFluentGetRequest ForFolder(string folderId)
     {
-        _teamIdForCustomTaskIds = teamIdForCustomTaskIds;
+        _folderId = folderId;
+        _taskId = null; _listId = null; _spaceId = null; // Ensure exclusivity
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithIncludeTaskTags(bool includeTaskTags)
+    public TimeEntriesFluentGetRequest ForSpace(string spaceId)
+    {
+        _spaceId = spaceId;
+        _taskId = null; _listId = null; _folderId = null; // Ensure exclusivity
+        return this;
+    }
+
+    public TimeEntriesFluentGetRequest WithIncludeTaskTags(bool includeTaskTags = true)
     {
         _includeTaskTags = includeTaskTags;
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithIncludeLocationNames(bool includeLocationNames)
+    public TimeEntriesFluentGetRequest WithIncludeLocationNames(bool includeLocationNames = true)
     {
         _includeLocationNames = includeLocationNames;
         return this;
@@ -82,41 +93,37 @@ public class TimeEntriesFluentGetRequest
         return this;
     }
 
-    public async Task<Models.Common.Pagination.IPagedResult<TimeEntry>> GetAsync(CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<TimeEntry>> GetAsync(CancellationToken cancellationToken = default)
     {
-        var request = new GetTimeEntriesRequest
-        {
-            StartDate = _startDate.HasValue ? System.DateTimeOffset.FromUnixTimeMilliseconds(_startDate.Value) : (System.DateTimeOffset?)null,
-            EndDate = _endDate.HasValue ? System.DateTimeOffset.FromUnixTimeMilliseconds(_endDate.Value) : (System.DateTimeOffset?)null,
-            Assignee = _assignee?.ToString(),
-            TaskId = _taskId,
-            IncludeTaskTags = _includeTaskTags,
-            IncludeLocationNames = _includeLocationNames,
-            Page = _page
-        };
-
         return await _timeTrackingService.GetTimeEntriesAsync(
             _workspaceId,
-            request,
+            _timeRange,
+            _assigneeUserId,
+            _taskId,
+            _listId,
+            _folderId,
+            _spaceId,
+            _includeTaskTags,
+            _includeLocationNames,
+            _page,
             cancellationToken
         );
     }
 
     public IAsyncEnumerable<TimeEntry> GetStreamAsync(CancellationToken cancellationToken = default)
     {
-        var request = new GetTimeEntriesRequest
-        {
-            StartDate = _startDate.HasValue ? System.DateTimeOffset.FromUnixTimeMilliseconds(_startDate.Value) : (System.DateTimeOffset?)null,
-            EndDate = _endDate.HasValue ? System.DateTimeOffset.FromUnixTimeMilliseconds(_endDate.Value) : (System.DateTimeOffset?)null,
-            Assignee = _assignee?.ToString(),
-            TaskId = _taskId,
-            IncludeTaskTags = _includeTaskTags,
-            IncludeLocationNames = _includeLocationNames
-        };
-
+        // The service method GetTimeEntriesAsyncEnumerableAsync was also updated to take these parameters.
         return _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(
             _workspaceId,
-            request,
+            _timeRange,
+            _assigneeUserId,
+            _taskId,
+            _listId,
+            _folderId,
+            _spaceId,
+            _includeTaskTags,
+            _includeLocationNames,
+            // Page is handled by the enumerable itself
             cancellationToken
         );
     }

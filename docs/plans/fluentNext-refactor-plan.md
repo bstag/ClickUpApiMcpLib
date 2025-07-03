@@ -315,39 +315,50 @@ Each step contains:
 **Why:** Reduce duplicated query-string logic.
 
 **Tasks**
-- [ ] 6.1 Identify common query parameters used for filtering, sorting, and date ranges across the ClickUp API (refer to `docs/OpenApiSpec/ClickUp-6-17-25.json` and `https://developer.clickup.com/reference/`).
-    - [ ] 6.1.1 Examples: `start_date`, `end_date`, `order_by`, `reverse` (for sort direction), custom field filters.
-- [ ] 6.2 Define `TimeRange` value object in `src/ClickUp.Api.Client.Models/Common/` (or a new `ValueObjects` sub-namespace).
-    ```csharp
-    // src/ClickUp.Api.Client.Models/Common/ValueObjects/TimeRange.cs
-    public record TimeRange(DateTimeOffset StartDate, DateTimeOffset EndDate)
-    {
-        // Consider adding validation, e.g., StartDate <= EndDate
-        // Method to convert to query parameters
-        public Dictionary<string, string> ToQueryParameters(string startDateParamName = "start_date", string endDateParamName = "end_date")
-        {
-            return new Dictionary<string, string>
-            {
-                { startDateParamName, new DateTimeOffset(StartDate.UtcDateTime).ToUnixTimeMilliseconds().ToString() }, // ClickUp API uses Unix timestamp in milliseconds
-                { endDateParamName, new DateTimeOffset(EndDate.UtcDateTime).ToUnixTimeMilliseconds().ToString() }
-            };
-        }
-    }
-    ```
-- [ ] 6.3 Define `SortDirection` enum in `src/ClickUp.Api.Client.Models/Common/`.
-    ```csharp
-    public enum SortDirection { Ascending, Descending }
-    ```
-    And a helper to convert to API string (e.g., "asc", "desc", or true/false for "reverse").
-- [ ] 6.4 Define `DateFilter` (or more specific filter objects like `TaskDateFilter`) value object. This might encapsulate a field name and a `TimeRange` or specific date.
-- [ ] 6.5 Refactor service interface methods (`src/ClickUp.Api.Client.Abstractions/Services/*.cs`) that use such parameters to accept these value objects instead of raw `DateTimeOffset`, `string`, `bool reverse`, etc.
-    - [ ] 6.5.1 Example: A method `GetTasksAsync(string listId, TimeRange? dateRangeFilter, string? sortBy, SortDirection? sortDirection)`
-- [ ] 6.6 Update service implementations (`src/ClickUp.Api.Client/Services/*.cs`) to use these value objects.
-    - [ ] 6.6.1 Use methods on the value objects (e.g., `TimeRange.ToQueryParameters()`) to build query strings, replacing manual `StringBuilder` logic for these parts.
-    - [ ] 6.6.2 Example: `AttachmentsService.BuildQueryString` might be simplified if common query parameters become value objects.
-- [ ] 6.7 Update fluent API builders (`src/ClickUp.Api.Client/Fluent/**/*.cs`) to provide methods for setting these value objects.
-    - [ ] 6.7.1 Example: `.DueBetween(DateTimeOffset start, DateTimeOffset end)` or `.SortedBy("fieldName", SortDirection.Ascending)`.
-- [ ] 6.8 Update unit tests and integration tests for affected methods.
+- [ ] **6.1 Identify common query parameters used for filtering, sorting, and date ranges across the ClickUp API.**
+    - [ ] 6.1.1 Review `docs/OpenApiSpec/ClickUp-6-17-25.json` (if available) and `https://developer.clickup.com/reference/` for parameters like `start_date`, `end_date`, `order_by`, `reverse`, custom field filters, `include_closed`, `subtasks`, etc.
+    - [ ] 6.1.2 Document findings relevant to value object creation (e.g., specific date formats, sort direction values).
+- [ ] **6.2 Define `TimeRange` value object.**
+    - [ ] 6.2.1 Create `src/ClickUp.Api.Client.Models/Common/ValueObjects/TimeRange.cs`.
+    - [ ] 6.2.2 Implement `public record TimeRange(DateTimeOffset StartDate, DateTimeOffset EndDate)`.
+    - [ ] 6.2.3 Add constructor validation: `StartDate` must be less than or equal to `EndDate`. Throw `ArgumentException` if not.
+    - [ ] 6.2.4 Implement `public Dictionary<string, string> ToQueryParameters(string startDateParamName = "start_date", string endDateParamName = "end_date")`.
+        - [ ] 6.2.4.1 Convert `StartDate` and `EndDate` to Unix time in milliseconds (as string).
+        - [ ] 6.2.4.2 Return dictionary with provided parameter names.
+- [ ] **6.3 Define `SortOptions` value object (or individual `SortBy` and `SortDirection`).**
+    - [ ] 6.3.1 Create `src/ClickUp.Api.Client.Models/Common/ValueObjects/SortDirection.cs`.
+        - [ ] 6.3.1.1 Define `public enum SortDirection { Ascending, Descending }`.
+    - [ ] 6.3.2 Create `src/ClickUp.Api.Client.Models/Common/ValueObjects/SortOption.cs`.
+        - [ ] 6.3.2.1 Implement `public record SortOption(string FieldName, SortDirection Direction)`.
+        - [ ] 6.3.2.2 Add `public Dictionary<string, string> ToQueryParameters(string orderByParamName = "order_by", string reverseParamName = "reverse")`.
+            - [ ] 6.3.2.2.1 `order_by` should be `FieldName`.
+            - [ ] 6.3.2.2.2 `reverse` should be "true" if `Direction` is `Descending`, "false" if `Ascending`. (Verify API specifics, some use "asc"/"desc" for `order_by` or a dedicated sort direction parameter). *Self-correction: ClickUp API often uses `order_by` (field name) and `reverse` (boolean). Some newer endpoints might use `sort_by` and `sort_order`.*
+- [ ] **6.4 Define specific filter objects or a generic `QueryParametersCollection` for services.**
+    - [ ] 6.4.1 Example: `GetTasksRequestParameters.cs`
+        - [ ] 6.4.1.1 Properties for `IEnumerable<string> SpaceIds`, `IEnumerable<string> ProjectIds`, `IEnumerable<string> ListIds`, `Series<string> Assignees`, `Series<string> Statuses`, `bool IncludeClosed`, `bool Subtasks`, `TimeRange? DueDateRange`, `TimeRange? DateCreatedRange`, `TimeRange? DateUpdatedRange`, `SortOption? SortBy`.
+        - [ ] 6.4.1.2 Method `ToDictionary()` to convert all set parameters into a `Dictionary<string, string>` for `IApiConnection`.
+- [ ] **6.5 Refactor service interface methods (`src/ClickUp.Api.Client.Abstractions/Services/*.cs`) to accept these value objects/parameter objects.**
+    - [ ] 6.5.1 Example: `ITasksService.GetTasksAsync(Action<GetTasksRequestParameters> configureParameters, CancellationToken ct)` or `ITasksService.GetTasksAsync(GetTasksRequestParameters parameters, CancellationToken ct)`.
+    - [ ] 6.5.2 Review services like `IAuditLogsService`, `ITasksService`, `ITimeTrackingService` for methods that accept multiple filter/sort/date parameters.
+        - [ ] `IAuditLogsService.GetAuditLogsAsync`: update to use `TimeRange` for `startDate`, `endDate`.
+        - [ ] `ITasksService.GetTasksAsync`: update to use a new `GetTasksRequestParameters` object.
+        - [ ] `ITasksService.GetFilteredTeamTasksAsync`: update to use relevant parts of `GetTasksRequestParameters` or a specific filter object.
+        - [ ] `ITimeTrackingService.GetTimeEntriesAsync`: update to use `TimeRange` for `startDate`, `endDate` (if applicable, API uses `start_date` and `end_date` as top-level query params, not nested).
+        - [ ] `ITimeTrackingService.GetSingletonTimeEntryHistoryAsync`: update to use `TimeRange`.
+        - [ ] `ITimeTrackingService.GetTimeEntryHistoryAsync`: update to use `TimeRange`.
+- [ ] **6.6 Update service implementations (`src/ClickUp.Api.Client/Services/*.cs`) to use these value objects.**
+    - [ ] 6.6.1 Use `ToQueryParameters()` or `ToDictionary()` methods from the value objects/parameter objects.
+    - [ ] 6.6.2 Remove manual query string building for these parameters.
+    - [ ] 6.6.3 Example: `TasksService.GetTasksAsync` will instantiate `GetTasksRequestParameters`, pass it to the `configureParameters` action, then call `parameters.ToDictionary()` to pass to `_apiConnection`.
+- [ ] **6.7 Update fluent API builders (`src/ClickUp.Api.Client/Fluent/**/*.cs`) to provide methods for setting these value objects or configuring parameter objects.**
+    - [ ] 6.7.1 Example: For `TasksFluentGetRequest`:
+        - [ ] `.WithDueDateBetween(DateTimeOffset start, DateTimeOffset end)` -> sets `DueDateRange` on `GetTasksRequestParameters`.
+        - [ ] `.OrderBy("status", SortDirection.Descending)` -> sets `SortBy` on `GetTasksRequestParameters`.
+        - [ ] `.IncludeClosedTasks(bool include = true)` -> sets `IncludeClosed`.
+- [ ] **6.8 Update unit tests and integration tests for affected methods.**
+    - [ ] 6.8.1 Test that value objects/parameter objects correctly translate to API query parameters.
+    - [ ] 6.8.2 Test service methods with new signatures.
+    - [ ] 6.8.3 Test fluent API methods for correct configuration of parameters.
 
 **Validation Rule:**
 - `grep -E "start_date=|end_date=|order_by=|reverse=" src/ClickUp.Api.Client/Services/**/*.cs` should show minimal to no direct string manipulation for these parameters outside of the value object files themselves or a centralized query building mechanism that uses them.

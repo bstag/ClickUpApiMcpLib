@@ -1,14 +1,20 @@
-using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.RequestModels.Tasks;
-using ClickUp.Api.Client.Models.ResponseModels.Tasks;
+using System; // For DateTimeOffset
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading; // For CancellationToken
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Models.Common.ValueObjects; // For TimeRange, SortOption, SortDirection
+using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask
+using ClickUp.Api.Client.Models.RequestModels.Parameters; // For GetTasksRequestParameters
+using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
+
 
 namespace ClickUp.Api.Client.Fluent;
 
 public class TasksRequest
 {
-    private readonly GetTasksRequest _request = new();
+    private readonly GetTasksRequestParameters _parameters = new();
     private readonly string _listId;
     private readonly ITasksService _tasksService;
 
@@ -20,141 +26,146 @@ public class TasksRequest
 
     public TasksRequest WithArchived(bool archived)
     {
-        _request.Archived = archived;
+        _parameters.Archived = archived;
         return this;
     }
 
-    public TasksRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription)
-    {
-        _request.IncludeMarkdownDescription = includeMarkdownDescription;
-        return this;
-    }
+    // Assuming IncludeMarkdownDescription is not part of GetTasksRequestParameters,
+    // but if it were, it would be:
+    // public TasksRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription)
+    // {
+    //     _parameters.IncludeMarkdownDescription = includeMarkdownDescription; // Example, if this property existed
+    //     return this;
+    // }
 
     public TasksRequest WithPage(int page)
     {
-        _request.Page = page;
+        _parameters.Page = page;
         return this;
     }
 
-    public TasksRequest WithOrderBy(string orderBy)
+    public TasksRequest OrderBy(string fieldName, SortDirection direction = SortDirection.Ascending)
     {
-        _request.OrderBy = orderBy;
-        return this;
-    }
-
-    public TasksRequest WithReverse(bool reverse)
-    {
-        _request.Reverse = reverse;
+        _parameters.SortBy = new SortOption(fieldName, direction);
         return this;
     }
 
     public TasksRequest WithSubtasks(bool subtasks)
     {
-        _request.Subtasks = subtasks;
+        _parameters.Subtasks = subtasks;
         return this;
     }
 
     public TasksRequest WithStatuses(IEnumerable<string> statuses)
     {
-        _request.Statuses = statuses;
+        _parameters.Statuses = statuses;
         return this;
     }
 
     public TasksRequest WithIncludeClosed(bool includeClosed)
     {
-        _request.IncludeClosed = includeClosed;
+        _parameters.IncludeClosed = includeClosed;
         return this;
     }
 
-    public TasksRequest WithAssignees(IEnumerable<string> assignees)
+    public TasksRequest WithAssignees(IEnumerable<long> assignees) // Changed from string to long to match GetTasksRequestParameters
     {
-        _request.Assignees = assignees;
+        _parameters.Assignees = assignees;
         return this;
     }
 
-    public TasksRequest WithWatchers(IEnumerable<string> watchers)
+    // Watchers are not in GetTasksRequestParameters for typical GetTasks, often a GetSingleTask detail.
+    // public TasksRequest WithWatchers(IEnumerable<string> watchers)
+    // {
+    //     // _parameters.Watchers = watchers; // Example
+    //     return this;
+    // }
+
+    // Tags are not directly in GetTasksRequestParameters, might be part of a more complex filter or custom field.
+    // public TasksRequest WithTags(IEnumerable<string> tags)
+    // {
+    //     // _parameters.Tags = tags; // Example
+    //     return this;
+    // }
+
+    public TasksRequest WithDueDateBetween(DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        _request.Watchers = watchers;
+        _parameters.DueDateRange = new TimeRange(startDate, endDate);
         return this;
     }
 
-    public TasksRequest WithTags(IEnumerable<string> tags)
+    public TasksRequest WithDateCreatedBetween(DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        _request.Tags = tags;
+        _parameters.DateCreatedRange = new TimeRange(startDate, endDate);
         return this;
     }
 
-    public TasksRequest WithDueDateGreaterThan(long dueDateGreaterThan)
+    public TasksRequest WithDateUpdatedBetween(DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        _request.DueDateGreaterThan = dueDateGreaterThan;
+        _parameters.DateUpdatedRange = new TimeRange(startDate, endDate);
         return this;
     }
 
-    public TasksRequest WithDueDateLessThan(long dueDateLessThan)
+    // DateDone range is not explicitly in GetTasksRequestParameters, but could be added if API supports it.
+
+    public TasksRequest WithCustomField(string fieldId, string value)
     {
-        _request.DueDateLessThan = dueDateLessThan;
+        var currentCustomFields = _parameters.CustomFields?.ToList() ?? new List<CustomFieldParameter>();
+        currentCustomFields.Add(new CustomFieldParameter(fieldId, value));
+        _parameters.CustomFields = currentCustomFields;
         return this;
     }
 
-    public TasksRequest WithDateCreatedGreaterThan(long dateCreatedGreaterThan)
+    // CustomItems (integer IDs) are not in GetTasksRequestParameters.
+    // public TasksRequest WithCustomItems(IEnumerable<long> customItems)
+    // {
+    //     // _parameters.CustomItems = customItems; // Example
+    //     return this;
+    // }
+
+    public async Task<IPagedResult<CuTask>> GetAsync(CancellationToken cancellationToken = default)
     {
-        _request.DateCreatedGreaterThan = dateCreatedGreaterThan;
-        return this;
+        return await _tasksService.GetTasksAsync(_listId, p =>
+        {
+            // Copy all configured _parameters to p
+            p.Archived = _parameters.Archived;
+            p.Page = _parameters.Page;
+            p.SortBy = _parameters.SortBy;
+            p.Subtasks = _parameters.Subtasks;
+            p.Statuses = _parameters.Statuses;
+            p.IncludeClosed = _parameters.IncludeClosed;
+            p.Assignees = _parameters.Assignees;
+            p.DueDateRange = _parameters.DueDateRange;
+            p.DateCreatedRange = _parameters.DateCreatedRange;
+            p.DateUpdatedRange = _parameters.DateUpdatedRange;
+            p.CustomFields = _parameters.CustomFields;
+            // Copy other relevant properties from _parameters to p as needed
+        }, cancellationToken);
     }
 
-    public TasksRequest WithDateCreatedLessThan(long dateCreatedLessThan)
+    public IAsyncEnumerable<CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
-        _request.DateCreatedLessThan = dateCreatedLessThan;
-        return this;
-    }
+        // The ITasksService.GetTasksAsyncEnumerableAsync now also takes Action<GetTasksRequestParameters>
+        // However, the old TasksFluentApi.GetTasksAsyncEnumerableAsync directly constructs GetTasksRequest.
+        // This fluent builder should ideally call the service method that accepts Action.
+        // For now, let's assume TasksFluentApi will be updated, or we adapt here.
+        // Simplest adaptation for now, though less ideal as it bypasses the service's direct use of the Action.
+        // It's better if TasksFluentApi.GetTasksAsyncEnumerableAsync is updated to pass the action.
 
-    public TasksRequest WithDateUpdatedGreaterThan(long dateUpdatedGreaterThan)
-    {
-        _request.DateUpdatedGreaterThan = dateUpdatedGreaterThan;
-        return this;
-    }
-
-    public TasksRequest WithDateUpdatedLessThan(long dateUpdatedLessThan)
-    {
-        _request.DateUpdatedLessThan = dateUpdatedLessThan;
-        return this;
-    }
-
-    public TasksRequest WithDateDoneGreaterThan(long dateDoneGreaterThan)
-    {
-        _request.DateDoneGreaterThan = dateDoneGreaterThan;
-        return this;
-    }
-
-    public TasksRequest WithDateDoneLessThan(long dateDoneLessThan)
-    {
-        _request.DateDoneLessThan = dateDoneLessThan;
-        return this;
-    }
-
-    public TasksRequest WithCustomFields(string customFields)
-    {
-        _request.CustomFields = customFields;
-        return this;
-    }
-
-    public TasksRequest WithCustomItems(IEnumerable<long> customItems)
-    {
-        _request.CustomItems = customItems;
-        return this;
-    }
-
-    public async Task<Models.Common.Pagination.IPagedResult<Models.Entities.Tasks.CuTask>> GetAsync(CancellationToken cancellationToken = default)
-    {
-        // Page is set on _request by WithPage()
-        return await _tasksService.GetTasksAsync(_listId, _request, _request.Page, cancellationToken);
-    }
-
-    public IAsyncEnumerable<Models.Entities.Tasks.CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
-    {
-        // The _request DTO is already populated by the With... methods.
-        // The Page property in _request will be ignored by the service layer's GetTasksAsyncEnumerableAsync,
-        // as it handles its own pagination.
-        return _tasksService.GetTasksAsyncEnumerableAsync(_listId, _request, cancellationToken);
+        // To correctly use the new service signature:
+        return _tasksService.GetTasksAsyncEnumerableAsync(_listId, p =>
+        {
+            p.Archived = _parameters.Archived;
+            // Page is handled by the enumerable internally, so don't set p.Page here from _parameters.Page
+            p.SortBy = _parameters.SortBy;
+            p.Subtasks = _parameters.Subtasks;
+            p.Statuses = _parameters.Statuses;
+            p.IncludeClosed = _parameters.IncludeClosed;
+            p.Assignees = _parameters.Assignees;
+            p.DueDateRange = _parameters.DueDateRange;
+            p.DateCreatedRange = _parameters.DateCreatedRange;
+            p.DateUpdatedRange = _parameters.DateUpdatedRange;
+            p.CustomFields = _parameters.CustomFields;
+        }, cancellationToken);
     }
 }

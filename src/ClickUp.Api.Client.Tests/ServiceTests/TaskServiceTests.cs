@@ -192,15 +192,190 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             );
             Assert.Equal(apiException.Message, actualException.Message);
         }
+using ClickUp.Api.Client.Models.RequestModels.Parameters; // For GetTasksRequestParameters
+using ClickUp.Api.Client.Models.Common.ValueObjects; // For TimeRange, SortOption
+
+namespace ClickUp.Api.Client.Tests.ServiceTests
+{
+    public class TaskServiceTests
+    {
+        private readonly Mock<IApiConnection> _mockApiConnection;
+        private readonly TaskService _taskService;
+        private readonly Mock<Microsoft.Extensions.Logging.ILogger<TaskService>> _mockLogger;
+
+        public TaskServiceTests()
+        {
+            _mockApiConnection = new Mock<IApiConnection>();
+            _mockLogger = new Mock<Microsoft.Extensions.Logging.ILogger<TaskService>>();
+            _taskService = new TaskService(_mockApiConnection.Object, _mockLogger.Object);
+        }
+
+        private CuTask CreateSampleTask(string taskId = "sample-task-id")
+        {
+            return new CuTask(
+                Id: taskId,
+                CustomId: "custom-id",
+                CustomItemId: 1,
+                Name: "Sample Task Name",
+                TextContent: "Sample text content",
+                Description: "Sample markdown description",
+                MarkdownDescription: "Sample markdown description",
+                Status: new Status("open", "Open", 0, "open"), // Removed Models.Common prefix
+                OrderIndex: "1.0",
+                DateCreated: DateTimeOffset.FromUnixTimeMilliseconds(1678886400000L), // Example timestamp
+                DateUpdated: DateTimeOffset.FromUnixTimeMilliseconds(1678886400000L),
+                DateClosed: null,
+                Archived: false,
+                Creator: new User(1, "Test User", "test@example.com", "#FFFFFF", "http://example.com/pic.jpg", "TU", null), // Corrected constructor
+                Assignees: new List<User>(),
+                GroupAssignees: new List<UserGroup>(),
+                Watchers: new List<User>(),
+                Checklists: new List<Checklist>(),
+                Tags: new List<Tag>(),
+                Parent: null,
+                Priority: new Priority { Id = "1", PriorityValue = "High", Color = "#FF0000", OrderIndex = "1" }, // Removed Models.Common prefix
+                DueDate: null,
+                StartDate: null,
+                Points: null,
+                TimeEstimate: null,
+                TimeSpent: null,
+                CustomFields: new List<CustomFieldValue>(),
+                Dependencies: new List<Dependency>(),
+                LinkedTasks: new List<TaskLink>(),
+                TeamId: "workspace-id",
+                Url: $"http://example.com/task/{taskId}",
+                Sharing: null,
+                PermissionLevel: "read",
+                List: new TaskListReference("list-id", "Sample List", true),
+                Folder: new TaskFolderReference("folder-id", "Sample Folder", true),
+                Space: new TaskSpaceReference("space-id"),
+                Project: new TaskFolderReference("project-id", "Sample Project", true) // Assuming project is like folder
+            );
+        }
+
+        [Fact]
+        public async Task GetTaskAsync_ValidTaskId_ReturnsTask()
+        {
+            // Arrange
+            var taskId = "test-task-123";
+            var expectedTask = CreateSampleTask(taskId);
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<CuTask>(It.Is<string>(s => s.StartsWith($"task/{taskId}")), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedTask);
+
+            // Act
+            var result = await _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(taskId, result.Id);
+            Assert.Equal(expectedTask.Name, result.Name);
+            _mockApiConnection.Verify(x => x.GetAsync<CuTask>($"task/{taskId}", CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetTaskAsync_WithAllQueryParameters_BuildsCorrectEndpoint()
+        {
+            // Arrange
+            var taskId = "test-task-456";
+            var customTaskIds = true;
+            var teamId = "team-abc";
+            var includeSubtasks = true;
+            var includeMarkdownDescription = true;
+            var expectedTask = CreateSampleTask(taskId);
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedTask);
+
+            var expectedEndpoint = $"task/{taskId}?custom_task_ids=true&team_id={teamId}&include_subtasks=true&include_markdown_description=true";
+            var requestModel = new GetTaskRequest
+            {
+                CustomTaskIds = customTaskIds,
+                TeamId = teamId,
+                IncludeSubtasks = includeSubtasks,
+                IncludeMarkdownDescription = includeMarkdownDescription
+            };
+
+            // Act
+            await _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None);
+
+            // Assert
+            _mockApiConnection.Verify(x => x.GetAsync<CuTask>(expectedEndpoint, CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetTaskAsync_WithSomeQueryParameters_BuildsCorrectEndpoint()
+        {
+            // Arrange
+            var taskId = "test-task-789";
+            bool? customTaskIds = null; // Not provided
+            var teamId = "team-xyz";
+            var includeSubtasks = true;
+            bool? includeMarkdownDescription = null; // Not provided
+            var expectedTask = CreateSampleTask(taskId);
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedTask);
+
+            var expectedEndpoint = $"task/{taskId}?team_id={teamId}&include_subtasks=true";
+            var requestModel = new GetTaskRequest
+            {
+                CustomTaskIds = customTaskIds, // Will be null, so not added to query
+                TeamId = teamId,
+                IncludeSubtasks = includeSubtasks,
+                IncludeMarkdownDescription = includeMarkdownDescription // Will be null
+            };
+
+            // Act
+            await _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None);
+
+            // Assert
+            _mockApiConnection.Verify(x => x.GetAsync<CuTask>(expectedEndpoint, CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetTaskAsync_ApiConnectionReturnsNull_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var taskId = "non-existent-task";
+            _mockApiConnection
+                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((CuTask?)null); // Added ? for nullable return
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None)
+            );
+        }
+
+        [Fact]
+        public async Task GetTaskAsync_ApiConnectionThrowsException_PropagatesException()
+        {
+            // Arrange
+            var taskId = "error-task";
+            var apiException = new HttpRequestException("API error");
+            _mockApiConnection
+                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(apiException);
+
+            // Act & Assert
+            var actualException = await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None)
+            );
+            Assert.Equal(apiException.Message, actualException.Message);
+        }
         [Fact]
         public async Task GetFilteredTeamTasksAsync_WithNewParameters_BuildsCorrectEndpoint()
         {
             // Arrange
             var workspaceId = "ws-123";
-            var dateDoneGreaterThan = 1678886400000;
-            var dateDoneLessThan = 1678887400000;
-            var parentTaskId = "parent-task-abc";
-            var includeMarkdownDescription = true;
+            var startDate = DateTimeOffset.UtcNow.AddDays(-1);
+            var endDate = DateTimeOffset.UtcNow;
+            var customFieldId = "cust_field_guid";
+            var customFieldValue = "value123";
 
             var expectedResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse(
                 new List<CuTask> { CreateSampleTask() },
@@ -211,22 +386,28 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
-            var expectedEndpoint = $"team/{workspaceId}/task?page=0&date_done_gt={dateDoneGreaterThan}&date_done_lt={dateDoneLessThan}&parent={parentTaskId}&include_markdown_description=true";
+            // Construct expected query string parts from TimeRange and CustomFieldParameter
+            var expectedStartDateUnixMs = new DateTimeOffset(startDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
+            var expectedEndDateUnixMs = new DateTimeOffset(endDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
+            var expectedCustomFieldJson = Uri.EscapeDataString($"{{\"id\":\"{customFieldId}\",\"value\":\"{customFieldValue}\"}}");
+
+            var expectedEndpoint = $"team/{workspaceId}/task?page=0&due_date_gt={expectedStartDateUnixMs}&due_date_lt={expectedEndDateUnixMs}&custom_fields=[{expectedCustomFieldJson}]";
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
                 workspaceId,
-                requestModel: new GetFilteredTeamTasksRequest
+                configureParameters: parameters =>
                 {
-                    DateDoneGreaterThan = dateDoneGreaterThan,
-                    DateDoneLessThan = dateDoneLessThan,
-                    ParentTaskId = parentTaskId,
-                    IncludeMarkdownDescription = includeMarkdownDescription
+                    parameters.DueDateRange = new TimeRange(startDate, endDate);
+                    parameters.CustomFields = new List<CustomFieldParameter> { new CustomFieldParameter(customFieldId, customFieldValue) };
+                    // parameters.Page = 0; // Page is defaulted to 0 if not set in GetTasksRequestParameters
                 },
                 cancellationToken: CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(expectedEndpoint, CancellationToken.None), Times.Once);
+            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(
+                It.Is<string>(s => s == expectedEndpoint), // Exact match now possible due to controlled param order
+                CancellationToken.None), Times.Once);
         }
 
         [Fact]

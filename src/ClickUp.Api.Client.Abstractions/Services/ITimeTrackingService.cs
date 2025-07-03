@@ -37,9 +37,65 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access time entries for this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.Common.ValueObjects; // Added for TimeRange
+using ClickUp.Api.Client.Models.Entities.TimeTracking;
+using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
+
+namespace ClickUp.Api.Client.Abstractions.Services
+{
+    /// <summary>
+    /// Service interface for ClickUp Time Tracking operations.
+    /// </summary>
+    /// <remarks>
+    /// This service provides methods for creating, retrieving, updating, deleting, and managing time entries
+    /// and their associated tags within a Workspace. It also includes functionality for starting and stopping timers.
+    /// Covered API Endpoints (non-exhaustive list):
+    /// - Get Time Entries: `GET /team/{team_id}/time_entries`
+    /// - Create Time Entry: `POST /team/{team_id}/time_entries`
+    /// - Get Single Time Entry: `GET /team/{team_id}/time_entries/{timer_id}`
+    /// - Update Time Entry: `PUT /team/{team_id}/time_entries/{timer_id}`
+    /// - Delete Time Entry: `DELETE /team/{team_id}/time_entries/{timer_id}`
+    /// - Get Time Entry History: `GET /team/{team_id}/time_entries/{timer_id}/history`
+    /// - Get Running Time Entry: `GET /team/{team_id}/time_entries/current`
+    /// - Start Timer: `POST /team/{team_id}/time_entries/start`
+    /// - Stop Timer: `POST /team/{team_id}/time_entries/stop`
+    /// - Time Entry Tags: `GET /team/{team_id}/time_entries/tags`, `POST /team/{team_id}/time_entries/tags`, `DELETE /team/{team_id}/time_entries/tags`, `PUT /team/{team_id}/time_entries/tags`
+    /// </remarks>
+    public interface ITimeTrackingService
+    {
+        /// <summary>
+        /// Retrieves a list of time entries for a specified Workspace (Team), with various filtering options.
+        /// </summary>
+        /// <param name="workspaceId">The unique identifier of the Workspace (Team).</param>
+        /// <param name="timeRange">Optional. A <see cref="TimeRange"/> to filter time entries by start and end date.</param>
+        /// <param name="assigneeUserId">Optional. Filter time entries by a specific user ID.</param>
+        /// <param name="taskId">Optional. Filter time entries for a specific task ID.</param>
+        /// <param name="listId">Optional. Filter time entries for tasks within a specific List ID.</param>
+        /// <param name="folderId">Optional. Filter time entries for tasks within a specific Folder ID.</param>
+        /// <param name="spaceId">Optional. Filter time entries for tasks within a specific Space ID.</param>
+        /// <param name="includeTaskTags">Optional. If true, includes task tags in the response.</param>
+        /// <param name="includeLocationNames">Optional. If true, includes List, Folder, and Space names.</param>
+        /// <param name="page">Optional. The page number for pagination.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="Models.Common.Pagination.IPagedResult{TimeEntry}"/> object with time entries matching the filter criteria.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access time entries for this Workspace.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
         Task<Models.Common.Pagination.IPagedResult<TimeEntry>> GetTimeEntriesAsync(
             string workspaceId,
-            GetTimeEntriesRequest request,
+            TimeRange? timeRange = null,
+            long? assigneeUserId = null,
+            string? taskId = null,
+            string? listId = null,
+            string? folderId = null,
+            string? spaceId = null,
+            bool? includeTaskTags = null,
+            bool? includeLocationNames = null,
+            int? page = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>

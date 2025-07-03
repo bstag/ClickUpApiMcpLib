@@ -102,25 +102,109 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+using ClickUp.Api.Client.Models.Common.ValueObjects; // For TimeRange
+
+namespace ClickUp.Api.Client.Tests.ServiceTests
+{
+    public class TimeTrackingServiceTests
+    {
+        private readonly Mock<IApiConnection> _mockApiConnection;
+        private readonly TimeTrackingService _timeTrackingService;
+        private readonly Mock<ILogger<TimeTrackingService>> _mockLogger;
+
+        public TimeTrackingServiceTests()
+        {
+            _mockApiConnection = new Mock<IApiConnection>();
+            _mockLogger = new Mock<ILogger<TimeTrackingService>>();
+            _timeTrackingService = new TimeTrackingService(_mockApiConnection.Object, _mockLogger.Object);
+        }
+
+        private ClickUp.Api.Client.Models.Entities.Users.User CreateSampleUser(long id = 1, string username = "Time User")
+        {
+            return new ClickUp.Api.Client.Models.Entities.Users.User((int)id, username, $"{username.Replace(" ", "")}@example.com", "#123", null, "TU");
+        }
+
+        private ClickUp.Api.Client.Models.Entities.TimeTracking.TimeEntryTaskReference CreateSampleTimeEntryTaskReference(string id = "task_tt_1", string name = "Timing Task")
+        {
+             return new ClickUp.Api.Client.Models.Entities.TimeTracking.TimeEntryTaskReference(
+                Id: id,
+                Name: name,
+                CustomId: null,
+                Status: null, // This would be Models.Common.Status
+                Url: $"https://app.clickup.com/t/{id}"
+            );
+        }
+
+        private TimeEntry CreateSampleTimeEntry(string id = "te_1", string description = "Dev work")
+        {
+            var user = CreateSampleUser();
+            var taskRef = CreateSampleTimeEntryTaskReference(); // Changed to use TimeEntryTaskReference
+            return new TimeEntry(
+                Id: id,
+                Task: taskRef, // Use TimeEntryTaskReference
+                Wid: "ws_sample", // Added WorkspaceId (wid)
+                User: user,
+                Billable: false,
+                Start: DateTimeOffset.UtcNow.AddHours(-2).ToUnixTimeMilliseconds().ToString(), // Changed to string
+                End: DateTimeOffset.UtcNow.AddHours(-1).ToUnixTimeMilliseconds().ToString(), // Changed to string
+                Duration: 3600000,
+                Description: description,
+                Tags: new List<TaskTag>(),
+                Source: "clickup",
+                At: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(), // Changed to string
+                TaskLocationInfo: new TaskLocation(ListId: "list_id", ListName: "list_name", FolderId: "folder_id", FolderName: "folder_name", SpaceId: "space_id", SpaceName: "space_name", ListHidden: null, FolderHidden: null, SpaceHidden: null),
+                TaskTags: new List<TaskTag>(),
+                TaskUrl: $"https://app.clickup.com/t/{taskRef.Id}",
+                IsLocked: false, // Added IsLocked
+                LockedDetails: null // Added LockedDetails
+            );
+        }
+
+        // --- Tests for GetTimeEntriesAsync ---
+
+        [Fact]
+        public async Task GetTimeEntriesAsync_ValidRequest_ReturnsTimeEntries()
+        {
+            // Arrange
+            var workspaceId = "ws123";
+            // var request = new GetTimeEntriesRequest(); // Old way
+            var expectedEntries = new List<TimeEntry> { CreateSampleTimeEntry("te1", "Entry 1") };
+            var apiResponse = new GetTimeEntriesResponse(expectedEntries, expectedEntries.Count, null);
+
+            _mockApiConnection
+                .Setup(x => x.GetAsync<GetTimeEntriesResponse>(
+                    It.Is<string>(s => s.StartsWith($"team/{workspaceId}/time_entries")),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _timeTrackingService.GetTimeEntriesAsync(workspaceId); // Call with new signature
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.NotNull(result.Items);
+            Assert.Single(result.Items);
+            Assert.Equal("te1", result.Items.First().Id);
+            _mockApiConnection.Verify(x => x.GetAsync<GetTimeEntriesResponse>(
+                $"team/{workspaceId}/time_entries",
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         [Fact]
         public async Task GetTimeEntriesAsync_WithAllRequestParameters_BuildsCorrectUrl()
         {
             // Arrange
             var workspaceId = "ws_all_params";
-            long startDateUnix = DateTimeOffset.UtcNow.AddDays(-7).ToUnixTimeMilliseconds();
-            long endDateUnix = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var request = new GetTimeEntriesRequest
-            {
-                StartDate = DateTimeOffset.FromUnixTimeMilliseconds(startDateUnix),
-                EndDate = DateTimeOffset.FromUnixTimeMilliseconds(endDateUnix),
-                Assignee = "123,456",
-                IncludeTaskTags = true,
-                IncludeLocationNames = false,
-                SpaceId = "space_x",
-                FolderId = "folder_y",
-                ListId = "list_z",
-                TaskId = "task_abc"
-            };
+            var startDate = DateTimeOffset.UtcNow.AddDays(-7);
+            var endDate = DateTimeOffset.UtcNow;
+            var timeRange = new TimeRange(startDate, endDate);
+            long assigneeUserId = 123;
+            var includeTaskTags = true;
+            var includeLocationNames = false;
+            var spaceId = "space_x";
+            // Only one location filter, so folderId, listId, taskId will be null or not passed
+            var page = 1;
+
             var apiResponse = new GetTimeEntriesResponse(new List<TimeEntry>(), 0, null);
 
             _mockApiConnection
@@ -128,35 +212,39 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(apiResponse);
 
             // Act
-            await _timeTrackingService.GetTimeEntriesAsync(workspaceId, request);
+            await _timeTrackingService.GetTimeEntriesAsync(
+                workspaceId,
+                timeRange,
+                assigneeUserId,
+                null, // taskId
+                null, // listId
+                null, // folderId
+                spaceId,
+                includeTaskTags,
+                includeLocationNames,
+                page);
 
             // Assert
-            // The service converts DateTimeOffset to ISO 8601 string ("O" format), then BuildQueryString URL encodes it.
-            // The 'page' parameter is NOT added if request.Page is null for GetTimeEntriesRequest
+            var expectedStartDateUnixMs = new DateTimeOffset(startDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
+            var expectedEndDateUnixMs = new DateTimeOffset(endDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
+
             var queryParams = new Dictionary<string, string?>
             {
-                { "start_date", request.StartDate.Value.ToString("O") },
-                { "end_date", request.EndDate.Value.ToString("O") },
-                { "assignee", request.Assignee },
+                { "start_date", expectedStartDateUnixMs },
+                { "end_date", expectedEndDateUnixMs },
+                { "assignee", assigneeUserId.ToString() },
                 { "include_task_tags", "true" },
                 { "include_location_names", "false" },
-                { "space_id", "space_x" },
-                { "folder_id", "folder_y" },
-                { "list_id", "list_z" },
-                { "task_id", "task_abc" }
-                // No "page" parameter if request.Page is null
+                { "space_id", spaceId },
+                { "page", page.ToString() }
             };
-            if (request.Page.HasValue) // Add page only if it's in the request DTO
-            {
-                queryParams["page"] = request.Page.Value.ToString();
-            }
 
             string expectedQueryString = "?" + string.Join("&", queryParams.Where(kvp => kvp.Value != null).Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value!)}"));
-            if (expectedQueryString == "?") expectedQueryString = ""; // Handle case with no query params
+            if (expectedQueryString == "?") expectedQueryString = "";
             var expectedUrl = $"team/{workspaceId}/time_entries{expectedQueryString}";
 
             _mockApiConnection.Verify(x => x.GetAsync<GetTimeEntriesResponse>(
-                expectedUrl,
+                It.Is<string>(s => s == expectedUrl), // Exact match
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -2153,27 +2241,42 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         public async Task GetTimeEntriesAsyncEnumerableAsync_WithRequestParams_BuildsCorrectUrl()
         {
             var workspaceId = "ws_te_enum_params";
-            long startDateUnix = DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeMilliseconds();
-            // Correctly assign DateTimeOffset to the request DTO
-            var request = new GetTimeEntriesRequest { StartDate = DateTimeOffset.FromUnixTimeMilliseconds(startDateUnix), Assignee = "user1" };
+            var startDate = DateTimeOffset.UtcNow.AddDays(-1);
+            var timeRange = new TimeRange(startDate, startDate.AddHours(1)); // Example time range
+            long assigneeUserId = 789;
 
             _mockApiConnection.Setup(api => api.GetAsync<GetTimeEntriesResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetTimeEntriesResponse(new List<TimeEntry>(), 0, null)); // Empty to terminate
+                .ReturnsAsync(new GetTimeEntriesResponse(new List<TimeEntry>(), 0, null)); // Empty to terminate stream
 
-            await foreach (var _ in _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(workspaceId, request, CancellationToken.None)) { }
+            // Act - Call the enumerable method
+            await foreach (var _ in _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(
+                workspaceId,
+                timeRange,
+                assigneeUserId,
+                null, null, null, null, // taskId, listId, folderId, spaceId
+                null, // includeTaskTags
+                null, // includeLocationNames
+                CancellationToken.None))
+            {
+                // Looping just to trigger the internal GetTimeEntriesAsync call
+            }
+
+            // Assert - Verify the first call to GetTimeEntriesAsync (which is what the enumerable does internally for page 0)
+            var expectedStartDateUnixMs = new DateTimeOffset(startDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
+            var expectedEndDateUnixMs = new DateTimeOffset(startDate.AddHours(1).UtcDateTime).ToUnixTimeMilliseconds().ToString();
 
             var queryParams = new Dictionary<string, string?>
             {
-                { "start_date", request.StartDate.Value.ToString("O") },
-                { "assignee", "user1" },
-                { "page", "0" }
+                { "start_date", expectedStartDateUnixMs },
+                { "end_date", expectedEndDateUnixMs },
+                { "assignee", assigneeUserId.ToString() },
+                { "page", "0" } // Enumerable starts with page 0
             };
             string expectedQueryString = "?" + string.Join("&", queryParams.Where(kvp => kvp.Value != null).Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value!)}"));
             var expectedUrl = $"team/{workspaceId}/time_entries{expectedQueryString}";
 
-            // Assert
             _mockApiConnection.Verify(api => api.GetAsync<GetTimeEntriesResponse>(
-                expectedUrl,
+                It.Is<string>(s => s == expectedUrl), // Check the first call made by the enumerable
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 

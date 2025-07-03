@@ -41,10 +41,53 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this List.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using ClickUp.Api.Client.Models.Entities.Tasks;
+using ClickUp.Api.Client.Models.RequestModels.Tasks;
+using ClickUp.Api.Client.Models.ResponseModels.Tasks;
+using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
+using ClickUp.Api.Client.Models.RequestModels.Parameters; // For GetTasksRequestParameters
+
+namespace ClickUp.Api.Client.Abstractions.Services
+{
+    /// <summary>
+    /// Service interface for ClickUp Task operations.
+    /// </summary>
+    /// <remarks>
+    /// This service provides comprehensive methods for managing Tasks, including CRUD operations,
+    /// filtering, merging, retrieving time in status, and creating Tasks from templates.
+    /// It also supports pagination for retrieving lists of Tasks.
+    /// Covered API Endpoints (non-exhaustive list):
+    /// - List Tasks: `GET /list/{list_id}/task`
+    /// - Create Task: `POST /list/{list_id}/task`
+    /// - Get Task: `GET /task/{task_id}`
+    /// - Update Task: `PUT /task/{task_id}`
+    /// - Delete Task: `DELETE /task/{task_id}`
+    /// - Get Filtered Workspace Tasks: `GET /team/{team_id}/task`
+    /// - Merge Tasks: `POST /task/{task_id}/merge` (Note: API endpoint might be different, this is based on typical patterns)
+    /// - Task Time in Status: `GET /task/{task_id}/time_in_status`
+    /// - Bulk Task Time in Status: `GET /task/bulk_time_in_status/task_ids`
+    /// - Create Task from Template: `POST /list/{list_id}/taskTemplate/{template_id}`
+    /// </remarks>
+    public interface ITasksService
+    {
+        /// <summary>
+        /// Retrieves a paginated list of Tasks within a specific List, with various filtering and sorting options.
+        /// </summary>
+        /// <param name="listId">The unique identifier of the List from which to retrieve Tasks.</param>
+        /// <param name="configureParameters">An action to configure the <see cref="GetTasksRequestParameters"/> for filtering and sorting.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IPagedResult{CuTask}"/> with the list of Tasks and pagination details.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="listId"/> is null.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the List with the specified ID does not exist.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this List.</exception>
+        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<IPagedResult<CuTask>> GetTasksAsync(
             string listId,
-            GetTasksRequest requestModel,
-            int? page = null,
+            Action<GetTasksRequestParameters>? configureParameters = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -124,24 +167,18 @@ namespace ClickUp.Api.Client.Abstractions.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves Tasks from a Workspace (Team) based on a comprehensive set of filters defined in the <paramref name="requestModel"/>.
+        /// Retrieves Tasks from a Workspace (Team) based on a comprehensive set of filters.
         /// </summary>
         /// <param name="workspaceId">The unique identifier of the Workspace (Team).</param>
-        /// <param name="requestModel">An object containing various filtering, sorting, and pagination options for retrieving Tasks.
-        /// This includes parameters like page number, ordering, inclusion of subtasks, filters for space IDs, project IDs, list IDs,
-        /// statuses, assignees, tags, due dates, creation dates, update dates, completion dates, custom fields, custom task ID settings,
-        /// custom items, parent task ID, and inclusion of Markdown in descriptions.
-        /// </param>
-        /// <param name="page">Optional. The page number of results to retrieve (0-indexed). If not provided, the page from <paramref name="requestModel"/> will be used, or default to 0.</param>
+        /// <param name="configureParameters">An action to configure the <see cref="GetTasksRequestParameters"/> for filtering, sorting, and pagination.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GetTasksResponse"/> object with the list of matching Tasks and pagination details.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="requestModel"/> is null.</exception>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IPagedResult{CuTask}"/> with the list of matching Tasks and pagination details.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access Tasks in this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
         Task<IPagedResult<CuTask>> GetFilteredTeamTasksAsync(
             string workspaceId,
-            GetFilteredTeamTasksRequest requestModel,
-            int? page = null,
+            Action<GetTasksRequestParameters>? configureParameters = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
