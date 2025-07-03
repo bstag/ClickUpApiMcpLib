@@ -42,19 +42,37 @@ namespace ClickUp.Api.Client.Tests.Http
 
 
         [Theory]
-        [InlineData(HttpStatusCode.BadRequest, typeof(ClickUpApiValidationException), "Bad Request")] // Changed to ClickUpApiValidationException
-        [InlineData(HttpStatusCode.Unauthorized, typeof(ClickUpApiAuthenticationException), "Unauthorized")]
-        [InlineData(HttpStatusCode.Forbidden, typeof(ClickUpApiAuthenticationException), "Forbidden")]
-        [InlineData(HttpStatusCode.NotFound, typeof(ClickUpApiNotFoundException), "Not Found")]
-        [InlineData(HttpStatusCode.InternalServerError, typeof(ClickUpApiServerException), "Internal Server Error")]
-        [InlineData(HttpStatusCode.BadGateway, typeof(ClickUpApiServerException), "Bad Gateway")]
-        [InlineData(HttpStatusCode.ServiceUnavailable, typeof(ClickUpApiServerException), "Service Unavailable")]
-        [InlineData(HttpStatusCode.GatewayTimeout, typeof(ClickUpApiServerException), "Gateway Timeout")]
-        public async Task GetAsync_ThrowsCorrectException_ForGeneralErrorStatusCodes(HttpStatusCode statusCode, Type expectedExceptionType, string expectedMessageContent)
+        // Note: For HttpStatusCode.BadRequest, ClickUpApiExceptionFactory creates ClickUpApiRequestException if no "errors" field is parsable.
+        // If "errors" is present, it will create ClickUpApiValidationException (tested separately or via UnprocessableEntity test).
+        [InlineData(HttpStatusCode.BadRequest, typeof(ClickUpApiRequestException), "Bad Request", "REQUEST_ERROR_001", null)] // No "errors" field
+        [InlineData(HttpStatusCode.Unauthorized, typeof(ClickUpApiAuthenticationException), "Unauthorized", "AUTH_001", null)]
+        [InlineData(HttpStatusCode.Forbidden, typeof(ClickUpApiAuthenticationException), "Forbidden", "AUTH_002", null)]
+        [InlineData(HttpStatusCode.NotFound, typeof(ClickUpApiNotFoundException), "Not Found", "NF_001", null)]
+        [InlineData(HttpStatusCode.InternalServerError, typeof(ClickUpApiServerException), "Internal Server Error", "SERVER_001", null)]
+        [InlineData(HttpStatusCode.BadGateway, typeof(ClickUpApiServerException), "Bad Gateway", "SERVER_002", null)]
+        [InlineData(HttpStatusCode.ServiceUnavailable, typeof(ClickUpApiServerException), "Service Unavailable", "SERVER_003", null)]
+        [InlineData(HttpStatusCode.GatewayTimeout, typeof(ClickUpApiServerException), "Gateway Timeout", "SERVER_004", null)]
+        public async Task GetAsync_ThrowsCorrectException_ForGeneralErrorStatusCodes(HttpStatusCode statusCode, Type expectedExceptionType, string errMessage, string ecode, string? errorsJson) // errorsJson can be null
         {
+            var errorPayload = new Dictionary<string, object> { { "err", errMessage }, { "ECODE", ecode } };
+            if (!string.IsNullOrEmpty(errorsJson))
+            {
+                // This is a simplified way to merge; real JSON merging would be more robust.
+                // For test purposes, we assume errorsJson is a valid JSON structure for the "errors" field.
+                // Example: errorsJson = "\"field1\":[\"error1\"],\"field2\":[\"error2\"]"
+                // We need to construct: {"err":"...", "ECODE":"...", "errors": { errorsJson } }
+                // This is tricky with string concatenation for complex JSON.
+                // A better approach for the test is to define the full JSON string directly if errors are involved.
+                // However, to keep the InlineData simpler, we'll handle it carefully.
+                // For now, this test will focus on cases WITHOUT the "errors" field by passing null for errorsJson.
+                // A separate test or modification will handle "errors" field presence for BadRequest.
+            }
+            // Simplified: only include err and ECODE for this general test
+            var responseJson = JsonSerializer.Serialize(new { err = errMessage, ECODE = ecode });
+
             var responseMessage = new HttpResponseMessage(statusCode)
             {
-                Content = new StringContent($"{{\"err\":\"{expectedMessageContent}\",\"ECODE\":\"TEST_001\"}}", Encoding.UTF8, "application/json")
+                Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
             };
             SetupApiConnection(responseMessage);
 
@@ -62,12 +80,21 @@ namespace ClickUp.Api.Client.Tests.Http
                 () => _apiConnection.GetAsync<object>("test-endpoint"));
 
             Assert.NotNull(exception);
-            // Assert.Contains(expectedMessageContent, exception.Message); // Message now includes raw content, so direct check might be too specific
             if (exception is ClickUpApiException apiException)
             {
                 Assert.Equal(statusCode, apiException.HttpStatus);
-                Assert.Contains("TEST_001", apiException.ApiErrorCode);
-                Assert.Contains(expectedMessageContent, apiException.RawErrorContent);
+                Assert.Equal(ecode, apiException.ApiErrorCode);
+                Assert.Contains(errMessage, apiException.Message);
+                Assert.Equal(responseJson, apiException.RawErrorContent);
+
+                if (expectedExceptionType == typeof(ClickUpApiValidationException))
+                {
+                    Assert.NotNull((apiException as ClickUpApiValidationException)?.Errors);
+                }
+            }
+            else
+            {
+                Assert.True(false, $"Exception was not of type ClickUpApiException: {exception.GetType()}");
             }
         }
 
@@ -223,5 +250,101 @@ namespace ClickUp.Api.Client.Tests.Http
             Assert.Contains("Minimal error", exception.Message);
             Assert.Null(exception.ApiErrorCode);
         }
+
+        // POST / PUT / DELETE Tests
+        // Helper for testing POST, PUT, DELETE methods that expect a response body
+        private async Task TestHttpOperationAsync<TException>(
+            Func<ApiConnection, Task> operation,
+            HttpResponseMessage responseMessage,
+            HttpStatusCode expectedStatusCode,
+            string? expectedErrMessageContains = null,
+            string? expectedEcode = null,
+            bool checkRawContent = true)
+            where TException : ClickUpApiException
+        {
+            SetupApiConnection(responseMessage);
+
+            var exception = await Assert.ThrowsAsync<TException>(async () => await operation(_apiConnection));
+
+            Assert.NotNull(exception);
+            Assert.Equal(expectedStatusCode, exception.HttpStatus);
+
+            if (expectedErrMessageContains != null)
+            {
+                Assert.Contains(expectedErrMessageContains, exception.Message);
+            }
+            if (expectedEcode != null)
+            {
+                Assert.Equal(expectedEcode, exception.ApiErrorCode);
+            }
+            if (checkRawContent && responseMessage.Content != null)
+            {
+                var expectedRawContent = await responseMessage.Content.ReadAsStringAsync();
+                Assert.Equal(expectedRawContent, exception.RawErrorContent);
+            }
+        }
+
+        // Example for PostAsync
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest, typeof(ClickUpApiRequestException), "Post Bad Request", "POST_REQ_001")]
+        [InlineData(HttpStatusCode.NotFound, typeof(ClickUpApiNotFoundException), "Post Not Found", "POST_NF_001")]
+        public async Task PostAsync_ThrowsCorrectException_ForErrorStatusCodes(HttpStatusCode statusCode, Type exceptionType, string errMessage, string ecode)
+        {
+            var responseJson = $"{{\"err\":\"{errMessage}\",\"ECODE\":\"{ecode}\"}}";
+            var httpResponseMessage = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
+            };
+
+            var apiOperation = (ApiConnection conn) => conn.PostAsync<object, object>("test-post-endpoint", new { });
+
+            // Perform the test using the helper
+            // Need to cast exceptionType to TException which is not straightforward in a helper like this with Theory.
+            // For now, let's specialize the call or simplify the helper not to take TException if Type is used.
+
+            SetupApiConnection(httpResponseMessage);
+            var actualException = await Assert.ThrowsAsync(exceptionType, async () => await apiOperation(_apiConnection));
+
+            Assert.NotNull(actualException);
+            if (actualException is ClickUpApiException apiException)
+            {
+                Assert.Equal(statusCode, apiException.HttpStatus);
+                Assert.Equal(ecode, apiException.ApiErrorCode);
+                Assert.Contains(errMessage, apiException.Message);
+                Assert.Equal(responseJson, apiException.RawErrorContent);
+            }
+            else
+            {
+                Assert.True(false, $"Exception was not of type ClickUpApiException: {actualException.GetType()}");
+            }
+        }
+
+        // Test for PostAsync without response body
+        [Fact]
+        public async Task PostAsync_NoResponseBody_ThrowsCorrectException_ForErrorStatusCode()
+        {
+            HttpStatusCode statusCode = HttpStatusCode.Forbidden;
+            string errMessage = "Post Forbidden No Body";
+            string ecode = "POST_FORBID_001";
+            var responseJson = $"{{\"err\":\"{errMessage}\",\"ECODE\":\"{ecode}\"}}";
+            var httpResponseMessage = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
+            };
+
+            SetupApiConnection(httpResponseMessage);
+            var apiOperation = (ApiConnection conn) => conn.PostAsync<object>("test-post-nobody-endpoint", new { });
+            var actualException = await Assert.ThrowsAsync<ClickUpApiAuthenticationException>(async () => await apiOperation(_apiConnection));
+
+            Assert.NotNull(actualException);
+            Assert.Equal(statusCode, actualException.HttpStatus);
+            Assert.Equal(ecode, actualException.ApiErrorCode);
+            Assert.Contains(errMessage, actualException.Message);
+            Assert.Equal(responseJson, actualException.RawErrorContent);
+        }
+
+
+        // TODO: Add similar tests for PutAsync, DeleteAsync (with and without request/response body), and PostMultipartAsync
+        // For PostMultipartAsync, the request setup will be different (using MultipartFormDataContent).
     }
 }

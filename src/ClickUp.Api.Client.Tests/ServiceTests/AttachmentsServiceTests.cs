@@ -157,6 +157,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     null,
                     CancellationToken.None)
             );
+            Assert.Same(expectedException, actualException);
         }
 
         [Fact]
@@ -209,14 +210,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var fileContent = "This is a test file.";
             using var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
 
+            var expectedException = new ClickUpApiNotFoundException("Resource not found", System.Net.HttpStatusCode.NotFound, "NF_TEST_001", "{\"err\":\"Resource not found\",\"ECODE\":\"NF_TEST_001\"}");
             _mockApiConnection.Setup(x => x.PostMultipartAsync<CreateTaskAttachmentResponse>(
                     It.IsAny<string>(),
                     It.IsAny<MultipartFormDataContent>(),
                     It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new HttpRequestException("API call failed"));
+                .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<HttpRequestException>(() =>
+            var actualException = await Assert.ThrowsAsync<ClickUpApiNotFoundException>(() =>
                 _attachmentsService.CreateTaskAttachmentAsync(
                     taskId,
                     memoryStream,
