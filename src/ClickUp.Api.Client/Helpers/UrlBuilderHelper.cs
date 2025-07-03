@@ -11,13 +11,13 @@ namespace ClickUp.Api.Client.Helpers
     public static class UrlBuilderHelper
     {
         /// <summary>
-        /// Builds a query string from a list of key-value pairs.
+        /// Builds a query string from a list of key-value pairs where values are already URL-encoded.
         /// </summary>
         /// <param name="queryParams">The query parameters to include in the URL.</param>
-        /// <returns>A properly formatted and URL-encoded query string, or empty string if no parameters.</returns>
+        /// <returns>A properly formatted query string, or empty string if no parameters.</returns>
         /// <remarks>
-        /// This method properly URL-encodes both keys and values to handle special characters
-        /// like {, ", spaces, etc. that would otherwise cause malformed URLs.
+        /// This method assumes parameter values are already URL-encoded (e.g., from ToQueryParametersList()).
+        /// Only the keys are URL-encoded to prevent double-encoding of values.
         /// </remarks>
         public static string BuildQueryString(List<KeyValuePair<string, string>> queryParams)
         {
@@ -30,24 +30,24 @@ namespace ClickUp.Api.Client.Helpers
             var first = true;
             foreach (var kvp in queryParams)
             {
-                // Always escape both key and value to ensure proper URL encoding
-                // This handles special characters like {, ", spaces, etc. in parameter values
+                // Escape only the key, as parameter values should be pre-encoded by the parameter building classes
+                // This prevents double-encoding while ensuring URL structure is correct
                 sb.Append(first ? '?' : '&');
                 first = false;
-                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
+                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={kvp.Value}");
             }
             return sb.ToString();
         }
 
         /// <summary>
-        /// Builds a query string from a dictionary of key-value pairs.
+        /// Builds a query string from a dictionary of key-value pairs with full URL encoding.
         /// </summary>
         /// <param name="queryParams">The query parameters to include in the URL.</param>
         /// <returns>A properly formatted and URL-encoded query string, or empty string if no parameters.</returns>
         /// <remarks>
         /// This method properly URL-encodes both keys and values to handle special characters
         /// like {, ", spaces, etc. that would otherwise cause malformed URLs.
-        /// Null values are skipped.
+        /// Null values are skipped. Use this method when values are raw and need encoding.
         /// </remarks>
         public static string BuildQueryString(Dictionary<string, string?> queryParams)
         {
@@ -62,8 +62,7 @@ namespace ClickUp.Api.Client.Helpers
             {
                 if (kvp.Value != null)
                 {
-                    // Always escape both key and value to ensure proper URL encoding
-                    // This handles special characters like {, ", spaces, etc. in parameter values
+                    // Escape both key and value for services that pass raw values
                     sb.Append(first ? '?' : '&');
                     first = false;
                     sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
