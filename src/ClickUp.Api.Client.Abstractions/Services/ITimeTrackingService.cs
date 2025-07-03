@@ -37,12 +37,15 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access time entries for this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-﻿using System.Collections.Generic;
+﻿using System; // Required for Action
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Common.ValueObjects; // Added for TimeRange
+using ClickUp.Api.Client.Models.Common.ValueObjects;
 using ClickUp.Api.Client.Models.Entities.TimeTracking;
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
+using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
+using ClickUp.Api.Client.Models.Parameters; // For GetTimeEntriesRequestParameters
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
@@ -70,32 +73,16 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Retrieves a list of time entries for a specified Workspace (Team), with various filtering options.
         /// </summary>
         /// <param name="workspaceId">The unique identifier of the Workspace (Team).</param>
-        /// <param name="timeRange">Optional. A <see cref="TimeRange"/> to filter time entries by start and end date.</param>
-        /// <param name="assigneeUserId">Optional. Filter time entries by a specific user ID.</param>
-        /// <param name="taskId">Optional. Filter time entries for a specific task ID.</param>
-        /// <param name="listId">Optional. Filter time entries for tasks within a specific List ID.</param>
-        /// <param name="folderId">Optional. Filter time entries for tasks within a specific Folder ID.</param>
-        /// <param name="spaceId">Optional. Filter time entries for tasks within a specific Space ID.</param>
-        /// <param name="includeTaskTags">Optional. If true, includes task tags in the response.</param>
-        /// <param name="includeLocationNames">Optional. If true, includes List, Folder, and Space names.</param>
-        /// <param name="page">Optional. The page number for pagination.</param>
+        /// <param name="configureParameters">An action to configure the <see cref="GetTimeEntriesRequestParameters"/> for filtering.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="Models.Common.Pagination.IPagedResult{TimeEntry}"/> object with time entries matching the filter criteria.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IPagedResult{TimeEntry}"/> object with time entries matching the filter criteria.</returns>
         /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if the Workspace with the specified ID does not exist.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access time entries for this Workspace.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-        Task<Models.Common.Pagination.IPagedResult<TimeEntry>> GetTimeEntriesAsync(
+        Task<IPagedResult<TimeEntry>> GetTimeEntriesAsync(
             string workspaceId,
-            TimeRange? timeRange = null,
-            long? assigneeUserId = null,
-            string? taskId = null,
-            string? listId = null,
-            string? folderId = null,
-            string? spaceId = null,
-            bool? includeTaskTags = null,
-            bool? includeLocationNames = null,
-            int? page = null,
+            Action<GetTimeEntriesRequestParameters>? configureParameters = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -308,15 +295,15 @@ namespace ClickUp.Api.Client.Abstractions.Services
         /// Retrieves all time entries for a Workspace (Team), filtered by the provided request parameters, and automatically handles pagination using <see cref="IAsyncEnumerable{T}"/>.
         /// </summary>
         /// <param name="workspaceId">The unique identifier of the Workspace (Team).</param>
-        /// <param name="request">A <see cref="GetTimeEntriesRequest"/> object containing filter criteria (excluding pagination parameters like 'page').</param>
+        /// <param name="parameters">A <see cref="GetTimeEntriesRequestParameters"/> object containing filter criteria. The <see cref="GetTimeEntriesRequestParameters.Page"/> property will be ignored and managed internally for pagination.</param>
         /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
         /// <returns>An asynchronous stream (<see cref="IAsyncEnumerable{TimeEntry}"/>) of <see cref="TimeEntry"/> objects matching the criteria.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="request"/> is null.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="workspaceId"/> or <paramref name="parameters"/> is null.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to access time entries.</exception>
         /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures during pagination.</exception>
         IAsyncEnumerable<TimeEntry> GetTimeEntriesAsyncEnumerableAsync(
             string workspaceId,
-            GetTimeEntriesRequest request,
+            GetTimeEntriesRequestParameters parameters, // Changed from GetTimeEntriesRequest
             CancellationToken cancellationToken = default
         );
     }

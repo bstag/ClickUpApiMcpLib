@@ -406,8 +406,12 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             RegisterCreatedTask(task2.Id);
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(task2Id, task2.Id);
 
-            var getTasksRequest = new GetTasksRequest { Statuses = new List<string> { defaultStatusValueToTest } };
-            var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
+            // var getTasksRequest = new GetTasksRequest { Statuses = new List<string> { defaultStatusValueToTest } };
+            // var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
+            var response = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.Statuses = new List<string> { defaultStatusValueToTest };
+            });
 
             Assert.NotNull(response); Assert.NotNull(response.Items);
             Assert.Contains(response.Items, t => t.Id == task1.Id && t.Status.StatusValue == defaultStatusValueToTest);
@@ -447,8 +451,12 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             RegisterCreatedTask(taskUnassigned.Id);
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(taskUnassignedId, taskUnassigned.Id);
 
-            var getTasksRequest = new GetTasksRequest { Assignees = new List<string> { userIdToTest } };
-            var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
+            // var getTasksRequest = new GetTasksRequest { Assignees = new List<string> { userIdToTest } };
+            // var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
+            var response = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.AssigneeIds = new List<long> { userIdIntToTest }; // Changed to AssigneeIds (long)
+            });
 
             Assert.NotNull(response); Assert.NotNull(response.Items);
             Assert.Contains(response.Items, t => t.Id == taskAssigned.Id);
@@ -491,12 +499,20 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             var taskDueNextWeek = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "TaskDueNextWeek", DueDate: today.AddDays(7), DueDateTime: true, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskDueNextWeek.Id);
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskDueTodayId, taskDueToday.Id); Assert.Equal(taskDueNextWeekId, taskDueNextWeek.Id); }
 
-            var getTasksRequestLT = new GetTasksRequest { DueDateLessThan = dayAfterTomorrowTimestampMs };
-            var responseLT = await _taskService.GetTasksAsync(_testListId, getTasksRequestLT);
+            // var getTasksRequestLT = new GetTasksRequest { DueDateLessThan = dayAfterTomorrowTimestampMs };
+            // var responseLT = await _taskService.GetTasksAsync(_testListId, getTasksRequestLT);
+            var responseLT = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.DueDateRange = new Models.Common.ValueObjects.TimeRange(DateTimeOffset.MinValue, new DateTimeOffset(dayAfterTomorrowTimestampMs * 10000L + DateTimeOffset.UnixEpoch.Ticks, TimeSpan.Zero)); // Assuming DueDateLessThan means before this date
+            });
             Assert.NotNull(responseLT?.Items); Assert.Contains(responseLT.Items, t => t.Id == taskDueToday.Id); Assert.DoesNotContain(responseLT.Items, t => t.Id == taskDueNextWeek.Id);
 
-            var getTasksRequestGT = new GetTasksRequest { DueDateGreaterThan = tomorrowTimestampMs };
-            var responseGT = await _taskService.GetTasksAsync(_testListId, getTasksRequestGT);
+            // var getTasksRequestGT = new GetTasksRequest { DueDateGreaterThan = tomorrowTimestampMs };
+            // var responseGT = await _taskService.GetTasksAsync(_testListId, getTasksRequestGT);
+            var responseGT = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.DueDateRange = new Models.Common.ValueObjects.TimeRange(new DateTimeOffset(tomorrowTimestampMs * 10000L + DateTimeOffset.UnixEpoch.Ticks, TimeSpan.Zero), DateTimeOffset.MaxValue); // Assuming DueDateGreaterThan means after this date
+            });
             Assert.NotNull(responseGT?.Items); Assert.DoesNotContain(responseGT.Items, t => t.Id == taskDueToday.Id); Assert.Contains(responseGT.Items, t => t.Id == taskDueNextWeek.Id);
         }
 
@@ -531,8 +547,12 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             var taskWithoutTag = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "TaskWithoutTag", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskWithoutTag.Id);
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskWithTagId, taskWithTag.Id); Assert.Equal(taskWithoutTagId, taskWithoutTag.Id); }
 
-            var getTasksRequest = new GetTasksRequest { Tags = new List<string> { tagName } };
-            var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
+            // var getTasksRequest = new GetTasksRequest { Tags = new List<string> { tagName } };
+            // var response = await _taskService.GetTasksAsync(_testListId, getTasksRequest);
+            var response = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.Tags = new List<string> { tagName };
+            });
             Assert.NotNull(response?.Items);
             Assert.Contains(response.Items, t => t.Id == taskWithTag.Id && t.Tags?.Any(tag => tag.Name == tagName) == true);
             Assert.DoesNotContain(response.Items, t => t.Id == taskWithoutTag.Id);
@@ -573,8 +593,13 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskInList1Id, taskInList1.Id); Assert.Equal(taskInOtherListId, taskInOtherList.Id); }
 
 
-            var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
-            var response = await _taskService.GetFilteredTeamTasksAsync(workspaceId: _testWorkspaceId, requestModel: requestModel); Assert.NotNull(response?.Items);
+            // var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
+            // var response = await _taskService.GetFilteredTeamTasksAsync(workspaceId: _testWorkspaceId, requestModel: requestModel); Assert.NotNull(response?.Items);
+            var response = await _taskService.GetFilteredTeamTasksAsync(_testWorkspaceId, parameters =>
+            {
+                parameters.ListIds = new List<string> { _testListId };
+            });
+            Assert.NotNull(response?.Items);
             Assert.Contains(response.Items, t => t.Id == taskInList1.Id);
             Assert.DoesNotContain(response.Items, t => t.Id == taskInOtherList.Id);
         }
@@ -599,7 +624,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             for (int i = 0; i < tasksToCreate; i++) { var task = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: $"PagTask{i}", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(task.Id); createdTaskIds.Add(task.Id); if(CurrentTestMode != TestMode.Playback) await Task.Delay(100); }
 
             var retrievedTasks = new List<CuTask>();
-            await foreach (var task in _taskService.GetTasksAsyncEnumerableAsync(_testListId, new GetTasksRequest())) { retrievedTasks.Add(task); } // Pass empty GetTasksRequest
+            // await foreach (var task in _taskService.GetTasksAsyncEnumerableAsync(_testListId, new GetTasksRequest())) { retrievedTasks.Add(task); } // Pass empty GetTasksRequest
+            await foreach (var task in _taskService.GetTasksAsyncEnumerableAsync(_testListId, new Models.Parameters.GetTasksRequestParameters())) { retrievedTasks.Add(task); }
             Assert.Equal(tasksToCreate, retrievedTasks.Count);
             foreach (var id in createdTaskIds) if(CurrentTestMode != TestMode.Playback) Assert.Contains(retrievedTasks, rt => rt.Id == id); // In playback, IDs from JSON are asserted
              if(CurrentTestMode == TestMode.Playback) { Assert.Contains(retrievedTasks, rt => rt.Id == "playback_pag_task_1"); Assert.Contains(retrievedTasks, rt => rt.Id == "playback_pag_task_2"); }
@@ -632,8 +658,10 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
 
             var retrievedTasks = new List<CuTask>();
-            var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
-            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, requestModel))
+            // var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
+            // await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, requestModel))
+            var parameters = new Models.Parameters.GetTasksRequestParameters { ListIds = new List<string> { _testListId } };
+            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, parameters))
             {
                 retrievedTasks.Add(task);
             }
@@ -719,8 +747,14 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskNowId, taskNow.Id); Assert.Equal(taskLaterId, taskLater.Id); }
 
 
-            var getTasksRequestGT = new GetTasksRequest { DateCreatedGreaterThan = pointInTimeAfterFirstTask };
-            var responseGT = await _taskService.GetTasksAsync(_testListId, getTasksRequestGT);
+            // var getTasksRequestGT = new GetTasksRequest { DateCreatedGreaterThan = pointInTimeAfterFirstTask };
+            // var responseGT = await _taskService.GetTasksAsync(_testListId, getTasksRequestGT);
+            var responseGT = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.DateCreatedRange = new Models.Common.ValueObjects.TimeRange(
+                    new DateTimeOffset(pointInTimeAfterFirstTask * 10000L + DateTimeOffset.UnixEpoch.Ticks, TimeSpan.Zero),
+                    DateTimeOffset.MaxValue);
+            });
             Assert.NotNull(responseGT?.Items); Assert.DoesNotContain(responseGT.Items, t => t.Id == taskNow.Id); Assert.Contains(responseGT.Items, t => t.Id == taskLater.Id);
 
             var pointInTimeBeforeSecondTask = CurrentTestMode == TestMode.Playback ? fixedDateCreatedLessThan : DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); // Point before taskLater effectively
@@ -745,8 +779,14 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 }
             }
 
-            var getTasksRequestLT = new GetTasksRequest { DateCreatedLessThan = pointInTimeBeforeSecondTask };
-            var responseLT = await _taskService.GetTasksAsync(_testListId, getTasksRequestLT);
+            // var getTasksRequestLT = new GetTasksRequest { DateCreatedLessThan = pointInTimeBeforeSecondTask };
+            // var responseLT = await _taskService.GetTasksAsync(_testListId, getTasksRequestLT);
+            var responseLT = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.DateCreatedRange = new Models.Common.ValueObjects.TimeRange(
+                    DateTimeOffset.MinValue,
+                    new DateTimeOffset(pointInTimeBeforeSecondTask * 10000L + DateTimeOffset.UnixEpoch.Ticks, TimeSpan.Zero));
+            });
             Assert.NotNull(responseLT?.Items); Assert.Contains(responseLT.Items, t => t.Id == taskNow.Id); Assert.DoesNotContain(responseLT.Items, t => t.Id == taskLater.Id);
         }
 
@@ -783,15 +823,23 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskDueTomorrowId, taskDueTomorrow.Id); Assert.Equal(taskDueDayAfterId, taskDueDayAfter.Id); Assert.Equal(taskDueTodayId, taskDueToday.Id); }
 
 
-            var getTasksRequestReversed = new GetTasksRequest { OrderBy = "due_date", Reverse = true };
-            var responseReversed = await _taskService.GetTasksAsync(_testListId, getTasksRequestReversed);
+            // var getTasksRequestReversed = new GetTasksRequest { OrderBy = "due_date", Reverse = true };
+            // var responseReversed = await _taskService.GetTasksAsync(_testListId, getTasksRequestReversed);
+            var responseReversed = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.SortBy = new Models.Common.ValueObjects.SortOption("due_date", Models.Common.ValueObjects.SortDirection.Descending);
+            });
             Assert.NotNull(responseReversed?.Items); Assert.True(responseReversed.Items.Count >= 3);
             var relevantTasksReversed = responseReversed.Items.Where(t => t.Id == taskDueToday.Id || t.Id == taskDueTomorrow.Id || t.Id == taskDueDayAfter.Id).ToList();
             Assert.Equal(3, relevantTasksReversed.Count);
             Assert.Equal(taskDueDayAfter.Id, relevantTasksReversed[0].Id); Assert.Equal(taskDueTomorrow.Id, relevantTasksReversed[1].Id); Assert.Equal(taskDueToday.Id, relevantTasksReversed[2].Id);
 
-            var getTasksRequestNatural = new GetTasksRequest { OrderBy = "due_date", Reverse = false };
-            var responseNatural = await _taskService.GetTasksAsync(_testListId, getTasksRequestNatural);
+            // var getTasksRequestNatural = new GetTasksRequest { OrderBy = "due_date", Reverse = false };
+            // var responseNatural = await _taskService.GetTasksAsync(_testListId, getTasksRequestNatural);
+            var responseNatural = await _taskService.GetTasksAsync(_testListId, parameters =>
+            {
+                parameters.SortBy = new Models.Common.ValueObjects.SortOption("due_date", Models.Common.ValueObjects.SortDirection.Ascending);
+            });
             Assert.NotNull(responseNatural?.Items); Assert.True(responseNatural.Items.Count >= 3);
             var relevantTasksNatural = responseNatural.Items.Where(t => t.Id == taskDueToday.Id || t.Id == taskDueTomorrow.Id || t.Id == taskDueDayAfter.Id).ToList();
             Assert.Equal(3, relevantTasksNatural.Count);

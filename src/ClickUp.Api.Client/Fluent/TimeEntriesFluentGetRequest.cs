@@ -1,33 +1,20 @@
-using System; // For DateTimeOffset
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Common.ValueObjects; // For TimeRange
+using ClickUp.Api.Client.Models.Common.ValueObjects;
 using ClickUp.Api.Client.Models.Entities.TimeTracking;
-using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
+using ClickUp.Api.Client.Models.Common.Pagination;
+using ClickUp.Api.Client.Models.Parameters; // Added for GetTimeEntriesRequestParameters
 
 namespace ClickUp.Api.Client.Fluent;
 
 public class TimeEntriesFluentGetRequest
 {
-    private TimeRange? _timeRange;
-    private long? _assigneeUserId; // Changed from int? _assignee to long? _assigneeUserId
-    private string? _taskId;
-    // CustomTaskIds and TeamIdForCustomTaskIds are not general filters for GetTimeEntries,
-    // they are usually for specific create/update operations if a task ID is involved.
-    // We'll remove them here as they are not on the refactored GetTimeEntriesAsync service method.
-    // private bool? _customTaskIds;
-    // private string? _teamIdForCustomTaskIds;
-    private bool? _includeTaskTags;
-    private bool? _includeLocationNames;
-    private int? _page;
-    private string? _spaceId;
-    private string? _folderId;
-    private string? _listId;
-
     private readonly string _workspaceId;
     private readonly ITimeTrackingService _timeTrackingService;
+    private readonly GetTimeEntriesRequestParameters _parameters = new();
 
     public TimeEntriesFluentGetRequest(string workspaceId, ITimeTrackingService timeTrackingService)
     {
@@ -37,93 +24,98 @@ public class TimeEntriesFluentGetRequest
 
     public TimeEntriesFluentGetRequest WithTimeRange(DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        _timeRange = new TimeRange(startDate, endDate);
+        _parameters.TimeRange = new TimeRange(startDate, endDate);
         return this;
     }
 
-    public TimeEntriesFluentGetRequest WithAssignee(long assigneeUserId) // Changed from int to long
+    public TimeEntriesFluentGetRequest WithAssignee(long assigneeUserId)
     {
-        _assigneeUserId = assigneeUserId;
+        _parameters.AssigneeUserId = assigneeUserId;
         return this;
     }
 
     public TimeEntriesFluentGetRequest ForTask(string taskId)
     {
-        _taskId = taskId;
-        _listId = null; _folderId = null; _spaceId = null; // Ensure exclusivity
+        _parameters.TaskId = taskId;
+        _parameters.ListId = null;
+        _parameters.FolderId = null;
+        _parameters.SpaceId = null; // Ensure exclusivity
         return this;
     }
 
     public TimeEntriesFluentGetRequest ForList(string listId)
     {
-        _listId = listId;
-        _taskId = null; _folderId = null; _spaceId = null; // Ensure exclusivity
+        _parameters.ListId = listId;
+        _parameters.TaskId = null;
+        _parameters.FolderId = null;
+        _parameters.SpaceId = null; // Ensure exclusivity
         return this;
     }
 
     public TimeEntriesFluentGetRequest ForFolder(string folderId)
     {
-        _folderId = folderId;
-        _taskId = null; _listId = null; _spaceId = null; // Ensure exclusivity
+        _parameters.FolderId = folderId;
+        _parameters.TaskId = null;
+        _parameters.ListId = null;
+        _parameters.SpaceId = null; // Ensure exclusivity
         return this;
     }
 
     public TimeEntriesFluentGetRequest ForSpace(string spaceId)
     {
-        _spaceId = spaceId;
-        _taskId = null; _listId = null; _folderId = null; // Ensure exclusivity
+        _parameters.SpaceId = spaceId;
+        _parameters.TaskId = null;
+        _parameters.ListId = null;
+        _parameters.FolderId = null; // Ensure exclusivity
         return this;
     }
 
     public TimeEntriesFluentGetRequest WithIncludeTaskTags(bool includeTaskTags = true)
     {
-        _includeTaskTags = includeTaskTags;
+        _parameters.IncludeTaskTags = includeTaskTags;
         return this;
     }
 
     public TimeEntriesFluentGetRequest WithIncludeLocationNames(bool includeLocationNames = true)
     {
-        _includeLocationNames = includeLocationNames;
+        _parameters.IncludeLocationNames = includeLocationNames;
         return this;
     }
 
     public TimeEntriesFluentGetRequest WithPage(int pageNumber)
     {
-        _page = pageNumber;
+        _parameters.Page = pageNumber;
         return this;
     }
 
     public async Task<IPagedResult<TimeEntry>> GetAsync(CancellationToken cancellationToken = default)
     {
-        return await _timeTrackingService.GetTimeEntriesAsync(
-            _workspaceId,
-            _timeRange,
-            _assigneeUserId,
-            _taskId,
-            _listId,
-            _folderId,
-            _spaceId,
-            _includeTaskTags,
-            _includeLocationNames,
-            _page,
-            cancellationToken
-        );
+        // Option 1: Pass parameters directly if service accepts it
+        // return await _timeTrackingService.GetTimeEntriesAsync(_workspaceId, _parameters, cancellationToken);
+
+        // Option 2: Configure using Action delegate
+        return await _timeTrackingService.GetTimeEntriesAsync(_workspaceId, config =>
+        {
+            config.TimeRange = _parameters.TimeRange;
+            config.AssigneeUserId = _parameters.AssigneeUserId;
+            config.TaskId = _parameters.TaskId;
+            config.ListId = _parameters.ListId;
+            config.FolderId = _parameters.FolderId;
+            config.SpaceId = _parameters.SpaceId;
+            config.IncludeTaskTags = _parameters.IncludeTaskTags;
+            config.IncludeLocationNames = _parameters.IncludeLocationNames;
+            config.Page = _parameters.Page;
+        }, cancellationToken);
     }
 
     public IAsyncEnumerable<TimeEntry> GetStreamAsync(CancellationToken cancellationToken = default)
     {
-        // The service method GetTimeEntriesAsyncEnumerableAsync was also updated to take these parameters.
+        // The service method GetTimeEntriesAsyncEnumerableAsync was updated to take GetTimeEntriesRequestParameters directly.
+        // We need to ensure the _parameters instance is correctly populated.
+        // The 'Page' property within _parameters will be ignored by the service layer for async enumerable.
         return _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(
             _workspaceId,
-            _timeRange,
-            _assigneeUserId,
-            _taskId,
-            _listId,
-            _folderId,
-            _spaceId,
-            _includeTaskTags,
-            _includeLocationNames,
-            // Page is handled by the enumerable itself
+            _parameters,
             cancellationToken
         );
     }

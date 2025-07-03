@@ -1,13 +1,13 @@
-using System; // For DateTimeOffset
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading; // For CancellationToken
+using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Common.ValueObjects; // For TimeRange, SortOption, SortDirection
-using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask
-using ClickUp.Api.Client.Models.RequestModels.Parameters; // For GetTasksRequestParameters
-using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
+using ClickUp.Api.Client.Models.Common.ValueObjects;
+using ClickUp.Api.Client.Models.Entities.Tasks;
+using ClickUp.Api.Client.Models.Parameters;
+using ClickUp.Api.Client.Models.Common.Pagination;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -26,52 +26,33 @@ public class TasksFluentGetFilteredTeamRequest
     public TasksFluentGetFilteredTeamRequest WithPage(int page) { _parameters.Page = page; return this; }
     public TasksFluentGetFilteredTeamRequest OrderBy(string fieldName, SortDirection direction = SortDirection.Ascending) { _parameters.SortBy = new SortOption(fieldName, direction); return this; }
     public TasksFluentGetFilteredTeamRequest WithSubtasks(bool subtasks) { _parameters.Subtasks = subtasks; return this; }
-    public TasksFluentGetFilteredTeamRequest WithSpaceIds(IEnumerable<long> spaceIds) { _parameters.SpaceIds = spaceIds; return this; } // Changed to long
-    public TasksFluentGetFilteredTeamRequest WithProjectIds(IEnumerable<long> projectIds) { _parameters.ProjectIds = projectIds; return this; } // Changed to long
-    public TasksFluentGetFilteredTeamRequest WithListIds(IEnumerable<long> listIds) { _parameters.ListIds = listIds; return this; } // Changed to long
-    public TasksFluentGetFilteredTeamRequest WithStatuses(IEnumerable<string> statuses) { _parameters.Statuses = statuses; return this; }
+    public TasksFluentGetFilteredTeamRequest WithSpaceIds(IEnumerable<long> spaceIds) { _parameters.SpaceIds = spaceIds.ToList(); return this; }
+    public TasksFluentGetFilteredTeamRequest WithProjectIds(IEnumerable<long> projectIds) { _parameters.ProjectIds = projectIds.ToList(); return this; }
+    public TasksFluentGetFilteredTeamRequest WithListIds(IEnumerable<long> listIds) { _parameters.ListIds = listIds.ToList(); return this; }
+    public TasksFluentGetFilteredTeamRequest WithStatuses(IEnumerable<string> statuses) { _parameters.Statuses = statuses.ToList(); return this; }
     public TasksFluentGetFilteredTeamRequest WithIncludeClosed(bool includeClosed) { _parameters.IncludeClosed = includeClosed; return this; }
-    public TasksFluentGetFilteredTeamRequest WithAssignees(IEnumerable<long> assignees) { _parameters.Assignees = assignees; return this; } // Changed to long
-    // Tags are not part of GetTasksRequestParameters directly
-    // public TasksFluentGetFilteredTeamRequest WithTags(IEnumerable<string> tags) { _parameters.Tags = tags; return this; }
-
+    public TasksFluentGetFilteredTeamRequest WithAssignees(IEnumerable<int> assigneeIds) { _parameters.AssigneeIds = assigneeIds.ToList(); return this; }
+    public TasksFluentGetFilteredTeamRequest WithTags(IEnumerable<string> tags) { _parameters.Tags = tags.ToList(); return this; }
     public TasksFluentGetFilteredTeamRequest WithDueDateBetween(DateTimeOffset startDate, DateTimeOffset endDate) { _parameters.DueDateRange = new TimeRange(startDate, endDate); return this; }
     public TasksFluentGetFilteredTeamRequest WithDateCreatedBetween(DateTimeOffset startDate, DateTimeOffset endDate) { _parameters.DateCreatedRange = new TimeRange(startDate, endDate); return this; }
     public TasksFluentGetFilteredTeamRequest WithDateUpdatedBetween(DateTimeOffset startDate, DateTimeOffset endDate) { _parameters.DateUpdatedRange = new TimeRange(startDate, endDate); return this; }
+    public TasksFluentGetFilteredTeamRequest WithIncludeMarkdownDescription(bool include) { _parameters.IncludeMarkdownDescription = include; return this; }
+    public TasksFluentGetFilteredTeamRequest WithArchived(bool archived) { _parameters.Archived = archived; return this; }
 
-    public TasksFluentGetFilteredTeamRequest WithCustomField(string fieldId, string value)
+    public TasksFluentGetFilteredTeamRequest WithCustomField(string fieldId, string @operator, object? value)
     {
-        var currentCustomFields = _parameters.CustomFields?.ToList() ?? new List<CustomFieldParameter>();
-        currentCustomFields.Add(new CustomFieldParameter(fieldId, value));
+        var currentCustomFields = _parameters.CustomFields?.ToList() ?? new List<CustomFieldFilter>();
+        currentCustomFields.Add(new CustomFieldFilter { FieldId = fieldId, Operator = @operator, Value = value });
         _parameters.CustomFields = currentCustomFields;
         return this;
     }
 
-    // CustomTaskIds and TeamIdForCustomTaskIds are not part of GetTasksRequestParameters general filtering.
-    // They are usually specific to single task operations or special query modes.
-    // public TasksFluentGetFilteredTeamRequest WithCustomTaskIds(bool customTaskIds) { _parameters.CustomTaskIds = customTaskIds; return this; }
-    // public TasksFluentGetFilteredTeamRequest WithTeamIdForCustomTaskIds(string teamIdForCustomTaskIds) { _parameters.TeamIdForCustomTaskIds = teamIdForCustomTaskIds; return this; }
-
-    // CustomItems not in GetTasksRequestParameters
-    // public TasksFluentGetFilteredTeamRequest WithCustomItems(IEnumerable<long> customItems) { _parameters.CustomItems = customItems; return this; }
-
-    // DateDone range not in GetTasksRequestParameters
-    // public TasksFluentGetFilteredTeamRequest WithDateDoneGreaterThan(long dateDoneGreaterThan) { _parameters.DateDoneGreaterThan = dateDoneGreaterThan; return this; }
-    // public TasksFluentGetFilteredTeamRequest WithDateDoneLessThan(long dateDoneLessThan) { _parameters.DateDoneLessThan = dateDoneLessThan; return this; }
-
-    // ParentTaskId not in GetTasksRequestParameters general filtering for multiple tasks.
-    // public TasksFluentGetFilteredTeamRequest WithParentTaskId(string parentTaskId) { _parameters.ParentTaskId = parentTaskId; return this; }
-
-    // IncludeMarkdownDescription not in GetTasksRequestParameters
-    // public TasksFluentGetFilteredTeamRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription) { _parameters.IncludeMarkdownDescription = includeMarkdownDescription; return this; }
-    public TasksFluentGetFilteredTeamRequest WithArchived(bool archived) { _parameters.Archived = archived; return this; }
-
+    public TasksFluentGetFilteredTeamRequest WithCustomItems(IEnumerable<int> customItems) { _parameters.CustomItems = customItems.ToList(); return this; }
 
     public async Task<IPagedResult<CuTask>> GetAsync(CancellationToken cancellationToken = default)
     {
         return await _tasksService.GetFilteredTeamTasksAsync(_workspaceId, p =>
         {
-            // Copy all configured _parameters to p
             p.Page = _parameters.Page;
             p.SortBy = _parameters.SortBy;
             p.Subtasks = _parameters.Subtasks;
@@ -80,35 +61,42 @@ public class TasksFluentGetFilteredTeamRequest
             p.ListIds = _parameters.ListIds;
             p.Statuses = _parameters.Statuses;
             p.IncludeClosed = _parameters.IncludeClosed;
-            p.Assignees = _parameters.Assignees;
+            p.AssigneeIds = _parameters.AssigneeIds;
+            p.Tags = _parameters.Tags;
             p.DueDateRange = _parameters.DueDateRange;
             p.DateCreatedRange = _parameters.DateCreatedRange;
             p.DateUpdatedRange = _parameters.DateUpdatedRange;
             p.CustomFields = _parameters.CustomFields;
+            p.CustomItems = _parameters.CustomItems;
+            p.IncludeMarkdownDescription = _parameters.IncludeMarkdownDescription;
             p.Archived = _parameters.Archived;
-            // Copy other relevant properties from _parameters to p as needed
         }, cancellationToken);
     }
 
-    // Consider adding GetAsyncEnumerableAsync here as well, similar to TasksRequest
     public IAsyncEnumerable<CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
-        return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(_workspaceId, p =>
+        // Create a new GetTasksRequestParameters instance to pass to the service method,
+        // copying configured values. Page will be handled by the enumerable.
+        var serviceParameters = new GetTasksRequestParameters
         {
-            // Copy all configured _parameters to p, except Page
-            p.SortBy = _parameters.SortBy;
-            p.Subtasks = _parameters.Subtasks;
-            p.SpaceIds = _parameters.SpaceIds;
-            p.ProjectIds = _parameters.ProjectIds;
-            p.ListIds = _parameters.ListIds;
-            p.Statuses = _parameters.Statuses;
-            p.IncludeClosed = _parameters.IncludeClosed;
-            p.Assignees = _parameters.Assignees;
-            p.DueDateRange = _parameters.DueDateRange;
-            p.DateCreatedRange = _parameters.DateCreatedRange;
-            p.DateUpdatedRange = _parameters.DateUpdatedRange;
-            p.CustomFields = _parameters.CustomFields;
-            p.Archived = _parameters.Archived;
-        }, cancellationToken);
+            Page = _parameters.Page, // Though enumerable handles pages, pass initial if set
+            SortBy = _parameters.SortBy,
+            Subtasks = _parameters.Subtasks,
+            SpaceIds = _parameters.SpaceIds,
+            ProjectIds = _parameters.ProjectIds,
+            ListIds = _parameters.ListIds,
+            Statuses = _parameters.Statuses,
+            IncludeClosed = _parameters.IncludeClosed,
+            AssigneeIds = _parameters.AssigneeIds,
+            Tags = _parameters.Tags,
+            DueDateRange = _parameters.DueDateRange,
+            DateCreatedRange = _parameters.DateCreatedRange,
+            DateUpdatedRange = _parameters.DateUpdatedRange,
+            CustomFields = _parameters.CustomFields,
+            CustomItems = _parameters.CustomItems,
+            IncludeMarkdownDescription = _parameters.IncludeMarkdownDescription,
+            Archived = _parameters.Archived
+        };
+        return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(_workspaceId, serviceParameters, cancellationToken);
     }
 }

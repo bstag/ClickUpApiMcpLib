@@ -2,18 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text; // For StringBuilder
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
+using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ClickUp.Api.Client.Models.Entities.Tasks; // CuTask DTO
+using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
-using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
+using ClickUp.Api.Client.Models.Common.Pagination;
+using ClickUp.Api.Client.Models.Parameters; // Updated to use the new Parameters namespace
 
 namespace ClickUp.Api.Client.Services
 {
@@ -37,58 +38,9 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<TaskService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
-
-        private string BuildQueryStringFromArray<T>(string key, IEnumerable<T>? values)
-        {
-            if (values == null || !values.Any()) return string.Empty;
-            // Format: key[]=value1&key[]=value2
-            return string.Join("&", values.Select(v => $"{Uri.EscapeDataString(key)}[]={Uri.EscapeDataString(v?.ToString() ?? string.Empty)}"));
-        }
-
-
-using ClickUp.Api.Client.Models.RequestModels.Parameters; // For GetTasksRequestParameters
-
-namespace ClickUp.Api.Client.Services
-{
-    /// <summary>
-    /// Implements the <see cref="ITasksService"/> interface for interacting with ClickUp Tasks.
-    /// </summary>
-    public class TaskService : ITasksService
-    {
-        private readonly IApiConnection _apiConnection;
-        private readonly ILogger<TaskService> _logger;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TaskService"/> class.
-        /// </summary>
-        /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <param name="logger">The logger for this service.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
-        public TaskService(IApiConnection apiConnection, ILogger<TaskService> logger)
-        {
-            _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
-            _logger = logger ?? NullLogger<TaskService>.Instance;
-        }
-
-        private string BuildQueryStringFromParams(Dictionary<string, string> queryParams)
+        // This helper can be removed if IApiConnection.GetAsync handles Dictionary<string,string> directly
+        // by formatting it correctly for the ClickUp API (including array expansion).
+        private string BuildQueryString(Dictionary<string, string> queryParams)
         {
             if (queryParams == null || !queryParams.Any())
             {
@@ -96,43 +48,22 @@ namespace ClickUp.Api.Client.Services
             }
 
             var sb = new StringBuilder("?");
+            var first = true;
             foreach (var kvp in queryParams)
             {
-                // Value should already be stringified and URI escaped by GetTasksRequestParameters.ToDictionary()
-                if (sb.Length > 1) sb.Append('&');
-                sb.Append($"{kvp.Key}={kvp.Value}"); // Keys are assumed to be safe or pre-escaped if needed by convention
-            }
-            return sb.ToString();
-        }
-
-        // BuildQueryString and BuildQueryStringFromArray might be deprecated if GetTasksRequestParameters.ToDictionary handles all formatting.
-        // For now, keeping them if other methods still use them.
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
+                if (!first)
                 {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
+                    sb.Append('&');
                 }
+                // Assuming IApiConnection or another layer will handle URL encoding of values if necessary,
+                // and proper formatting of arrays (e.g. key[]=v1&key[]=v2).
+                // GetTasksRequestParameters.ToDictionary() already URI encodes simple string values for arrays,
+                // and JSON serializes custom_fields.
+                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={kvp.Value}");
+                first = false;
             }
             return sb.ToString();
         }
-
-        private string BuildQueryStringFromArray<T>(string key, IEnumerable<T>? values)
-        {
-            if (values == null || !values.Any()) return string.Empty;
-            // Format: key[]=value1&key[]=value2
-            return string.Join("&", values.Select(v => $"{Uri.EscapeDataString(key)}[]={Uri.EscapeDataString(v?.ToString() ?? string.Empty)}"));
-        }
-
 
         /// <inheritdoc />
         public async Task<IPagedResult<CuTask>> GetTasksAsync(
@@ -145,26 +76,15 @@ namespace ClickUp.Api.Client.Services
             var parameters = new GetTasksRequestParameters();
             configureParameters?.Invoke(parameters);
 
-            int currentPage = parameters.Page ?? 0;
+            int currentPage = parameters.Page ?? 0; // Default to page 0 if not set
+            parameters.Page = currentPage; // Ensure Page is set for ToDictionary
 
-            _logger.LogInformation("Getting tasks for list ID: {ListId}, Page: {Page}", listId, currentPage);
+            _logger.LogInformation("Getting tasks for list ID: {ListId}, Parameters: {@Parameters}", listId, parameters);
             var endpoint = $"list/{listId}/task";
 
             var queryDict = parameters.ToDictionary();
-            // Ensure page is part of the dictionary if not already handled by ToDictionary and is required by API
-            if (!queryDict.ContainsKey("page") && parameters.Page.HasValue)
-            {
-                 queryDict["page"] = currentPage.ToString();
-            }
-            else if (!parameters.Page.HasValue) // Default to page 0 if not set by caller
-            {
-                queryDict["page"] = "0";
-            }
-
-
-            var queryString = BuildQueryStringFromParams(queryDict);
-
-            var response = await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+            // Pass dictionary directly to IApiConnection, assuming it handles formatting (including array expansion)
+            var response = await _apiConnection.GetAsync<GetTasksResponse>(endpoint, queryDict, cancellationToken);
 
             if (response == null)
             {
@@ -402,71 +322,52 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async IAsyncEnumerable<Models.Entities.Tasks.CuTask> GetTasksAsyncEnumerableAsync(
+        public async IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
-            GetTasksRequest requestModel,
+            GetTasksRequestParameters parameters,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting tasks as an async enumerable for list ID: {ListId}", listId);
+            if (string.IsNullOrWhiteSpace(listId)) throw new ArgumentNullException(nameof(listId));
+            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
-            // Clone the requestModel to safely modify the Page property for internal pagination
-            var pagedRequestModel = new GetTasksRequest
+            _logger.LogInformation("Getting tasks as an async enumerable for list ID: {ListId}, Parameters: {@Parameters}", listId, parameters);
+
+            var currentParameters = new GetTasksRequestParameters // Create a mutable copy for pagination
             {
-                Archived = requestModel.Archived,
-                IncludeMarkdownDescription = requestModel.IncludeMarkdownDescription,
-                // Page will be set in the loop
-                OrderBy = requestModel.OrderBy,
-                Reverse = requestModel.Reverse,
-                Subtasks = requestModel.Subtasks,
-                Statuses = requestModel.Statuses,
-                IncludeClosed = requestModel.IncludeClosed,
-                Assignees = requestModel.Assignees,
-                Watchers = requestModel.Watchers,
-                Tags = requestModel.Tags,
-                DueDateGreaterThan = requestModel.DueDateGreaterThan,
-                DueDateLessThan = requestModel.DueDateLessThan,
-                DateCreatedGreaterThan = requestModel.DateCreatedGreaterThan,
-                DateCreatedLessThan = requestModel.DateCreatedLessThan,
-                DateUpdatedGreaterThan = requestModel.DateUpdatedGreaterThan,
-                DateUpdatedLessThan = requestModel.DateUpdatedLessThan,
-                DateDoneGreaterThan = requestModel.DateDoneGreaterThan,
-                DateDoneLessThan = requestModel.DateDoneLessThan,
-                CustomFields = requestModel.CustomFields,
-                CustomItems = requestModel.CustomItems
+                SpaceIds = parameters.SpaceIds, ProjectIds = parameters.ProjectIds, ListIds = parameters.ListIds,
+                AssigneeIds = parameters.AssigneeIds, Statuses = parameters.Statuses, Tags = parameters.Tags,
+                IncludeClosed = parameters.IncludeClosed, Subtasks = parameters.Subtasks,
+                DueDateRange = parameters.DueDateRange, DateCreatedRange = parameters.DateCreatedRange, DateUpdatedRange = parameters.DateUpdatedRange,
+                SortBy = parameters.SortBy, IncludeMarkdownDescription = parameters.IncludeMarkdownDescription,
+                CustomFields = parameters.CustomFields, CustomItems = parameters.CustomItems
+                // Page is handled internally by the loop starting from parameters.Page or 0
             };
 
-            int currentPage = 0;
+            int currentPage = parameters.Page ?? 0;
             bool lastPage;
 
             do
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    _logger.LogDebug("Cancellation requested while getting tasks for list ID {ListId} via async enumerable.", listId);
-                    yield break;
-                }
-
+                cancellationToken.ThrowIfCancellationRequested();
+                currentParameters.Page = currentPage;
                 _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
-                pagedRequestModel.Page = currentPage; // Set current page for this iteration
 
-                // GetTasksAsync now returns IPagedResult<CuTask>
-                var pagedResult = await GetTasksAsync(listId, pagedRequestModel, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var queryDict = currentParameters.ToDictionary();
+                // No need for BuildQueryStringFromParams if IApiConnection.GetAsync handles Dictionary directly
+                var response = await _apiConnection.GetAsync<GetTasksResponse>($"list/{listId}/task", queryDict, cancellationToken).ConfigureAwait(false);
 
-                if (pagedResult?.Items != null && pagedResult.Items.Any())
+                if (response?.Tasks != null && response.Tasks.Any())
                 {
-                    foreach (var task in pagedResult.Items)
+                    foreach (var task in response.Tasks)
                     {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            yield break;
-                        }
+                        cancellationToken.ThrowIfCancellationRequested();
                         yield return task;
                     }
-                    lastPage = !pagedResult.HasNextPage;
+                    lastPage = response.LastPage == true; // ClickUp API indicates if it's the last page
                 }
                 else
                 {
-                    lastPage = true; // No items implies last page or an issue
+                    lastPage = true;
                 }
 
                 if (!lastPage)
@@ -474,6 +375,7 @@ namespace ClickUp.Api.Client.Services
                     currentPage++;
                 }
             } while (!lastPage);
+            _logger.LogInformation("Finished streaming tasks for list ID: {ListId}", listId);
         }
 
         /// <inheritdoc />
@@ -488,25 +390,14 @@ namespace ClickUp.Api.Client.Services
             configureParameters?.Invoke(parameters);
 
             int currentPage = parameters.Page ?? 0;
+            parameters.Page = currentPage; // Ensure Page is set for ToDictionary
 
-            _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, currentPage);
-
+            _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Parameters: {@Parameters}", workspaceId, parameters);
             var endpoint = $"team/{workspaceId}/task";
 
             var queryDict = parameters.ToDictionary();
-            // Ensure page is part of the dictionary if not already handled by ToDictionary and is required by API
-             if (!queryDict.ContainsKey("page") && parameters.Page.HasValue)
-            {
-                 queryDict["page"] = currentPage.ToString();
-            }
-            else if (!parameters.Page.HasValue) // Default to page 0 if not set by caller
-            {
-                queryDict["page"] = "0";
-            }
-
-            var queryString = BuildQueryStringFromParams(queryDict);
-
-            var response = await _apiConnection.GetAsync<GetTasksResponse>($"{endpoint}{queryString}", cancellationToken);
+            // Pass dictionary directly to IApiConnection
+            var response = await _apiConnection.GetAsync<GetTasksResponse>(endpoint, queryDict, cancellationToken);
 
             if (response == null)
             {
@@ -526,78 +417,50 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(
             string workspaceId,
-            Action<GetTasksRequestParameters>? configureParameters = null,
+            GetTasksRequestParameters parameters,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting filtered team tasks as an async enumerable for workspace ID: {WorkspaceId}", workspaceId);
             if (string.IsNullOrWhiteSpace(workspaceId)) throw new ArgumentNullException(nameof(workspaceId));
+            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
-            var baseParameters = new GetTasksRequestParameters(); // For initial configuration by the caller
-            configureParameters?.Invoke(baseParameters);
+            _logger.LogInformation("Getting filtered team tasks as an async enumerable for workspace ID: {WorkspaceId}, Parameters: {@Parameters}", workspaceId, parameters);
 
-            // Make a mutable copy for pagination, starting with the caller's configuration
-            var currentParameters = new GetTasksRequestParameters
+            var currentParameters = new GetTasksRequestParameters // Create a mutable copy
             {
-                SpaceIds = baseParameters.SpaceIds,
-                ProjectIds = baseParameters.ProjectIds,
-                ListIds = baseParameters.ListIds,
-                Statuses = baseParameters.Statuses,
-                Assignees = baseParameters.Assignees,
-                IncludeClosed = baseParameters.IncludeClosed,
-                Subtasks = baseParameters.Subtasks,
-                DueDateRange = baseParameters.DueDateRange,
-                DateCreatedRange = baseParameters.DateCreatedRange,
-                DateUpdatedRange = baseParameters.DateUpdatedRange,
-                SortBy = baseParameters.SortBy,
-                Archived = baseParameters.Archived,
-                CustomFields = baseParameters.CustomFields
-                // Page will be set in the loop, starting from what might be in baseParameters or 0
+                SpaceIds = parameters.SpaceIds, ProjectIds = parameters.ProjectIds, ListIds = parameters.ListIds,
+                AssigneeIds = parameters.AssigneeIds, Statuses = parameters.Statuses, Tags = parameters.Tags,
+                IncludeClosed = parameters.IncludeClosed, Subtasks = parameters.Subtasks,
+                DueDateRange = parameters.DueDateRange, DateCreatedRange = parameters.DateCreatedRange, DateUpdatedRange = parameters.DateUpdatedRange,
+                SortBy = parameters.SortBy, IncludeMarkdownDescription = parameters.IncludeMarkdownDescription,
+                CustomFields = parameters.CustomFields, CustomItems = parameters.CustomItems
+                // Page is handled internally
             };
 
-            int currentPage = baseParameters.Page ?? 0;
+            int currentPage = parameters.Page ?? 0;
             bool lastPage;
 
             do
             {
-                cancellationToken.ThrowIfCancellationRequested(); // Check before API call
-
+                cancellationToken.ThrowIfCancellationRequested();
+                currentParameters.Page = currentPage;
                 _logger.LogDebug("Fetching page {PageNumber} for filtered team tasks in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
-                currentParameters.Page = currentPage; // Set the current page for this request
 
-                var pagedResult = await GetFilteredTeamTasksAsync(
-                    workspaceId: workspaceId,
-                    configureParameters: parameters =>
-                    {
-                        parameters.SpaceIds = currentParameters.SpaceIds;
-                        parameters.ProjectIds = currentParameters.ProjectIds;
-                        parameters.ListIds = currentParameters.ListIds;
-                        parameters.Statuses = currentParameters.Statuses;
-                        parameters.Assignees = currentParameters.Assignees;
-                        parameters.IncludeClosed = currentParameters.IncludeClosed;
-                        parameters.Subtasks = currentParameters.Subtasks;
-                        parameters.DueDateRange = currentParameters.DueDateRange;
-                        parameters.DateCreatedRange = currentParameters.DateCreatedRange;
-                        parameters.DateUpdatedRange = currentParameters.DateUpdatedRange;
-                        parameters.SortBy = currentParameters.SortBy;
-                        parameters.Archived = currentParameters.Archived;
-                        parameters.CustomFields = currentParameters.CustomFields;
-                        parameters.Page = currentParameters.Page;
-                    },
-                    cancellationToken: cancellationToken
-                ).ConfigureAwait(false);
+                var queryDict = currentParameters.ToDictionary();
+                // Pass dictionary directly to IApiConnection
+                var response = await _apiConnection.GetAsync<GetTasksResponse>($"team/{workspaceId}/task", queryDict, cancellationToken).ConfigureAwait(false);
 
-                if (pagedResult?.Items != null && pagedResult.Items.Any())
+                if (response?.Tasks != null && response.Tasks.Any())
                 {
-                    foreach (var task in pagedResult.Items)
+                    foreach (var task in response.Tasks)
                     {
-                        cancellationToken.ThrowIfCancellationRequested(); // Check before yielding each item
+                        cancellationToken.ThrowIfCancellationRequested();
                         yield return task;
                     }
-                    lastPage = !pagedResult.HasNextPage;
+                    lastPage = response.LastPage == true;
                 }
                 else
                 {
-                    lastPage = true; // No items implies last page or an issue
+                    lastPage = true;
                 }
 
                 if (!lastPage)

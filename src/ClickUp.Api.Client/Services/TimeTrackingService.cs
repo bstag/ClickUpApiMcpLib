@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Linq; // For Linq Any
+using System.Linq;
 using System.Net.Http;
-using System.Text; // For StringBuilder
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
+using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities.TimeTracking; // Specific import
+using ClickUp.Api.Client.Models.Common.Pagination;
+using ClickUp.Api.Client.Models.Common.ValueObjects;
+using ClickUp.Api.Client.Models.Entities.TimeTracking;
+using ClickUp.Api.Client.Models.Parameters; // For GetTimeEntriesRequestParameters
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
 using ClickUp.Api.Client.Models.ResponseModels.TimeTracking;
 using Microsoft.Extensions.Logging;
@@ -22,7 +25,7 @@ namespace ClickUp.Api.Client.Services
     {
         private readonly IApiConnection _apiConnection;
         private readonly ILogger<TimeTrackingService> _logger;
-        private const string BaseEndpoint = "team"; // ClickUp v2 uses "team/{team_id}" for workspace context
+        private const string BaseEndpoint = "team";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TimeTrackingService"/> class.
@@ -36,138 +39,56 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<TimeTrackingService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
+        private string BuildQueryString(Dictionary<string, string> queryParams)
         {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
+            if (queryParams == null || !queryParams.Any())
             {
                 return string.Empty;
             }
 
             var sb = new StringBuilder("?");
+            var first = true;
             foreach (var kvp in queryParams)
             {
-                if (kvp.Value != null)
+                if (!first)
                 {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
+                    sb.Append('&');
                 }
+                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
+                first = false;
             }
             return sb.ToString();
-        }
-
-        private string BuildQueryStringFromArray<T>(string key, IEnumerable<T>? values)
-        {
-            if (values == null || !values.Any()) return string.Empty;
-            return string.Join("&", values.Select(v => $"{Uri.EscapeDataString(key)}[]={Uri.EscapeDataString(v?.ToString() ?? string.Empty)}"));
-        }
-
-using ClickUp.Api.Client.Models.Common.ValueObjects; // Added for TimeRange
-
-namespace ClickUp.Api.Client.Services
-{
-    /// <summary>
-    /// Implements <see cref="ITimeTrackingService"/> for ClickUp Time Tracking operations.
-    /// </summary>
-    public class TimeTrackingService : ITimeTrackingService
-    {
-        private readonly IApiConnection _apiConnection;
-        private readonly ILogger<TimeTrackingService> _logger;
-        private const string BaseEndpoint = "team"; // ClickUp v2 uses "team/{team_id}" for workspace context
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TimeTrackingService"/> class.
-        /// </summary>
-        /// <param name="apiConnection">The API connection to use for making requests.</param>
-        /// <param name="logger">The logger for this service.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
-        public TimeTrackingService(IApiConnection apiConnection, ILogger<TimeTrackingService> logger)
-        {
-            _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
-            _logger = logger ?? NullLogger<TimeTrackingService>.Instance;
-        }
-
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
-
-        private string BuildQueryStringFromArray<T>(string key, IEnumerable<T>? values)
-        {
-            if (values == null || !values.Any()) return string.Empty;
-            return string.Join("&", values.Select(v => $"{Uri.EscapeDataString(key)}[]={Uri.EscapeDataString(v?.ToString() ?? string.Empty)}"));
         }
 
         /// <inheritdoc />
-        public async Task<Models.Common.Pagination.IPagedResult<TimeEntry>> GetTimeEntriesAsync(
+        public async Task<IPagedResult<TimeEntry>> GetTimeEntriesAsync(
             string workspaceId,
-            TimeRange? timeRange = null,
-            long? assigneeUserId = null,
-            string? taskId = null,
-            string? listId = null,
-            string? folderId = null,
-            string? spaceId = null,
-            bool? includeTaskTags = null,
-            bool? includeLocationNames = null,
-            int? page = null, // Keep page for now, though API might not support it for all filters
+            Action<GetTimeEntriesRequestParameters>? configureParameters = null,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(workspaceId)) throw new ArgumentNullException(nameof(workspaceId));
 
-            _logger.LogInformation("Getting time entries for workspace ID: {WorkspaceId}, Page: {Page}", workspaceId, page ?? 0);
+            var parameters = new GetTimeEntriesRequestParameters();
+            configureParameters?.Invoke(parameters);
+
+            int currentPage = parameters.Page ?? 0;
+            parameters.Page = currentPage; // Ensure Page is set for ToDictionary
+
+            _logger.LogInformation("Getting time entries for workspace ID: {WorkspaceId}, Parameters: {@Parameters}", workspaceId, parameters);
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries";
-            var queryParams = new Dictionary<string, string?>();
 
-            if (timeRange != null)
-            {
-                foreach (var kvp in timeRange.ToQueryParameters("start_date", "end_date"))
-                {
-                    queryParams[kvp.Key] = kvp.Value;
-                }
-            }
-            if (assigneeUserId.HasValue) queryParams["assignee"] = assigneeUserId.Value.ToString(); // API docs say "assignee", example uses "assignee_user_id" for GetRunning. Assuming "assignee" here.
-            if (includeTaskTags.HasValue) queryParams["include_task_tags"] = includeTaskTags.Value.ToString().ToLower();
-            if (includeLocationNames.HasValue) queryParams["include_location_names"] = includeLocationNames.Value.ToString().ToLower();
-
-            // Location filters - API states only one can be used at a time.
-            // This simple implementation doesn't enforce that; relies on caller.
-            if (!string.IsNullOrEmpty(spaceId)) queryParams["space_id"] = spaceId;
-            else if (!string.IsNullOrEmpty(folderId)) queryParams["folder_id"] = folderId;
-            else if (!string.IsNullOrEmpty(listId)) queryParams["list_id"] = listId;
-            else if (!string.IsNullOrEmpty(taskId)) queryParams["task_id"] = taskId;
-
-            if (page.HasValue) queryParams["page"] = page.Value.ToString();
-
-            endpoint += BuildQueryString(queryParams);
-
-            var response = await _apiConnection.GetAsync<GetTimeEntriesResponse>(endpoint, cancellationToken);
+            var queryDict = parameters.ToDictionary();
+            var response = await _apiConnection.GetAsync<GetTimeEntriesResponse>(endpoint, queryDict, cancellationToken);
 
             var items = response?.Data ?? Enumerable.Empty<TimeEntry>();
-            int currentPage = page ?? 0;
 
-            // ClickUp's GetTimeEntries API does not reliably return 'last_page' or total count.
-            // We assume a next page exists if the number of items returned is typical for a full page (e.g., 100).
-            // This is a heuristic and might not be accurate if the last page happens to have exactly 100 items.
-            const int assumedPageSizeWhenFull = 100; // This is an assumption.
-            bool hasNextPage = items.Count() == assumedPageSizeWhenFull;
+            const int assumedPageSizeWhenFull = 100;
+            bool hasNextPage = items.Count() == assumedPageSizeWhenFull; // Heuristic as API doesn't provide total/last_page
 
-            return new Models.Common.Pagination.PagedResult<TimeEntry>(
+            return new PagedResult<TimeEntry>(
                 items,
                 currentPage,
-                items.Count(),
+                items.Count(), // This is items per page, not total items
                 hasNextPage
             );
         }
@@ -391,42 +312,52 @@ namespace ClickUp.Api.Client.Services
         /// <inheritdoc />
         public async IAsyncEnumerable<TimeEntry> GetTimeEntriesAsyncEnumerableAsync(
             string workspaceId,
-            TimeRange? timeRange = null,
-            long? assigneeUserId = null,
-            string? taskId = null,
-            string? listId = null,
-            string? folderId = null,
-            string? spaceId = null,
-            bool? includeTaskTags = null,
-            bool? includeLocationNames = null,
-            // Page is handled internally by the enumerable
+            GetTimeEntriesRequestParameters parameters, // Changed from individual params + GetTimeEntriesRequest
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting time entries as async enumerable for workspace ID: {WorkspaceId}", workspaceId);
             if (string.IsNullOrWhiteSpace(workspaceId)) throw new ArgumentNullException(nameof(workspaceId));
+            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
-            int currentPage = 0;
+            _logger.LogInformation("Getting time entries as async enumerable for workspace ID: {WorkspaceId}, Parameters: {@Parameters}", workspaceId, parameters);
+
+            var currentParameters = new GetTimeEntriesRequestParameters // Mutable copy for pagination
+            {
+                TimeRange = parameters.TimeRange,
+                AssigneeUserId = parameters.AssigneeUserId,
+                TaskId = parameters.TaskId,
+                ListId = parameters.ListId,
+                FolderId = parameters.FolderId,
+                SpaceId = parameters.SpaceId,
+                IncludeTaskTags = parameters.IncludeTaskTags,
+                IncludeLocationNames = parameters.IncludeLocationNames,
+                CustomTaskIds = parameters.CustomTaskIds,
+                TeamIdForCustomTaskIds = parameters.TeamIdForCustomTaskIds
+                // Page handled by loop
+            };
+
+            int currentPage = parameters.Page ?? 0;
             bool lastPageReached;
 
             do
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                currentParameters.Page = currentPage;
 
                 _logger.LogDebug("Fetching page {CurrentPage} for time entries in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
 
-                var pagedResult = await GetTimeEntriesAsync(
-                    workspaceId,
-                    timeRange,
-                    assigneeUserId,
-                    taskId,
-                    listId,
-                    folderId,
-                    spaceId,
-                    includeTaskTags,
-                    includeLocationNames,
-                    currentPage, // Pass the current page
-                    cancellationToken
-                ).ConfigureAwait(false);
+                var pagedResult = await GetTimeEntriesAsync(workspaceId, cfg => {
+                    cfg.TimeRange = currentParameters.TimeRange;
+                    cfg.AssigneeUserId = currentParameters.AssigneeUserId;
+                    cfg.TaskId = currentParameters.TaskId;
+                    cfg.ListId = currentParameters.ListId;
+                    cfg.FolderId = currentParameters.FolderId;
+                    cfg.SpaceId = currentParameters.SpaceId;
+                    cfg.IncludeTaskTags = currentParameters.IncludeTaskTags;
+                    cfg.IncludeLocationNames = currentParameters.IncludeLocationNames;
+                    cfg.Page = currentParameters.Page;
+                    cfg.CustomTaskIds = currentParameters.CustomTaskIds;
+                    cfg.TeamIdForCustomTaskIds = currentParameters.TeamIdForCustomTaskIds;
+                }, cancellationToken).ConfigureAwait(false);
 
                 if (pagedResult?.Items != null && pagedResult.Items.Any())
                 {
@@ -447,6 +378,7 @@ namespace ClickUp.Api.Client.Services
                     currentPage++;
                 }
             } while (!lastPageReached);
+            _logger.LogInformation("Finished streaming time entries for workspace ID: {WorkspaceId}", workspaceId);
         }
 
         public Task ChangeTimeEntryTagNameAsync(string workspaceId, ChangeTagNamesFromTimeEntriesRequest changeTagNamesRequest, CancellationToken cancellationToken = default)

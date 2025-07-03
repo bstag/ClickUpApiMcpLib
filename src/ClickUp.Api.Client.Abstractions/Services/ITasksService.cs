@@ -48,8 +48,8 @@ using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
-using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
-using ClickUp.Api.Client.Models.RequestModels.Parameters; // For GetTasksRequestParameters
+using ClickUp.Api.Client.Models.Common.Pagination;
+using ClickUp.Api.Client.Models.Parameters; // Consolidated using
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
