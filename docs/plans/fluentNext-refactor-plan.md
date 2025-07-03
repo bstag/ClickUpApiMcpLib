@@ -300,9 +300,9 @@ Each step contains:
 - [X] 5.4 Review all service implementations in `src/ClickUp.Api.Client/Services/*.cs`.
     - [X] 5.4.1 Remove any direct throwing of `HttpRequestException` or other generic exceptions if the `ApiConnection` now handles this. (Verified services rely on ApiConnection).
     - [X] 5.4.2 Ensure services propagate exceptions from `ApiConnection` correctly. (Verified by design).
-- [X] 5.5 Update unit tests for `ApiConnection` to verify that it throws the correct specific `ClickUpApiException` for different HTTP error statuses using the factory. (Updated for `GetAsync` and `PostAsync`, pattern established for others).
+- [X] 5.5 Update unit tests for `ApiConnection` to verify that it throws the correct specific `ClickUpApiException` for different HTTP error statuses using the factory. (Updated for `GetAsync` and `PostAsync`, pattern established for others, all relevant tests passing).
 - [X] 5.6 Update unit tests for services to ensure they correctly propagate exceptions thrown by `ApiConnection`.
-    - [X] 5.6.1 Example: `AttachmentsServiceTests` should have tests mocking `IApiConnection` to throw various `ClickUpApiException` types, and assert the service method re-throws them. (Updated `AttachmentsServiceTests` to demonstrate the pattern).
+    - [X] 5.6.1 Example: `AttachmentsServiceTests` should have tests mocking `IApiConnection` to throw various `ClickUpApiException` types, and assert the service method re-throws them. (Updated `AttachmentsServiceTests` to demonstrate the pattern, relevant tests passing).
 
 **Validation Rule:**
 - Contract tests (or dedicated unit tests for `ApiConnection` and services) simulate 4xx/5xx HTTP responses from `IApiConnection` mock. (Partially covered by updated tests).

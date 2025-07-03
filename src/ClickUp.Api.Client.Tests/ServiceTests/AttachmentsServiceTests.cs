@@ -160,7 +160,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             );
 
             Assert.NotNull(expectedException);
-            Assert.Equal("The API connection returned null.", expectedException.Message);
+            Assert.Equal($"Failed to create attachment for task {taskId}, or the API returned an unexpected null or invalid response.", expectedException.Message);
         }
 
         [Fact]

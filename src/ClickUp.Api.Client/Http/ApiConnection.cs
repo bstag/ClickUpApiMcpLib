@@ -194,7 +194,7 @@ namespace ClickUp.Api.Client.Http
             string errorMessage = $"API request failed with status code {response.StatusCode}. Raw content: {rawErrorContent}";
             // Use the factory to create and throw the appropriate exception.
             // The factory will handle parsing the error content and selecting the exception type.
-            ClickUpApiExceptionFactory.Create(response, rawErrorContent);
+            throw ClickUpApiExceptionFactory.Create(response, rawErrorContent);
         }
 
         /// <inheritdoc />
