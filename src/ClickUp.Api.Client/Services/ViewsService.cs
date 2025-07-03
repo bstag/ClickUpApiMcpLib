@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
 using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -38,24 +39,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<ViewsService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<GetViewsResponse> GetWorkspaceViewsAsync(
@@ -235,7 +218,7 @@ namespace ClickUp.Api.Client.Services
             {
                 { "page", request.Page.ToString() }
             };
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetViewTasksResponse>(endpoint, cancellationToken);
 

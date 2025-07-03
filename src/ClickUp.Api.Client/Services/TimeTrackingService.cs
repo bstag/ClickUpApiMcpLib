@@ -13,6 +13,7 @@ using ClickUp.Api.Client.Models.Entities.TimeTracking;
 using ClickUp.Api.Client.Models.Parameters; // For GetTimeEntriesRequestParameters
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
 using ClickUp.Api.Client.Models.ResponseModels.TimeTracking;
+using ClickUp.Api.Client.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -39,24 +40,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<TimeTrackingService>.Instance;
         }
 
-        private string BuildQueryString(List<KeyValuePair<string, string>> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any())
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder();
-            var first = true;
-            foreach (var kvp in queryParams)
-            {
-                // Assuming key is safe and value is pre-formatted/escaped by ToQueryParametersList
-                sb.Append(first ? '?' : '&');
-                first = false;
-                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={kvp.Value}");
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<IPagedResult<TimeEntry>> GetTimeEntriesAsync(
@@ -76,7 +59,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries";
 
             var queryParamsList = parameters.ToQueryParametersList();
-            var fullEndpoint = endpoint + BuildQueryString(queryParamsList);
+            var fullEndpoint = endpoint + UrlBuilderHelper.BuildQueryString(queryParamsList);
             var response = await _apiConnection.GetAsync<GetTimeEntriesResponse>(fullEndpoint, cancellationToken);
 
             var items = response?.Data ?? Enumerable.Empty<TimeEntry>();
@@ -105,7 +88,7 @@ namespace ClickUp.Api.Client.Services
             var queryParamsList = new List<KeyValuePair<string, string>>();
             if (customTaskIds.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("custom_task_ids", customTaskIds.Value.ToString().ToLower()));
             if (!string.IsNullOrEmpty(teamIdForCustomTaskIds)) queryParamsList.Add(new KeyValuePair<string, string>("team_id", teamIdForCustomTaskIds));
-            endpoint += BuildQueryString(queryParamsList);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var responseWrapper = await _apiConnection.PostAsync<CreateTimeEntryRequest, GetTimeEntryResponse>(endpoint, createTimeEntryRequest, cancellationToken);
             if (responseWrapper?.Data == null)
@@ -135,7 +118,7 @@ namespace ClickUp.Api.Client.Services
             // Add other include params if API supports them: includeApprovalHistory, includeApprovalDetails
             if (includeApprovalHistory.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("include_approval_history", includeApprovalHistory.Value.ToString().ToLower()));
             if (includeApprovalDetails.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("include_approval_details", includeApprovalDetails.Value.ToString().ToLower()));
-            endpoint += BuildQueryString(queryParamsList);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var responseWrapper = await _apiConnection.GetAsync<GetTimeEntryResponse>(endpoint, cancellationToken);
             if (responseWrapper?.Data == null)
@@ -159,7 +142,7 @@ namespace ClickUp.Api.Client.Services
             var queryParamsList = new List<KeyValuePair<string, string>>();
             if (customTaskIds.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("custom_task_ids", customTaskIds.Value.ToString().ToLower()));
             if (!string.IsNullOrEmpty(teamIdForCustomTaskIds)) queryParamsList.Add(new KeyValuePair<string, string>("team_id", teamIdForCustomTaskIds));
-            endpoint += BuildQueryString(queryParamsList);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var responseWrapper = await _apiConnection.PutAsync<UpdateTimeEntryRequest, GetTimeEntryResponse>(endpoint, updateTimeEntryRequest, cancellationToken);
             if (responseWrapper?.Data == null)
@@ -204,7 +187,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"{BaseEndpoint}/{workspaceId}/time_entries/current";
             var queryParamsList = new List<KeyValuePair<string, string>>();
             if (!string.IsNullOrEmpty(assigneeUserId)) queryParamsList.Add(new KeyValuePair<string, string>("assignee_user_id", assigneeUserId));
-            endpoint += BuildQueryString(queryParamsList);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var responseWrapper = await _apiConnection.GetAsync<GetTimeEntryResponse>(endpoint, cancellationToken); // API returns {"data": ...} (or null if no timer)
             return responseWrapper?.Data; // Return null if responseWrapper or its Data is null
@@ -224,7 +207,7 @@ namespace ClickUp.Api.Client.Services
             var queryParamsList = new List<KeyValuePair<string, string>>();
             if (customTaskIds.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("custom_task_ids", customTaskIds.Value.ToString().ToLower()));
             if (!string.IsNullOrEmpty(teamIdForCustomTaskIds)) queryParamsList.Add(new KeyValuePair<string, string>("team_id", teamIdForCustomTaskIds));
-            endpoint += BuildQueryString(queryParamsList);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var responseWrapper = await _apiConnection.PostAsync<StartTimeEntryRequest, GetTimeEntryResponse>(endpoint, startTimeEntryRequest, cancellationToken);
             if (responseWrapper?.Data == null)

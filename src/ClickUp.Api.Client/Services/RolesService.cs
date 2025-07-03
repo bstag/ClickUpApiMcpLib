@@ -11,6 +11,7 @@ using ClickUp.Api.Client.Models.Entities;
 using ClickUp.Api.Client.Models.ResponseModels.Roles; // Assuming GetCustomRolesResponse exists
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -34,24 +35,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<RolesService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<IEnumerable<CustomRole>> GetCustomRolesAsync(
@@ -63,7 +46,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"team/{workspaceId}/customroles"; // team_id is workspaceId
             var queryParams = new Dictionary<string, string?>();
             if (includeMembers.HasValue) queryParams["include_members"] = includeMembers.Value.ToString().ToLower();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             // API returns { "roles": [...] } in GetCustomRolesResponse
             var response = await _apiConnection.GetAsync<GetCustomRolesResponse>(endpoint, cancellationToken);

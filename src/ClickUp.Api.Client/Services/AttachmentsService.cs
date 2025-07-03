@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.ResponseModels.Attachments;
+using ClickUp.Api.Client.Helpers;
 
 // using ClickUp.Api.Client.Models.Entities; // May not be needed if Attachment model is not directly used here
 // using ClickUp.Api.Client.Models.Entities.Attachments; // Replaced by specific response
@@ -30,24 +31,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<AttachmentsService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<CreateTaskAttachmentResponse> CreateTaskAttachmentAsync(
@@ -63,7 +46,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             using var multipartContent = new MultipartFormDataContent();
 

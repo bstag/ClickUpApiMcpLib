@@ -15,6 +15,7 @@ using ClickUp.Api.Client.Models.RequestModels.Tasks;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks;
 using ClickUp.Api.Client.Models.Common.Pagination;
 using ClickUp.Api.Client.Models.Parameters; // Updated to use the new Parameters namespace
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -38,26 +39,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<TaskService>.Instance;
         }
 
-        // This helper is used to construct the query string for GET requests.
-        private string BuildQueryString(List<KeyValuePair<string, string>> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any())
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder();
-            var first = true;
-            foreach (var kvp in queryParams)
-            {
-                // Always escape both key and value to ensure proper URL encoding
-                // This handles special characters like {, ", spaces, etc. in parameter values
-                sb.Append(first ? '?' : '&');
-                first = false;
-                sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<IPagedResult<CuTask>> GetTasksAsync(
@@ -77,7 +58,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"list/{listId}/task";
 
             var queryParamsList = parameters.ToQueryParametersList();
-            var fullEndpoint = endpoint + BuildQueryString(queryParamsList);
+            var fullEndpoint = endpoint + UrlBuilderHelper.BuildQueryString(queryParamsList);
             var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken);
 
             if (response == null)
@@ -108,7 +89,7 @@ namespace ClickUp.Api.Client.Services
             var queryParamsList = new List<KeyValuePair<string, string>>();
             if (customTaskIds.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("custom_task_ids", customTaskIds.Value.ToString().ToLower()));
             if (!string.IsNullOrEmpty(teamId)) queryParamsList.Add(new KeyValuePair<string, string>("team_id", teamId));
-            endpoint += BuildQueryString(queryParamsList);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var task = await _apiConnection.PostAsync<CreateTaskRequest, CuTask>(endpoint, createTaskRequest, cancellationToken);
             if (task == null)
@@ -132,7 +113,7 @@ namespace ClickUp.Api.Client.Services
             if (requestModel.IncludeSubtasks.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("include_subtasks", requestModel.IncludeSubtasks.Value.ToString().ToLower()));
             if (requestModel.IncludeMarkdownDescription.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("include_markdown_description", requestModel.IncludeMarkdownDescription.Value.ToString().ToLower()));
             if (requestModel.Page.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("page", requestModel.Page.Value.ToString()));
-            var fullEndpoint = endpoint + BuildQueryString(queryParamsList);
+            var fullEndpoint = endpoint + UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var task = await _apiConnection.GetAsync<CuTask>(fullEndpoint, cancellationToken);
             if (task == null)
@@ -155,7 +136,7 @@ namespace ClickUp.Api.Client.Services
             var queryParamsList = new List<KeyValuePair<string, string>>();
             if (customTaskIds.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("custom_task_ids", customTaskIds.Value.ToString().ToLower()));
             if (!string.IsNullOrEmpty(teamId)) queryParamsList.Add(new KeyValuePair<string, string>("team_id", teamId));
-            endpoint += BuildQueryString(queryParamsList);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var task = await _apiConnection.PutAsync<UpdateTaskRequest, CuTask>(endpoint, updateTaskRequest, cancellationToken);
             if (task == null)
@@ -176,7 +157,7 @@ namespace ClickUp.Api.Client.Services
             var queryParamsList = new List<KeyValuePair<string, string>>();
             if (requestModel.CustomTaskIds.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("custom_task_ids", requestModel.CustomTaskIds.Value.ToString().ToLower()));
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParamsList.Add(new KeyValuePair<string, string>("team_id", requestModel.TeamId));
-            endpoint += BuildQueryString(queryParamsList);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
@@ -259,7 +240,7 @@ namespace ClickUp.Api.Client.Services
             var queryParamsList = new List<KeyValuePair<string, string>>();
             if (requestModel.CustomTaskIds.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("custom_task_ids", requestModel.CustomTaskIds.Value.ToString().ToLower()));
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParamsList.Add(new KeyValuePair<string, string>("team_id", requestModel.TeamId));
-            var fullEndpoint = endpoint + BuildQueryString(queryParamsList);
+            var fullEndpoint = endpoint + UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var response = await _apiConnection.GetAsync<TaskTimeInStatusResponse>(fullEndpoint, cancellationToken);
             if (response == null)
@@ -285,7 +266,7 @@ namespace ClickUp.Api.Client.Services
             queryParamsList.Add(new KeyValuePair<string, string>("task_ids", string.Join(",", requestModel.TaskIds)));
             if (requestModel.CustomTaskIds.HasValue) queryParamsList.Add(new KeyValuePair<string, string>("custom_task_ids", requestModel.CustomTaskIds.Value.ToString().ToLower()));
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParamsList.Add(new KeyValuePair<string, string>("team_id", requestModel.TeamId));
-            var fullEndpoint = endpoint + BuildQueryString(queryParamsList);
+            var fullEndpoint = endpoint + UrlBuilderHelper.BuildQueryString(queryParamsList);
 
             var response = await _apiConnection.GetAsync<GetBulkTasksTimeInStatusResponse>(fullEndpoint, cancellationToken);
             if (response == null)
@@ -306,7 +287,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"list/{listId}/taskTemplate/{templateId}";
             // Query parameters customTaskIds and teamId are removed as they are not used for this endpoint.
             // var queryParams = new Dictionary<string, string?>();
-            // endpoint += BuildQueryString(queryParams);
+            // endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var task = await _apiConnection.PostAsync<CreateTaskFromTemplateRequest, CuTask>(endpoint, createTaskFromTemplateRequest, cancellationToken);
             if (task == null)
@@ -348,7 +329,7 @@ namespace ClickUp.Api.Client.Services
                 _logger.LogDebug("Fetching page {PageNumber} for tasks in list ID {ListId} via async enumerable.", currentPage, listId);
 
                 var queryParamsList = currentParameters.ToQueryParametersList();
-                var fullEndpoint = $"list/{listId}/task" + BuildQueryString(queryParamsList);
+                var fullEndpoint = $"list/{listId}/task" + UrlBuilderHelper.BuildQueryString(queryParamsList);
                 var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Tasks != null && response.Tasks.Any())
@@ -391,7 +372,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"team/{workspaceId}/task";
 
             var queryParamsList = parameters.ToQueryParametersList();
-            var fullEndpoint = endpoint + BuildQueryString(queryParamsList);
+            var fullEndpoint = endpoint + UrlBuilderHelper.BuildQueryString(queryParamsList);
             var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken);
 
             if (response == null)
@@ -441,7 +422,7 @@ namespace ClickUp.Api.Client.Services
                 _logger.LogDebug("Fetching page {PageNumber} for filtered team tasks in workspace ID {WorkspaceId} via async enumerable.", currentPage, workspaceId);
 
                 var queryParamsList = currentParameters.ToQueryParametersList();
-                var fullEndpoint = $"team/{workspaceId}/task" + BuildQueryString(queryParamsList);
+                var fullEndpoint = $"team/{workspaceId}/task" + UrlBuilderHelper.BuildQueryString(queryParamsList);
                 var response = await _apiConnection.GetAsync<GetTasksResponse>(fullEndpoint, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Tasks != null && response.Tasks.Any())
