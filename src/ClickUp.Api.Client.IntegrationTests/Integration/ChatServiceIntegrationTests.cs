@@ -114,7 +114,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             // Act
-            ChatChannel createdChannel = null;
+            ChatChannel? createdChannel = null;
             try
             {
                 createdChannel = await _chatService.CreateChatChannelAsync(_workspaceId, createRequest);

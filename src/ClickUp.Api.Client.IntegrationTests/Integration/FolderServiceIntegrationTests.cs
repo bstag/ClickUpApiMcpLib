@@ -214,7 +214,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             // 3. Get non-archived folders
             _output.LogInformation($"Fetching non-archived folders from space '{_testSpaceId}'.");
-            nonArchivedFolders = (await _folderService.GetFoldersAsync(_testSpaceId, archived: false)).ToList();
+            nonArchivedFolders = (await _folderService.GetFoldersAsync(_testSpaceId!, archived: false)).ToList();
 
             Assert.NotNull(nonArchivedFolders);
             Assert.Contains(nonArchivedFolders, f => f.Id == activeFolderIdForTest && f.Name == activeFolderNameForTest && f.Archived == false);
@@ -223,7 +223,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             // 4. Get archived folders
             _output.LogInformation($"Fetching archived folders from space '{_testSpaceId}'.");
-            archivedFolders = (await _folderService.GetFoldersAsync(_testSpaceId, archived: true)).ToList();
+            archivedFolders = (await _folderService.GetFoldersAsync(_testSpaceId!, archived: true)).ToList();
 
             Assert.NotNull(archivedFolders);
             Assert.Contains(archivedFolders, f => f.Id == archivedFolderIdForTest && f.Name == archivedFolderNameForTest && f.Archived == true);
@@ -233,7 +233,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             // 5. Get all folders (archived: null or not provided)
             // Based on existing test, this implies all folders (active and archived) are returned.
             _output.LogInformation($"Fetching all folders (archived: null) from space '{_testSpaceId}'.");
-            allFolders = (await _folderService.GetFoldersAsync(_testSpaceId, archived: null)).ToList();
+            allFolders = (await _folderService.GetFoldersAsync(_testSpaceId!, archived: null)).ToList();
             Assert.NotNull(allFolders);
             Assert.Contains(allFolders, f => f.Id == activeFolderIdForTest && f.Name == activeFolderNameForTest && f.Archived == false);
             Assert.Contains(allFolders, f => f.Id == archivedFolderIdForTest && f.Name == archivedFolderNameForTest && f.Archived == true);
@@ -296,8 +296,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 // Assert.NotEmpty(folder.Lists);
                 // Assert.Contains(folder.Lists, l => l.Id == "list_abc_123");
                 Assert.NotNull(folder.Statuses); // Statuses is a valid property
-                Assert.NotEmpty(folder.Statuses); // Assuming the playback JSON has statuses
-                Assert.Contains(folder.Statuses, s => s.StatusValue == "Open");
+                Assert.NotEmpty(folder.Statuses!); // Assuming the playback JSON has statuses
+                Assert.Contains(folder.Statuses!, s => s.StatusValue == "Open");
             }
             _output.LogInformation($"Successfully fetched and validated folder '{folder.Name}' (ID: {folder.Id}).");
         }

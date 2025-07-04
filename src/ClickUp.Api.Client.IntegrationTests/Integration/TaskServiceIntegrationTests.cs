@@ -34,7 +34,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         private readonly IAuthorizationService _authService; // To get current user ID
         private readonly ITagsService _tagsService; // To create and assign tags
 
-        private string _testWorkspaceId;
+        private string? _testWorkspaceId;
         private string _testSpaceId = null!;
         private string _testFolderId = null!;
         private string _testListId = null!;
@@ -80,7 +80,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
         private string _currentUserId = null!;
         private ClickUp.Api.Client.Models.Common.Status _defaultStatus = null!;
-        private ClickUp.Api.Client.Models.Common.Status _anotherStatus = null!; // Can be null if only one status exists
+        private ClickUp.Api.Client.Models.Common.Status? _anotherStatus; // Can be null if only one status exists
         private List<string> _createdTagNamesForCleanup = new List<string>();
 
         public async Task InitializeAsync()
@@ -136,7 +136,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
                 _hierarchyContext = await TestHierarchyHelper.CreateSpaceFolderListHierarchyAsync(
                     _spaceService, _folderService, _listService,
-                    _testWorkspaceId, "TasksQueryTest", _output);
+                    _testWorkspaceId!, "TasksQueryTest", _output);
 
                 _testSpaceId = _hierarchyContext.SpaceId;
                 _testFolderId = _hierarchyContext.FolderId;
@@ -283,7 +283,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             var createTaskRequest = new CreateTaskRequest(Name: taskName, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null);
-            var taskToGet = await _taskService.CreateTaskAsync(_testListId, createTaskRequest);
+            var taskToGet = await _taskService.CreateTaskAsync(_testListId!, createTaskRequest);
             RegisterCreatedTask(taskToGet.Id);
             _output.LogInformation($"Task created for Get test. ID: {taskToGet.Id}");
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(createdTaskId, taskToGet.Id);
@@ -318,7 +318,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             var createTaskRequest = new CreateTaskRequest(Name: initialName, Description: "Initial Description", Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null);
-            var createdTask = await _taskService.CreateTaskAsync(_testListId, createTaskRequest);
+            var createdTask = await _taskService.CreateTaskAsync(_testListId!, createTaskRequest);
             RegisterCreatedTask(createdTask.Id);
             _output.LogInformation($"Task created for Update test. ID: {createdTask.Id}, Name: {createdTask.Name}");
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(createdTaskId, createdTask.Id);
@@ -356,7 +356,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             var createTaskRequest = new CreateTaskRequest(Name: taskName, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null);
-            var createdTask = await _taskService.CreateTaskAsync(_testListId, createTaskRequest);
+            var createdTask = await _taskService.CreateTaskAsync(_testListId!, createTaskRequest);
             // Do NOT register this task for auto-cleanup if not in playback, as this test is testing the deletion.
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(createdTaskId, createdTask.Id); else _createdTaskIds.Remove(createdTask.Id); // Ensure it's not cleaned up by Dispose if test fails before explicit delete
             _output.LogInformation($"Task created for Delete test. ID: {createdTask.Id}");
@@ -394,7 +394,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             }
 
             var taskName1 = $"Task_StatusFilter_1_{(CurrentTestMode == TestMode.Playback ? "PlaybackDef" : Guid.NewGuid().ToString())}";
-            var task1 = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: taskName1, Status: defaultStatusValueToTest, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null));
+            var task1 = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: taskName1, Status: defaultStatusValueToTest, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null));
             RegisterCreatedTask(task1.Id);
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(task1Id, task1.Id);
 
@@ -402,7 +402,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (anotherStatusValueToTest != null && anotherStatusValueToTest != defaultStatusValueToTest) statusForTask2 = anotherStatusValueToTest;
 
             var taskName2 = $"Task_StatusFilter_2_{(CurrentTestMode == TestMode.Playback ? "PlaybackAn" : Guid.NewGuid().ToString())}";
-            var task2 = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: taskName2, Status: statusForTask2, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null));
+            var task2 = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: taskName2, Status: statusForTask2, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null));
             RegisterCreatedTask(task2.Id);
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(task2Id, task2.Id);
 
@@ -443,11 +443,11 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                                .Respond("application/json", await MockedFileContentAsync("TaskService/GetTasksAsync_FilterByAssignee_ShouldReturnFilteredTasks/GetTasks_FilteredByAssignee.json"));
             }
 
-            var taskAssigned = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "AssignedTask", Assignees: new List<int> { userIdIntToTest }, Description: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null));
+            var taskAssigned = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: "AssignedTask", Assignees: new List<int> { userIdIntToTest }, Description: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null));
             RegisterCreatedTask(taskAssigned.Id);
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(taskAssignedId, taskAssigned.Id);
 
-            var taskUnassigned = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "UnassignedTask", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null));
+            var taskUnassigned = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: "UnassignedTask", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null));
             RegisterCreatedTask(taskUnassigned.Id);
             if (CurrentTestMode == TestMode.Playback) Assert.Equal(taskUnassignedId, taskUnassigned.Id);
 
@@ -495,8 +495,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode == TestMode.Playback) { dayAfterTomorrowTimestampMs = fixedDueDateLessThanTs; tomorrowTimestampMs = fixedDueDateGreaterThanTs; }
 
 
-            var taskDueToday = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "TaskDueToday", DueDate: today, DueDateTime: true, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskDueToday.Id);
-            var taskDueNextWeek = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "TaskDueNextWeek", DueDate: today.AddDays(7), DueDateTime: true, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskDueNextWeek.Id);
+            var taskDueToday = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: "TaskDueToday", DueDate: today, DueDateTime: true, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskDueToday.Id);
+            var taskDueNextWeek = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: "TaskDueNextWeek", DueDate: today.AddDays(7), DueDateTime: true, Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskDueNextWeek.Id);
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskDueTodayId, taskDueToday.Id); Assert.Equal(taskDueNextWeekId, taskDueNextWeek.Id); }
 
             // var getTasksRequestLT = new GetTasksRequest { DueDateLessThan = dayAfterTomorrowTimestampMs };
@@ -505,7 +505,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             {
                 parameters.DueDateRange = new Models.Common.ValueObjects.TimeRange(DateTimeOffset.MinValue, new DateTimeOffset(dayAfterTomorrowTimestampMs * 10000L + DateTimeOffset.UnixEpoch.Ticks, TimeSpan.Zero)); // Assuming DueDateLessThan means before this date
             });
-            Assert.NotNull(responseLT?.Items); Assert.Contains(responseLT.Items, t => t.Id == taskDueToday.Id); Assert.DoesNotContain(responseLT.Items, t => t.Id == taskDueNextWeek.Id);
+            Assert.NotNull(responseLT); Assert.NotNull(responseLT.Items); Assert.Contains(responseLT.Items, t => t.Id == taskDueToday.Id); Assert.DoesNotContain(responseLT.Items, t => t.Id == taskDueNextWeek.Id);
 
             // var getTasksRequestGT = new GetTasksRequest { DueDateGreaterThan = tomorrowTimestampMs };
             // var responseGT = await _taskService.GetTasksAsync(_testListId, getTasksRequestGT);
@@ -513,7 +513,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             {
                 parameters.DueDateRange = new Models.Common.ValueObjects.TimeRange(new DateTimeOffset(tomorrowTimestampMs * 10000L + DateTimeOffset.UnixEpoch.Ticks, TimeSpan.Zero), DateTimeOffset.MaxValue); // Assuming DueDateGreaterThan means after this date
             });
-            Assert.NotNull(responseGT?.Items); Assert.DoesNotContain(responseGT.Items, t => t.Id == taskDueToday.Id); Assert.Contains(responseGT.Items, t => t.Id == taskDueNextWeek.Id);
+            Assert.NotNull(responseGT); Assert.NotNull(responseGT.Items); Assert.DoesNotContain(responseGT.Items, t => t.Id == taskDueToday.Id); Assert.Contains(responseGT.Items, t => t.Id == taskDueNextWeek.Id);
         }
 
         [Fact]
@@ -543,8 +543,8 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             if (CurrentTestMode != TestMode.Playback) await _tagsService.CreateSpaceTagAsync(_testSpaceId, new ClickUp.Api.Client.Models.RequestModels.Spaces.ModifyTagRequest { Name = tagName, TagBackgroundColor = "#FF0000", TagForegroundColor = "#FFFFFF" });
             _createdTagNamesForCleanup.Add(tagName);
 
-            var taskWithTag = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "TaskWithTag", Tags: new List<string> { tagName }, Description: null, Assignees: null, GroupAssignees: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskWithTag.Id);
-            var taskWithoutTag = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "TaskWithoutTag", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskWithoutTag.Id);
+            var taskWithTag = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: "TaskWithTag", Tags: new List<string> { tagName }, Description: null, Assignees: null, GroupAssignees: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskWithTag.Id);
+            var taskWithoutTag = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: "TaskWithoutTag", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskWithoutTag.Id);
             if(CurrentTestMode == TestMode.Playback) { Assert.Equal(taskWithTagId, taskWithTag.Id); Assert.Equal(taskWithoutTagId, taskWithoutTag.Id); }
 
             // var getTasksRequest = new GetTasksRequest { Tags = new List<string> { tagName } };
@@ -583,7 +583,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                                .Respond("application/json", await MockedFileContentAsync("TaskService/GetFilteredTeamTasksAsync_FilterByListId_ShouldReturnTasksFromSpecifiedList/GetFilteredTeamTasks.json"));
             }
 
-            var taskInList1 = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: "TaskInList1", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskInList1.Id);
+            var taskInList1 = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: "TaskInList1", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskInList1.Id);
 
             ClickUpList otherList = null;
             if (CurrentTestMode != TestMode.Playback) otherList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(Name: "OtherList", Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null));
@@ -595,7 +595,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             // var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
             // var response = await _taskService.GetFilteredTeamTasksAsync(workspaceId: _testWorkspaceId, requestModel: requestModel); Assert.NotNull(response?.Items);
-            var response = await _taskService.GetFilteredTeamTasksAsync(_testWorkspaceId, parameters =>
+            var response = await _taskService.GetFilteredTeamTasksAsync(_testWorkspaceId!, parameters =>
             {
                 parameters.ListIds = new List<string> { _testListId };
             });
@@ -621,7 +621,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             int tasksToCreate = CurrentTestMode == TestMode.Playback ? 2 : 3; // Playback JSON has 2 items
             var createdTaskIds = new List<string>();
-            for (int i = 0; i < tasksToCreate; i++) { var task = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: $"PagTask{i}", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(task.Id); createdTaskIds.Add(task.Id); if(CurrentTestMode != TestMode.Playback) await Task.Delay(100); }
+            for (int i = 0; i < tasksToCreate; i++) { var task = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: $"PagTask{i}", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(task.Id); createdTaskIds.Add(task.Id); if(CurrentTestMode != TestMode.Playback) await Task.Delay(100); }
 
             var retrievedTasks = new List<CuTask>();
             // await foreach (var task in _taskService.GetTasksAsyncEnumerableAsync(_testListId, new GetTasksRequest())) { retrievedTasks.Add(task); } // Pass empty GetTasksRequest
@@ -651,7 +651,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             int tasksToCreate = CurrentTestMode == TestMode.Playback ? 2 : 3;
             var createdTaskIdsInTestList = new List<string>();
-            for (int i = 0; i < tasksToCreate; i++) { var task = await _taskService.CreateTaskAsync(_testListId, new CreateTaskRequest(Name: $"TeamPagTask{i}", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(task.Id); createdTaskIdsInTestList.Add(task.Id); if(CurrentTestMode != TestMode.Playback) await Task.Delay(100); }
+            for (int i = 0; i < tasksToCreate; i++) { var task = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: $"TeamPagTask{i}", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(task.Id); createdTaskIdsInTestList.Add(task.Id); if(CurrentTestMode != TestMode.Playback) await Task.Delay(100); }
 
             var otherListId = CurrentTestMode == TestMode.Playback ? "playback_other_list_for_team_pag" : (await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(Name: "OtherListTeamPag", Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null))).Id;
             var taskInOtherList = await _taskService.CreateTaskAsync(otherListId, new CreateTaskRequest(Name: "TaskInOtherListTeamPag", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskInOtherList.Id);
@@ -661,7 +661,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             // var requestModel = new GetFilteredTeamTasksRequest { ListIds = new List<string> { _testListId } };
             // await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, requestModel))
             var parameters = new Models.Parameters.GetTasksRequestParameters { ListIds = new List<string> { _testListId } };
-            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId, parameters))
+            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(_testWorkspaceId!, parameters))
             {
                 retrievedTasks.Add(task);
             }

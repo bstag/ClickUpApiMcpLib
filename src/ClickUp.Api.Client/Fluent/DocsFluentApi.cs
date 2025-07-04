@@ -131,7 +131,6 @@ public class DocsFluentApi
         int? creatorId = null,
         CancellationToken cancellationToken = default)
     {
-        int? parentTypeValue = parentType.HasValue ? parentType.Value : null;
         var searchRequest = new SearchDocsRequest
         {
             Query = query,
@@ -141,7 +140,9 @@ public class DocsFluentApi
             TaskIds = taskIds?.ToList(),
             IncludeArchived = includeArchived,
             ParentId = parentId,
-            ParentType = parentType,
+#pragma warning disable CS8601 // Types are both int?, compiler warning seems incorrect.
+            ParentType = parentType ?? null,
+#pragma warning restore CS8601
             IncludeDeleted = includeDeleted,
             CreatorId = creatorId
         };

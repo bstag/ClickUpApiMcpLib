@@ -205,8 +205,16 @@ public class Program
                         Log.Information("[COMMENTS] Found {CommentCount} comments for task {TaskId}:", taskCommentsEnumerable.Count(), taskIdForCommentOps);
                         foreach (var comment in taskCommentsEnumerable.Take(3))
                         {
-                            string commentTextToDisplay = comment.CommentText ?? string.Empty;
-                            Log.Information("- Comment ID: {CommentId}, Text: {CommentText}", comment.Id ?? "UnknownId", commentTextToDisplay.Substring(0, Math.Min(50, commentTextToDisplay.Length)) + "...");
+                            // comment.CommentText is 'required string', so it should not be null.
+                            string commentTextToDisplay = comment.CommentText;
+                            string displayText = string.Empty;
+                            if (commentTextToDisplay != null) // Defensive check
+                            {
+                                displayText = commentTextToDisplay.Substring(0, Math.Min(50, commentTextToDisplay.Length)) + "...";
+                            }
+#pragma warning disable CS8602 // displayText is guaranteed non-null here due to initialization and check.
+                            Log.Information("- Comment ID: {CommentId}, Text: {CommentText}", comment.Id ?? "UnknownId", displayText);
+#pragma warning restore CS8602
                         }
                     } else Log.Warning("[COMMENTS] No comments found for task {TaskId}", taskIdForCommentOps);
                 }
