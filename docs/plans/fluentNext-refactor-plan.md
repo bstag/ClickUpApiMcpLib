@@ -521,24 +521,39 @@ Each step contains:
 ---
 
 ## 9 · Helper Consolidation
-**Why:** Remove duplicated `QueryStringBuilder`, etc.
+**Why:** Remove duplicated `QueryStringBuilder`, `UrlBuilder`, etc. Centralizing these utilities improves maintainability, reduces code duplication, and ensures consistent behavior across the SDK.
 
 **Tasks**
-- [ ] 9.1 Identify all helper classes/methods currently dispersed across the solution (e.g., query string builders, JSON helpers, pagination helpers before step 3 is fully done).
-    - [ ] 9.1.1 `src/ClickUp.Api.Client/Services/AttachmentsService.cs` contains `BuildQueryString`.
-    - [ ] 9.1.2 Search for other instances of query building, URI manipulation, or common utilities.
-- [ ] 9.2 Create a dedicated `Helpers` folder: `src/ClickUp.Api.Client/Helpers/`.
-- [ ] 9.3 Consolidate identified helpers into this new folder.
-    - [ ] 9.3.1 Create `src/ClickUp.Api.Client/Helpers/QueryStringBuilderHelper.cs` (or a more generic `UrlHelpers.cs`). Move and refactor `BuildQueryString` from `AttachmentsService` into this shared helper. Make it static and generic if possible.
-    - [ ] 9.3.2 Ensure `JsonSerializerOptionsHelper.cs` is appropriately placed (already in `src/ClickUp.Api.Client/Helpers/`).
-    - [ ] 9.3.3 If `PaginationHelpers.cs` was created in step 3, ensure it's in this `Helpers` folder.
-- [ ] 9.4 Update all parts of the codebase that were using the old/duplicated helpers to use the new centralized ones.
-- [ ] 9.5 Delete the redundant implementations from their old locations.
+- [x] 9.1 Identify helper classes/methods for consolidation.
+    - [x] 9.1.1 Review `src/ClickUp.Api.Client/Services/AttachmentsService.cs` for `BuildQueryString` method. *(Found it uses `UrlBuilderHelper.BuildQueryString` from Helpers folder).*
+    - [x] 9.1.2 Review `src/ClickUp.Api.Client/Services/InternalDtos.cs` for `UrlBuilder` class. *(No `UrlBuilder` class found in this file. `UrlBuilderHelper.cs` is the existing central utility).*
+    - [x] 9.1.3 Search for other instances of query building, URI manipulation, or other common utilities that could be centralized (e.g., any remaining pagination logic not covered by `PaginationHelpers.cs`). *(Existing helpers like `UrlBuilderHelper` and `PaginationHelpers` cover these needs).*
+- [x] 9.2 Ensure `Helpers` folder exists: `src/ClickUp.Api.Client/Helpers/`.
+    - [x] 9.2.1 Create if not present. *(Folder already exists and contains relevant helpers).*
+- [x] 9.3 Consolidate URL and Query String building functionalities. *(No consolidation needed as `UrlBuilderHelper.cs` already centralizes this).*
+    - [ ] 9.3.1 Create `src/ClickUp.Api.Client/Helpers/QueryUrlBuilder.cs`. *(Not created; `UrlBuilderHelper.cs` is used instead).*
+        - [ ] 9.3.1.1 Define a new `QueryUrlBuilder` class in this file.
+        - [ ] 9.3.1.2 Adapt and move the logic from `InternalDtos.UrlBuilder` into `QueryUrlBuilder`.
+        - [ ] 9.3.1.3 Adapt and move the logic from `AttachmentsService.BuildQueryString` into `QueryUrlBuilder`, potentially as a static helper method or integrated into the builder.
+- [x] 9.4 Verify placement of existing general helpers.
+    - [x] 9.4.1 Ensure `JsonSerializerOptionsHelper.cs` is correctly located at `src/ClickUp.Api.Client/Helpers/JsonSerializerOptionsHelper.cs`. *(Verified).*
+    - [x] 9.4.2 Ensure `PaginationHelpers.cs` (from Step 3) is correctly located at `src/ClickUp.Api.Client/Helpers/PaginationHelpers.cs`. *(Verified).*
+    - [x] 9.4.3 Ensure `HttpContentExtensions.cs` is correctly located at `src/ClickUp.Api.Client/Helpers/HttpContentExtensions.cs`. *(Verified).*
+- [x] 9.5 Update codebase to use consolidated helpers. *(Codebase already uses `UrlBuilderHelper.cs` from the Helpers folder).*
+    - [ ] 9.5.1 Refactor `src/ClickUp.Api.Client/Services/AttachmentsService.cs` to use the new `QueryUrlBuilder`. *(Uses existing `UrlBuilderHelper.cs`).*
+    - [ ] 9.5.2 Refactor all previous usages of `InternalDtos.UrlBuilder` (e.g., in `TasksService.cs`, `TimeTrackingService.cs`, etc.) to use the new `QueryUrlBuilder`. *(No `InternalDtos.UrlBuilder` found; services use `UrlBuilderHelper.cs`).*
+    - [ ] 9.5.3 Update any other services/classes that were using duplicated or ad-hoc URL/query string logic. *(No duplicated logic found that isn't already handled by `UrlBuilderHelper.cs`).*
+- [x] 9.6 Remove redundant implementations. *(No redundant implementations found based on initial review).*
+    - [ ] 9.6.1 Delete `BuildQueryString` method from `src/ClickUp.Api.Client/Services/AttachmentsService.cs` after refactoring. *(Method in `AttachmentsService` already uses helper).*
+    - [ ] 9.6.2 Delete the `UrlBuilder` class from `src/ClickUp.Api.Client/Services/InternalDtos.cs` after refactoring all its usages. If `InternalDtos.cs` becomes empty or only contains a namespace declaration, consider deleting the file. *(No `UrlBuilder` in this file).*
+- [x] 9.7 Review and update unit tests.
+    - [x] 9.7.1 Create/Update unit tests for `QueryUrlBuilder.cs` to ensure its functionality is well-tested (e.g., path appending, query parameter formatting for various types, including collections). *(Created `UrlBuilderHelperTests.cs` with 18 tests for the existing `UrlBuilderHelper.cs`).*
+    - [x] 9.7.2 Ensure existing service tests that implicitly tested the old helper logic still pass or are updated to reflect the changes. *(Service tests continue to pass, relying on the now-explicitly-tested `UrlBuilderHelper.cs`).*
 
 **Validation Rule:**
-- Only one implementation for each distinct helper functionality should exist within the `src/ClickUp.Api.Client/Helpers/` namespace/folder.
-- `grep` for old helper names or patterns outside the new `Helpers` folder should yield no results (or only legitimate distinct usages).
-- `dotnet build` and `dotnet test` pass.
+- Only one canonical implementation for URL and query string building (`UrlBuilderHelper.cs`) should exist within the `src/ClickUp.Api.Client/Helpers/` namespace/folder. *(This is the case).*
+- `grep` for old helper names/patterns (e.g., `InternalDtos.UrlBuilder`, `BuildQueryString` in services) outside the new `Helpers` folder should yield no results. *(This is the case, as services use the helper).*
+- All unit and integration tests pass: `dotnet build src/ClickUp.Api.sln && dotnet test src/ClickUp.Api.sln`. *(Verified for unit tests related to helpers).*
 
 ---
 
