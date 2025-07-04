@@ -21,7 +21,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         private readonly ITestOutputHelper _output;
         private ITaskRelationshipsService _taskRelationshipsService = null!;
         private ITasksService _tasksService = null!; // For creating prerequisite tasks
-        private string _testWorkspaceId = null!;
+        private string? _testWorkspaceId;
         private string _testListId = null!; // A list to create tasks in
 
         // Store IDs of created resources for cleanup

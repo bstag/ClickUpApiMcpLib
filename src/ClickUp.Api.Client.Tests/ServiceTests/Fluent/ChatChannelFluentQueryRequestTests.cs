@@ -20,7 +20,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
                 .WithDescriptionFormat("html");
             // Use reflection to check _request.DescriptionFormat
             var field = typeof(ChatChannelFluentQueryRequest).GetField("_request", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var req = (GetChatChannelsRequest)field.GetValue(request);
+            Assert.NotNull(field);
+            var req = (GetChatChannelsRequest?)field.GetValue(request);
+            Assert.NotNull(req);
             Assert.Equal("html", req.DescriptionFormat);
         }
 
@@ -30,7 +32,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             var request = new ChatChannelFluentQueryRequest(WorkspaceId, _mockChatService.Object)
                 .WithCursor("cursor123");
             var field = typeof(ChatChannelFluentQueryRequest).GetField("_request", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var req = (GetChatChannelsRequest)field.GetValue(request);
+            Assert.NotNull(field);
+            var req = (GetChatChannelsRequest?)field.GetValue(request);
+            Assert.NotNull(req);
             Assert.Equal("cursor123", req.Cursor);
         }
 
@@ -40,7 +44,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             var request = new ChatChannelFluentQueryRequest(WorkspaceId, _mockChatService.Object)
                 .WithLimit(42);
             var field = typeof(ChatChannelFluentQueryRequest).GetField("_request", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var req = (GetChatChannelsRequest)field.GetValue(request);
+            Assert.NotNull(field);
+            var req = (GetChatChannelsRequest?)field.GetValue(request);
+            Assert.NotNull(req);
             Assert.Equal(42, req.Limit);
         }
 
@@ -50,7 +56,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             var request = new ChatChannelFluentQueryRequest(WorkspaceId, _mockChatService.Object)
                 .WithIsFollower(true);
             var field = typeof(ChatChannelFluentQueryRequest).GetField("_request", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var req = (GetChatChannelsRequest)field.GetValue(request);
+            Assert.NotNull(field);
+            var req = (GetChatChannelsRequest?)field.GetValue(request);
+            Assert.NotNull(req);
             Assert.True(req.IsFollower);
         }
 
@@ -60,7 +68,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             var request = new ChatChannelFluentQueryRequest(WorkspaceId, _mockChatService.Object)
                 .WithIncludeHidden(true);
             var field = typeof(ChatChannelFluentQueryRequest).GetField("_request", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var req = (GetChatChannelsRequest)field.GetValue(request);
+            Assert.NotNull(field);
+            var req = (GetChatChannelsRequest?)field.GetValue(request);
+            Assert.NotNull(req);
             Assert.True(req.IncludeHidden);
         }
 
@@ -70,7 +80,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             var request = new ChatChannelFluentQueryRequest(WorkspaceId, _mockChatService.Object)
                 .WithWithCommentSince(1234567890);
             var field = typeof(ChatChannelFluentQueryRequest).GetField("_request", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var req = (GetChatChannelsRequest)field.GetValue(request);
+            Assert.NotNull(field);
+            var req = (GetChatChannelsRequest?)field.GetValue(request);
+            Assert.NotNull(req);
             Assert.Equal(1234567890, req.WithCommentSince);
         }
 

@@ -17,7 +17,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
     {
         private readonly ITestOutputHelper _output;
         private readonly ITimeTrackingService _timeTrackingService;
-        private string _testWorkspaceId;
+        private string? _testWorkspaceId;
 
         public TimeTrackingServiceIntegrationTests(ITestOutputHelper output) : base()
         {
@@ -42,12 +42,13 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             if (CurrentTestMode == TestMode.Playback)
             {
+                Assert.NotNull(MockHttpHandler); // Ensure handler is not null in playback mode
                 // Minimal mock to prevent null refs if anything in ApiConnection is inadvertently called
                  MockHttpHandler.When("*").Respond(System.Net.HttpStatusCode.OK, "application/json", "{}");
             }
 
             Func<Task<IPagedResult<TimeEntry>>> act = async () => await _timeTrackingService.GetTimeEntriesAsync(
-                _testWorkspaceId,
+                _testWorkspaceId!,
                 parameters =>
                 {
                     parameters.SpaceId = "test_space_id";
@@ -69,6 +70,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             if (CurrentTestMode == TestMode.Playback)
             {
+                Assert.NotNull(MockHttpHandler); // Ensure handler is not null in playback mode
                  MockHttpHandler.When("*").Respond(System.Net.HttpStatusCode.OK, "application/json", "{}");
             }
 
@@ -80,7 +82,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             };
 
             Func<IAsyncEnumerable<TimeEntry>> act = () => _timeTrackingService.GetTimeEntriesAsyncEnumerableAsync(
-                _testWorkspaceId,
+                _testWorkspaceId!,
                 parameters);
 
             // No iteration, no Assert.True(true) - just checking it compiles.
