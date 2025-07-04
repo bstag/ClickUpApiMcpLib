@@ -178,5 +178,13 @@ namespace ClickUp.Api.Client.Tests.Helpers
             var result = UrlBuilderHelper.BuildQueryStringFromArray("numbers", values);
             Assert.Equal("numbers[]=1&numbers[]=2&numbers[]=3", result);
         }
+
+        [Fact]
+        public void BuildQueryStringFromArray_WithNullValueInList_IncludesEmptyValue()
+        {
+            var values = new List<string?> { "value1", null, "value2" };
+            var result = UrlBuilderHelper.BuildQueryStringFromArray("key", values);
+            Assert.Equal("key[]=value1&key[]=&key[]=value2", result);
+        }
     }
 }

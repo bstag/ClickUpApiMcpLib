@@ -252,7 +252,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output.LogInformation($"Attempting to create task '{taskName}' in list '{_testListId}'.");
 
             // Act
-            CuTask createdTask = null;
+            CuTask? createdTask = null;
             try { createdTask = await _taskService.CreateTaskAsync(_testListId, createTaskRequest); }
             catch (Exception ex) { _output.LogError($"Exception during CreateTaskAsync: {ex.Message}", ex); Assert.Fail($"CreateTaskAsync threw an exception: {ex.Message}"); }
 
@@ -414,9 +414,9 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             });
 
             Assert.NotNull(response); Assert.NotNull(response.Items);
-            Assert.Contains(response.Items, t => t.Id == task1.Id && t.Status.StatusValue == defaultStatusValueToTest);
+            Assert.Contains(response.Items, t => t.Id == task1.Id && t.Status!.StatusValue == defaultStatusValueToTest);
             if (statusForTask2 != defaultStatusValueToTest) Assert.DoesNotContain(response.Items, t => t.Id == task2.Id);
-            else Assert.Contains(response.Items, t => t.Id == task2.Id && t.Status.StatusValue == defaultStatusValueToTest);
+            else Assert.Contains(response.Items, t => t.Id == task2.Id && t.Status!.StatusValue == defaultStatusValueToTest);
         }
 
         [Fact]
@@ -585,7 +585,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
 
             var taskInList1 = await _taskService.CreateTaskAsync(_testListId!, new CreateTaskRequest(Name: "TaskInList1", Description: null, Assignees: null, GroupAssignees: null, Tags: null, Status: null, Priority: null, DueDate: null, DueDateTime: null, TimeEstimate: null, StartDate: null, StartDateTime: null, NotifyAll: null, Parent: null, LinksTo: null, CheckRequiredCustomFields: null, CustomFields: null, CustomItemId: null, ListId: null)); RegisterCreatedTask(taskInList1.Id);
 
-            ClickUpList otherList = null;
+            ClickUpList? otherList = null;
             if (CurrentTestMode != TestMode.Playback) otherList = await _listService.CreateListInFolderAsync(_testFolderId, new CreateListRequest(Name: "OtherList", Content: null, MarkdownContent: null, DueDate: null, DueDateTime: null, Priority: null, Assignee: null, Status: null));
             else otherList = new ClickUpList { Id = otherListId, Name = "OtherListPlayback" }; // Simulated for playback
 

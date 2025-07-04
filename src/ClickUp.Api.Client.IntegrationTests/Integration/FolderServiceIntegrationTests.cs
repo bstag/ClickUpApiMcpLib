@@ -122,7 +122,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 }
                 finally
                 {
-                    _testSpaceId = null; // Mark as deleted or no longer valid
+                    _testSpaceId = string.Empty; // Mark as deleted or no longer valid
                 }
             }
         }
@@ -404,6 +404,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 Assert.Equal("Mock Updated Folder Name", updatedFolder.Name); // Name from JSON
                 Assert.True(updatedFolder.Archived); // Archived status from JSON
                 // Assert.NotEmpty(updatedFolder.Lists); // Folder model does not directly contain Lists
+                Assert.NotNull(updatedFolder.Statuses);
                 Assert.NotEmpty(updatedFolder.Statuses);
             }
             _output.LogInformation($"Validated updated folder: '{updatedFolder.Name}' (ID: {updatedFolder.Id}), Archived: {updatedFolder.Archived}.");
