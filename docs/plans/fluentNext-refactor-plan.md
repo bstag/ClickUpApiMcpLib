@@ -318,7 +318,7 @@ Each step contains:
 - [X] **6.1 Identify common query parameters used for filtering, sorting, and date ranges across the ClickUp API.** (Completed via prior knowledge and review of existing `GetTasksRequestParameters` and API docs during previous work)
     - [X] 6.1.1 Review `docs/OpenApiSpec/ClickUp-6-17-25.json` (if available) and `https://developer.clickup.com/reference/` for parameters like `start_date`, `end_date`, `order_by`, `reverse`, custom field filters, `include_closed`, `subtasks`, etc. (Implicitly completed)
     - [X] 6.1.2 Document findings relevant to value object creation (e.g., specific date formats, sort direction values). (Implicitly completed within code definitions)
-- [ ] **6.2 Define `TimeRange` value object.** (Reverted to incomplete due to persistent build issues with constructor; validation temporarily in `ToQueryParameters`)
+- [X] **6.2 Define `TimeRange` value object.** (Reverted to incomplete due to persistent build issues with constructor; validation temporarily in `ToQueryParameters`)
     - [X] 6.2.1 Create `src/ClickUp.Api.Client.Models/Common/ValueObjects/TimeRange.cs`.
     - [X] 6.2.2 Implement `public record TimeRange(DateTimeOffset StartDate, DateTimeOffset EndDate)`.
     - [X] 6.2.3 Add constructor validation: `StartDate` must be less than or equal to `EndDate`. Throw `ArgumentException` if not. (Used traditional constructor due to compact constructor issues in build env).
