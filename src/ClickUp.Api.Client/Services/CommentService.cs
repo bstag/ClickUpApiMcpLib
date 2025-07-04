@@ -13,6 +13,7 @@ using ClickUp.Api.Client.Models.RequestModels.Comments;
 using ClickUp.Api.Client.Models.ResponseModels.Comments; // For CreateCommentResponse and potential GetCommentsResponse
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -36,24 +37,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<CommentService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async IAsyncEnumerable<Comment> GetListCommentsStreamAsync(
@@ -219,7 +202,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
             if (requestModel.Start.HasValue) queryParams["start"] = requestModel.Start.Value.ToString();
             if (!string.IsNullOrEmpty(requestModel.StartId)) queryParams["start_id"] = requestModel.StartId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             // The interface ICommentsService.GetTaskCommentsAsync returns Task<IEnumerable<Comment>>
             // but the actual API call might return a wrapper like GetTaskCommentsResponse which contains a list of comments.
@@ -241,7 +224,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.PostAsync<CreateTaskCommentRequest, CreateCommentResponse>(endpoint, createCommentRequest, cancellationToken); // Changed generic type
             if (response == null)
@@ -263,7 +246,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (start.HasValue) queryParams["start"] = start.Value.ToString();
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken);
             return response?.Comments ?? Enumerable.Empty<Comment>();
@@ -297,7 +280,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (start.HasValue) queryParams["start"] = start.Value.ToString();
             if (!string.IsNullOrEmpty(startId)) queryParams["start_id"] = startId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListCommentsResponse>(endpoint, cancellationToken);
             return response?.Comments ?? Enumerable.Empty<Comment>();

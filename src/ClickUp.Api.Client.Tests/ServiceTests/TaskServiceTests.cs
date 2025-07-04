@@ -19,6 +19,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
+using ClickUp.Api.Client.Models.Parameters; // Ensures CustomFieldFilter is available
+using ClickUp.Api.Client.Models.Common.ValueObjects; // For TimeRange, SortOption
 
 namespace ClickUp.Api.Client.Tests.ServiceTests
 {
@@ -197,10 +199,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws-123";
-            var dateDoneGreaterThan = 1678886400000;
-            var dateDoneLessThan = 1678887400000;
-            var parentTaskId = "parent-task-abc";
-            var includeMarkdownDescription = true;
+            var startDate = DateTimeOffset.UtcNow.AddDays(-1);
+            var endDate = DateTimeOffset.UtcNow;
+            var customFieldId = "cust_field_guid";
+            var customFieldValue = "value123";
 
             var expectedResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse(
                 new List<CuTask> { CreateSampleTask() },
@@ -211,22 +213,42 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
-            var expectedEndpoint = $"team/{workspaceId}/task?page=0&date_done_gt={dateDoneGreaterThan}&date_done_lt={dateDoneLessThan}&parent={parentTaskId}&include_markdown_description=true";
+            // Construct expected query string parts from TimeRange and CustomFieldParameter
+            var expectedStartDateUnixMs = new DateTimeOffset(startDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
+            var expectedEndDateUnixMs = new DateTimeOffset(endDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
+            // CustomFields are serialized to JSON, then the whole JSON string is URL encoded.
+            var customFieldObject = new List<CustomFieldFilter> { new CustomFieldFilter { FieldId = customFieldId, Operator = "=", Value = customFieldValue } };
+            var expectedCustomFieldJsonString = System.Text.Json.JsonSerializer.Serialize(customFieldObject);
+            var encodedCustomFieldJson = Uri.EscapeDataString(expectedCustomFieldJsonString);
+
+            // Parameters are: due_date_gt, due_date_lt, page, custom_fields. Order might vary from ToQueryParametersList but QueryHelpers will stabilize it.
+            // Let's construct it based on typical QueryHelpers output order or verify parts.
+            // For simplicity, we'll check if all key-value pairs are present.
+            // However, the mock setup requires an exact string match.
+            // The BuildQueryString in service now URI encodes keys and appends values as-is (values are prepped by ToQueryParametersList).
+            // CustomFields value is a raw JSON string.
+            // The order from ToQueryParametersList for these specific params: DueDateRange, Page, CustomFields.
+            var expectedEndpoint = $"team/{workspaceId}/task" +
+                                   $"?due_date_gt={expectedStartDateUnixMs}" +
+                                   $"&due_date_lt={expectedEndDateUnixMs}" +
+                                   $"&page=0" +
+                                   $"&custom_fields={expectedCustomFieldJsonString}"; // Use raw JSON string, not encoded one
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
                 workspaceId,
-                requestModel: new GetFilteredTeamTasksRequest
+                configureParameters: parameters =>
                 {
-                    DateDoneGreaterThan = dateDoneGreaterThan,
-                    DateDoneLessThan = dateDoneLessThan,
-                    ParentTaskId = parentTaskId,
-                    IncludeMarkdownDescription = includeMarkdownDescription
+                    parameters.DueDateRange = new TimeRange(startDate, endDate);
+                    parameters.CustomFields = new List<CustomFieldFilter> { new CustomFieldFilter { FieldId = customFieldId, Operator = "=", Value = customFieldValue } };
+                    // parameters.Page = 0; // Page is defaulted to 0 if not set in GetTasksRequestParameters
                 },
                 cancellationToken: CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(expectedEndpoint, CancellationToken.None), Times.Once);
+            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(
+                It.Is<string>(s => s == expectedEndpoint), // Exact match now possible due to controlled param order
+                CancellationToken.None), Times.Once);
         }
 
         [Fact]
@@ -235,12 +257,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws-456";
             var orderBy = "due_date";
-            long? dateDoneGreaterThan = null; // New param not used
-            long dateDoneLessThan = 1678889900000; // New param used
-            string? parentTaskId = null; // New param not used
-            var includeMarkdownDescription = false; // New param used
+            // long dateDoneLessThan = 1678889900000; // This parameter is not used by GetTasksRequestParameters
+            var includeMarkdownDescription = false;
             var statuses = new List<string> { "open", "in progress" };
-            var assignees = new List<string> { "user1", "user2" };
+            var assignees = new List<string> { "123", "456" }; // Use numeric strings for AssigneeIds
 
             var expectedResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse(
                 new List<CuTask> { CreateSampleTask() },
@@ -251,23 +271,48 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
-            var expectedEndpoint = $"team/{workspaceId}/task?page=0&order_by={orderBy}&date_done_lt={dateDoneLessThan}&include_markdown_description=false&statuses[]={Uri.EscapeDataString(statuses[0])}&statuses[]={Uri.EscapeDataString(statuses[1])}&assignees[]={assignees[0]}&assignees[]={assignees[1]}";
+            // Parameters will be: statuses (repeated), order_by, reverse, page, include_markdown_description, assignees (repeated)
+            // Example: team/ws-456/task?statuses=open&statuses=in%20progress&order_by=due_date&reverse=false&page=0&include_markdown_description=false&assignees=1&assignees=2
+            var expectedQueryParts = new List<string>
+            {
+                $"statuses={Uri.EscapeDataString(statuses[0])}",
+                $"statuses={Uri.EscapeDataString(statuses[1])}",
+                $"order_by={orderBy}",
+                "reverse=false", // SortDirection.Ascending results in reverse=false
+                "page=0",
+                $"include_markdown_description={includeMarkdownDescription.ToString().ToLowerInvariant()}",
+                $"assignees={assignees[0]}", // Assuming assignees are string representations of IDs now
+                $"assignees={assignees[1]}"
+            };
+            // The order of query parameters can be unstable from dictionary to query string.
+            // It's better to check that the URL contains all parts rather than an exact string match if order is not guaranteed.
+            // Based on the order in ToQueryParametersList: AssigneeIds, Statuses, SortBy, Page, IncludeMarkdownDescription
+            var expectedEndpoint = $"team/{workspaceId}/task?" +
+                                   $"assignees={assignees[0]}" + // assignees is List<string> in test, parsed to int for AssigneeIds
+                                   $"&assignees={assignees[1]}" +
+                                   $"&statuses={Uri.EscapeDataString(statuses[0])}" +
+                                   $"&statuses={Uri.EscapeDataString(statuses[1])}" +
+                                   $"&order_by={orderBy}" +
+                                   $"&reverse=false" + // From SortOption with Ascending direction
+                                   $"&page=0" + // Default page
+                                   $"&include_markdown_description={includeMarkdownDescription.ToString().ToLowerInvariant()}";
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
                 workspaceId,
-                requestModel: new GetFilteredTeamTasksRequest
-                {
-                    OrderBy = orderBy,
-                    DateDoneLessThan = dateDoneLessThan,
-                    IncludeMarkdownDescription = includeMarkdownDescription,
-                    Statuses = statuses,
-                    Assignees = assignees
+                parameters => {
+                    parameters.SortBy = new SortOption(orderBy, SortDirection.Ascending);
+                    parameters.IncludeMarkdownDescription = includeMarkdownDescription;
+                    parameters.Statuses = statuses;
+                    parameters.AssigneeIds = assignees.Select(int.Parse).ToList(); // Assignees are int IDs
+                    // parameters.Page = 0; // Page is set by default or by the service method to 0 if not specified
                 },
                 cancellationToken: CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(expectedEndpoint, CancellationToken.None), Times.Once);
+            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(
+                expectedEndpoint, // Direct string match assuming deterministic order
+                CancellationToken.None), Times.Once);
         }
 
         [Fact]
@@ -277,7 +322,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
                 _taskService.GetFilteredTeamTasksAsync(
                     workspaceId: null!,
-                    requestModel: new GetFilteredTeamTasksRequest(), // Added requestModel parameter
+                    configureParameters: null,
                     cancellationToken: CancellationToken.None)
             );
         }
@@ -289,7 +334,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
                 _taskService.GetFilteredTeamTasksAsync(
                     workspaceId: "",
-                    requestModel: new GetFilteredTeamTasksRequest(), // Added requestModel parameter
+                    configureParameters: null,
                     cancellationToken: CancellationToken.None)
             );
         }
@@ -301,13 +346,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
                 _taskService.GetFilteredTeamTasksAsync(
                     workspaceId: "   ",
-                    requestModel: new GetFilteredTeamTasksRequest(), // Added requestModel parameter
+                    configureParameters: null,
                     cancellationToken: CancellationToken.None)
             );
         }
 
         [Fact]
-        public async Task GetFilteredTeamTasksAsync_ApiReturnsNull_ThrowsInvalidOperationException()
+        public async Task GetFilteredTeamTasksAsync_ApiReturnsNull_ReturnsEmptyPagedResult() // Method name updated to reflect behavior
         {
             // Arrange
             var workspaceId = "ws-789";
@@ -318,7 +363,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Act
             var result = await _taskService.GetFilteredTeamTasksAsync(
                 workspaceId: workspaceId,
-                requestModel: new GetFilteredTeamTasksRequest(),
+                configureParameters: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert
@@ -359,14 +404,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_empty";
-            var requestModel = new GetFilteredTeamTasksRequest(); // Added requestModel initialization
+            var parameters = new GetTasksRequestParameters();
             _mockApiConnection.Setup(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GetTasksResponse(new List<CuTask>(), true)); // Empty list, is last page
 
             var count = 0;
 
             // Act
-            await foreach (var _ in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, requestModel, cancellationToken: CancellationToken.None)) // Added requestModel parameter
+            await foreach (var _ in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, parameters, cancellationToken: CancellationToken.None))
             {
                 count++;
             }
@@ -383,7 +428,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var workspaceId = "ws_single_page";
-            var requestModel = new GetFilteredTeamTasksRequest(); // Added requestModel initialization
+            var parameters = new GetTasksRequestParameters();
             var tasks = CreateSimpleTasks(2, 0);
 
             _mockApiConnection.Setup(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -392,7 +437,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var allTasks = new List<CuTask>();
 
             // Act
-            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, requestModel, cancellationToken: CancellationToken.None)) // Added requestModel parameter
+            await foreach (var task in _taskService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, parameters, cancellationToken: CancellationToken.None))
             {
                 allTasks.Add(task);
             }
@@ -412,7 +457,6 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         {
             // Arrange
             var listId = "list_op_cancel";
-            var requestModel = new GetTasksRequest();
             var cancellationTokenSource = new CancellationTokenSource();
             var dummyResponse = new GetTasksResponse(new List<CuTask>(), true);
 
@@ -431,7 +475,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                _taskService.GetTasksAsync(listId, requestModel, cancellationToken: cancellationTokenSource.Token));
+                _taskService.GetTasksAsync(listId, configureParameters: null, cancellationToken: cancellationTokenSource.Token));
         }
 
         // --- Tests for TaskCanceledException and CancellationToken pass-through for GetTaskAsync ---
@@ -558,15 +602,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            var requestModel = new GetFilteredTeamTasksRequest(); // Added requestModel initialization
-
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("Simulated API timeout"));
 
             // Act & Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() =>
-                    _taskService.GetFilteredTeamTasksAsync(workspaceId, requestModel, cancellationToken: cts.Token) // Added requestModel parameter
+                    _taskService.GetFilteredTeamTasksAsync(workspaceId, configureParameters: null, cancellationToken: cts.Token)
             );
         }
 
@@ -579,14 +621,12 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var expectedToken = cts.Token;
             var expectedResponse = new GetTasksResponse(new List<CuTask> { CreateSampleTask() }, false);
 
-            var requestModel = new GetFilteredTeamTasksRequest(); // Added requestModel initialization
-
             _mockApiConnection
                 .Setup(x => x.GetAsync<GetTasksResponse>(It.IsAny<string>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            await _taskService.GetFilteredTeamTasksAsync(workspaceId, requestModel, cancellationToken: expectedToken);
+            await _taskService.GetFilteredTeamTasksAsync(workspaceId, configureParameters: null, cancellationToken: expectedToken);
 
             // Assert
             _mockApiConnection.Verify(x => x.GetAsync<GetTasksResponse>(

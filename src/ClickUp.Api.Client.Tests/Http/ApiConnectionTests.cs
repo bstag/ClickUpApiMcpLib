@@ -94,7 +94,7 @@ namespace ClickUp.Api.Client.Tests.Http
             }
             else
             {
-                Assert.True(false, $"Exception was not of type ClickUpApiException: {exception.GetType()}");
+                Assert.Fail($"Exception was not of type ClickUpApiException: {exception.GetType()}");
             }
         }
 
@@ -315,7 +315,7 @@ namespace ClickUp.Api.Client.Tests.Http
             }
             else
             {
-                Assert.True(false, $"Exception was not of type ClickUpApiException: {actualException.GetType()}");
+                Assert.Fail($"Exception was not of type ClickUpApiException: {actualException.GetType()}");
             }
         }
 

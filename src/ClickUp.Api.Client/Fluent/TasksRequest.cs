@@ -1,14 +1,20 @@
-using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.RequestModels.Tasks;
-using ClickUp.Api.Client.Models.ResponseModels.Tasks;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Models.Common.ValueObjects;
+using ClickUp.Api.Client.Models.Entities.Tasks;
+using ClickUp.Api.Client.Models.Parameters;
+using ClickUp.Api.Client.Models.Common.Pagination;
+
 
 namespace ClickUp.Api.Client.Fluent;
 
 public class TasksRequest
 {
-    private readonly GetTasksRequest _request = new();
+    private readonly GetTasksRequestParameters _parameters = new();
     private readonly string _listId;
     private readonly ITasksService _tasksService;
 
@@ -16,145 +22,68 @@ public class TasksRequest
     {
         _listId = listId;
         _tasksService = tasksService;
+        _parameters.ListIds = new List<string> { listId }; // Pre-set ListId for this request type, now as string
     }
 
-    public TasksRequest WithArchived(bool archived)
+    public TasksRequest WithArchived(bool archived) { _parameters.Archived = archived; return this; }
+    public TasksRequest WithIncludeMarkdownDescription(bool include) { _parameters.IncludeMarkdownDescription = include; return this; }
+    public TasksRequest WithPage(int page) { _parameters.Page = page; return this; }
+    public TasksRequest OrderBy(string fieldName, SortDirection direction = SortDirection.Ascending) { _parameters.SortBy = new SortOption(fieldName, direction); return this; }
+    public TasksRequest WithSubtasks(bool subtasks) { _parameters.Subtasks = subtasks; return this; }
+    public TasksRequest WithStatuses(IEnumerable<string> statuses) { _parameters.Statuses = statuses.ToList(); return this; }
+    public TasksRequest WithIncludeClosed(bool includeClosed) { _parameters.IncludeClosed = includeClosed; return this; }
+    public TasksRequest WithAssignees(IEnumerable<int> assigneeIds) { _parameters.AssigneeIds = assigneeIds.ToList(); return this; }
+    public TasksRequest WithTags(IEnumerable<string> tags) { _parameters.Tags = tags.ToList(); return this; }
+    public TasksRequest WithDueDateBetween(DateTimeOffset startDate, DateTimeOffset endDate) { _parameters.DueDateRange = new TimeRange(startDate, endDate); return this; }
+    public TasksRequest WithDateCreatedBetween(DateTimeOffset startDate, DateTimeOffset endDate) { _parameters.DateCreatedRange = new TimeRange(startDate, endDate); return this; }
+    public TasksRequest WithDateUpdatedBetween(DateTimeOffset startDate, DateTimeOffset endDate) { _parameters.DateUpdatedRange = new TimeRange(startDate, endDate); return this; }
+
+    public TasksRequest WithCustomField(string fieldId, string @operator, object? value)
     {
-        _request.Archived = archived;
+        var currentCustomFields = _parameters.CustomFields?.ToList() ?? new List<CustomFieldFilter>();
+        currentCustomFields.Add(new CustomFieldFilter { FieldId = fieldId, Operator = @operator, Value = value });
+        _parameters.CustomFields = currentCustomFields;
         return this;
     }
 
-    public TasksRequest WithIncludeMarkdownDescription(bool includeMarkdownDescription)
+    public TasksRequest WithCustomItems(IEnumerable<int> customItems) { _parameters.CustomItems = customItems.ToList(); return this; }
+
+    // Methods specific to GetTasks (by listId) that might not be in GetFilteredTeamTasks
+    public TasksRequest WithSpaceIds(IEnumerable<long> spaceIds) { _parameters.SpaceIds = spaceIds.ToList(); return this; }
+    public TasksRequest WithProjectIds(IEnumerable<long> projectIds) { _parameters.ProjectIds = projectIds.ToList(); return this; }
+
+
+    public async Task<IPagedResult<CuTask>> GetAsync(CancellationToken cancellationToken = default)
     {
-        _request.IncludeMarkdownDescription = includeMarkdownDescription;
-        return this;
+        return await _tasksService.GetTasksAsync(_listId, CopyParametersFrom(_parameters), cancellationToken);
     }
 
-    public TasksRequest WithPage(int page)
+    public IAsyncEnumerable<CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
     {
-        _request.Page = page;
-        return this;
+        return _tasksService.GetTasksAsyncEnumerableAsync(_listId, _parameters, cancellationToken);
     }
 
-    public TasksRequest WithOrderBy(string orderBy)
+    private static Action<GetTasksRequestParameters> CopyParametersFrom(GetTasksRequestParameters source)
     {
-        _request.OrderBy = orderBy;
-        return this;
-    }
-
-    public TasksRequest WithReverse(bool reverse)
-    {
-        _request.Reverse = reverse;
-        return this;
-    }
-
-    public TasksRequest WithSubtasks(bool subtasks)
-    {
-        _request.Subtasks = subtasks;
-        return this;
-    }
-
-    public TasksRequest WithStatuses(IEnumerable<string> statuses)
-    {
-        _request.Statuses = statuses;
-        return this;
-    }
-
-    public TasksRequest WithIncludeClosed(bool includeClosed)
-    {
-        _request.IncludeClosed = includeClosed;
-        return this;
-    }
-
-    public TasksRequest WithAssignees(IEnumerable<string> assignees)
-    {
-        _request.Assignees = assignees;
-        return this;
-    }
-
-    public TasksRequest WithWatchers(IEnumerable<string> watchers)
-    {
-        _request.Watchers = watchers;
-        return this;
-    }
-
-    public TasksRequest WithTags(IEnumerable<string> tags)
-    {
-        _request.Tags = tags;
-        return this;
-    }
-
-    public TasksRequest WithDueDateGreaterThan(long dueDateGreaterThan)
-    {
-        _request.DueDateGreaterThan = dueDateGreaterThan;
-        return this;
-    }
-
-    public TasksRequest WithDueDateLessThan(long dueDateLessThan)
-    {
-        _request.DueDateLessThan = dueDateLessThan;
-        return this;
-    }
-
-    public TasksRequest WithDateCreatedGreaterThan(long dateCreatedGreaterThan)
-    {
-        _request.DateCreatedGreaterThan = dateCreatedGreaterThan;
-        return this;
-    }
-
-    public TasksRequest WithDateCreatedLessThan(long dateCreatedLessThan)
-    {
-        _request.DateCreatedLessThan = dateCreatedLessThan;
-        return this;
-    }
-
-    public TasksRequest WithDateUpdatedGreaterThan(long dateUpdatedGreaterThan)
-    {
-        _request.DateUpdatedGreaterThan = dateUpdatedGreaterThan;
-        return this;
-    }
-
-    public TasksRequest WithDateUpdatedLessThan(long dateUpdatedLessThan)
-    {
-        _request.DateUpdatedLessThan = dateUpdatedLessThan;
-        return this;
-    }
-
-    public TasksRequest WithDateDoneGreaterThan(long dateDoneGreaterThan)
-    {
-        _request.DateDoneGreaterThan = dateDoneGreaterThan;
-        return this;
-    }
-
-    public TasksRequest WithDateDoneLessThan(long dateDoneLessThan)
-    {
-        _request.DateDoneLessThan = dateDoneLessThan;
-        return this;
-    }
-
-    public TasksRequest WithCustomFields(string customFields)
-    {
-        _request.CustomFields = customFields;
-        return this;
-    }
-
-    public TasksRequest WithCustomItems(IEnumerable<long> customItems)
-    {
-        _request.CustomItems = customItems;
-        return this;
-    }
-
-    public async Task<Models.Common.Pagination.IPagedResult<Models.Entities.Tasks.CuTask>> GetAsync(CancellationToken cancellationToken = default)
-    {
-        // Page is set on _request by WithPage()
-        return await _tasksService.GetTasksAsync(_listId, _request, _request.Page, cancellationToken);
-    }
-
-    public IAsyncEnumerable<Models.Entities.Tasks.CuTask> GetAsyncEnumerableAsync(CancellationToken cancellationToken = default)
-    {
-        // The _request DTO is already populated by the With... methods.
-        // The Page property in _request will be ignored by the service layer's GetTasksAsyncEnumerableAsync,
-        // as it handles its own pagination.
-        return _tasksService.GetTasksAsyncEnumerableAsync(_listId, _request, cancellationToken);
+        return target =>
+        {
+            target.Archived = source.Archived;
+            target.IncludeMarkdownDescription = source.IncludeMarkdownDescription;
+            target.Page = source.Page;
+            target.SortBy = source.SortBy;
+            target.Subtasks = source.Subtasks;
+            target.Statuses = source.Statuses;
+            target.IncludeClosed = source.IncludeClosed;
+            target.AssigneeIds = source.AssigneeIds;
+            target.Tags = source.Tags;
+            target.DueDateRange = source.DueDateRange;
+            target.DateCreatedRange = source.DateCreatedRange;
+            target.DateUpdatedRange = source.DateUpdatedRange;
+            target.CustomFields = source.CustomFields;
+            target.CustomItems = source.CustomItems;
+            target.SpaceIds = source.SpaceIds;
+            target.ProjectIds = source.ProjectIds;
+            target.ListIds = source.ListIds;
+        };
     }
 }

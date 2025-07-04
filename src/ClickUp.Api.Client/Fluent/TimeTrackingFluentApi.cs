@@ -1,5 +1,6 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.TimeTracking;
+using ClickUp.Api.Client.Models.Parameters; // Added for GetTimeEntriesRequestParameters
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
 using ClickUp.Api.Client.Models.ResponseModels.TimeTracking;
 using System.Collections.Generic;

@@ -13,6 +13,7 @@ using ClickUp.Api.Client.Models.ResponseModels.CustomFields; // Assuming GetCust
 using System.Linq; // For Enumerable.Empty
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -36,24 +37,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<CustomFieldsService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<IEnumerable<CustomFieldDefinition>> GetAccessibleCustomFieldsAsync(
@@ -114,7 +97,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             // API returns 200 with an empty object.
             await _apiConnection.PostAsync(endpoint, setFieldValueRequest, cancellationToken);
@@ -133,7 +116,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             // API returns 200 with an empty object.
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);

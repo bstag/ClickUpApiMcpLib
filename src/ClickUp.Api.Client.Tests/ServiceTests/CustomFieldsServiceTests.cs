@@ -40,10 +40,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             Id = id,
             Name = $"Sample Field {id}",
             Type = "text",
-            TypeConfig = null, // TypeConfig
+            // TypeConfig will use its default initializer: new()
             DateCreated = DateTimeOffset.UtcNow,
-            HideFromGuests = false, // HideFromGuests
-            Required = false // Required
+            HideFromGuests = false,
+            Required = false
         };
 
         [Fact]

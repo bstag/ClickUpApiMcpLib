@@ -12,6 +12,7 @@ using ClickUp.Api.Client.Models.RequestModels.UserGroups;
 using ClickUp.Api.Client.Models.ResponseModels.UserGroups; // For GetUserGroupsResponse
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -35,24 +36,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<UserGroupsService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<IEnumerable<UserGroup>> GetUserGroupsAsync(
@@ -67,7 +50,7 @@ namespace ClickUp.Api.Client.Services
             {
                 queryParams["group_ids"] = string.Join(",", groupIds);
             }
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetUserGroupsResponse>(endpoint, cancellationToken);
             return response?.Groups ?? Enumerable.Empty<UserGroup>();

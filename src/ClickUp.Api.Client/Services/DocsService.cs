@@ -41,24 +41,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<DocsService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<IPagedResult<Doc>> SearchDocsAsync(
@@ -90,7 +72,7 @@ namespace ClickUp.Api.Client.Services
             // The SearchDocsRequest.NextCursor should represent the cursor for the *next* page to fetch.
             // If SearchDocsRequest.NextCursor is null/empty, it implies fetching the first page.
 
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<SearchDocsResponse>(endpoint, cancellationToken);
 
@@ -193,7 +175,7 @@ namespace ClickUp.Api.Client.Services
                     if (!string.IsNullOrEmpty(pageRequest.NextCursor)) queryParams["cursor"] = pageRequest.NextCursor;
 
 
-                    endpoint += BuildQueryString(queryParams);
+                    endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
                     // Ensure SearchDocsResponse has a public property 'Docs' and 'NextCursor'
                     // The helper already validates for 'Data' or 'Items' and 'NextCursor'.
@@ -221,7 +203,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}/pageListing";
             var queryParams = new Dictionary<string, string?>();
             if (maxPageDepth.HasValue) queryParams["max_page_depth"] = maxPageDepth.Value.ToString();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.GetAsync<ClickUpV3DataListResponse<DocPageListingItem>>(endpoint, cancellationToken);
             return responseWrapper?.Data ?? Enumerable.Empty<DocPageListingItem>();
@@ -240,7 +222,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (maxPageDepth.HasValue) queryParams["max_page_depth"] = maxPageDepth.Value.ToString();
             if (!string.IsNullOrEmpty(contentFormat)) queryParams["content_format"] = contentFormat;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.GetAsync<ClickUpV3DataListResponse<Page>>(endpoint, cancellationToken);
             return responseWrapper?.Data ?? Enumerable.Empty<Page>();
@@ -271,7 +253,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"{BaseEndpoint}/{workspaceId}/docs/{docId}/pages/{pageId}";
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(contentFormat)) queryParams["content_format"] = contentFormat;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.GetAsync<ClickUpV3DataResponse<Page>>(endpoint, cancellationToken);
             return responseWrapper?.Data ?? throw new InvalidOperationException($"API response or its data was null for GetPageAsync (Doc ID: {docId}, Page ID: {pageId}).");

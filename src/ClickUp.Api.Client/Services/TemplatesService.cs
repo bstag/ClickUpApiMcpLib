@@ -12,6 +12,7 @@ using ClickUp.Api.Client.Models.ResponseModels.Templates;
 using System.Linq; // For Enumerable.Empty, though not directly used here but good for consistency
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -35,24 +36,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<TemplatesService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<GetTaskTemplatesResponse> GetTaskTemplatesAsync(
@@ -66,7 +49,7 @@ namespace ClickUp.Api.Client.Services
             {
                 { "page", page.ToString() } // 'page' is a required query parameter for this endpoint
             };
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetTaskTemplatesResponse>(endpoint, cancellationToken);
             if (response == null)

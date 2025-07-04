@@ -55,7 +55,7 @@ public class CustomFieldsFluentApi
     /// </summary>
     /// <param name="listId">The ID of the list.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Field"/>.</returns>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="CustomFieldDefinition"/>.</returns>
     public async IAsyncEnumerable<CustomFieldDefinition> GetAccessibleCustomFieldsAsyncEnumerableAsync(
         string listId,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)

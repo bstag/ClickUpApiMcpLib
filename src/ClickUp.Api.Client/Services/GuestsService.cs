@@ -13,6 +13,7 @@ using ClickUp.Api.Client.Models.RequestModels.Guests;
 using ClickUp.Api.Client.Models.ResponseModels.Guests; // Assuming GetGuestResponse etc.
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -36,24 +37,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<GuestsService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<InviteGuestToWorkspaceResponse> InviteGuestToWorkspaceAsync(
@@ -140,7 +123,7 @@ namespace ClickUp.Api.Client.Services
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
             if (responseWrapper?.Guest == null)
@@ -165,7 +148,7 @@ namespace ClickUp.Api.Client.Services
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
             if (responseWrapper?.Guest == null)
@@ -190,7 +173,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"list/{listId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
             if (responseWrapper?.Guest == null)
@@ -211,7 +194,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"list/{listId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
             if (responseWrapper?.Guest == null)
@@ -233,7 +216,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"folder/{folderId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.PostAsync<AddGuestToItemRequest, GetGuestResponse>(endpoint, addGuestToItemRequest, cancellationToken);
             if (responseWrapper?.Guest == null)
@@ -254,7 +237,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"folder/{folderId}/guest/{guestId}";
             var queryParams = new Dictionary<string, string?>();
             if (includeShared.HasValue) queryParams["include_shared"] = includeShared.Value.ToString().ToLower();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var responseWrapper = await _apiConnection.DeleteAsync<GetGuestResponse>(endpoint, cancellationToken);
             if (responseWrapper?.Guest == null)

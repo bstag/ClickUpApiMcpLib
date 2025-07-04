@@ -4,6 +4,9 @@ using System;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
+using ClickUp.Api.Client.Models.Parameters; // Added for GetTasksRequestParameters
+using System.Collections.Generic; // Added for IEnumerable
+using System.Threading; // Added for CancellationToken
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -66,37 +69,15 @@ public class TasksFluentApi
         return new TemplateFluentCreateTaskRequest(listId, templateId, _tasksService);
     }
 
-    public IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(string listId, bool? archived = null, bool? includeMarkdownDescription = null, string? orderBy = null, bool? reverse = null, bool? subtasks = null, IEnumerable<string>? statuses = null, bool? includeClosed = null, IEnumerable<string>? assignees = null, IEnumerable<string>? watchers = null, IEnumerable<string>? tags = null, long? dueDateGreaterThan = null, long? dueDateLessThan = null, long? dateCreatedGreaterThan = null, long? dateCreatedLessThan = null, long? dateUpdatedGreaterThan = null, long? dateUpdatedLessThan = null, long? dateDoneGreaterThan = null, long? dateDoneLessThan = null, string? customFields = null, IEnumerable<long>? customItems = null, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(string listId, GetTasksRequestParameters parameters, CancellationToken cancellationToken = default)
     {
-        var requestModel = new GetTasksRequest
-        {
-            Archived = archived,
-            IncludeMarkdownDescription = includeMarkdownDescription,
-            OrderBy = orderBy,
-            Reverse = reverse,
-            Subtasks = subtasks,
-            Statuses = statuses,
-            IncludeClosed = includeClosed,
-            Assignees = assignees,
-            Watchers = watchers,
-            Tags = tags,
-            DueDateGreaterThan = dueDateGreaterThan,
-            DueDateLessThan = dueDateLessThan,
-            DateCreatedGreaterThan = dateCreatedGreaterThan,
-            DateCreatedLessThan = dateCreatedLessThan,
-            DateUpdatedGreaterThan = dateUpdatedGreaterThan,
-            DateUpdatedLessThan = dateUpdatedLessThan,
-            DateDoneGreaterThan = dateDoneGreaterThan,
-            DateDoneLessThan = dateDoneLessThan,
-            CustomFields = customFields,
-            CustomItems = customItems
-            // Page is intentionally omitted as it's handled by the streaming service method
-        };
-        return _tasksService.GetTasksAsyncEnumerableAsync(listId, requestModel, cancellationToken);
+        // Page parameter from 'parameters' should be ignored by the service layer for async enumerable
+        return _tasksService.GetTasksAsyncEnumerableAsync(listId, parameters, cancellationToken);
     }
 
-    public IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(string workspaceId, GetFilteredTeamTasksRequest requestModel, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(string workspaceId, GetTasksRequestParameters parameters, CancellationToken cancellationToken = default)
     {
-        return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, requestModel, cancellationToken);
+        // Page parameter from 'parameters' should be ignored by the service layer for async enumerable
+        return _tasksService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, parameters, cancellationToken);
     }
 }

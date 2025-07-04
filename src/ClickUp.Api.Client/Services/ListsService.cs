@@ -13,6 +13,7 @@ using ClickUp.Api.Client.Models.RequestModels.Lists;
 using ClickUp.Api.Client.Models.ResponseModels.Lists;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -36,24 +37,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<ListsService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async Task<IEnumerable<ClickUpList>> GetListsInFolderAsync(
@@ -65,7 +48,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"folder/{folderId}/list";
             var queryParams = new Dictionary<string, string?>();
             if (archived.HasValue) queryParams["archived"] = archived.Value.ToString().ToLower();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken); // API returns {"lists": [...]}
             return response?.Lists ?? Enumerable.Empty<ClickUpList>();
@@ -97,7 +80,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"space/{spaceId}/list"; // Folderless lists are directly under a space
             var queryParams = new Dictionary<string, string?>();
             if (archived.HasValue) queryParams["archived"] = archived.Value.ToString().ToLower();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken); // API returns {"lists": [...]}
             return response?.Lists ?? Enumerable.Empty<ClickUpList>();
@@ -237,7 +220,7 @@ namespace ClickUp.Api.Client.Services
                 var queryParams = new Dictionary<string, string?>();
                 if (archived.HasValue) queryParams["archived"] = archived.Value.ToString().ToLower();
                 queryParams["page"] = currentPage.ToString();
-                endpoint += BuildQueryString(queryParams);
+                endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
                 var response = await _apiConnection.GetAsync<GetListsResponse>(endpoint, cancellationToken).ConfigureAwait(false);
 

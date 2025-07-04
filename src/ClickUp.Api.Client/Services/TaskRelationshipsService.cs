@@ -15,6 +15,7 @@ using ClickUp.Api.Client.Models.ResponseModels;
 using ClickUp.Api.Client.Models.ResponseModels.Tasks; // For GetTaskResponse
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
@@ -38,24 +39,6 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<TaskRelationshipsService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
 
         /// <inheritdoc />
         public async System.Threading.Tasks.Task AddDependencyAsync(
@@ -80,7 +63,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (customTaskIds.HasValue) queryParams["custom_task_ids"] = customTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(teamId)) queryParams["team_id"] = teamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var payload = new AddDependencyRequest(dependsOnTaskId, dependencyOfTaskId); // Assuming this DTO exists or build dynamically
 
@@ -106,7 +89,7 @@ namespace ClickUp.Api.Client.Services
 
             if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             await _apiConnection.DeleteAsync(endpoint, cancellationToken);
         }
@@ -123,7 +106,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             // Add CuTask Link API is POST and returns the task.
             // It does not take a request body. So we send an empty object.
@@ -143,7 +126,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (requestModel.CustomTaskIds.HasValue) queryParams["custom_task_ids"] = requestModel.CustomTaskIds.Value.ToString().ToLower();
             if (!string.IsNullOrEmpty(requestModel.TeamId)) queryParams["team_id"] = requestModel.TeamId;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             // Delete CuTask Link API is DELETE and returns the task.
             // This is unusual. IApiConnection.DeleteAsync is void.

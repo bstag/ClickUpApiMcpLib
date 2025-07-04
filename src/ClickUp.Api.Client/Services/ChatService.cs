@@ -12,6 +12,7 @@ using ClickUp.Api.Client.Models.RequestModels.Chat;
 using ClickUp.Api.Client.Models.ResponseModels.Chat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClickUp.Api.Client.Helpers;
 
 // Conceptual helper DTOs for v3 responses, if not already handled by specific Response DTOs
 // internal class ClickUpV3DataResponse<T> { public T? Data { get; set; } }
@@ -41,30 +42,7 @@ namespace ClickUp.Api.Client.Services
             _logger = logger ?? NullLogger<ChatService>.Instance;
         }
 
-        private string BuildQueryString(Dictionary<string, string?> queryParams)
-        {
-            if (queryParams == null || !queryParams.Any(kvp => kvp.Value != null))
-            {
-                return string.Empty;
-            }
 
-            var sb = new StringBuilder("?");
-            foreach (var kvp in queryParams)
-            {
-                if (kvp.Value != null)
-                {
-                    if (sb.Length > 1) sb.Append('&');
-                    sb.Append($"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}");
-                }
-            }
-            return sb.ToString();
-        }
-
-        private string BuildQueryStringFromArray<T>(string key, IEnumerable<T>? values)
-        {
-            if (values == null || !values.Any()) return string.Empty;
-            return string.Join("&", values.Select(v => $"{Uri.EscapeDataString(key)}[]={Uri.EscapeDataString(v?.ToString() ?? string.Empty)}"));
-        }
 
         #region Channels
         /// <inheritdoc />
@@ -83,11 +61,11 @@ namespace ClickUp.Api.Client.Services
             if (requestModel.IncludeHidden.HasValue) queryParams["include_hidden"] = requestModel.IncludeHidden.Value.ToString().ToLower();
             if (requestModel.WithCommentSince.HasValue) queryParams["with_comment_since"] = requestModel.WithCommentSince.Value.ToString();
 
-            var queryString = BuildQueryString(queryParams);
+            var queryString = UrlBuilderHelper.BuildQueryString(queryParams);
 
             if (requestModel.RoomTypes != null && requestModel.RoomTypes.Any())
             {
-                queryString += (string.IsNullOrEmpty(queryString) || queryString == "?" ? (queryString == "?" ? "" : "?") : "&") + BuildQueryStringFromArray("room_types", requestModel.RoomTypes);
+                queryString += (string.IsNullOrEmpty(queryString) || queryString == "?" ? (queryString == "?" ? "" : "?") : "&") + UrlBuilderHelper.BuildQueryStringFromArray("room_types", requestModel.RoomTypes);
             }
             if (queryString == "?") queryString = string.Empty;
 
@@ -164,7 +142,7 @@ namespace ClickUp.Api.Client.Services
             var endpoint = $"{BaseEndpoint}/{workspaceId}/channels/{channelId}";
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(descriptionFormat)) queryParams["description_format"] = descriptionFormat;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var response = await _apiConnection.GetAsync<ClickUpV3DataResponse<ChatChannel>>(endpoint, cancellationToken);
             if (response?.Data == null)
@@ -212,7 +190,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(cursor)) queryParams["cursor"] = cursor;
             if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var result = await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
             if (result == null)
@@ -234,7 +212,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(cursor)) queryParams["cursor"] = cursor;
             if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var result = await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
             if (result == null)
@@ -258,7 +236,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(requestModel.Cursor)) queryParams["cursor"] = requestModel.Cursor;
             if (requestModel.Limit.HasValue) queryParams["limit"] = requestModel.Limit.Value.ToString();
             if (!string.IsNullOrEmpty(requestModel.ContentFormat)) queryParams["content_format"] = requestModel.ContentFormat;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var result = await _apiConnection.GetAsync<GetChatMessagesResponse>(endpoint, cancellationToken);
             if (result == null)
@@ -344,7 +322,7 @@ namespace ClickUp.Api.Client.Services
             if (!string.IsNullOrEmpty(requestModel.Cursor)) queryParams["cursor"] = requestModel.Cursor;
             if (requestModel.Limit.HasValue) queryParams["limit"] = requestModel.Limit.Value.ToString();
             if (!string.IsNullOrEmpty(requestModel.ContentFormat)) queryParams["content_format"] = requestModel.ContentFormat;
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var result = await _apiConnection.GetAsync<GetChatMessagesResponse>(endpoint, cancellationToken);
             if (result == null)
@@ -369,7 +347,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(cursor)) queryParams["cursor"] = cursor;
             if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var result = await _apiConnection.GetAsync<GetChatReactionsResponse>(endpoint, cancellationToken);
             if (result == null)
@@ -422,7 +400,7 @@ namespace ClickUp.Api.Client.Services
             var queryParams = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(cursor)) queryParams["cursor"] = cursor;
             if (limit.HasValue) queryParams["limit"] = limit.Value.ToString();
-            endpoint += BuildQueryString(queryParams);
+            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
 
             var result = await _apiConnection.GetAsync<GetChatUsersResponse>(endpoint, cancellationToken);
             if (result == null)
