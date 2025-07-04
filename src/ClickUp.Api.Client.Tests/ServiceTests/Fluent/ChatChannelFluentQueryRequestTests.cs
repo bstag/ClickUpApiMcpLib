@@ -93,8 +93,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             var request = new ChatChannelFluentQueryRequest(WorkspaceId, _mockChatService.Object)
                 .WithRoomTypes(types);
             var field = typeof(ChatChannelFluentQueryRequest).GetField("_request", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var req = (GetChatChannelsRequest)field.GetValue(request);
-            Assert.Equal(types, req.RoomTypes);
+            var req = field!.GetValue(request) as GetChatChannelsRequest;
+            Assert.NotNull(req);
+            Assert.Equal(types, req!.RoomTypes);
         }
 
         [Fact]

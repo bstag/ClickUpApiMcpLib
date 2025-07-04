@@ -18,7 +18,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             var request = new ChecklistFluentUpdateRequest(ChecklistId, _mockService.Object)
                 .WithName("Test List");
             var nameField = typeof(ChecklistFluentUpdateRequest).GetField("_name", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.Equal("Test List", nameField.GetValue(request));
+            Assert.Equal("Test List", nameField!.GetValue(request));
         }
 
         [Fact]
@@ -27,7 +27,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
             var request = new ChecklistFluentUpdateRequest(ChecklistId, _mockService.Object)
                 .WithPosition(3);
             var posField = typeof(ChecklistFluentUpdateRequest).GetField("_position", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.Equal(3, posField.GetValue(request));
+            Assert.Equal(3, posField!.GetValue(request));
         }
 
         [Fact]

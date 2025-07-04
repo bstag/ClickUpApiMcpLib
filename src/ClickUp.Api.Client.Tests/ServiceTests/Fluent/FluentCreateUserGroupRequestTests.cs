@@ -31,7 +31,7 @@ public class FluentCreateUserGroupRequestTests
         var name = "testGroupName";
         var handle = "testHandle";
         var members = new List<int> { 1, 2 };
-        var expectedUserGroup = new UserGroup("groupId", workspaceId, 1, name, handle ?? string.Empty, "dateCreated", null, new List<Client.Models.Common.Member>(), null); // Mock a UserGroup object
+        var expectedUserGroup = new UserGroup("groupId", workspaceId, 1, name, handle , "dateCreated", null, new List<Client.Models.Common.Member>(), null); // Mock a UserGroup object
 
         _mockUserGroupsService.Setup(x => x.CreateUserGroupAsync(
             It.IsAny<string>(),
@@ -64,7 +64,7 @@ public class FluentCreateUserGroupRequestTests
         // Arrange
         var workspaceId = "testWorkspaceId";
         var name = "testGroupName";
-        var expectedUserGroup = new UserGroup("groupId", workspaceId, 1, name, null, "dateCreated", null, new List<Client.Models.Common.Member>(), null); // Mock a UserGroup object
+        var expectedUserGroup = new UserGroup("groupId", workspaceId, 1, name, string.Empty, "dateCreated", null, new List<Client.Models.Common.Member>(), null); // Mock a UserGroup object
 
         _mockUserGroupsService.Setup(x => x.CreateUserGroupAsync(
             It.IsAny<string>(),

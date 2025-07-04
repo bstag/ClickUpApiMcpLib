@@ -17,7 +17,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
         {
             var req = new DocFluentSearchRequest(WorkspaceId, _mockService.Object).WithQuery("search");
             var field = typeof(DocFluentSearchRequest).GetField("_query", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.Equal("search", field.GetValue(req));
+            Assert.Equal("search", field!.GetValue(req));
         }
 
         [Fact]
@@ -25,7 +25,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
         {
             var req = new DocFluentSearchRequest(WorkspaceId, _mockService.Object).WithParentId("pid");
             var field = typeof(DocFluentSearchRequest).GetField("_parentId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.Equal("pid", field.GetValue(req));
+            Assert.Equal("pid", field!.GetValue(req));
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
         {
             var req = new DocFluentSearchRequest(WorkspaceId, _mockService.Object).WithParentType(2);
             var field = typeof(DocFluentSearchRequest).GetField("_parentType", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.Equal(2, field.GetValue(req));
+            Assert.Equal(2, field!.GetValue(req));
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
         {
             var req = new DocFluentSearchRequest(WorkspaceId, _mockService.Object).WithCursor("cur");
             var field = typeof(DocFluentSearchRequest).GetField("_cursor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.Equal("cur", field.GetValue(req));
+            Assert.Equal("cur", field!.GetValue(req));
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Fluent
         {
             var req = new DocFluentSearchRequest(WorkspaceId, _mockService.Object).WithLimit(33);
             var field = typeof(DocFluentSearchRequest).GetField("_limit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.Equal(33, field.GetValue(req));
+            Assert.Equal(33, field!.GetValue(req));
         }
 
         [Fact]

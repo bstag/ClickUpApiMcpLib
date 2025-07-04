@@ -128,19 +128,19 @@ public class FluentCreateSpaceRequestTests
             It.Is<CreateSpaceRequest>(req =>
                 req.Name == name &&
                 req.MultipleAssignees == multipleAssignees &&
-                req.Features.DueDates!.Enabled == dueDatesEnabled &&
-                req.Features.TimeTracking!.Enabled == timeTrackingEnabled &&
-                req.Features.Tags!.Enabled == tagsEnabled &&
-                req.Features.CustomFields!.Enabled == customFieldsEnabled &&
-                req.Features.RemapDependencies!.Enabled == remapDependenciesEnabled &&
-                req.Features.DependencyWarning!.Enabled == dependencyWarningEnabled &&
-                req.Features.Portfolios!.Enabled == portfoliosEnabled &&
-                req.Features.Sprints!.Enabled == sprintsEnabled &&
-                req.Features.Points!.Enabled == pointsEnabled &&
-                req.Features.CustomTaskIds!.Enabled == customTaskIdsEnabled &&
-                req.Features.Checklists!.Enabled == checklistsEnabled &&
-                req.Features.TimeEstimates!.Enabled == timeEstimatesEnabled &&
-                req.Features.Emails!.Enabled == emailEnabled
+                req.Features!.DueDates!.Enabled == dueDatesEnabled &&
+                req.Features!.TimeTracking!.Enabled == timeTrackingEnabled &&
+                req.Features!.Tags!.Enabled == tagsEnabled &&
+                req.Features!.CustomFields!.Enabled == customFieldsEnabled &&
+                req.Features!.RemapDependencies!.Enabled == remapDependenciesEnabled &&
+                req.Features!.DependencyWarning!.Enabled == dependencyWarningEnabled &&
+                req.Features!.Portfolios!.Enabled == portfoliosEnabled &&
+                req.Features!.Sprints!.Enabled == sprintsEnabled &&
+                req.Features!.Points!.Enabled == pointsEnabled &&
+                req.Features!.CustomTaskIds!.Enabled == customTaskIdsEnabled &&
+                req.Features!.Checklists!.Enabled == checklistsEnabled &&
+                req.Features!.TimeEstimates!.Enabled == timeEstimatesEnabled &&
+                req.Features!.Emails!.Enabled == emailEnabled
             ),
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -202,19 +202,19 @@ public class FluentCreateSpaceRequestTests
             It.Is<CreateSpaceRequest>(req =>
                 req.Name == name &&
                 req.MultipleAssignees == null &&
-                req.Features.DueDates == null &&
-                req.Features.TimeTracking == null &&
-                req.Features.Tags == null &&
-                req.Features.CustomFields == null &&
-                req.Features.RemapDependencies == null &&
-                req.Features.DependencyWarning == null &&
-                req.Features.Portfolios == null &&
-                req.Features.Sprints == null &&
-                req.Features.Points == null &&
-                req.Features.CustomTaskIds == null &&
-                req.Features.Checklists == null &&
-                req.Features.TimeEstimates == null &&
-                req.Features.Emails == null
+                req.Features!.DueDates == null &&
+                req.Features!.TimeTracking == null &&
+                req.Features!.Tags == null &&
+                req.Features!.CustomFields == null &&
+                req.Features!.RemapDependencies == null &&
+                req.Features!.DependencyWarning == null &&
+                req.Features!.Portfolios == null &&
+                req.Features!.Sprints == null &&
+                req.Features!.Points == null &&
+                req.Features!.CustomTaskIds == null &&
+                req.Features!.Checklists == null &&
+                req.Features!.TimeEstimates == null &&
+                req.Features!.Emails == null
             ),
             It.IsAny<CancellationToken>()), Times.Once);
     }

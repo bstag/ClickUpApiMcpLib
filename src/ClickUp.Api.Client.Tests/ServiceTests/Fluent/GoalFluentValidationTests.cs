@@ -184,7 +184,7 @@ public class GoalFluentValidationTests
     public void KeyResultEdit_Validate_MissingKeyResultId_ThrowsException()
     {
         var goalsServiceMock = new Mock<IGoalsService>();
-        var request = new KeyResultFluentEditRequest(null, goalsServiceMock.Object).WithName("New KR Name");
+        var request = new KeyResultFluentEditRequest(string.Empty, goalsServiceMock.Object).WithName("New KR Name");
         var ex = Assert.Throws<ClickUpRequestValidationException>(() => request.Validate());
         Assert.Contains("KeyResultId is required.", ex.ValidationErrors);
     }
@@ -201,7 +201,7 @@ public class GoalFluentValidationTests
     public async Task KeyResultEditAsync_InvalidRequest_ThrowsException()
     {
         var goalsServiceMock = new Mock<IGoalsService>();
-        var request = new KeyResultFluentEditRequest(null, goalsServiceMock.Object); // Invalid state
+        var request = new KeyResultFluentEditRequest(string.Empty, goalsServiceMock.Object); // Invalid state
         var ex = await Assert.ThrowsAsync<ClickUpRequestValidationException>(() => request.EditAsync());
         Assert.Contains("KeyResultId is required.", ex.ValidationErrors);
     }
