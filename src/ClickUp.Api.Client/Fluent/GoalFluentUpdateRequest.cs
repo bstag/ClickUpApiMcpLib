@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Goals;
 using ClickUp.Api.Client.Models.RequestModels.Goals;
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -19,6 +21,7 @@ public class GoalFluentUpdateRequest
 
     private readonly string _goalId;
     private readonly IGoalsService _goalsService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public GoalFluentUpdateRequest(string goalId, IGoalsService goalsService)
     {
@@ -68,8 +71,32 @@ public class GoalFluentUpdateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_goalId))
+        {
+            _validationErrors.Add("GoalId is required.");
+        }
+        // Similar to KeyResultEdit, an update should ideally change something.
+        // For now, assume API handles no-op updates gracefully.
+        // Example check:
+        // if (string.IsNullOrWhiteSpace(_name) && !_dueDate.HasValue && string.IsNullOrWhiteSpace(_description) &&
+        //     (_removeOwners == null || !_removeOwners.Any()) && (_addOwners == null || !_addOwners.Any()) &&
+        //     string.IsNullOrWhiteSpace(_color) && !_archived.HasValue)
+        // {
+        //     _validationErrors.Add("At least one property must be set for updating a Goal.");
+        // }
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<Goal> UpdateAsync(CancellationToken cancellationToken = default)
     {
+        Validate();
         var updateGoalRequest = new UpdateGoalRequest(
             Name: _name,
             DueDate: _dueDate,

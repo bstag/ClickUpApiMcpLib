@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Lists;
 using ClickUp.Api.Client.Models.RequestModels.Lists;
-
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -21,6 +23,7 @@ public class ListFluentCreateRequest
     private readonly string _containerId; // Can be folderId or spaceId
     private readonly IListsService _listsService;
     private readonly bool _isFolderless; // True if creating a folderless list
+    private readonly List<string> _validationErrors = new List<string>();
 
     public ListFluentCreateRequest(string containerId, IListsService listsService, bool isFolderless)
     {
@@ -77,8 +80,28 @@ public class ListFluentCreateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_containerId))
+        {
+            _validationErrors.Add("ContainerId (FolderId or SpaceId) is required.");
+        }
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _validationErrors.Add("List name is required.");
+        }
+        // Add other validation rules as needed
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<ClickUpList> CreateAsync(CancellationToken cancellationToken = default)
     {
+        Validate();
         var createListRequest = new CreateListRequest(
             Name: _name ?? string.Empty,
             Content: _content,

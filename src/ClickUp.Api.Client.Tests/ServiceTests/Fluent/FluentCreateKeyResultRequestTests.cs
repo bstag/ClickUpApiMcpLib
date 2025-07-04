@@ -132,7 +132,11 @@ public class FluentCreateKeyResultRequestTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedKeyResult);
 
-        var fluentRequest = new KeyResultFluentCreateRequest(goalId, _mockGoalsService.Object);
+        var fluentRequest = new KeyResultFluentCreateRequest(goalId, _mockGoalsService.Object)
+            .WithName("Default Key Result") // Required
+            .WithType("number")            // Required
+            .WithOwners(new List<int> { 1 }) // Required
+            .WithStepsEnd(100);            // Required
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -142,14 +146,15 @@ public class FluentCreateKeyResultRequestTests
         _mockGoalsService.Verify(x => x.CreateKeyResultAsync(
             goalId,
             It.Is<CreateKeyResultRequest>(req =>
-                req.Name == string.Empty &&
-                !req.Owners.Any() &&
-                req.Type == string.Empty &&
+                req.Name == "Default Key Result" &&
+                req.Owners.SequenceEqual(new List<int> { 1 }) &&
+                req.Type == "number" &&
                 req.StepsStart == null &&
-                req.StepsEnd != null && // Should be a new object
+                req.StepsEnd.Equals(100) &&
                 req.Unit == null &&
                 req.TaskIds == null &&
-                req.ListIds == null),
+                req.ListIds == null &&
+                req.GoalId == goalId), // Ensure GoalId is also checked if it's part of the request DTO
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

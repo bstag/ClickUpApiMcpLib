@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -30,6 +32,7 @@ public class TaskFluentCreateRequest
 
     private readonly string _listId;
     private readonly ITasksService _tasksService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public TaskFluentCreateRequest(string listId, ITasksService tasksService)
     {
@@ -145,13 +148,33 @@ public class TaskFluentCreateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_listId))
+        {
+            _validationErrors.Add("ListId is required.");
+        }
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _validationErrors.Add("Task name is required.");
+        }
+        // Add other validation rules as needed (e.g. for custom fields if some are mandatory based on other settings)
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<CuTask> CreateAsync(bool? customTaskIds = null, string? teamId = null, CancellationToken cancellationToken = default)
     {
+        Validate();
         var createTaskRequest = new CreateTaskRequest(
             Name: _name ?? string.Empty,
             Description: _description,
             Assignees: _assignees,
-            GroupAssignees: _groupAssignees, // Now correctly mapped
+            GroupAssignees: _groupAssignees,
             Tags: _tags,
             Status: _status?.ToString(),
             Priority: _priority,
@@ -164,9 +187,9 @@ public class TaskFluentCreateRequest
             Parent: _parent,
             LinksTo: _linksTo,
             CheckRequiredCustomFields: _checkRequiredCustomFields,
-            CustomFields: _customFields, // Now correctly typed
+            CustomFields: _customFields,
             CustomItemId: _customItemId,
-            ListId: _listId // Passed from constructor
+            ListId: _listId
         );
 
         return await _tasksService.CreateTaskAsync(

@@ -1,6 +1,7 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.TimeTracking;
 using ClickUp.Api.Client.Models.RequestModels.TimeTracking;
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,11 +20,12 @@ public class TimeEntryFluentUpdateRequest
     private bool? _billable;
     private int? _assignee;
     private bool? _isLocked;
-    private string? _tagAction;
+    private string? _tagAction; // "add" or "remove"
 
     private readonly string _workspaceId;
     private readonly string _timerId;
     private readonly ITimeTrackingService _timeTrackingService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public TimeEntryFluentUpdateRequest(string workspaceId, string timerId, ITimeTrackingService timeTrackingService)
     {
@@ -92,8 +94,47 @@ public class TimeEntryFluentUpdateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_workspaceId))
+        {
+            _validationErrors.Add("WorkspaceId (TeamId) is required.");
+        }
+        if (string.IsNullOrWhiteSpace(_timerId))
+        {
+            _validationErrors.Add("TimerId is required.");
+        }
+        if (_duration.HasValue && _duration.Value <= 0)
+        {
+            _validationErrors.Add("If Duration is provided, it must be positive.");
+        }
+        if (!string.IsNullOrWhiteSpace(_tagAction) && !(_tagAction == "add" || _tagAction == "remove"))
+        {
+            _validationErrors.Add("TagAction must be 'add' or 'remove' if provided.");
+        }
+        if ((_tagAction == "add" || _tagAction == "remove") && (_tags == null || !_tags.Any()))
+        {
+            _validationErrors.Add("Tags must be provided when TagAction is specified.");
+        }
+        // At least one field should be provided for an update.
+        if (string.IsNullOrWhiteSpace(_taskId) && string.IsNullOrWhiteSpace(_description) &&
+            (_tags == null || !_tags.Any()) && !_start.HasValue && !_end.HasValue &&
+            !_duration.HasValue && !_billable.HasValue && !_assignee.HasValue && !_isLocked.HasValue)
+        {
+            _validationErrors.Add("At least one property must be set for updating a Time Entry.");
+        }
+
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<TimeEntry> UpdateAsync(bool? customTaskIds = null, string? teamIdForCustomTaskIds = null, CancellationToken cancellationToken = default)
     {
+        Validate();
         var updateTimeEntryRequest = new UpdateTimeEntryRequest(
             Description: _description,
             Tags: _tags?.Select(t => new TimeTrackingTagDefinition(Name: t, TagFg: null, TagBg: null)).ToList(),

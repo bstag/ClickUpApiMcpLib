@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Spaces;
 using ClickUp.Api.Client.Models.RequestModels.Spaces;
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -38,6 +40,7 @@ public class SpaceFluentCreateRequest
 
     private readonly string _workspaceId;
     private readonly ISpacesService _spacesService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public SpaceFluentCreateRequest(string workspaceId, ISpacesService spacesService)
     {
@@ -201,8 +204,28 @@ public class SpaceFluentCreateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_workspaceId))
+        {
+            _validationErrors.Add("WorkspaceId (TeamId) is required.");
+        }
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _validationErrors.Add("Space name is required.");
+        }
+        // Add other validation rules as needed for features if some are mutually exclusive or dependent
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<Space> CreateAsync(CancellationToken cancellationToken = default)
     {
+        Validate();
         var features = new Features(
             DueDates: _dueDatesEnabled.HasValue ? new DueDatesFeature(Enabled: _dueDatesEnabled.Value, StartDateEnabled: null, RemapDueDatesEnabled: null, DueDatesForSubtasksRollUpEnabled: null) : null,
             Sprints: _sprintsEnabled.HasValue ? new SprintsFeature(Enabled: _sprintsEnabled.Value, LegacySprintsEnabled: null) : null,

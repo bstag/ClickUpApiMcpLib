@@ -125,7 +125,11 @@ public class FluentCreateTimeEntryRequestTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedTimeEntry);
 
-        var fluentRequest = new TimeEntryFluentCreateRequest(workspaceId, _mockTimeTrackingService.Object);
+        var startTime = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var duration = 3600000;
+        var fluentRequest = new TimeEntryFluentCreateRequest(workspaceId, _mockTimeTrackingService.Object)
+            .WithStart(startTime) // Required
+            .WithDuration(duration); // Required (1 hour)
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -138,10 +142,11 @@ public class FluentCreateTimeEntryRequestTests
                 req.TaskId == null &&
                 req.Description == null &&
                 (req.Tags == null || !req.Tags.Any()) &&
-                req.Start == 0 &&
-                req.Duration == 0 &&
+                req.Start == startTime &&
+                req.Duration == duration &&
                 req.Billable == null &&
-                req.Assignee == null),
+                req.Assignee == null &&
+                req.WorkspaceId == workspaceId), // WorkspaceId is part of the request DTO
             null,
             null,
             It.IsAny<CancellationToken>()), Times.Once);

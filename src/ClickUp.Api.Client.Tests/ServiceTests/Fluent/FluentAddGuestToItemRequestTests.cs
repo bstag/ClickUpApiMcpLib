@@ -152,7 +152,8 @@ public class FluentAddGuestToItemRequestTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedGuest);
 
-        var fluentRequest = new ItemFluentAddGuestRequest(itemId, guestId, _mockGuestsService.Object, ItemFluentAddGuestRequest.ItemType.Task);
+        var fluentRequest = new ItemFluentAddGuestRequest(itemId, guestId, _mockGuestsService.Object, ItemFluentAddGuestRequest.ItemType.Task)
+            .WithPermissionLevel(1); // Required
 
         // Act
         var result = await fluentRequest.AddAsync();
@@ -162,10 +163,10 @@ public class FluentAddGuestToItemRequestTests
         _mockGuestsService.Verify(x => x.AddGuestToTaskAsync(
             itemId,
             guestId,
-            It.Is<AddGuestToItemRequest>(req => req.PermissionLevel == 0),
-            null,
-            null,
-            null,
+            It.Is<AddGuestToItemRequest>(req => req.PermissionLevel == 1),
+            null, // includeShared
+            null, // customTaskIds
+            null, // teamId
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

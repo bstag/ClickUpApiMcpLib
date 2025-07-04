@@ -121,7 +121,8 @@ public class FluentCreateListRequestTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedList);
 
-        var fluentRequest = new ListFluentCreateRequest(containerId, _mockListsService.Object, true);
+        var fluentRequest = new ListFluentCreateRequest(containerId, _mockListsService.Object, true) // Used containerId
+            .WithName("Default Folderless List Name"); // Required
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -129,9 +130,9 @@ public class FluentCreateListRequestTests
         // Assert
         Assert.Equal(expectedList, result);
         _mockListsService.Verify(x => x.CreateFolderlessListAsync(
-            containerId,
+            containerId, // This is spaceId in this test context
             It.Is<CreateListRequest>(req =>
-                req.Name == string.Empty &&
+                req.Name == "Default Folderless List Name" &&
                 req.Content == null &&
                 req.MarkdownContent == null &&
                 req.Assignee == null &&
@@ -155,7 +156,8 @@ public class FluentCreateListRequestTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedList);
 
-        var fluentRequest = new ListFluentCreateRequest(containerId, _mockListsService.Object, false);
+        var fluentRequest = new ListFluentCreateRequest(containerId, _mockListsService.Object, false) // Used containerId
+            .WithName("Default List Name"); // Required
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -163,9 +165,9 @@ public class FluentCreateListRequestTests
         // Assert
         Assert.Equal(expectedList, result);
         _mockListsService.Verify(x => x.CreateListInFolderAsync(
-            containerId,
+            containerId, // This is folderId in this test context
             It.Is<CreateListRequest>(req =>
-                req.Name == string.Empty &&
+                req.Name == "Default List Name" &&
                 req.Content == null &&
                 req.MarkdownContent == null &&
                 req.Assignee == null &&

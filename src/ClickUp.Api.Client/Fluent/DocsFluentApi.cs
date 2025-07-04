@@ -141,10 +141,7 @@ public class DocsFluentApi
             TaskIds = taskIds?.ToList(),
             IncludeArchived = includeArchived,
             ParentId = parentId,
-            // ParentType = parentTypeValue, // Original line with issue
-#pragma warning disable CS8601 // Possible null reference assignment.
-            ParentType = parentType.HasValue ? parentType.Value : null,
-#pragma warning restore CS8601 // Possible null reference assignment.
+            ParentType = parentType,
             IncludeDeleted = includeDeleted,
             CreatorId = creatorId
         };

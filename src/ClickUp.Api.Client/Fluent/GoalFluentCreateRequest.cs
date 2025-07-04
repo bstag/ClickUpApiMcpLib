@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Goals;
 using ClickUp.Api.Client.Models.RequestModels.Goals;
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -19,6 +21,7 @@ public class GoalFluentCreateRequest
 
     private readonly string _workspaceId;
     private readonly IGoalsService _goalsService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public GoalFluentCreateRequest(string workspaceId, IGoalsService goalsService)
     {
@@ -68,16 +71,44 @@ public class GoalFluentCreateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_workspaceId))
+        {
+            _validationErrors.Add("WorkspaceId (TeamId) is required.");
+        }
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _validationErrors.Add("Goal name is required.");
+        }
+        if (!_dueDate.HasValue)
+        {
+            _validationErrors.Add("DueDate is required.");
+        }
+        if ((_owners == null || !_owners.Any()))
+        {
+            _validationErrors.Add("At least one owner is required for the Goal.");
+        }
+        // Add other validation rules as needed
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<Goal> CreateAsync(CancellationToken cancellationToken = default)
     {
+        Validate();
         var createGoalRequest = new CreateGoalRequest(
             Name: _name ?? string.Empty,
-            DueDate: _dueDate ?? 0, // Assuming 0 is a valid default or will be handled by validation
+            DueDate: _dueDate ?? 0,
             Description: _description ?? string.Empty,
-            MultipleOwners: _multipleOwners ?? false, // Assuming false is a valid default
-            Owners: _owners ?? new List<int>(), // Assuming empty list is a valid default
+            MultipleOwners: _multipleOwners ?? false,
+            Owners: _owners ?? new List<int>(),
             Color: _color,
-            TeamId: _workspaceId, // Passed from constructor
+            TeamId: _workspaceId,
             FolderId: _folderId
         );
 
