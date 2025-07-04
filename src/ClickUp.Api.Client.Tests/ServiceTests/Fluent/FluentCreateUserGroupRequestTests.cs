@@ -73,7 +73,8 @@ public class FluentCreateUserGroupRequestTests
             .ReturnsAsync(expectedUserGroup);
 
         var fluentRequest = new UserGroupFluentCreateRequest(workspaceId, _mockUserGroupsService.Object)
-            .WithName(name);
+            .WithName(name)
+            .WithMembers(new List<int> { 123 }); // Required
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -85,7 +86,7 @@ public class FluentCreateUserGroupRequestTests
             It.Is<CreateUserGroupRequest>(req =>
                 req.Name == name &&
                 req.Handle == null &&
-                !req.Members.Any()),
+                req.Members.SequenceEqual(new List<int> { 123 })),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

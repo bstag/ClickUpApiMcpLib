@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Spaces;
 using ClickUp.Api.Client.Models.RequestModels.Spaces;
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -42,6 +44,7 @@ public class SpaceFluentUpdateRequest
 
     private readonly string _spaceId;
     private readonly ISpacesService _spacesService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public SpaceFluentUpdateRequest(string spaceId, ISpacesService spacesService)
     {
@@ -229,8 +232,27 @@ public class SpaceFluentUpdateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_spaceId))
+        {
+            _validationErrors.Add("SpaceId is required.");
+        }
+        // For an update, at least one field should ideally be provided.
+        // However, the API might allow an empty update request (noop).
+        // For now, we'll assume the API handles this.
+        // Example: if all nullable properties are null, add validation error.
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<Space> UpdateAsync(CancellationToken cancellationToken = default)
     {
+        Validate();
         var features = new Features(
             DueDates: _dueDatesEnabled.HasValue ? new DueDatesFeature(Enabled: _dueDatesEnabled.Value, StartDateEnabled: null, RemapDueDatesEnabled: null, DueDatesForSubtasksRollUpEnabled: null) : null,
             Sprints: _sprintsEnabled.HasValue ? new SprintsFeature(Enabled: _sprintsEnabled.Value, LegacySprintsEnabled: null) : null,

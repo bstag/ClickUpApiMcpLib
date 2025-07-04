@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Goals;
 using ClickUp.Api.Client.Models.RequestModels.Goals;
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -21,6 +23,7 @@ public class KeyResultFluentEditRequest
 
     private readonly string _keyResultId;
     private readonly IGoalsService _goalsService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public KeyResultFluentEditRequest(string keyResultId, IGoalsService goalsService)
     {
@@ -82,8 +85,31 @@ public class KeyResultFluentEditRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_keyResultId))
+        {
+            _validationErrors.Add("KeyResultId is required.");
+        }
+        // For an update, at least one field should ideally be provided.
+        // However, the API might allow an empty update request (noop).
+        // For now, we'll assume the API handles this, but specific checks can be added if needed.
+        // Example:
+        // if (_stepsCurrent == null && string.IsNullOrWhiteSpace(_note) && string.IsNullOrWhiteSpace(_name) && ...)
+        // {
+        //     _validationErrors.Add("At least one property must be set for updating a Key Result.");
+        // }
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<KeyResult> EditAsync(CancellationToken cancellationToken = default)
     {
+        Validate();
         var editKeyResultRequest = new EditKeyResultRequest(
             StepsCurrent: _stepsCurrent,
             Note: _note,

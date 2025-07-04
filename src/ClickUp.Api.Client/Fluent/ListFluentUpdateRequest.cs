@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Lists;
 using ClickUp.Api.Client.Models.RequestModels.Lists;
-
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -21,6 +23,7 @@ public class ListFluentUpdateRequest
 
     private readonly string _listId;
     private readonly IListsService _listsService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public ListFluentUpdateRequest(string listId, IListsService listsService)
     {
@@ -82,10 +85,41 @@ public class ListFluentUpdateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_listId))
+        {
+            _validationErrors.Add("ListId is required.");
+        }
+        // For an update, at least one field should ideally be provided.
+        // However, the API might allow an empty update request (noop).
+        // For now, we'll assume the API handles this.
+        if (string.IsNullOrWhiteSpace(_name) &&
+            string.IsNullOrWhiteSpace(_content) &&
+            string.IsNullOrWhiteSpace(_markdownContent) &&
+            string.IsNullOrWhiteSpace(_assignee) &&
+            !_dueDate.HasValue &&
+            !_dueDateTime.HasValue &&
+            !_priority.HasValue &&
+            string.IsNullOrWhiteSpace(_status) &&
+            !_unsetStatus.HasValue)
+        {
+            _validationErrors.Add("At least one property must be set for updating a List.");
+        }
+
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<ClickUpList> UpdateAsync(CancellationToken cancellationToken = default)
     {
+        Validate();
         var updateListRequest = new UpdateListRequest(
-            Name: _name ?? string.Empty,
+            Name: _name ?? string.Empty, // API might require name, or handle empty if other fields are set.
             Content: _content,
             MarkdownContent: _markdownContent,
             DueDate: _dueDate,

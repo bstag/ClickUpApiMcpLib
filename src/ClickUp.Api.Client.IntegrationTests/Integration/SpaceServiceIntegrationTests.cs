@@ -249,7 +249,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             Assert.False(string.IsNullOrWhiteSpace(result.Id));
             Assert.True(result.MultipleAssignees);
             Assert.NotNull(result.Features);
-            Assert.True(result.Features.DueDates.Enabled);
+            Assert.True(result!.Features.DueDates.Enabled);
 
             if (CurrentTestMode == TestMode.Playback)
             {

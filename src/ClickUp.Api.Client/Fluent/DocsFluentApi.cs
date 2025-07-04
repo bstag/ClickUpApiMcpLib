@@ -131,7 +131,6 @@ public class DocsFluentApi
         int? creatorId = null,
         CancellationToken cancellationToken = default)
     {
-        int? parentTypeValue = parentType.HasValue ? parentType.Value : null;
         var searchRequest = new SearchDocsRequest
         {
             Query = query,
@@ -141,10 +140,8 @@ public class DocsFluentApi
             TaskIds = taskIds?.ToList(),
             IncludeArchived = includeArchived,
             ParentId = parentId,
-            // ParentType = parentTypeValue, // Original line with issue
-#pragma warning disable CS8601 // Possible null reference assignment.
-            ParentType = parentType.HasValue ? parentType.Value : null,
-#pragma warning restore CS8601 // Possible null reference assignment.
+            ParentType = parentType ?? null,
+
             IncludeDeleted = includeDeleted,
             CreatorId = creatorId
         };

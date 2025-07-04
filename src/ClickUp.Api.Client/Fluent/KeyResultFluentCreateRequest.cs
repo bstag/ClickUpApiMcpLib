@@ -1,9 +1,11 @@
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Entities.Goals;
 using ClickUp.Api.Client.Models.RequestModels.Goals;
+using ClickUp.Api.Client.Models.Exceptions;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ClickUp.Api.Client.Fluent;
 
@@ -20,6 +22,7 @@ public class KeyResultFluentCreateRequest
 
     private readonly string _goalId;
     private readonly IGoalsService _goalsService;
+    private readonly List<string> _validationErrors = new List<string>();
 
     public KeyResultFluentCreateRequest(string goalId, IGoalsService goalsService)
     {
@@ -75,14 +78,46 @@ public class KeyResultFluentCreateRequest
         return this;
     }
 
+    public void Validate()
+    {
+        _validationErrors.Clear();
+        if (string.IsNullOrWhiteSpace(_goalId))
+        {
+            _validationErrors.Add("GoalId is required.");
+        }
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _validationErrors.Add("Key Result name is required.");
+        }
+        if (string.IsNullOrWhiteSpace(_type))
+        {
+            _validationErrors.Add("Key Result type is required.");
+        }
+        if ((_owners == null || !_owners.Any()))
+        {
+            _validationErrors.Add("At least one owner is required for the Key Result.");
+        }
+        if (_stepsEnd == null) // Assuming stepsEnd is mandatory for creation
+        {
+            _validationErrors.Add("StepsEnd is required for the Key Result.");
+        }
+        // Add other specific validation rules for KeyResult types if necessary
+
+        if (_validationErrors.Any())
+        {
+            throw new ClickUpRequestValidationException("Request validation failed.", _validationErrors);
+        }
+    }
+
     public async Task<KeyResult> CreateAsync(CancellationToken cancellationToken = default)
     {
+        Validate();
         var createKeyResultRequest = new CreateKeyResultRequest(
             Name: _name ?? string.Empty,
             Owners: _owners ?? new List<int>(),
             Type: _type ?? string.Empty,
             StepsStart: _stepsStart,
-            StepsEnd: _stepsEnd ?? new object(), // Assuming a default empty object is acceptable if null
+            StepsEnd: _stepsEnd ?? new object(),
             Unit: _unit,
             TaskIds: _taskIds,
             ListIds: _listIds,

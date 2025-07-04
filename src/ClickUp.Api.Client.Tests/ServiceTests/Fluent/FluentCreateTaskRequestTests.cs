@@ -203,7 +203,8 @@ public class FluentCreateTaskRequestTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedTask);
 
-        var fluentRequest = new TaskFluentCreateRequest(listId, _mockTasksService.Object);
+        var fluentRequest = new TaskFluentCreateRequest(listId, _mockTasksService.Object)
+            .WithName("Default Task Name"); // Provide the required name
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -213,7 +214,7 @@ public class FluentCreateTaskRequestTests
         _mockTasksService.Verify(x => x.CreateTaskAsync(
             listId,
             It.Is<CreateTaskRequest>(req =>
-                req.Name == string.Empty &&
+                req.Name == "Default Task Name" && // Updated to match value set in test
                 req.Description == null &&
                 req.Assignees == null &&
                 req.GroupAssignees == null &&

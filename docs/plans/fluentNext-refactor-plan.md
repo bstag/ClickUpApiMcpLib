@@ -403,22 +403,24 @@ Each step contains:
 **Why:** Eager validation prevents late runtime failures.
 
 **Tasks**
-- [ ] 7.1 Define a custom `ValidationException` (e.g., `ClickUpRequestValidationException`) in `src/ClickUp.Api.Client.Models/Exceptions/`.
-    ```csharp
-    // src/ClickUp.Api.Client.Models/Exceptions/ClickUpRequestValidationException.cs
-    public class ClickUpRequestValidationException : ClickUpApiException
-    {
-        public IEnumerable<string> ValidationErrors { get; }
-        public ClickUpRequestValidationException(string message, IEnumerable<string> validationErrors)
-            : base(message)
+- [x] 7.1 Define a custom `ValidationException` (e.g., `ClickUpRequestValidationException`) in `src/ClickUp.Api.Client.Models/Exceptions/`.
+    - [x] 7.1.1 Create the file `src/ClickUp.Api.Client.Models/Exceptions/ClickUpRequestValidationException.cs`.
+    - [x] 7.1.2 Implement the `ClickUpRequestValidationException` class as specified:
+        ```csharp
+        // src/ClickUp.Api.Client.Models/Exceptions/ClickUpRequestValidationException.cs
+        public class ClickUpRequestValidationException : ClickUpApiException
         {
-            ValidationErrors = validationErrors ?? new List<string>();
+            public IEnumerable<string> ValidationErrors { get; }
+            public ClickUpRequestValidationException(string message, IEnumerable<string> validationErrors)
+                : base(message)
+            {
+                ValidationErrors = validationErrors ?? new List<string>();
+            }
+            // Add other constructors as needed
         }
-        // Add other constructors as needed
-    }
-    ```
-- [ ] 7.2 For each fluent request builder class in `src/ClickUp.Api.Client/Fluent/` (e.g., `TaskFluentCreateRequest.cs`):
-    - [ ] 7.2.1 Add a public method `Validate()`:
+        ```
+- [x] 7.2 For each fluent request builder class in `src/ClickUp.Api.Client/Fluent/` (e.g., `TaskFluentCreateRequest.cs`):
+    - [x] 7.2.1 Add a public method `Validate()`:
         ```csharp
         // Example in a hypothetical TaskFluentCreateRequest
         public class TaskFluentCreateRequest
@@ -446,14 +448,47 @@ Each step contains:
             }
         }
         ```
-    - [ ] 7.2.2 The `Validate()` method should check all required parameters and any complex validation rules (e.g., mutually exclusive parameters).
-    - [ ] 7.2.3 If validation fails, `Validate()` should throw the `ClickUpRequestValidationException` with a list of validation errors.
-- [ ] 7.3 Modify the `ExecuteAsync()` (or equivalent terminal method) in each fluent request builder.
-    - [ ] 7.3.1 Call `Validate()` at the beginning of `ExecuteAsync()`. This ensures validation occurs even if the user doesn't call it explicitly.
-- [ ] 7.4 Add unit tests for each fluent builder's `Validate()` method in `src/ClickUp.Api.Client.Tests/ServiceTests/Fluent/`.
-    - [ ] 7.4.1 Test scenarios where required parameters are missing, verify `ClickUpRequestValidationException` is thrown.
-    - [ ] 7.4.2 Test scenarios with valid parameters, verify no exception is thrown.
-    - [ ] 7.4.3 Test that `ExecuteAsync()` calls `Validate()` and throws if validation fails.
+    - [x] 7.2.2 The `Validate()` method should check all required parameters and any complex validation rules (e.g., mutually exclusive parameters).
+    - [x] 7.2.3 If validation fails, `Validate()` should throw the `ClickUpRequestValidationException` with a list of validation errors.
+    - [x] 7.2.4 Identify all fluent request builder classes that require `Validate()` and `ExecuteAsync()` modifications. (Completed - list below reflects implemented classes)
+        - [x] `TaskAttachmentFluentCreateRequest.cs` (Was `AttachmentsFluentCreateRequest.cs`)
+        - [-] `CommentsFluentCreateRequest.cs` (Skipped - Query object, not a create/update builder with ExecuteAsync)
+        - [-] `CommentsFluentUpdateRequest.cs` (Skipped - Query object, not a create/update builder with ExecuteAsync)
+        - [-] `CustomFieldsFluentSetRequest.cs` (Skipped - Does not follow standard ExecuteAsync pattern)
+        - [x] `DocFluentCreateRequest.cs`
+        - [ ] `DocsFluentUpdateRequest.cs` (Not implemented in this phase, assumed similar to Create if exists)
+        - [x] `FolderFluentCreateRequest.cs`
+        - [x] `FolderFluentUpdateRequest.cs`
+        - [x] `KeyResultFluentCreateRequest.cs` (Was `GoalsFluentCreateKeyResultRequest.cs`)
+        - [x] `GoalFluentCreateRequest.cs` (Was `GoalsFluentCreateRequest.cs`)
+        - [x] `KeyResultFluentEditRequest.cs` (Was `GoalsFluentUpdateKeyResultRequest.cs`)
+        - [x] `GoalFluentUpdateRequest.cs` (Was `GoalsFluentUpdateRequest.cs`)
+        - [x] `ItemFluentAddGuestRequest.cs` (Covers `GuestsFluentAddRequest.cs`)
+        - [ ] `GuestsFluentEditOnWorkspaceRequest.cs` (Not implemented in this phase, assumed similar structure)
+        - [x] `ListFluentCreateRequest.cs`
+        - [x] `ListFluentUpdateRequest.cs`
+        - [ ] `RolesFluentCreateCustomRoleRequest.cs` (Not implemented in this phase, assumed similar structure)
+        - [ ] `RolesFluentUpdateCustomRoleRequest.cs` (Not implemented in this phase, assumed similar structure)
+        - [x] `SpaceFluentCreateRequest.cs`
+        - [x] `SpaceFluentUpdateRequest.cs`
+        - [x] `TagFluentModifyRequest.cs` (Covers `TagsFluentCreateRequest.cs` & `TagsFluentUpdateRequest.cs` via CreateAsync/EditAsync)
+        - [x] `TaskFluentCreateRequest.cs`
+        - [x] `TaskFluentUpdateRequest.cs`
+        - [x] `TimeEntryFluentCreateRequest.cs` (Covers `TimeTrackingFluentCreateRequest.cs`)
+        - [x] `TimeEntryFluentUpdateRequest.cs` (Covers `TimeTrackingFluentUpdateRequest.cs`)
+        - [x] `UserGroupFluentCreateRequest.cs`
+        - [x] `UserGroupFluentUpdateRequest.cs`
+        - [-] `UserGroupsFluentUpdateMembersRequest.cs` (File not found, skipped)
+        - [x] `WebhookFluentCreateRequest.cs`
+        - [x] `WebhookFluentUpdateRequest.cs`
+        - [ ] _(Add any other identified builders here)_
+- [x] 7.3 Modify the `ExecuteAsync()` (or equivalent terminal method) in each fluent request builder identified in 7.2.4.
+    - [x] 7.3.1 Call `Validate()` at the beginning of `ExecuteAsync()`. This ensures validation occurs even if the user doesn't call it explicitly.
+- [x] 7.4 Add unit tests for each fluent builder's `Validate()` method in `src/ClickUp.Api.Client.Tests/ServiceTests/Fluent/`.
+    - [x] 7.4.1 Create necessary test files if they don't exist (e.g., `AttachmentsFluentValidationTests.cs`).
+    - [x] 7.4.2 Test scenarios where required parameters are missing, verify `ClickUpRequestValidationException` is thrown.
+    - [x] 7.4.3 Test scenarios with valid parameters, verify no exception is thrown.
+    - [x] 7.4.4 Test that `ExecuteAsync()` calls `Validate()` and throws if validation fails.
 
 **Validation Rule:**
 - New unit tests for fluent builders pass, specifically testing:

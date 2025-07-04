@@ -5,7 +5,9 @@ using ClickUp.Api.Client.Models.RequestModels.Goals;
 
 using Moq;
 
+using System; // Required for DateTimeOffset
 using System.Collections.Generic;
+using System.Linq; // Required for SequenceEqual
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -61,7 +63,7 @@ public class FluentCreateGoalRequestTests
             PercentCompleted: 0,
             History: null,
             PrettyUrl: null
-        ); // Mock a Goal object
+        );
 
         _mockGoalsService.Setup(x => x.CreateGoalAsync(
             It.IsAny<string>(),
@@ -129,7 +131,10 @@ public class FluentCreateGoalRequestTests
             PercentCompleted: 0,
             History: null,
             PrettyUrl: null
-        ); // Mock a Goal object
+        );
+
+        var dueDateMillis = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var ownersList = new List<int> { 1 };
 
         _mockGoalsService.Setup(x => x.CreateGoalAsync(
             It.IsAny<string>(),
@@ -138,7 +143,9 @@ public class FluentCreateGoalRequestTests
             .ReturnsAsync(expectedGoal);
 
         var fluentRequest = new GoalFluentCreateRequest(workspaceId, _mockGoalsService.Object)
-            .WithName(name);
+            .WithName(name)
+            .WithDueDate(dueDateMillis)
+            .WithOwners(ownersList);
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -149,12 +156,13 @@ public class FluentCreateGoalRequestTests
             workspaceId,
             It.Is<CreateGoalRequest>(req =>
                 req.Name == name &&
-                req.DueDate == 0 && // Default value
-                req.Description == string.Empty && // Default value
-                req.MultipleOwners == false && // Default value
-                !req.Owners.Any() && // Default value
+                req.DueDate == dueDateMillis &&
+                req.Description == string.Empty &&
+                req.MultipleOwners == false &&
+                req.Owners.SequenceEqual(ownersList) &&
                 req.Color == null &&
-                req.FolderId == null),
+                req.FolderId == null &&
+                req.TeamId == workspaceId),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -62,7 +62,8 @@ public class FluentCreateFolderRequestTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedFolder);
 
-        var fluentRequest = new FolderFluentCreateRequest(spaceId, _mockFoldersService.Object);
+        var fluentRequest = new FolderFluentCreateRequest(spaceId, _mockFoldersService.Object)
+            .WithName("Default Folder Name"); // Required
 
         // Act
         var result = await fluentRequest.CreateAsync();
@@ -71,7 +72,8 @@ public class FluentCreateFolderRequestTests
         Assert.Equal(expectedFolder, result);
         _mockFoldersService.Verify(x => x.CreateFolderAsync(
             spaceId,
-            It.Is<CreateFolderRequest>(req => req.Name == string.Empty),
+            It.Is<CreateFolderRequest>(req =>
+                req.Name == "Default Folder Name"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }
