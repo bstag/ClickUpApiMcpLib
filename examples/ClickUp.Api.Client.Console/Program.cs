@@ -212,9 +212,8 @@ public class Program
                             {
                                 displayText = commentTextToDisplay.Substring(0, Math.Min(50, commentTextToDisplay.Length)) + "...";
                             }
-#pragma warning disable CS8602 // displayText is guaranteed non-null here due to initialization and check.
                             Log.Information("- Comment ID: {CommentId}, Text: {CommentText}", comment.Id ?? "UnknownId", displayText);
-#pragma warning restore CS8602
+
                         }
                     } else Log.Warning("[COMMENTS] No comments found for task {TaskId}", taskIdForCommentOps);
                 }

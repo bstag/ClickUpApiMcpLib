@@ -140,9 +140,8 @@ public class DocsFluentApi
             TaskIds = taskIds?.ToList(),
             IncludeArchived = includeArchived,
             ParentId = parentId,
-#pragma warning disable CS8601 // Types are both int?, compiler warning seems incorrect.
             ParentType = parentType ?? null,
-#pragma warning restore CS8601
+
             IncludeDeleted = includeDeleted,
             CreatorId = creatorId
         };
