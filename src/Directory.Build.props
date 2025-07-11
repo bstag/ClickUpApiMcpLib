@@ -1,0 +1,73 @@
+<Project>
+  
+  <!-- Common properties for all projects -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <!-- Package metadata -->
+  <PropertyGroup>
+    <Company>Stagware</Company>
+    <Authors>Stagware Development Team</Authors>
+    <Product>ClickUp .NET SDK</Product>
+    <Description>A comprehensive .NET SDK for the ClickUp API, providing type-safe access to all ClickUp features with built-in resilience and modern async patterns.</Description>
+    <Copyright>© 2024 Stagware. All rights reserved.</Copyright>
+    
+    <!-- Repository information -->
+    <RepositoryUrl>https://github.com/stagware/ClickUpApiMcpLib</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>main</RepositoryBranch>
+    
+    <!-- Package metadata -->
+    <PackageProjectUrl>https://github.com/stagware/ClickUpApiMcpLib</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>clickup;api;sdk;dotnet;csharp;rest;client;productivity;project-management</PackageTags>
+    <PackageReleaseNotes>See https://github.com/stagware/ClickUpApiMcpLib/releases for release notes.</PackageReleaseNotes>
+    
+    <!-- Documentation -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- GitVersion integration -->
+  <PropertyGroup>
+    <Version Condition="'$(GitVersion_NuGetVersion)' != ''">$(GitVersion_NuGetVersion)</Version>
+    <AssemblyVersion Condition="'$(GitVersion_AssemblySemVer)' != ''">$(GitVersion_AssemblySemVer)</AssemblyVersion>
+    <FileVersion Condition="'$(GitVersion_AssemblySemFileVer)' != ''">$(GitVersion_AssemblySemFileVer)</FileVersion>
+    <InformationalVersion Condition="'$(GitVersion_InformationalVersion)' != ''">$(GitVersion_InformationalVersion)</InformationalVersion>
+    <PackageVersion Condition="'$(GitVersion_NuGetVersion)' != ''">$(GitVersion_NuGetVersion)</PackageVersion>
+  </PropertyGroup>
+
+  <!-- Fallback versions when GitVersion is not available -->
+  <PropertyGroup Condition="'$(GitVersion_NuGetVersion)' == ''">
+    <Version>0.1.0-local</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.0-local+$(GitCommitId)</InformationalVersion>
+    <PackageVersion>0.1.0-local</PackageVersion>
+  </PropertyGroup>
+
+  <!-- Source Link support -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <!-- Package files -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)../icon.png" Pack="true" PackagePath="\" Condition="Exists('$(MSBuildThisFileDirectory)../icon.png')" />
+    <None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="\" Condition="Exists('$(MSBuildThisFileDirectory)../README.md')" />
+    <None Include="$(MSBuildThisFileDirectory)../LICENSE" Pack="true" PackagePath="\" Condition="Exists('$(MSBuildThisFileDirectory)../LICENSE')" />
+  </ItemGroup>
+
+</Project>

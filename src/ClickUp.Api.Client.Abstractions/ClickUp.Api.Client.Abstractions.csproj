@@ -1,11 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <IsPackable>true</IsPackable>
+    <PackageId>Stagware.ClickUp.Api.Client.Abstractions</PackageId>
+    <Title>ClickUp .NET SDK - Abstractions</Title>
+    <Description>Abstractions and interfaces for the ClickUp .NET SDK, providing contracts for dependency injection and extensibility.</Description>
   </PropertyGroup>
 
   <ItemGroup>

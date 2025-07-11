@@ -1,10 +1,12 @@
 # ClickUp .NET SDK for ClickUp REST API
 
-[![NuGet](https://img.shields.io/nuget/v/ClickUp.Api.Client.svg)](https://www.nuget.org/packages/ClickUp.Api.Client)
+[![NuGet](https://img.shields.io/nuget/v/Stagware.ClickUp.Api.Client.svg)](https://www.nuget.org/packages/Stagware.ClickUp.Api.Client)
 [![Build](https://github.com/your-org/ClickUpApiMcpLib/actions/workflows/build.yml/badge.svg)](https://github.com/your-org/ClickUpApiMcpLib/actions/workflows/build.yml)
 [![License](https://img.shields.io/github/license/your-org/ClickUpApiMcpLib.svg)](LICENSE)
 
 Typed, resilient, and dependency-injection-ready .NET 9 library for the full ClickUp public REST API.
+
+> **Note:** This library is currently in pre-release (0.x versions) while the API stabilizes. Breaking changes may occur between minor versions until 1.0.0 is released.
 
 ---
 
@@ -28,7 +30,7 @@ Typed, resilient, and dependency-injection-ready .NET 9 library for the full Cli
 
 ### 1. Install via NuGet
 ```powershell
-> dotnet add package ClickUp.Api.Client
+> dotnet add package Stagware.ClickUp.Api.Client
 ```
 
 ### 2. Configure DI & Make Your First Call
@@ -51,6 +53,17 @@ Console.WriteLine($"Hello {me.Username} 👋");
 ```
 
 That's it! You now have fully typed access to every ClickUp endpoint.
+
+## 📚 Documentation
+
+Comprehensive documentation is available at: **[https://your-username.github.io/ClickUpApiMcpLib/](https://your-username.github.io/ClickUpApiMcpLib/)**
+
+The documentation includes:
+- **[Getting Started Guide](https://your-username.github.io/ClickUpApiMcpLib/articles/getting-started.html)** - Installation and setup
+- **[API Reference](https://your-username.github.io/ClickUpApiMcpLib/api/)** - Complete API documentation
+- **[Authentication Guide](https://your-username.github.io/ClickUpApiMcpLib/articles/authentication.html)** - OAuth and Personal Access Tokens
+- **[Error Handling](https://your-username.github.io/ClickUpApiMcpLib/articles/error-handling.html)** - Exception handling patterns
+- **[Pagination](https://your-username.github.io/ClickUpApiMcpLib/articles/pagination.html)** - Working with paginated responses
 
 ---
 

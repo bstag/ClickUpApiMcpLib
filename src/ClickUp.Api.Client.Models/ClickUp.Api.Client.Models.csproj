@@ -1,11 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <IsPackable>true</IsPackable>
+    <PackageId>Stagware.ClickUp.Api.Client.Models</PackageId>
+    <Title>ClickUp .NET SDK - Models</Title>
+    <Description>Strongly-typed models and DTOs for the ClickUp .NET SDK, including request/response models, entities, and exceptions.</Description>
   </PropertyGroup>
 
 </Project>

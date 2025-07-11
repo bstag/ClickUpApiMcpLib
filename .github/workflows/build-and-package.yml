@@ -1,0 +1,172 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  NuGetDirectory: ${{ github.workspace}}/nuget
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  create_nuget:
+    runs-on: ubuntu-latest
+    name: Create NuGet packages
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Get all history to allow GitVersion to work
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v1.1.1
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      uses: gittools/actions/gitversion/execute@v1.1.1
+      id: gitversion
+      with:
+        useConfigFile: true
+
+    - name: Display GitVersion outputs
+      run: |
+        echo "Version: ${{ steps.gitversion.outputs.semVer }}"
+        echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}"
+        echo "AssemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}"
+        echo "InformationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}"
+
+    - name: Restore dependencies
+      run: dotnet restore src/ClickUp.Api.sln
+
+    - name: Build solution
+      run: |
+        dotnet build src/ClickUp.Api.sln --configuration Release --no-restore `
+          /p:Version=${{ steps.gitversion.outputs.nuGetVersion }} `
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} `
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} `
+          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }}
+
+    - name: Run tests
+      run: dotnet test src/ClickUp.Api.sln --configuration Release --no-build --verbosity normal --filter "FullyQualifiedName!~IntegrationTest"
+
+    - name: Create NuGet directory
+      run: mkdir -p ${{ env.NuGetDirectory }}
+
+    - name: Check for icon file
+      id: check_icon
+      run: |
+        if (Test-Path "icon.png") {
+          echo "icon_param=" >> $env:GITHUB_OUTPUT
+          echo "Icon file found"
+        } else {
+          echo "icon_param=/p:PackageIcon=" >> $env:GITHUB_OUTPUT
+          echo "Warning: icon.png not found, packages will be created without icon"
+        }
+
+    - name: Pack NuGet packages
+      run: |
+        dotnet pack src/ClickUp.Api.Client.Models/ClickUp.Api.Client.Models.csproj --configuration Release --no-build --output ${{ env.NuGetDirectory }} `
+          /p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }} `
+          /p:Version=${{ steps.gitversion.outputs.nuGetVersion }} `
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} `
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} `
+          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} `
+          ${{ steps.check_icon.outputs.icon_param }}
+        
+        dotnet pack src/ClickUp.Api.Client.Abstractions/ClickUp.Api.Client.Abstractions.csproj --configuration Release --no-build --output ${{ env.NuGetDirectory }} `
+          /p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }} `
+          /p:Version=${{ steps.gitversion.outputs.nuGetVersion }} `
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} `
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} `
+          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} `
+          ${{ steps.check_icon.outputs.icon_param }}
+        
+        dotnet pack src/ClickUp.Api.Client/ClickUp.Api.Client.csproj --configuration Release --no-build --output ${{ env.NuGetDirectory }} `
+          /p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }} `
+          /p:Version=${{ steps.gitversion.outputs.nuGetVersion }} `
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} `
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} `
+          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} `
+          ${{ steps.check_icon.outputs.icon_param }}
+
+    - name: List created packages
+      run: |
+        echo "Created NuGet packages:"
+        ls -la ${{ env.NuGetDirectory }}
+
+    - name: Upload NuGet packages as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-packages-${{ steps.gitversion.outputs.nuGetVersion }}
+        path: ${{ env.NuGetDirectory }}/*.nupkg
+        retention-days: 30
+
+    - name: Upload Symbol packages as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: symbol-packages-${{ steps.gitversion.outputs.nuGetVersion }}
+        path: ${{ env.NuGetDirectory }}/*.snupkg
+        retention-days: 30
+        if-no-files-found: ignore
+
+  validate_nuget:
+    runs-on: ubuntu-latest
+    needs: [ create_nuget ]
+    name: Validate NuGet packages
+    
+    steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Download NuGet packages
+      uses: actions/download-artifact@v4
+      with:
+        pattern: nuget-packages-*
+        path: ${{ env.NuGetDirectory }}
+        merge-multiple: true
+
+    - name: Install NuGet package validator
+      run: dotnet tool install --global dotnet-validate --version 0.0.1-preview.304
+
+    - name: Validate packages
+      run: |
+        echo "Validating NuGet packages..."
+        for package in ${{ env.NuGetDirectory }}/*.nupkg; do
+          echo "Validating: $package"
+          dotnet validate package local "$package" || echo "Validation failed for $package"
+        done
+
+    - name: Test package installation
+      run: |
+        # Create a temporary test project to verify package installation
+        mkdir -p /tmp/test-install
+        cd /tmp/test-install
+        dotnet new console
+        
+        # Try to install the main package (this will test dependency resolution)
+        echo "Testing package installation..."
+        for package in ${{ env.NuGetDirectory }}/Stagware.ClickUp.Api.Client.*.nupkg; do
+          if [[ "$package" != *".symbols."* ]]; then
+            echo "Testing installation of: $package"
+            dotnet add package "$package" --source ${{ env.NuGetDirectory }} || echo "Installation test failed for $package"
+          fi
+        done
