@@ -7,7 +7,7 @@ using System.Net.Http;
 
 namespace ClickUp.Api.Client.Fluent;
 
-public class ClickUpClient
+public class ClickUpClient : IDisposable
 {
     private readonly IApiConnection _apiConnection;
     private readonly IAttachmentsService _attachmentsService;
@@ -95,8 +95,52 @@ public class ClickUpClient
     public static ClickUpClient Create(string apiToken, ILoggerFactory loggerFactory)
     {
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(apiToken);
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiToken);
         var apiConnection = new ApiConnection(httpClient);
         return new ClickUpClient(apiConnection, loggerFactory);
+    }
+
+    private bool _disposed = false;
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed && disposing)
+        {
+            // Dispose services that implement IDisposable
+            (_attachmentsService as IDisposable)?.Dispose();
+            (_authorizationService as IDisposable)?.Dispose();
+            (_chatService as IDisposable)?.Dispose();
+            (_commentService as IDisposable)?.Dispose();
+            (_customFieldsService as IDisposable)?.Dispose();
+            (_docsService as IDisposable)?.Dispose();
+            (_foldersService as IDisposable)?.Dispose();
+            (_goalsService as IDisposable)?.Dispose();
+            (_guestsService as IDisposable)?.Dispose();
+            (_listsService as IDisposable)?.Dispose();
+            (_membersService as IDisposable)?.Dispose();
+            (_rolesService as IDisposable)?.Dispose();
+            (_sharedHierarchyService as IDisposable)?.Dispose();
+            (_spacesService as IDisposable)?.Dispose();
+            (_tagsService as IDisposable)?.Dispose();
+            (_taskChecklistsService as IDisposable)?.Dispose();
+            (_taskRelationshipsService as IDisposable)?.Dispose();
+            (_tasksService as IDisposable)?.Dispose();
+            (_templatesService as IDisposable)?.Dispose();
+            (_timeTrackingService as IDisposable)?.Dispose();
+            (_userGroupsService as IDisposable)?.Dispose();
+            (_usersService as IDisposable)?.Dispose();
+            (_viewsService as IDisposable)?.Dispose();
+            (_webhooksService as IDisposable)?.Dispose();
+            (_workspacesService as IDisposable)?.Dispose();
+            (_apiConnection as IDisposable)?.Dispose();
+
+            _disposed = true;
+        }
     }
 }

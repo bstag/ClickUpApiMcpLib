@@ -61,7 +61,8 @@ namespace ClickUp.Api.Client.Extensions
                 return new AuthenticationDelegatingHandler(sp.GetRequiredService<IOptions<ClickUpClientOptions>>());
             });
 
-            var jitterer = new Random(); // For jitter in retry policy
+            // Use ThreadLocal<Random> for thread-safe jitter in retry policy
+            var threadLocalRandom = new ThreadLocal<Random>(() => new Random());
 
             var httpClientBuilder = services.AddHttpClient<IApiConnection, ApiConnection>((sp, client) =>
             {
@@ -69,13 +70,13 @@ namespace ClickUp.Api.Client.Extensions
                 if (string.IsNullOrWhiteSpace(clientOptions.BaseAddress))
                 {
                     // Default to ClickUp's v2 API base address if not specified
-                    clientOptions.BaseAddress = "https://api.clickup.com/api/v2/";
+                    clientOptions.BaseAddress = ClickUpDefaults.DefaultBaseAddress;
                 }
                 client.BaseAddress = new Uri(clientOptions.BaseAddress);
-                client.DefaultRequestHeaders.Add("User-Agent", "ClickUp.Api.Client.Net");
+                client.DefaultRequestHeaders.Add("User-Agent", ClickUpDefaults.DefaultUserAgent);
             })
                 .AddHttpMessageHandler<AuthenticationDelegatingHandler>()
-                .AddPolicyHandler((sp, request) => GetRetryPolicy(sp, jitterer))
+                .AddPolicyHandler((sp, request) => GetRetryPolicy(sp, threadLocalRandom))
                 .AddPolicyHandler((sp, request) => GetCircuitBreakerPolicy(sp));
 
             // Register all the services
@@ -108,7 +109,7 @@ namespace ClickUp.Api.Client.Extensions
             return httpClientBuilder;
         }
 
-        private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, Random jitterer)
+        private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, ThreadLocal<Random> threadLocalRandom)
         {
             var pollyOptions = serviceProvider.GetRequiredService<IOptions<ClickUpPollyOptions>>().Value;
             var logger = serviceProvider.GetRequiredService<ILogger<ApiConnection>>(); // Changed to ILogger<ApiConnection>
@@ -154,8 +155,9 @@ namespace ClickUp.Api.Client.Extensions
                         }
 
                         // Default exponential backoff with jitter
+                        var random = threadLocalRandom.Value ?? new Random();
                         return TimeSpan.FromSeconds(Math.Pow(pollyOptions.RetryBaseDelay.TotalSeconds, retryAttempt))
-                               + TimeSpan.FromMilliseconds(jitterer.Next(0, 500));
+                               + TimeSpan.FromMilliseconds(random.Next(0, ClickUpDefaults.DefaultJitterRangeMs));
                     },
                     onRetryAsync: (outcome, timespan, retryAttempt, context) =>
                     {

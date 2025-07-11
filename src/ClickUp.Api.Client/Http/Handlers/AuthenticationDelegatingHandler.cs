@@ -45,8 +45,9 @@ namespace ClickUp.Api.Client.Http.Handlers
             }
             else if (!string.IsNullOrWhiteSpace(currentOptions.PersonalAccessToken))
             {
-                // Personal Access Token is used directly as the header value
-                request.Headers.Authorization = new AuthenticationHeaderValue(currentOptions.PersonalAccessToken);
+                // ClickUp Personal Access Token uses Bearer scheme as well
+                // See: https://clickup.com/api/developer-portal/authentication/
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", currentOptions.PersonalAccessToken);
             }
             else
             {

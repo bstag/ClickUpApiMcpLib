@@ -14,7 +14,7 @@ public class ClickUpPollyOptions
     /// <remarks>
     /// Default is 3.
     /// </remarks>
-    public int RetryCount { get; set; } = 3;
+    public int RetryCount { get; set; } = ClickUpDefaults.DefaultRetryCount;
 
     /// <summary>
     /// Gets or sets the base delay for the first retry. Subsequent retries will use exponential backoff.
@@ -22,7 +22,7 @@ public class ClickUpPollyOptions
     /// <remarks>
     /// Default is 1 second.
     /// </remarks>
-    public TimeSpan RetryBaseDelay { get; set; } = TimeSpan.FromSeconds(1);
+    public TimeSpan RetryBaseDelay { get; set; } = TimeSpan.FromSeconds(ClickUpDefaults.DefaultRetryDelaySeconds);
 
     /// <summary>
     /// Gets or sets the number of consecutive failures before the circuit breaker opens.
@@ -30,7 +30,7 @@ public class ClickUpPollyOptions
     /// <remarks>
     /// Default is 5.
     /// </remarks>
-    public int CircuitBreakerFailureThreshold { get; set; } = 5;
+    public int CircuitBreakerFailureThreshold { get; set; } = ClickUpDefaults.DefaultCircuitBreakerThreshold;
 
     /// <summary>
     /// Gets or sets the duration the circuit will stay open before transitioning to half-open.
@@ -38,7 +38,7 @@ public class ClickUpPollyOptions
     /// <remarks>
     /// Default is 30 seconds.
     /// </remarks>
-    public TimeSpan CircuitBreakerBreakDuration { get; set; } = TimeSpan.FromSeconds(30);
+    public TimeSpan CircuitBreakerBreakDuration { get; set; } = TimeSpan.FromSeconds(ClickUpDefaults.DefaultCircuitBreakerBreakDurationSeconds);
 
     /// <summary>
     /// Gets or sets the duration the circuit will stay in the half-open state, allowing a single test request.
@@ -51,5 +51,5 @@ public class ClickUpPollyOptions
     /// The half-open state allows one request after `durationOfBreak`. If it succeeds, the circuit closes. If it fails, it re-opens for `durationOfBreak` again.
     /// This property is kept for conceptual clarity if more advanced scenarios are built later.
     /// </remarks>
-    public TimeSpan CircuitBreakerHalfOpenDuration { get; set; } = TimeSpan.FromSeconds(10);
+    public TimeSpan CircuitBreakerHalfOpenDuration { get; set; } = TimeSpan.FromSeconds(ClickUpDefaults.DefaultCircuitBreakerHalfOpenDurationSeconds);
 }

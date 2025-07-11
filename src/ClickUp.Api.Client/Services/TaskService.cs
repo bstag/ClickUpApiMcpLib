@@ -46,7 +46,7 @@ namespace ClickUp.Api.Client.Services
             Action<GetTasksRequestParameters>? configureParameters = null,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(listId)) throw new ArgumentNullException(nameof(listId));
+            ValidationHelper.ValidateId(listId, nameof(listId));
 
             var parameters = new GetTasksRequestParameters();
             configureParameters?.Invoke(parameters);
@@ -67,11 +67,11 @@ namespace ClickUp.Api.Client.Services
                 return PagedResult<CuTask>.Empty(currentPage);
             }
 
-            var items = response.Tasks ?? Enumerable.Empty<CuTask>();
+            var itemsList = (response.Tasks ?? Enumerable.Empty<CuTask>()).ToList();
             return new PagedResult<CuTask>(
-                items,
+                itemsList,
                 currentPage,
-                items.Count(),
+                itemsList.Count,
                 response.LastPage == false
             );
         }
@@ -84,6 +84,11 @@ namespace ClickUp.Api.Client.Services
             string? teamId = null,
             CancellationToken cancellationToken = default)
         {
+            ValidationHelper.ValidateId(listId, nameof(listId));
+            if (createTaskRequest == null) throw new ArgumentNullException(nameof(createTaskRequest));
+            ValidationHelper.ValidateRequiredString(createTaskRequest.Name, nameof(createTaskRequest.Name));
+            if (!string.IsNullOrEmpty(teamId)) ValidationHelper.ValidateId(teamId, nameof(teamId));
+
             _logger.LogInformation("Creating task in list ID: {ListId} with name: {TaskName}", listId, createTaskRequest.Name);
             var endpoint = $"list/{listId}/task";
             var queryParamsList = new List<KeyValuePair<string, string>>();

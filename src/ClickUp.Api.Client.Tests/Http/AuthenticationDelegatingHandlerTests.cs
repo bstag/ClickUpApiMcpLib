@@ -56,8 +56,8 @@ namespace ClickUp.Api.Client.Tests.Http
 
             // Assert
             Assert.NotNull(request.Headers.Authorization);
-            Assert.Equal(DummyPersonalAccessToken, request.Headers.Authorization.Scheme); // PAT is used as the scheme itself
-            Assert.Null(request.Headers.Authorization.Parameter);
+            Assert.Equal("Bearer", request.Headers.Authorization.Scheme); // PAT now uses Bearer scheme
+            Assert.Equal(DummyPersonalAccessToken, request.Headers.Authorization.Parameter);
             mockInnerHandler.Protected().Verify("SendAsync", Times.Once(), ItExpr.Is<HttpRequestMessage>(req => req == request), ItExpr.IsAny<CancellationToken>());
         }
 

@@ -25,7 +25,7 @@ public class ClickUpClientOptions
     /// Gets or sets the base address for the ClickUp API.
     /// Defaults to "https://api.clickup.com/api/v2/".
     /// </summary>
-    public string BaseAddress { get; set; } = "https://api.clickup.com/api/v2/";
+    public string BaseAddress { get; set; } = ClickUpDefaults.DefaultBaseAddress;
 
     /// <summary>
     /// Gets or sets the Workspace ID (Team ID) to be used in integration tests.
