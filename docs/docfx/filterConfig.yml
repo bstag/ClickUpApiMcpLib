@@ -1,0 +1,28 @@
+apiRules:
+- exclude:
+    uidRegex: ^System\.
+    type: Namespace
+- exclude:
+    uidRegex: ^Microsoft\.
+    type: Namespace
+- exclude:
+    uidRegex: \.Tests\.
+    type: Namespace
+- exclude:
+    uidRegex: \.IntegrationTests\.
+    type: Namespace
+- exclude:
+    hasAttribute:
+      uid: System.Runtime.CompilerServices.CompilerGeneratedAttribute
+- exclude:
+    hasAttribute:
+      uid: System.CodeDom.Compiler.GeneratedCodeAttribute
+- include:
+    uidRegex: ^ClickUp\.Api\.Client
+    type: Namespace
+- include:
+    uidRegex: ^ClickUp\.Api\.Client\.Abstractions
+    type: Namespace
+- include:
+    uidRegex: ^ClickUp\.Api\.Client\.Models
+    type: Namespace

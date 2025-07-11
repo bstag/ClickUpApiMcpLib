@@ -43,8 +43,16 @@ public class Program
         builder.Services.Configure<ClickUpClientOptions>(
             builder.Configuration.GetSection("ClickUpClient"));
 
-        // Add the ClickUpClient services
-        builder.Services.AddClickUpClient();
+        // Add the ClickUpClient services with configuration
+        builder.Services.AddClickUpClient(options =>
+        {
+            // Configure from appsettings.json
+            builder.Configuration.GetSection("ClickUpClient").Bind(options);
+            
+            // Or configure directly
+            // options.PersonalAccessToken = "your_token_here";
+            // options.BaseAddress = "https://api.clickup.com/api/v2/"; // Optional, this is the default
+        });
 
         // ... other services
 

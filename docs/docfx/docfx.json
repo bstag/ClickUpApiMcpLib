@@ -13,7 +13,11 @@
       ],
       "dest": "api",
       "disableGitFeatures": false,
-      "disableDefaultFilter": false
+      "disableDefaultFilter": false,
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "filter": "filterConfig.yml"
     }
   ],
   "build": {
@@ -35,7 +39,8 @@
     "resource": [
       {
         "files": [
-          "images/**"
+          "images/**",
+          "styles/**"
         ],
         "exclude": [
           "obj/**",
@@ -49,20 +54,30 @@
       "modern"
     ],
     "globalMetadata": {
-      "_appTitle": "ClickUp.Api.Client SDK Documentation",
+      "_appTitle": "ClickUp .NET SDK Documentation",
       "_appName": "ClickUp.Api.Client",
       "_appLogoPath": "images/logo.png",
       "_appFaviconPath": "images/favicon.ico",
-      "_appFooter": "Â© 2024 Your Company Name. All rights reserved.",
+      "_appFooter": "© 2024 ClickUp .NET SDK Contributors. Licensed under MIT License.",
       "_gitContribute": {
-        "repo": "https://github.com/example/clickup-api-client-dotnet"
+        "repo": "https://github.com/your-org/ClickUpApiMcpLib",
+        "branch": "main"
       },
+      "_gitUrlPattern": "github",
       "_enableSearch": true,
-      "disableGitFeatures": false
+      "_enableNewTab": true,
+      "disableGitFeatures": false,
+      "_disableContribution": false,
+      "_disableBreadcrumb": false,
+      "_disableAffix": false,
+      "_disableNextArticle": false,
+      "_lang": "en-us"
     },
     "globalMetadataFiles": [],
     "fileMetadataFiles": [],
-    "postProcessors": [],
-    "keepFileLink": false
+    "postProcessors": ["ExtractSearchIndex"],
+    "keepFileLink": false,
+    "cleanupCacheHistory": false,
+    "disableGitFeatures": false
   }
 }

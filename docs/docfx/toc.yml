@@ -16,6 +16,8 @@
   href: articles/semantic-kernel-integration.md
 - name: Documentation Workflow
   href: articles/workflow.md
+- name: DocFX Setup Guide
+  href: articles/docfx-setup.md
 - name: API Reference
   href: api/
   topicHref: api/index.md
