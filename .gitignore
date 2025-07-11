@@ -406,4 +406,5 @@ FodyWeavers.xsd
 *.sln.iml
 .DS_Store
 .idea/*
-src/.idea/*
+src/.idea/*# Generated XML documentation files
+**/.xml

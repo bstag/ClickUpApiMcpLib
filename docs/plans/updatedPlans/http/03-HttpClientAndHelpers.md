@@ -50,7 +50,7 @@ This document details the plan for setting up and configuring `HttpClient`, impl
 
     // Typed HttpClient is effectively IApiConnection / ApiConnection
     ```
-    *(Note: `src/ClickUp.Api.Client/DependencyInjection.cs` provides an alternative `AddClickUpApiClient` that directly takes `apiToken` and doesn't use `IOptions` or `AuthenticationDelegatingHandler`. The `ServiceCollectionExtensions.cs` version seems more current and feature-rich.)*
+    *(Note: The legacy `AddClickUpApiClient` method has been removed in favor of the more robust `AddClickUpClient` method that uses `IOptions` and `AuthenticationDelegatingHandler`.)*
 
 - [x] **2. Base API Address:**
     - [x] Default: `https://api.clickup.com/api/v2/` (set in `ClickUpClientOptions.cs`).
