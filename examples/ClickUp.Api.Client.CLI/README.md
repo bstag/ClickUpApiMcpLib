@@ -4,7 +4,8 @@ A comprehensive command-line interface for the ClickUp API SDK that provides acc
 
 ## Features
 
-- **Complete API Coverage**: Access to all ClickUp API GET endpoints
+- **Complete API Coverage**: Access to all ClickUp API GET endpoints through 26 organized command modules
+- **Modular Command Structure**: Well-organized commands separated into logical modules for better maintainability
 - **Multiple Output Formats**: Table, JSON, CSV, and properties formats
 - **Flexible Filtering**: Filter results by date ranges, status, assignees, and more
 - **Pagination Support**: Handle large datasets with built-in pagination
@@ -12,6 +13,7 @@ A comprehensive command-line interface for the ClickUp API SDK that provides acc
 - **Configuration Management**: Easy setup and validation of API credentials
 - **Colored Output**: Enhanced readability with colored console output
 - **Verbose Logging**: Detailed logging for troubleshooting
+- **Extensible Architecture**: Clean separation of concerns with individual command files
 
 ## Installation
 
@@ -85,79 +87,140 @@ dotnet run -- [command] [subcommand] [arguments] [options]
 
 ### Available Commands
 
-#### Authentication & User Info
+The CLI provides comprehensive access to all ClickUp API operations through well-organized command modules:
+
+#### Authentication & User Management
 
 ```bash
-# Get current user information
+# Authentication and user information
 dotnet run -- auth user get
-
-# List authorized workspaces (teams)
 dotnet run -- auth workspaces list
+
+# User management
+dotnet run -- user get [user-id]
+dotnet run -- user list [workspace-id]
+
+# User groups
+dotnet run -- user-group list [workspace-id]
+dotnet run -- user-group get [group-id]
 ```
 
 > **Note**: In ClickUp API v2, "workspaces" and "teams" refer to the same entity. The CLI uses "workspaces" terminology for consistency.
 
-#### Workspace Operations
+#### Workspace & Organization
 
 ```bash
-# Get workspace seat usage
+# Workspace operations
 dotnet run -- workspace seat-usage [workspace-id]
-
-# Get workspace plan information
 dotnet run -- workspace plan [workspace-id]
+
+# Member management
+dotnet run -- member list [workspace-id]
+dotnet run -- member get [member-id]
+
+# Guest management
+dotnet run -- guest list [workspace-id]
+dotnet run -- guest get [guest-id]
+
+# Role management
+dotnet run -- role list [workspace-id]
+dotnet run -- role get [role-id]
 ```
 
-#### Space Operations
+#### Project Structure
 
 ```bash
-# Get specific space
+# Space operations
 dotnet run -- space get [space-id]
-
-# List spaces in workspace
 dotnet run -- space list [workspace-id] --include-archived
-```
 
-#### Folder Operations
-
-```bash
-# Get specific folder
+# Folder operations
 dotnet run -- folder get [folder-id]
-
-# List folders in space
 dotnet run -- folder list [space-id] --include-archived
-```
 
-#### List Operations
-
-```bash
-# Get specific list
+# List operations
 dotnet run -- list get [list-id]
+dotnet run -- list list [folder-id] --include-archived
 
-# List all lists in folder
-dotnet run -- list list-all [folder-id] --include-archived
+# View management
+dotnet run -- view list-space [space-id]
+dotnet run -- view list-folder [folder-id]
+dotnet run -- view list-list [list-id]
+dotnet run -- view get [view-id]
 ```
 
-#### Task Operations
+#### Task Management
 
 ```bash
-# Get specific task
+# Core task operations
 dotnet run -- task get [task-id] --include-subtasks
-
-# List tasks in a list
 dotnet run -- task list [list-id] --page-size 50 --statuses "Open,In Progress"
 
-# Get time tracking for task
-dotnet run -- task time-in-status [task-id]
+# Task checklists
+dotnet run -- task-checklist list [task-id]
+dotnet run -- task-checklist get [checklist-id]
 
-# Get bulk time tracking
+# Task relationships
+dotnet run -- task-relationship list [task-id]
+dotnet run -- task-relationship get [relationship-id]
+
+# Time tracking
+dotnet run -- time-tracking get [entry-id]
+dotnet run -- time-tracking list [workspace-id]
+dotnet run -- time-tracking start [task-id]
+dotnet run -- time-tracking stop [entry-id]
+
+# Task time in status
+dotnet run -- task time-in-status [task-id]
 dotnet run -- task bulk-time-in-status [task-id1,task-id2,task-id3]
 ```
 
-#### Comment Operations
+#### Communication & Collaboration
 
 ```bash
-# Get comments for a task
+# Comments
 dotnet run -- comment list [task-id]
+dotnet run -- comment get [comment-id]
+
+# Chat messages
+dotnet run -- chat list [view-id]
+dotnet run -- chat get [message-id]
+
+# Attachments
+dotnet run -- attachment list [task-id]
+dotnet run -- attachment get [attachment-id]
+```
+
+#### Advanced Features
+
+```bash
+# Custom fields
+dotnet run -- custom-field list [list-id]
+dotnet run -- custom-field get [field-id]
+
+# Tags
+dotnet run -- tag list [space-id]
+dotnet run -- tag get [tag-id]
+
+# Goals
+dotnet run -- goal list [workspace-id]
+dotnet run -- goal get [goal-id]
+
+# Templates
+dotnet run -- template list [workspace-id]
+dotnet run -- template get [template-id]
+
+# Documents
+dotnet run -- docs list [workspace-id]
+dotnet run -- docs search [workspace-id] --query "search term"
+
+# Webhooks
+dotnet run -- webhook list [workspace-id]
+dotnet run -- webhook get [webhook-id]
+
+# Shared hierarchy
+dotnet run -- shared-hierarchy list [workspace-id]
+dotnet run -- shared-hierarchy get [shared-id]
 ```
 
 ### Advanced Filtering
@@ -391,11 +454,29 @@ Logs are written to:
 
 ## Development
 
+### Command Architecture
+
+The CLI uses a modular command architecture with 26 separate command modules, each focusing on a specific area of the ClickUp API:
+
+- **Authentication**: `AuthCommands.cs` - User authentication and workspace access
+- **Project Structure**: `SpaceCommands.cs`, `FolderCommands.cs`, `ListCommands.cs`, `ViewCommands.cs`
+- **Task Management**: `TaskCommands.cs`, `TaskChecklistCommands.cs`, `TaskRelationshipCommands.cs`
+- **User Management**: `UserCommands.cs`, `MemberCommands.cs`, `GuestCommands.cs`, `RoleCommands.cs`
+- **Communication**: `CommentCommands.cs`, `ChatCommands.cs`, `AttachmentCommands.cs`
+- **Advanced Features**: `CustomFieldCommands.cs`, `TagCommands.cs`, `GoalCommands.cs`, `TemplateCommands.cs`
+- **Integration**: `WebhookCommands.cs`, `SharedHierarchyCommands.cs`, `DocsCommands.cs`
+- **Time Tracking**: `TimeTrackingCommands.cs`
+- **Workspace**: `WorkspaceCommands.cs`, `UserGroupCommands.cs`
+
 ### Project Structure
 
 ```
 ClickUp.Api.Client.CLI/
-├── Commands/           # Command implementations
+├── Commands/           # 26 modular command implementations
+│   ├── AuthCommands.cs
+│   ├── TaskCommands.cs
+│   ├── UserCommands.cs
+│   └── ... (23 more modules)
 ├── Infrastructure/     # Core services and utilities
 ├── Models/            # Configuration and data models
 ├── Program.cs         # Application entry point
@@ -409,6 +490,14 @@ ClickUp.Api.Client.CLI/
 2. Implement the `CreateCommand()` method
 3. Register the command in `Program.cs`
 4. Add the service dependency if needed
+5. Follow the established naming conventions and module organization
+
+### Recent Improvements
+
+- **Modular Refactoring**: Separated all commands from a single large file into 26 focused modules
+- **Improved Maintainability**: Each command module handles a specific domain area
+- **Better Navigation**: Developers can quickly find and modify specific functionality
+- **Enhanced Readability**: Smaller, focused files are easier to understand and maintain
 
 ### Building and Running
 

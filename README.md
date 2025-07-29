@@ -21,6 +21,8 @@ Typed, resilient, and dependency-injection-ready .NET 9 library for the full Cli
 * Docs, Templates, Webhooks, Shared Hierarchy and more
 * Polly-powered retries and `HttpClientFactory` integration
 * 100% nullable-annotated models with XML docs
+* **🆕 Modular CLI Tool**: Production-ready command-line interface with 26 organized modules
+* **🆕 Enhanced Architecture**: Clean separation of concerns with focused command modules
 
 > Want the nitty-gritty? Browse the XML-generated docs in the [`/docs`](docs/) folder.
 
@@ -108,20 +110,32 @@ The [`/examples`](examples/) directory contains practical applications and demos
 
 ### 🖥️ CLI Tool - Real-World SDK Usage
 
-The **ClickUp CLI** is a production-ready command-line tool that showcases the SDK's full capabilities:
+The **ClickUp CLI** is a production-ready command-line tool that showcases the SDK's full capabilities with a modular architecture featuring 26 organized command modules:
 
 ```bash
 # Setup authentication
 cd examples/ClickUp.Api.Client.CLI
-dotnet run -- config set token "your_token_here"
+dotnet run -- config set-api-key YOUR_API_KEY
 
-# Explore your ClickUp workspace
+# Authentication and user management
 dotnet run -- auth user get
 dotnet run -- auth workspaces list
-dotnet run -- space list --team-id 123456
-dotnet run -- folder list --space-id 789012
-dotnet run -- list list --folder-id 345678
-dotnet run -- task list --list-id 901234
+dotnet run -- user list WORKSPACE_ID
+
+# Project structure operations
+dotnet run -- space list WORKSPACE_ID
+dotnet run -- folder list SPACE_ID
+dotnet run -- list list FOLDER_ID
+
+# Task management
+dotnet run -- task list LIST_ID --output-format table
+dotnet run -- task get TASK_ID --include-subtasks
+dotnet run -- task-checklist list TASK_ID
+
+# Advanced features
+dotnet run -- goal list WORKSPACE_ID
+dotnet run -- docs search WORKSPACE_ID --query "project"
+dotnet run -- webhook list WORKSPACE_ID
 ```
 
 **Key Features:**
@@ -130,6 +144,12 @@ dotnet run -- task list --list-id 901234
 - 🔍 **Advanced Filtering**: Property selection, pagination, search
 - 🐛 **Debug Mode**: HTTP request/response logging with `--debug`
 - ⚡ **Performance**: Efficient API usage with proper error handling
+- 🏗️ **Modular Architecture**: 26 focused command modules for better organization
+
+**Recent Improvements:**
+- **Complete API Coverage**: All major ClickUp API endpoints are now accessible
+- **Enhanced Organization**: Commands are logically grouped by functionality
+- **Better Maintainability**: Each module handles a specific domain area
 
 The CLI demonstrates real-world patterns for:
 - Dependency injection setup
@@ -159,11 +179,35 @@ dotnet run
 
 ---
 
-## 🗺 Roadmap
+## 🗺️ Roadmap
 
-* gRPC transport (when ClickUp publishes proto)  
-* Strongly typed webhooks  
-* Auto-generated docs site via DocFX + GitHub Pages
+### ✅ Completed
+- Core API client with all major endpoints
+- Comprehensive response models
+- Authentication and configuration
+- Error handling and logging
+- **CLI tool with modular architecture (26 command modules)**
+- **Complete API coverage in CLI**
+- **Refactored command structure for better maintainability**
+- Unit and integration tests
+- Documentation and examples
+- Multiple output formats (JSON, Table, CSV)
+- Advanced CLI features (filtering, pagination, bulk operations)
+
+### 🚧 In Progress
+- Performance optimizations
+- Enhanced error handling
+- Additional integration tests
+
+### 📋 Planned
+- Rate limiting improvements
+- Caching mechanisms
+- Additional SDK language bindings
+- Enhanced webhook support
+- Real-time API features
+- gRPC transport (when ClickUp publishes proto)
+- Strongly typed webhooks
+- Auto-generated docs site via DocFX + GitHub Pages
 
 ---
 
