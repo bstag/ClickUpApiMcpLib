@@ -30,7 +30,15 @@ A comprehensive command-line interface for the ClickUp API SDK that provides acc
    dotnet run -- config init
    ```
 
-4. Edit the `appsettings.json` file and add your ClickUp API token:
+4. Set your ClickUp API token using one of these methods:
+
+   **Method 1: Using config commands (Recommended)**
+   ```bash
+   dotnet run -- config set token YOUR_CLICKUP_API_TOKEN
+   ```
+
+   **Method 2: Manual configuration file**
+   Edit the `appsettings.json` file and add your ClickUp API token:
    ```json
    {
      "ClickUpApiOptions": {
@@ -73,6 +81,7 @@ dotnet run -- [command] [subcommand] [arguments] [options]
 - `--format, -f`: Output format (table, json, csv, properties)
 - `--verbose, -v`: Enable verbose output
 - `--config, -c`: Path to configuration file
+- `--debug, -d`: Enable HTTP request/response debugging
 
 ### Available Commands
 
@@ -82,9 +91,11 @@ dotnet run -- [command] [subcommand] [arguments] [options]
 # Get current user information
 dotnet run -- auth user get
 
-# List authorized workspaces
+# List authorized workspaces (teams)
 dotnet run -- auth workspaces list
 ```
+
+> **Note**: In ClickUp API v2, "workspaces" and "teams" refer to the same entity. The CLI uses "workspaces" terminology for consistency.
 
 #### Workspace Operations
 
@@ -207,21 +218,27 @@ dotnet run -- task list [list-id] --properties "id,name,status,assignees"
 
 #### Complete Workflow Example
 
-```bash
-# 1. Check configuration
-dotnet run -- health check
+ClickUp data follows a hierarchical structure: **Workspace → Space → Folder → List → Task**
 
-# 2. Get your workspaces
+```bash
+# 1. Check configuration and connectivity
+dotnet run -- config validate
+
+# 2. Get your workspaces (teams)
 dotnet run -- auth workspaces list
+# Note the workspace ID from the output
 
 # 3. Get spaces in a workspace
 dotnet run -- space list 12345
+# Note the space ID from the output
 
 # 4. Get folders in a space
 dotnet run -- folder list 67890
+# Note the folder ID from the output
 
 # 5. Get lists in a folder
 dotnet run -- list list-all 11111
+# Note the list ID from the output
 
 # 6. Get tasks in a list
 dotnet run -- task list 22222 --format json --page-size 10
@@ -229,6 +246,16 @@ dotnet run -- task list 22222 --format json --page-size 10
 # 7. Get specific task details
 dotnet run -- task get abc123 --include-subtasks
 ```
+
+#### Understanding the Data Hierarchy
+
+1. **Workspaces/Teams**: Top-level containers for your organization
+2. **Spaces**: Major project areas within a workspace
+3. **Folders**: Organizational containers within spaces (optional)
+4. **Lists**: Task containers within folders or spaces
+5. **Tasks**: Individual work items within lists
+
+Each level requires the ID from the parent level to access its children.
 
 #### Export Data Example
 
@@ -255,22 +282,52 @@ The CLI provides detailed error messages for common issues:
 ### Common Issues
 
 1. **"Authentication failed"**
-   - Verify your API token in `appsettings.json`
+   - Verify your API token: `dotnet run -- config get token`
+   - Set your token: `dotnet run -- config set token YOUR_TOKEN`
    - Check token permissions in ClickUp settings
+   - Validate configuration: `dotnet run -- config validate`
 
 2. **"Resource not found"**
    - Verify the ID is correct
    - Ensure you have access to the resource
+   - Check the hierarchical path (workspace → space → folder → list)
 
 3. **"Rate limit exceeded"**
    - Wait a few minutes and try again
    - Reduce the frequency of requests
 
-### Verbose Output
+### Debug Output
 
-Enable verbose output for detailed debugging:
+Enable HTTP request/response debugging to see API calls:
+```bash
+dotnet run -- [command] --debug
+```
+
+Enable verbose output for detailed application logging:
 ```bash
 dotnet run -- [command] --verbose
+```
+
+### Configuration Commands
+
+```bash
+# Initialize configuration
+dotnet run -- config init
+
+# Set API token
+dotnet run -- config set token YOUR_TOKEN
+
+# View current token (masked)
+dotnet run -- config get token
+
+# List all configuration
+dotnet run -- config list
+
+# Validate configuration and test connectivity
+dotnet run -- config validate
+
+# Reset configuration
+dotnet run -- config reset
 ```
 
 ### Logging

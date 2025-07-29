@@ -97,15 +97,51 @@ Retrieve any service via DI: `var svc = provider.GetRequiredService<ITaskService
 
 ## 📦 Examples
 
-The [`/examples`](examples/) directory contains small console apps and scripts:
+The [`/examples`](examples/) directory contains practical applications and demos:
 
 | Example | What it shows |
 |---------|---------------|
+| **`ClickUp.Api.Client.CLI`** | **Full-featured command-line interface demonstrating comprehensive SDK usage** |
 | `ConsoleDemo` | End-to-end: list spaces, create a task, upload attachment |
 | `RetryPolicyDemo` | Plugging a custom Polly circuit-breaker |
 | `WebhookListener` | Minimal ASP.NET Core webhook receiver |
 
-Run an example:
+### 🖥️ CLI Tool - Real-World SDK Usage
+
+The **ClickUp CLI** is a production-ready command-line tool that showcases the SDK's full capabilities:
+
+```bash
+# Setup authentication
+cd examples/ClickUp.Api.Client.CLI
+dotnet run -- config set token "your_token_here"
+
+# Explore your ClickUp workspace
+dotnet run -- auth user get
+dotnet run -- auth workspaces list
+dotnet run -- space list --team-id 123456
+dotnet run -- folder list --space-id 789012
+dotnet run -- list list --folder-id 345678
+dotnet run -- task list --list-id 901234
+```
+
+**Key Features:**
+- 🔐 **Authentication**: Personal access tokens with secure config management
+- 📊 **Multiple Output Formats**: JSON, CSV, Table, Properties
+- 🔍 **Advanced Filtering**: Property selection, pagination, search
+- 🐛 **Debug Mode**: HTTP request/response logging with `--debug`
+- ⚡ **Performance**: Efficient API usage with proper error handling
+
+The CLI demonstrates real-world patterns for:
+- Dependency injection setup
+- Configuration management
+- Error handling and user feedback
+- Data transformation and formatting
+- Hierarchical data navigation (Workspaces → Spaces → Folders → Lists → Tasks)
+
+See the [CLI README](examples/ClickUp.Api.Client.CLI/README.md) for complete documentation.
+
+### Quick Start with Other Examples
+
 ```bash
 export CLICKUP_TOKEN=your_token_here
 cd examples/ConsoleDemo

@@ -28,7 +28,8 @@ public class OutputFormatter : IOutputFormatter
             return "No data found.";
         }
 
-        var type = typeof(T);
+        // Get the actual type of the first item instead of the generic type T
+        var type = items.First()?.GetType() ?? typeof(T);
         var props = GetPropertiesToDisplay(type, properties);
 
         if (!props.Any())
@@ -67,7 +68,8 @@ public class OutputFormatter : IOutputFormatter
             return "No data found.";
         }
 
-        var type = typeof(T);
+        // Get the actual type of the first item instead of the generic type T
+        var type = items.First()?.GetType() ?? typeof(T);
         var props = GetPropertiesToDisplay(type, properties);
 
         if (!props.Any())
@@ -97,6 +99,7 @@ public class OutputFormatter : IOutputFormatter
             "json" => FormatAsJson(data),
             "csv" when data is IEnumerable enumerable => FormatAsCsv(enumerable.Cast<object>(), properties),
             "table" when data is IEnumerable enumerable => FormatAsTable(enumerable.Cast<object>(), properties),
+            "properties" when data is IEnumerable enumerable => FormatAsPropertiesList(enumerable.Cast<object>(), properties),
             "properties" => FormatAsProperties(data, properties),
             _ when data is IEnumerable enumerable => FormatAsTable(enumerable.Cast<object>(), properties),
             _ => FormatAsProperties(data, properties)
@@ -125,6 +128,49 @@ public class OutputFormatter : IOutputFormatter
         {
             var value = FormatPropertyValue(prop.GetValue(data));
             sb.AppendLine($"{prop.Name.PadRight(maxNameLength)}: {value}");
+        }
+
+        return sb.ToString();
+    }
+
+    public string FormatAsPropertiesList<T>(IEnumerable<T> data, string[]? properties = null)
+    {
+        var items = data.ToList();
+        if (!items.Any())
+        {
+            return "No data found.";
+        }
+
+        // Get the actual type of the first item instead of the generic type T
+        var type = items.First()?.GetType() ?? typeof(T);
+        var props = GetPropertiesToDisplay(type, properties);
+
+        if (!props.Any())
+        {
+            return "No displayable properties found.";
+        }
+
+        var sb = new StringBuilder();
+        var maxNameLength = props.Max(p => p.Name.Length);
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+            
+            if (i > 0)
+            {
+                sb.AppendLine(); // Add blank line between items
+                sb.AppendLine(new string('-', 50)); // Separator line
+                sb.AppendLine();
+            }
+            
+            sb.AppendLine($"Item {i + 1}:");
+            
+            foreach (var prop in props)
+            {
+                var value = FormatPropertyValue(prop.GetValue(item));
+                sb.AppendLine($"  {prop.Name.PadRight(maxNameLength)}: {value}");
+            }
         }
 
         return sb.ToString();

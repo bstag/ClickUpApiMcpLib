@@ -49,6 +49,14 @@ public interface IOutputFormatter
     string FormatAsProperties<T>(T data, string[]? properties = null);
 
     /// <summary>
+    /// Format a collection of objects as property lists
+    /// </summary>
+    /// <param name="data">Collection of objects to format</param>
+    /// <param name="properties">Properties to include (null for all)</param>
+    /// <returns>Formatted string</returns>
+    string FormatAsPropertiesList<T>(IEnumerable<T> data, string[]? properties = null);
+
+    /// <summary>
     /// Format error message with consistent styling
     /// </summary>
     /// <param name="message">Error message</param>
