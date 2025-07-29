@@ -95,7 +95,9 @@ public class ClickUpClient : IDisposable
     public static ClickUpClient Create(string apiToken, ILoggerFactory loggerFactory)
     {
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiToken);
+        // ClickUp Personal Access Tokens should be sent directly without Bearer prefix
+        // Format: Authorization: {personal_token}
+        httpClient.DefaultRequestHeaders.Authorization = System.Net.Http.Headers.AuthenticationHeaderValue.Parse(apiToken);
         var apiConnection = new ApiConnection(httpClient);
         return new ClickUpClient(apiConnection, loggerFactory);
     }
