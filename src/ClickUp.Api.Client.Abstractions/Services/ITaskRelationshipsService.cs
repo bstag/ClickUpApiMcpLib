@@ -1,104 +1,27 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using ClickUp.Api.Client.Models.Entities.Tasks;
-using ClickUp.Api.Client.Models.RequestModels.TaskRelationships;
+using ClickUp.Api.Client.Abstractions.Services.TaskRelationships;
 
 namespace ClickUp.Api.Client.Abstractions.Services
 {
     /// <summary>
-    /// Service interface for ClickUp Task Relationships operations.
+    /// Comprehensive service interface for ClickUp Task Relationships operations.
+    /// This interface follows the Interface Segregation Principle by composing smaller, focused interfaces.
     /// </summary>
     /// <remarks>
-    /// This service allows for managing dependencies (tasks blocking or being blocked by others)
-    /// and linking tasks that are related but not strictly dependent.
+    /// This service provides comprehensive methods for managing task relationships, including dependencies and links.
+    /// The interface is composed of:
+    /// - ITaskDependencyManager: For managing task dependencies (blocking/blocked by relationships)
+    /// - ITaskLinkManager: For managing non-dependent task links (related but not blocking relationships)
+    /// 
     /// Covered API Endpoints:
     /// - Add Dependency: `POST /task/{task_id}/dependency`
     /// - Remove Dependency: `DELETE /task/{task_id}/dependency`
     /// - Add Task Link: `POST /task/{task_id}/link/{links_to_task_id}`
     /// - Remove Task Link: `DELETE /task/{task_id}/link/{links_to_task_id}`
     /// </remarks>
-    public interface ITaskRelationshipsService
+    public interface ITaskRelationshipsService : ITaskDependencyManager, ITaskLinkManager
     {
-        /// <summary>
-        /// Adds a dependency relationship between two tasks.
-        /// The relationship is defined by specifying either that <paramref name="taskId"/> depends on <paramref name="dependsOnTaskId"/>,
-        /// or that <paramref name="dependencyOfTaskId"/> depends on <paramref name="taskId"/>.
-        /// Only one of <paramref name="dependsOnTaskId"/> or <paramref name="dependencyOfTaskId"/> should be provided.
-        /// </summary>
-        /// <param name="taskId">The unique identifier of the primary task involved in the dependency.</param>
-        /// <param name="dependsOnTaskId">Optional. The unique identifier of the task that <paramref name="taskId"/> will depend on (i.e., <paramref name="taskId"/> is blocked by <paramref name="dependsOnTaskId"/>).</param>
-        /// <param name="dependencyOfTaskId">Optional. The unique identifier of the task that will depend on <paramref name="taskId"/> (i.e., <paramref name="dependencyOfTaskId"/> is blocked by <paramref name="taskId"/>).</param>
-        /// <param name="customTaskIds">Optional. If set to <c>true</c>, all task IDs provided are treated as custom task IDs. Defaults to <c>false</c>.</param>
-        /// <param name="teamId">Optional. The Workspace ID (formerly team_id). This is required if <paramref name="customTaskIds"/> is <c>true</c>.</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous completion of the operation.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> is null or empty.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if both or neither of <paramref name="dependsOnTaskId"/> and <paramref name="dependencyOfTaskId"/> are provided, or if <paramref name="customTaskIds"/> is true but <paramref name="teamId"/> is not provided.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if any of the specified tasks do not exist or are not accessible.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to modify dependencies for these tasks.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures, such as rate limiting or request errors.</exception>
-        System.Threading.Tasks.Task AddDependencyAsync(
-            string taskId,
-            string? dependsOnTaskId = null,
-            string? dependencyOfTaskId = null,
-            bool? customTaskIds = null,
-            string? teamId = null,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Removes an existing dependency relationship from a task.
-        /// The details of which dependency to remove and options for custom task ID handling are specified in the <paramref name="requestModel"/>.
-        /// </summary>
-        /// <param name="taskId">The unique identifier of the primary task from which the dependency is being removed.</param>
-        /// <param name="requestModel">An object containing parameters like 'dependsOnTaskId' or 'dependencyOfTaskId' to specify the relationship, and options for 'customTaskIds' and 'teamId'.</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous completion of the operation.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/> or <paramref name="requestModel"/> is null.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> is invalid (e.g., specifies both or neither of 'dependsOnTaskId' and 'dependencyOfTaskId', or 'customTaskIds' is true but 'teamId' is not provided).</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if any of the specified tasks or the dependency relationship does not exist.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to modify dependencies for these tasks.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        System.Threading.Tasks.Task DeleteDependencyAsync(
-            string taskId,
-            DeleteDependencyRequest requestModel,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Creates a non-dependent link between two tasks, indicating they are related.
-        /// </summary>
-        /// <param name="taskId">The unique identifier of the first task in the link.</param>
-        /// <param name="linksToTaskId">The unique identifier of the second task to be linked with the first task.</param>
-        /// <param name="requestModel">An object containing options for custom task ID handling ('customTaskIds', 'teamId').</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="CuTask"/> object, typically for the <paramref name="taskId"/>, reflecting the new link. The return can be null if the API does not return content on success.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/>, <paramref name="linksToTaskId"/>, or <paramref name="requestModel"/> is null.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies 'customTaskIds' as true but 'teamId' is not provided.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if either of the tasks with the specified IDs does not exist.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to link these tasks.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<CuTask?> AddTaskLinkAsync(
-            string taskId,
-            string linksToTaskId,
-            AddTaskLinkRequest requestModel,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Removes an existing non-dependent link between two tasks.
-        /// </summary>
-        /// <param name="taskId">The unique identifier of the first task in the link.</param>
-        /// <param name="linksToTaskId">The unique identifier of the second task that is currently linked to the first task.</param>
-        /// <param name="requestModel">An object containing options for custom task ID handling ('customTaskIds', 'teamId').</param>
-        /// <param name="cancellationToken">A token to observe while waiting for the task to complete, allowing cancellation of the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="CuTask"/> object, typically for the <paramref name="taskId"/>, reflecting the removed link. The return can be null if the API does not return content on success.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown if <paramref name="taskId"/>, <paramref name="linksToTaskId"/>, or <paramref name="requestModel"/> is null.</exception>
-        /// <exception cref="System.ArgumentException">Thrown if <paramref name="requestModel"/> specifies 'customTaskIds' as true but 'teamId' is not provided.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiNotFoundException">Thrown if either of the tasks or the link between them does not exist.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiAuthenticationException">Thrown if the user is not authorized to remove the link between these tasks.</exception>
-        /// <exception cref="Models.Exceptions.ClickUpApiException">Thrown for other API call failures.</exception>
-        Task<CuTask?> DeleteTaskLinkAsync(
-            string taskId,
-            string linksToTaskId,
-            DeleteTaskLinkRequest requestModel,
-            CancellationToken cancellationToken = default);
+        // All methods are now inherited from the composed interfaces:
+        // - ITaskDependencyManager: Task dependency operations (add/remove dependencies)
+        // - ITaskLinkManager: Task link operations (add/remove non-dependent links)
     }
 }

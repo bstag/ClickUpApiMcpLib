@@ -2,6 +2,8 @@ using ClickUp.Api.Client.Abstractions.Http;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Http;
 using ClickUp.Api.Client.Services;
+using ClickUp.Api.Client.Services.Tasks;
+using ClickUp.Api.Client.Services.Views;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 
@@ -56,12 +58,19 @@ public class ClickUpClient : IDisposable
         _tagsService = new TagsService(_apiConnection, loggerFactory.CreateLogger<TagsService>());
         _taskChecklistsService = new TaskChecklistsService(_apiConnection, loggerFactory.CreateLogger<TaskChecklistsService>());
         _taskRelationshipsService = new TaskRelationshipsService(_apiConnection, loggerFactory.CreateLogger<TaskRelationshipsService>());
-        _tasksService = new TaskService(_apiConnection, loggerFactory.CreateLogger<TaskService>());
+        var taskCrudService = new TaskCrudService(_apiConnection, loggerFactory.CreateLogger<TaskCrudService>());
+        var taskQueryService = new TaskQueryService(_apiConnection, loggerFactory.CreateLogger<TaskQueryService>());
+        var taskRelationshipService = new TaskRelationshipService(_apiConnection, loggerFactory.CreateLogger<TaskRelationshipService>());
+        var taskTimeTrackingService = new TaskTimeTrackingService(_apiConnection, loggerFactory.CreateLogger<TaskTimeTrackingService>());
+        _tasksService = new TaskService(taskCrudService, taskQueryService, taskRelationshipService, taskTimeTrackingService, loggerFactory.CreateLogger<TaskService>());
         _templatesService = new TemplatesService(_apiConnection, loggerFactory.CreateLogger<TemplatesService>());
         _timeTrackingService = new TimeTrackingService(_apiConnection, loggerFactory.CreateLogger<TimeTrackingService>());
         _userGroupsService = new UserGroupsService(_apiConnection, loggerFactory.CreateLogger<UserGroupsService>());
         _usersService = new UsersService(_apiConnection, loggerFactory.CreateLogger<UsersService>());
-        _viewsService = new ViewsService(_apiConnection, loggerFactory.CreateLogger<ViewsService>());
+        var viewCrudService = new ViewCrudService(_apiConnection, loggerFactory.CreateLogger<ViewCrudService>());
+        var viewQueryService = new ViewQueryService(_apiConnection, loggerFactory.CreateLogger<ViewQueryService>());
+        var viewTaskService = new ViewTaskService(_apiConnection, loggerFactory.CreateLogger<ViewTaskService>());
+        _viewsService = new ViewsService(viewCrudService, viewQueryService, viewTaskService, loggerFactory.CreateLogger<ViewsService>());
         _webhooksService = new WebhooksService(_apiConnection, loggerFactory.CreateLogger<WebhooksService>());
         _workspacesService = new WorkspacesService(_apiConnection, loggerFactory.CreateLogger<WorkspacesService>());
     }

@@ -17,12 +17,13 @@ public class ListCommands : BaseCommand
 
     public override Command CreateCommand()
     {
-        var listCommand = new Command("list", "List management commands")
+        var listsCommand = new Command("lists", "List management commands")
         {
             CreateListListsCommand(),
             CreateGetListCommand()
         };
-        return listCommand;
+        
+        return listsCommand;
     }
 
     private Command CreateListListsCommand()

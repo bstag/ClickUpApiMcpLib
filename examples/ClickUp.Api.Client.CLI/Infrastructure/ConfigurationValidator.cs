@@ -228,7 +228,7 @@ public class ConfigurationValidator : IConfigurationValidator
             
             result.IsValid = false;
             
-            switch (apiEx.HttpStatus)
+            switch (apiEx.StatusCode)
             {
                 case System.Net.HttpStatusCode.Unauthorized:
                     result.Errors.Add("API token is invalid or expired. Please check your PersonalAccessToken in the configuration.");
@@ -240,7 +240,7 @@ public class ConfigurationValidator : IConfigurationValidator
                     result.Errors.Add("API rate limit exceeded. Please try again later.");
                     break;
                 default:
-                    result.Errors.Add($"API error ({apiEx.HttpStatus}): {apiEx.Message}");
+                    result.Errors.Add($"API error ({apiEx.StatusCode}): {apiEx.Message}");
                     break;
             }
         }

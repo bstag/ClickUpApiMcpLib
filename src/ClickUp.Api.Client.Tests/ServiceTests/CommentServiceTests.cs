@@ -810,11 +810,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _commentService.UpdateCommentAsync(commentId, request, CancellationToken.None);
+            await _commentService.UpdateCommentAsync(commentId, request, CancellationToken.None);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(expectedResponse.Id, result.Id);
+            // UpdateCommentAsync returns Task (void), so we verify the API call was made correctly
             _mockApiConnection.Verify(api => api.PutAsync<UpdateCommentRequest, Comment>(
                 $"comment/{commentId}",
                 request,

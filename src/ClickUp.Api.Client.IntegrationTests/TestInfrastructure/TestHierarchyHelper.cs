@@ -24,7 +24,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
             ISpacesService spacesService,
             IFoldersService foldersService,
             IListsService listsService,
-            ITasksService tasksService,
+            ITaskCrudService taskCrudService,
             string workspaceId,
             string baseName,
             ITestOutputHelper output)
@@ -89,7 +89,7 @@ namespace ClickUp.Api.Client.IntegrationTests.TestInfrastructure
                 CustomFields: null,
                 CustomItemId: null,
                 ListId: null);
-            var task = await tasksService.CreateTaskAsync(context.ListId, createTaskReq);
+            var task = await taskCrudService.CreateTaskAsync(context.ListId, createTaskReq);
             context.TaskId = task.Id;
             output.LogInformation($"[HierarchyHelper] Test task created. Task ID: {context.TaskId}");
             // No delay needed after the last creation step in this helper method

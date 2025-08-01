@@ -1,4 +1,6 @@
 using ClickUp.Api.Client.Abstractions.Options;
+using ClickUp.Api.Client.Validation;
+using ClickUp.Api.Client.Validation.Attributes;
 using System;
 using System.Text.RegularExpressions;
 
@@ -6,6 +8,7 @@ namespace ClickUp.Api.Client.Helpers
 {
     /// <summary>
     /// Provides validation utilities for ClickUp API client inputs.
+    /// This class maintains backward compatibility while leveraging the new validation framework.
     /// </summary>
     public static class ValidationHelper
     {
@@ -20,14 +23,17 @@ namespace ClickUp.Api.Client.Helpers
         /// <exception cref="ArgumentException">Thrown if the ID format is invalid or too long.</exception>
         public static void ValidateId(string? id, string paramName)
         {
-            if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentNullException(paramName, $"{paramName} cannot be null or whitespace.");
-
-            if (id.Length > ClickUpDefaults.MaxIdLength)
-                throw new ArgumentException($"{paramName} exceeds maximum length of {ClickUpDefaults.MaxIdLength} characters.", paramName);
-
-            if (!IdFormatRegex.IsMatch(id))
-                throw new ArgumentException($"{paramName} contains invalid characters. Only alphanumeric characters, hyphens, and underscores are allowed.", paramName);
+            var attribute = new ClickUpIdAttribute();
+            var result = attribute.Validate(id, paramName);
+            
+            if (!result.IsValid)
+            {
+                var error = result.Errors[0];
+                if (id == null)
+                    throw new ArgumentNullException(paramName, error.ErrorMessage);
+                else
+                    throw new ArgumentException(error.ErrorMessage, paramName);
+            }
         }
 
         /// <summary>
@@ -40,14 +46,17 @@ namespace ClickUp.Api.Client.Helpers
         /// <exception cref="ArgumentException">Thrown if the ID format is invalid or too long.</exception>
         public static void ValidateId(string? id, string paramName, int maxLength)
         {
-            if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentNullException(paramName, $"{paramName} cannot be null or whitespace.");
-
-            if (id.Length > maxLength)
-                throw new ArgumentException($"{paramName} exceeds maximum length of {maxLength} characters.", paramName);
-
-            if (!IdFormatRegex.IsMatch(id))
-                throw new ArgumentException($"{paramName} contains invalid characters. Only alphanumeric characters, hyphens, and underscores are allowed.", paramName);
+            var attribute = new ClickUpIdAttribute { MaxLength = maxLength };
+            var result = attribute.Validate(id, paramName);
+            
+            if (!result.IsValid)
+            {
+                var error = result.Errors[0];
+                if (id == null)
+                    throw new ArgumentNullException(paramName, error.ErrorMessage);
+                else
+                    throw new ArgumentException(error.ErrorMessage, paramName);
+            }
         }
 
         /// <summary>
@@ -58,8 +67,14 @@ namespace ClickUp.Api.Client.Helpers
         /// <exception cref="ArgumentNullException">Thrown if the value is null or whitespace.</exception>
         public static void ValidateRequiredString(string? value, string paramName)
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentNullException(paramName, $"{paramName} cannot be null or whitespace.");
+            var attribute = new RequiredAttribute();
+            var result = attribute.Validate(value, paramName);
+            
+            if (!result.IsValid)
+            {
+                var error = result.Errors[0];
+                throw new ArgumentNullException(paramName, error.ErrorMessage);
+            }
         }
 
         /// <summary>
@@ -72,10 +87,18 @@ namespace ClickUp.Api.Client.Helpers
         /// <exception cref="ArgumentException">Thrown if the value is too long.</exception>
         public static void ValidateRequiredString(string? value, string paramName, int maxLength)
         {
-            ValidateRequiredString(value, paramName);
-
-            if (value!.Length > maxLength)
-                throw new ArgumentException($"{paramName} exceeds maximum length of {maxLength} characters.", paramName);
+            var requiredResult = Validation.ValidationHelper.ValidateValue(value, paramName, 
+                new RequiredAttribute(), 
+                new StringLengthAttribute(maxLength));
+            
+            if (!requiredResult.IsValid)
+            {
+                var error = requiredResult.Errors[0];
+                if (value == null)
+                    throw new ArgumentNullException(paramName, error.ErrorMessage);
+                else
+                    throw new ArgumentException(error.ErrorMessage, paramName);
+            }
         }
 
         /// <summary>
@@ -88,8 +111,14 @@ namespace ClickUp.Api.Client.Helpers
         /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is outside the specified range.</exception>
         public static void ValidateRange(int value, string paramName, int min, int max)
         {
-            if (value < min || value > max)
-                throw new ArgumentOutOfRangeException(paramName, value, $"{paramName} must be between {min} and {max} (inclusive).");
+            var attribute = new RangeAttribute(min, max);
+            var result = attribute.Validate(value, paramName);
+            
+            if (!result.IsValid)
+            {
+                var error = result.Errors[0];
+                throw new ArgumentOutOfRangeException(paramName, value, error.ErrorMessage);
+            }
         }
 
         /// <summary>
@@ -103,7 +132,34 @@ namespace ClickUp.Api.Client.Helpers
         public static void ValidateRange(TimeSpan value, string paramName, TimeSpan min, TimeSpan max)
         {
             if (value < min || value > max)
-                throw new ArgumentOutOfRangeException(paramName, value, $"{paramName} must be between {min} and {max} (inclusive).");
+            {
+                throw new ArgumentOutOfRangeException(paramName, value, 
+                    $"Value must be between {min} and {max}.");
+            }
+        }
+
+        /// <summary>
+        /// Creates a fluent validation builder for the specified object.
+        /// </summary>
+        /// <typeparam name="T">The type of object to validate.</typeparam>
+        /// <param name="obj">The object to validate.</param>
+        /// <returns>A fluent validation builder.</returns>
+        public static FluentValidationBuilder<T> For<T>(T obj)
+        {
+            return Validation.ValidationHelper.For(obj);
+        }
+
+        /// <summary>
+        /// Validates an object using the new validation framework.
+        /// </summary>
+        /// <typeparam name="T">The type of object to validate.</typeparam>
+        /// <param name="obj">The object to validate.</param>
+        /// <param name="throwOnFailure">Whether to throw an exception on validation failure.</param>
+        /// <returns>A validation result.</returns>
+        /// <exception cref="ValidationException">Thrown if validation fails and throwOnFailure is true.</exception>
+        public static ValidationResult Validate<T>(T obj, bool throwOnFailure = true)
+        {
+            return Validation.ValidationHelper.Validate(obj, throwOnFailure);
         }
     }
 }

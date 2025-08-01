@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickUp.Api.Client.Integrat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickUp.Api.Client.Fluent.Console", "..\examples\ClickUp.Api.Client.Fluent.Console\ClickUp.Api.Client.Fluent.Console.csproj", "{2A096AC5-F292-B4CD-A105-0476F05E8F30}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickUp.Api.Client.CLI", "..\examples\ClickUp.Api.Client.CLI\ClickUp.Api.Client.CLI.csproj", "{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -127,6 +129,18 @@ Global
 		{2A096AC5-F292-B4CD-A105-0476F05E8F30}.Release|x64.Build.0 = Release|Any CPU
 		{2A096AC5-F292-B4CD-A105-0476F05E8F30}.Release|x86.ActiveCfg = Release|Any CPU
 		{2A096AC5-F292-B4CD-A105-0476F05E8F30}.Release|x86.Build.0 = Release|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Debug|x64.Build.0 = Debug|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Debug|x86.Build.0 = Debug|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Release|x64.ActiveCfg = Release|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Release|x64.Build.0 = Release|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Release|x86.ActiveCfg = Release|Any CPU
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -135,5 +149,6 @@ Global
 		{D8265A1A-79A0-4BC7-9A17-A0A980FF5F8D} = {32F9A0EC-4214-4251-A00D-3F1F5661F3D5}
 		{29229329-B14F-4821-B975-4699BD4618FC} = {32F9A0EC-4214-4251-A00D-3F1F5661F3D5}
 		{2A096AC5-F292-B4CD-A105-0476F05E8F30} = {32F9A0EC-4214-4251-A00D-3F1F5661F3D5}
+		{E819BB98-3D8A-23C6-D1D7-C25FD8267D9A} = {32F9A0EC-4214-4251-A00D-3F1F5661F3D5}
 	EndGlobalSection
 EndGlobal

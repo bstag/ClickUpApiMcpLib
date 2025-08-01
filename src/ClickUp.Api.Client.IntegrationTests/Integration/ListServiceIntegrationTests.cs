@@ -27,7 +27,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         private readonly IListsService _listService;
         private readonly IFoldersService _folderService;
         private readonly ISpacesService _spaceService;
-        private readonly ITasksService _tasksService; // Added
+        private readonly ITaskCrudService _taskCrudService; // Updated to ITaskCrudService
 
         private string _testWorkspaceId;
         private string _testSpaceId = null!;
@@ -44,7 +44,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _listService = ServiceProvider.GetRequiredService<IListsService>();
             _folderService = ServiceProvider.GetRequiredService<IFoldersService>();
             _spaceService = ServiceProvider.GetRequiredService<ISpacesService>();
-            _tasksService = ServiceProvider.GetRequiredService<ITasksService>(); // Added
+            _taskCrudService = ServiceProvider.GetRequiredService<ITaskCrudService>(); // Updated to ITaskCrudService
             _testWorkspaceId = Configuration["ClickUpApi:TestWorkspaceId"]!;
 
             if (string.IsNullOrWhiteSpace(_testWorkspaceId))
@@ -83,7 +83,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 try
                 {
                     _hierarchyContext = await TestHierarchyHelper.CreateFullTestHierarchyAsync( // Updated method
-                        _spaceService, _folderService, _listService, _tasksService, // Added _tasksService
+                        _spaceService, _folderService, _listService, _taskCrudService, // Updated to use _taskCrudService
                         _testWorkspaceId, "ListsIntTest", _output);
                     _testSpaceId = _hierarchyContext.SpaceId;
                     _testFolderId = _hierarchyContext.FolderId;

@@ -4,11 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging; // Added for ILogger
 using Microsoft.Extensions.Options;
 using ClickUp.Api.Client.Abstractions.Http;
+using ClickUp.Api.Client.Abstractions.Infrastructure;
 using ClickUp.Api.Client.Abstractions.Options;
 using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Http;
 using ClickUp.Api.Client.Http.Handlers;
+using ClickUp.Api.Client.Infrastructure;
 using ClickUp.Api.Client.Services;
+using ClickUp.Api.Client.Services.Tasks;
+using ClickUp.Api.Client.Services.Views;
+using ClickUp.Api.Client.Abstractions.Plugins;
+using ClickUp.Api.Client.Plugins;
+using ClickUp.Api.Client.Plugins.Samples;
 using Polly;
 using Polly.CircuitBreaker; // Required for BrokenCircuitException
 using Polly.Extensions.Http;
@@ -79,8 +86,19 @@ namespace ClickUp.Api.Client.Extensions
                 .AddPolicyHandler((sp, request) => GetRetryPolicy(sp, threadLocalRandom))
                 .AddPolicyHandler((sp, request) => GetCircuitBreakerPolicy(sp));
 
-            // Register all the services
+            // Register decomposed task services
+            services.AddTransient<ITaskCrudService, TaskCrudService>();
+            services.AddTransient<ITaskQueryService, TaskQueryService>();
+            services.AddTransient<ITaskRelationshipService, TaskRelationshipService>();
+            services.AddTransient<ITaskTimeTrackingService, TaskTimeTrackingService>();
+            
+            // Register composite TaskService that uses the decomposed services
             services.AddTransient<ITasksService, TaskService>();
+            
+            // Register decomposed view services
+            services.AddTransient<IViewCrudService, ViewCrudService>();
+            services.AddTransient<IViewQueryService, ViewQueryService>();
+            services.AddTransient<IViewTaskService, ViewTaskService>();
             services.AddTransient<IAttachmentsService, AttachmentsService>();
             services.AddTransient<IAuthorizationService, AuthorizationService>();
             services.AddTransient<ITaskChecklistsService, TaskChecklistsService>();
@@ -106,13 +124,30 @@ namespace ClickUp.Api.Client.Extensions
             services.AddTransient<IWorkspacesService, WorkspacesService>();
             services.AddTransient<IUserGroupsService, UserGroupsService>();
 
+            // Register infrastructure abstractions and implementations
+            services.AddSingleton<Abstractions.Infrastructure.IHttpClientFactory, HttpClientFactoryWrapper>();
+            services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
+            services.AddSingleton<IFileSystem, SystemFileSystem>();
+            services.AddSingleton(typeof(Abstractions.Infrastructure.ILogger<>), typeof(SystemLogger<>));
+            services.AddSingleton<Abstractions.Infrastructure.IConfiguration>(sp => 
+                new SystemConfiguration(sp.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>()));
+
+            // Register plugin system
+            services.AddSingleton<IPluginManager, PluginManager>();
+            services.AddTransient<IPluginConfiguration, PluginConfiguration>();
+            
+            // Register sample plugins (can be removed in production)
+            services.AddTransient<LoggingPlugin>();
+            services.AddTransient<RateLimitingPlugin>();
+            services.AddTransient<CachingPlugin>();
+
             return httpClientBuilder;
         }
 
         private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, ThreadLocal<Random> threadLocalRandom)
         {
             var pollyOptions = serviceProvider.GetRequiredService<IOptions<ClickUpPollyOptions>>().Value;
-            var logger = serviceProvider.GetRequiredService<ILogger<ApiConnection>>(); // Changed to ILogger<ApiConnection>
+            var logger = serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ApiConnection>>(); // Changed to ILogger<ApiConnection>
 
             return Policy<HttpResponseMessage>
                 .Handle<HttpRequestException>()
@@ -177,7 +212,7 @@ namespace ClickUp.Api.Client.Extensions
         private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy(IServiceProvider serviceProvider)
         {
             var pollyOptions = serviceProvider.GetRequiredService<IOptions<ClickUpPollyOptions>>().Value;
-            var logger = serviceProvider.GetRequiredService<ILogger<ApiConnection>>(); // Changed to ILogger<ApiConnection>
+            var logger = serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ApiConnection>>(); // Changed to ILogger<ApiConnection>
 
             return HttpPolicyExtensions
                 .HandleTransientHttpError() // Catches HttpRequestException, 5XX and 408

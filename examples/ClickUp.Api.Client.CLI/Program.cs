@@ -11,6 +11,17 @@ using ClickUp.Api.Client.CLI.Infrastructure;
 using ClickUp.Api.Client.CLI.Models;
 using static ClickUp.Api.Client.CLI.Commands.ConfigCommands;
 using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Caching.Memory;
+// Enhanced SDK imports for latest patterns
+using ClickUp.Api.Client.Abstractions.Strategies;
+using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Services.Caching;
+using ClickUp.Api.Client.Strategies.Authentication;
+using ClickUp.Api.Client.Strategies.Caching;
+using ClickUp.Api.Client.Strategies.Retry;
+using ClickUp.Api.Client.Plugins;
+using ClickUp.Api.Client.Fluent.Enhanced;
+using ClickUp.Api.Client.Fluent.Composition;
 
 namespace ClickUp.Api.Client.CLI;
 
@@ -63,7 +74,27 @@ public class Program
                     // Add HTTP logging handler
                     services.AddTransient<HttpLoggingHandler>();
                     
-                    // Add ClickUp SDK
+                    // Configure enhanced caching strategies
+                    services.AddMemoryCache();
+                    services.AddSingleton<ICachingStrategy, MemoryCachingStrategy>();
+                    services.AddSingleton<ICacheService, MemoryCacheService>();
+                    
+                    // Configure authentication strategies
+                    services.AddSingleton<IAuthenticationStrategy>(provider =>
+                    {
+                        var logger = provider.GetService<ILogger<ApiKeyAuthenticationStrategy>>();
+                        var strategy = new ApiKeyAuthenticationStrategy(logger);
+                        var apiToken = context.Configuration["ClickUpApiOptions:PersonalAccessToken"];
+                        if (!string.IsNullOrWhiteSpace(apiToken))
+                        {
+                            strategy.SetApiKey(apiToken);
+                        }
+                        return strategy;
+                    });
+                    
+                    // Note: Retry strategies are configured within the ClickUp SDK
+                    
+                    // Add ClickUp SDK with enhanced configuration
                     var httpClientBuilder = services.AddClickUpClient(options =>
                     {
                         // Try to get from user config first, then fallback to appsettings
@@ -228,6 +259,45 @@ public class Program
             var debugValue = parseResult.GetValueForOption(debugOption);
             var debugStateService = serviceProvider.GetRequiredService<IDebugStateService>();
             debugStateService.SetDebugEnabled(debugValue);
+            
+            // Check if this is a config or help command - skip validation for these
+            var isConfigCommand = args.Length > 0 && (args[0] == "config" || args[0] == "--help" || args[0] == "-h" || args[0] == "help");
+            var isHealthCommand = args.Length > 0 && args[0] == "health";
+            
+            // Validate configuration before executing commands (except config and help commands)
+            if (!isConfigCommand && !isHealthCommand)
+            {
+                var validator = serviceProvider.GetRequiredService<IConfigurationValidator>();
+                var validationResult = await validator.ValidateAsync();
+                
+                if (!validationResult.IsValid)
+                {
+                    Console.WriteLine("❌ Configuration Error:");
+                    foreach (var error in validationResult.Errors)
+                    {
+                        Console.WriteLine($"   {error}");
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine("💡 To fix this issue:");
+                    Console.WriteLine("   1. Copy 'appsettings.template.json' to 'appsettings.json'");
+                    Console.WriteLine("   2. Edit 'appsettings.json' and replace 'YOUR_CLICKUP_API_TOKEN_HERE' with your actual ClickUp API token");
+                    Console.WriteLine("   3. Get your API token from: https://app.clickup.com/settings/apps");
+                    Console.WriteLine();
+                    Console.WriteLine("   Or use the config command to set up your configuration:");
+                    Console.WriteLine("   clickup-cli config init");
+                    return 1;
+                }
+                
+                // Show warnings if any
+                if (validationResult.Warnings.Count > 0)
+                {
+                    foreach (var warning in validationResult.Warnings)
+                    {
+                        Console.WriteLine($"⚠️  {warning}");
+                    }
+                    Console.WriteLine();
+                }
+            }
             
             // Parse and invoke
             return await rootCommand.InvokeAsync(args);

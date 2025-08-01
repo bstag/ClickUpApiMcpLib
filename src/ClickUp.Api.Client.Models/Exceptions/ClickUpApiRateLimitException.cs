@@ -36,7 +36,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
             TimeSpan? retryAfterDelta = null,
             DateTimeOffset? retryAfterDate = null,
             Exception? innerException = null)
-            : base(message, httpStatus, apiErrorCode, rawErrorContent, innerException)
+            : base(message, httpStatus, apiErrorCode, rawErrorContent, null, null, innerException)
         {
             RetryAfterDelta = retryAfterDelta;
             RetryAfterDate = retryAfterDate;

@@ -12,6 +12,7 @@ Typed, resilient, and dependency-injection-ready .NET 9 library for the full Cli
 
 ## ✨ Features
 
+### Core API Coverage
 * Task management (CRUD, checklists, tags, relationships, attachments)
 * Comments & Chat messages
 * Time tracking entries & summaries
@@ -19,10 +20,20 @@ Typed, resilient, and dependency-injection-ready .NET 9 library for the full Cli
 * Members, Guests, Roles, User Groups
 * Custom Fields & Views
 * Docs, Templates, Webhooks, Shared Hierarchy and more
-* Polly-powered retries and `HttpClientFactory` integration
-* 100% nullable-annotated models with XML docs
+
+### Architecture & Design
+* **🏗️ Service Decomposition**: Task and view services decomposed into smaller, focused interfaces following Single Responsibility Principle
+* **🔧 Infrastructure Abstraction**: Abstraction layer with implementations for file system, date/time providers, HTTP client factory, and configuration
+* **⚡ Enhanced Fluent API**: URL builders, templates, validation pipelines, and configuration builders for improved developer experience
+* **🔌 Extensible Plugin System**: Sample plugins for logging, rate limiting, and caching with extensible architecture
 * **🆕 Modular CLI Tool**: Production-ready command-line interface with 26 organized modules
 * **🆕 Enhanced Architecture**: Clean separation of concerns with focused command modules
+
+### Developer Experience
+* Polly-powered retries and `HttpClientFactory` integration
+* 100% nullable-annotated models with XML docs
+* Type-safe fluent API with validation
+* Comprehensive error handling and logging
 
 > Want the nitty-gritty? Browse the XML-generated docs in the [`/docs`](docs/) folder.
 
@@ -82,18 +93,77 @@ Configure via lambda in `AddClickUpClient`, environment variables, or `IConfigur
 
 ---
 
-## 🧰 Service Map
+## 🧰 Service Architecture
 
-| ClickUp Feature | Service Interface | Implementation |
-|-----------------|-------------------|----------------|
-| Tasks           | `ITaskService`            | `TaskService` |
+### Decomposed Service Interfaces
+Following the Single Responsibility Principle, services are decomposed into focused interfaces:
+
+| ClickUp Feature | Primary Interface | Specialized Interfaces |
+|-----------------|-------------------|------------------------|
+| Tasks           | `ITasksService`   | `ITaskCrudService`, `ITaskQueryService`, `ITaskRelationshipService`, `ITaskTimeTrackingService` |
+| Views           | `IViewsService`   | `IViewCrudService`, `IViewQueryService` |
 | Task Checklists | `ITaskChecklistsService`  | `TaskChecklistsService` |
 | Time Tracking   | `ITimeTrackingService`    | `TimeTrackingService` |
 | Users           | `IUsersService`           | `UsersService` |
 | Spaces          | `ISpacesService`          | `SpacesService` |
 | … and many more | –                         | See `Services/` folder |
 
-Retrieve any service via DI: `var svc = provider.GetRequiredService<ITaskService>();`
+### Infrastructure Abstraction Layer
+The SDK includes abstraction implementations for:
+- **File System**: `IFileSystemProvider` with local and cloud implementations
+- **Date/Time**: `IDateTimeProvider` for testable time operations
+- **HTTP Client Factory**: `IHttpClientFactory` integration with custom configurations
+- **Configuration**: `IConfigurationProvider` with multiple source support
+
+Retrieve any service via DI: `var svc = provider.GetRequiredService<ITasksService>();`
+
+### Enhanced Fluent API
+```csharp
+// URL Builder with validation
+var endpoint = UrlBuilder.Create()
+    .WithPathSegments("task", taskId)
+    .WithQueryParameter("include_subtasks", true)
+    .ValidateAndBuild();
+
+// Configuration Builder
+var config = ClickUpConfigurationBuilder.Create()
+    .WithApiToken(token)
+    .WithRetryPolicy(retryPolicy)
+    .WithValidation()
+    .Build();
+
+// Template-based requests
+var taskTemplate = TaskTemplate.Create()
+    .WithName("{{taskName}}")
+    .WithDescription("{{description}}")
+    .WithAssignee("{{assigneeId}}");
+```
+
+### Plugin System
+Extensible plugin architecture with sample implementations:
+
+```csharp
+// Register plugins during configuration
+services.AddClickUpClient(options =>
+{
+    options.ApiToken = "your-token";
+})
+.AddPlugin<LoggingPlugin>()
+.AddPlugin<RateLimitingPlugin>(config => 
+{
+    config.RequestsPerMinute = 100;
+})
+.AddPlugin<CachingPlugin>(config =>
+{
+    config.DefaultExpiration = TimeSpan.FromMinutes(5);
+});
+```
+
+**Available Plugins:**
+- **LoggingPlugin**: Comprehensive request/response logging
+- **RateLimitingPlugin**: Configurable rate limiting with backoff
+- **CachingPlugin**: Response caching with TTL and invalidation
+- **Custom Plugins**: Implement `IClickUpPlugin` for custom functionality
 
 ---
 
