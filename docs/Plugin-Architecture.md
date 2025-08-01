@@ -1,30 +1,55 @@
 # ClickUp API Client Plugin Architecture
 
-This document describes the plugin architecture implemented in the ClickUp API Client library, which follows the Open/Closed Principle by allowing functionality extension without modifying existing code.
+This document describes the enhanced plugin architecture implemented in the ClickUp API Client library, which follows the Open/Closed Principle by allowing functionality extension without modifying existing code. The plugin system has been significantly enhanced with improved interfaces, better lifecycle management, and comprehensive sample implementations.
 
 ## Overview
 
-The plugin architecture provides a flexible way to extend the ClickUp API Client with custom functionality such as logging, caching, rate limiting, authentication, and more. Plugins can be executed before and after API operations, allowing for comprehensive monitoring and modification of API interactions.
+The plugin architecture provides a flexible and extensible way to extend the ClickUp API Client with custom functionality such as logging, caching, rate limiting, authentication, metrics collection, and more. The enhanced system supports both request/response pipeline plugins and service decorator plugins, allowing for comprehensive monitoring and modification of API interactions.
+
+## Architectural Improvements
+
+### Enhanced Plugin System Features
+- **Dual Plugin Types**: Support for both request/response pipeline plugins and service decorator plugins
+- **Priority-based Execution**: Plugins execute in configurable priority order
+- **Conditional Execution**: Plugins can determine if they should handle specific contexts
+- **Comprehensive Context**: Rich context information available to all plugins
+- **Fluent Configuration**: Builder pattern for easy plugin registration and configuration
+- **Infrastructure Integration**: Seamless integration with the infrastructure abstraction layer
 
 ## Core Components
 
-### Interfaces
+### Enhanced Interfaces
 
-#### IPlugin
-The main contract for all plugins:
+#### IClickUpPlugin
+The base contract for all plugins:
 ```csharp
-public interface IPlugin
+public interface IClickUpPlugin
 {
-    string Id { get; }
     string Name { get; }
-    string Version { get; }
-    string Description { get; }
-    bool IsEnabled { get; set; }
-    
-    Task InitializeAsync(IPluginConfiguration configuration, CancellationToken cancellationToken = default);
-    Task<IPluginResult> ExecuteAsync(IPluginContext context, CancellationToken cancellationToken = default);
-    Task CleanupAsync(CancellationToken cancellationToken = default);
+    int Priority { get; }
+    Task InitializeAsync(IServiceProvider serviceProvider);
+    Task<bool> CanHandleAsync(PluginContext context);
 }
+```
+
+#### IRequestResponsePlugin
+For plugins that operate on the HTTP request/response pipeline:
+```csharp
+public interface IRequestResponsePlugin : IClickUpPlugin
+{
+    Task<HttpRequestMessage> ProcessRequestAsync(HttpRequestMessage request, PluginContext context);
+    Task<HttpResponseMessage> ProcessResponseAsync(HttpResponseMessage response, PluginContext context);
+}
+```
+
+#### IServiceDecoratorPlugin
+For plugins that decorate service implementations:
+```csharp
+public interface IServiceDecoratorPlugin : IClickUpPlugin
+{
+    TService DecorateService<TService>(TService service, IServiceProvider serviceProvider) where TService : class;
+}
+```
 ```
 
 #### IPluginManager
@@ -40,64 +65,93 @@ public interface IPluginManager
 }
 ```
 
-#### IPluginContext
-Provides execution context for plugins:
+#### PluginContext
+Provides rich execution context for plugins:
 ```csharp
-public interface IPluginContext
+public class PluginContext
 {
-    IApiConnection ApiConnection { get; set; }
-    object? RequestData { get; set; }
-    object? ResponseData { get; set; }
-    string OperationType { get; set; }
-    string ServiceName { get; set; }
-    Dictionary<string, object> AdditionalData { get; set; }
-    
-    T? GetValue<T>(string key);
-    void SetValue<T>(string key, T value);
+    public string OperationName { get; set; }
+    public Dictionary<string, object> Properties { get; set; }
+    public IServiceProvider ServiceProvider { get; set; }
+    public CancellationToken CancellationToken { get; set; }
+    public TimeSpan Elapsed { get; set; }
+    public Exception Exception { get; set; }
 }
 ```
 
-## Built-in Sample Plugins
+## Enhanced Built-in Plugins
 
 ### LoggingPlugin
-Logs API operations with detailed information:
-- Operation type and service name
-- Request and response data
-- Execution timing
-- Error handling
+Comprehensive logging for API operations with configurable options:
+- **Request/Response Logging**: Detailed HTTP request and response information
+- **Header Logging**: Optional logging of request/response headers
+- **Body Logging**: Optional logging of request/response bodies
+- **Error Logging**: Automatic error detection and logging
+- **Performance Metrics**: Request duration and timing information
+- **Configurable Log Levels**: Control verbosity through LoggingOptions
 
 ### RateLimitingPlugin
-Implements rate limiting for API operations:
-- Configurable requests per minute
-- Per-service rate limiting
-- Automatic delay when limits are exceeded
+Intelligent rate limiting with API-aware features:
+- **Dynamic Rate Limits**: Updates limits based on API response headers
+- **Burst Handling**: Configurable burst limits for short-term spikes
+- **Auto-retry Logic**: Automatic retry with exponential backoff
+- **Per-endpoint Limiting**: Different limits for different API endpoints
+- **Rate Limit Monitoring**: Real-time rate limit status tracking
 
 ### CachingPlugin
-Provides response caching capabilities:
-- Configurable cache duration
-- Memory-based caching
-- Cache key generation based on operation context
+Advanced response caching with intelligent strategies:
+- **HTTP Cache Headers**: Respects Cache-Control and Expires headers
+- **Content-Type Filtering**: Configurable caching based on response content types
+- **Size Limits**: Configurable maximum cache size and per-item limits
+- **TTL Management**: Flexible expiration policies
+- **Cache Key Generation**: Intelligent cache key creation including relevant headers
+- **Memory Management**: Automatic cleanup and size management
 
-## Usage
+## Enhanced Usage Patterns
 
-### Basic Setup
+### Fluent Client Builder
 
-1. **Register the plugin system** in your DI container:
 ```csharp
-services.AddClickUpClient(options => {
-    // Configure your ClickUp client
-});
+// Enhanced client configuration with plugins
+var client = ClickUpClientBuilder.Create()
+    .WithApiToken(apiToken)
+    .WithPlugin<LoggingPlugin>(options =>
+    {
+        options.LogRequests = true;
+        options.LogResponses = true;
+        options.LogErrors = true;
+    })
+    .WithPlugin<RateLimitingPlugin>(options =>
+    {
+        options.RequestsPerMinute = 100;
+        options.BurstLimit = 10;
+        options.AutoRetryOnRateLimit = true;
+    })
+    .WithPlugin<CachingPlugin>(options =>
+    {
+        options.DefaultExpiration = TimeSpan.FromMinutes(5);
+        options.MaxCacheSize = 50 * 1024 * 1024; // 50MB
+    })
+    .Build();
 ```
 
-2. **Add plugins** using extension methods:
+### Dependency Injection Registration
+
 ```csharp
-services.AddClickUpLoggingPlugin();
-services.AddClickUpRateLimitingPlugin(options => {
-    options.RequestsPerMinute = 100;
-});
-services.AddClickUpCachingPlugin(options => {
-    options.DefaultCacheDurationMinutes = 5;
-});
+// Enhanced DI registration with plugin configuration
+services.AddClickUpClient()
+    .WithApiToken(configuration["ClickUp:ApiToken"])
+    .WithPlugins(plugins => plugins
+        .Add<LoggingPlugin>()
+        .Add<RateLimitingPlugin>()
+        .Add<CachingPlugin>()
+        .Add<CustomMetricsPlugin>()
+        .Add<CustomAuthenticationPlugin>());
+
+// Configure plugin options separately
+services.Configure<LoggingOptions>(configuration.GetSection("ClickUp:Logging"));
+services.Configure<RateLimitingOptions>(configuration.GetSection("ClickUp:RateLimit"));
+services.Configure<CachingOptions>(configuration.GetSection("ClickUp:Cache"));
 ```
 
 ### Advanced Configuration
@@ -111,32 +165,108 @@ services.ConfigureClickUpPlugins(builder => {
 });
 ```
 
-### Creating Custom Plugins
+### Creating Enhanced Custom Plugins
 
-1. **Inherit from BasePlugin**:
+#### Request/Response Pipeline Plugin
 ```csharp
-public class CustomPlugin : BasePlugin
+public class CustomMetricsPlugin : IRequestResponsePlugin
 {
-    public override string Id => "custom-plugin";
-    public override string Name => "Custom Plugin";
-    public override string Version => "1.0.0";
-    public override string Description => "A custom plugin example";
+    private readonly IMetricsCollector _metricsCollector;
+    private readonly ILogger<CustomMetricsPlugin> _logger;
 
-    public override async Task<IPluginResult> ExecuteAsync(IPluginContext context, CancellationToken cancellationToken = default)
+    public string Name => "CustomMetrics";
+    public int Priority => 400;
+
+    public CustomMetricsPlugin(IMetricsCollector metricsCollector, ILogger<CustomMetricsPlugin> logger)
     {
-        // Your custom logic here
-        Logger?.LogInformation("Executing custom plugin for {OperationType} in {ServiceName}", 
-            context.OperationType, context.ServiceName);
-        
-        // Return success result
-        return PluginResult.Success();
+        _metricsCollector = metricsCollector;
+        _logger = logger;
+    }
+
+    public async Task InitializeAsync(IServiceProvider serviceProvider)
+    {
+        _logger.LogInformation("Custom metrics plugin initialized");
+    }
+
+    public async Task<bool> CanHandleAsync(PluginContext context)
+    {
+        return true; // Handle all requests
+    }
+
+    public async Task<HttpRequestMessage> ProcessRequestAsync(HttpRequestMessage request, PluginContext context)
+    {
+        // Record request metrics
+        _metricsCollector.IncrementCounter("clickup_requests_total", new Dictionary<string, string>
+        {
+            ["method"] = request.Method.Method,
+            ["endpoint"] = GetEndpointFromUri(request.RequestUri)
+        });
+
+        context.Properties["RequestStartTime"] = DateTimeOffset.UtcNow;
+        return request;
+    }
+
+    public async Task<HttpResponseMessage> ProcessResponseAsync(HttpResponseMessage response, PluginContext context)
+    {
+        // Record response metrics with timing
+        if (context.Properties.TryGetValue("RequestStartTime", out var startTimeObj) && 
+            startTimeObj is DateTimeOffset startTime)
+        {
+            var duration = DateTimeOffset.UtcNow - startTime;
+            
+            _metricsCollector.RecordHistogram("clickup_request_duration_seconds", duration.TotalSeconds, new Dictionary<string, string>
+            {
+                ["method"] = response.RequestMessage?.Method.Method ?? "unknown",
+                ["status_code"] = ((int)response.StatusCode).ToString(),
+                ["endpoint"] = GetEndpointFromUri(response.RequestMessage?.RequestUri)
+            });
+        }
+
+        return response;
+    }
+
+    private string GetEndpointFromUri(Uri uri)
+    {
+        // Extract endpoint pattern logic
+        return uri?.AbsolutePath ?? "unknown";
     }
 }
 ```
 
-2. **Register your custom plugin**:
+#### Service Decorator Plugin
 ```csharp
-services.AddClickUpPlugin<CustomPlugin>();
+public class AuditingPlugin : IServiceDecoratorPlugin
+{
+    private readonly IAuditLogger _auditLogger;
+
+    public string Name => "Auditing";
+    public int Priority => 500;
+
+    public AuditingPlugin(IAuditLogger auditLogger)
+    {
+        _auditLogger = auditLogger;
+    }
+
+    public async Task InitializeAsync(IServiceProvider serviceProvider)
+    {
+        // Initialize auditing plugin
+    }
+
+    public async Task<bool> CanHandleAsync(PluginContext context)
+    {
+        return context.Properties.ContainsKey("RequiresAuditing");
+    }
+
+    public TService DecorateService<TService>(TService service, IServiceProvider serviceProvider) where TService : class
+    {
+        if (service is ITasksService tasksService)
+        {
+            return (TService)(object)new AuditedTasksService(tasksService, _auditLogger);
+        }
+
+        return service;
+    }
+}
 ```
 
 ## Plugin Execution Flow
