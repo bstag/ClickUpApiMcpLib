@@ -469,11 +469,12 @@ public class IntegrationConfigurationBuilder : FluentConfigurationBuilder<Integr
     /// <returns>The builder for chaining</returns>
     public IntegrationConfigurationBuilder DisableAll()
     {
-        return WithZoom(false)
-            .WithGitHub(false)
-            .WithSlack(false)
-            .WithGoogleDrive(false)
-            .WithEmail(false);
+        SetProperty("ZoomEnabled", false);
+        SetProperty("GitHubEnabled", false);
+        SetProperty("SlackEnabled", false);
+        SetProperty("GoogleDriveEnabled", false);
+        SetProperty("EmailEnabled", false);
+        return this;
     }
 
     protected override IntegrationConfiguration CreateConfiguration()
