@@ -55,7 +55,7 @@ namespace ClickUp.Api.Client.Helpers
             {
                 if (_pathBuilder.Length > 0)
                     _pathBuilder.Append('/');
-                _pathBuilder.Append(HttpUtility.UrlEncode(cleanSegment));
+                _pathBuilder.Append(Uri.EscapeDataString(cleanSegment));
             }
             return this;
         }
