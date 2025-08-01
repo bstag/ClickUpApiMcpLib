@@ -67,7 +67,8 @@ namespace ClickUp.Api.Client.Examples
         {
             public static string BuildTasksUrl(string listId, bool? archived = null, int? page = null, string? orderBy = null)
             {
-                return UrlBuilderHelper.CreateBuilder($"/api/v2/list/{listId}/task")
+                return UrlBuilderHelper.CreateBuilder("/api/v2/list/{listId}/task")
+                    .WithPathParameter("listId", listId)
                     .WithQueryParameter("archived", archived)
                     .WithQueryParameter("page", page)
                     .WithQueryParameterIfNotEmpty("order_by", orderBy)
