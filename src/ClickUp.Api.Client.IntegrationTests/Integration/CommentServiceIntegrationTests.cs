@@ -24,7 +24,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
     {
         private readonly ITestOutputHelper _output;
         private readonly ICommentsService _commentService;
-        private readonly ITasksService _taskService;
+        private readonly ITaskCrudService _taskCrudService;
         private readonly IListsService _listService;
         private readonly IFoldersService _folderService;
         private readonly ISpacesService _spaceService;
@@ -46,7 +46,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         {
             _output = output;
             _commentService = ServiceProvider.GetRequiredService<ICommentsService>();
-            _taskService = ServiceProvider.GetRequiredService<ITasksService>();
+            _taskCrudService = ServiceProvider.GetRequiredService<ITaskCrudService>();
             _listService = ServiceProvider.GetRequiredService<IListsService>();
             _folderService = ServiceProvider.GetRequiredService<IFoldersService>();
             _spaceService = ServiceProvider.GetRequiredService<ISpacesService>();
@@ -87,7 +87,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 try
                 {
                     _hierarchyContext = await TestHierarchyHelper.CreateFullTestHierarchyAsync(
-                        _spaceService, _folderService, _listService, _taskService,
+                        _spaceService, _folderService, _listService, _taskCrudService,
                         _testWorkspaceId, "CommentsIntTest", _output); // Shortened name
 
                     _testSpaceId = _hierarchyContext.SpaceId;

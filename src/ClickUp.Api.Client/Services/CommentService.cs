@@ -303,7 +303,7 @@ namespace ClickUp.Api.Client.Services
         }
 
         /// <inheritdoc />
-        public async Task<Comment> UpdateCommentAsync(
+        public async System.Threading.Tasks.Task UpdateCommentAsync(
             string commentId,
             UpdateCommentRequest updateCommentRequest,
             CancellationToken cancellationToken = default)
@@ -315,7 +315,6 @@ namespace ClickUp.Api.Client.Services
             {
                 throw new InvalidOperationException($"API connection returned null response for updating comment {commentId}.");
             }
-            return comment;
         }
 
         /// <inheritdoc />
@@ -365,14 +364,6 @@ namespace ClickUp.Api.Client.Services
             return response;
         }
 
-        Task ICommentsService.UpdateCommentAsync(string commentId, UpdateCommentRequest updateCommentRequest, CancellationToken cancellationToken)
-        {
-            return UpdateCommentAsync(commentId, updateCommentRequest, cancellationToken);
-        }
 
-        async Task<CreateCommentResponse> ICommentsService.CreateThreadedCommentAsync(string commentId, CreateCommentRequest createCommentRequest, CancellationToken cancellationToken)
-        {
-            return await CreateThreadedCommentAsync(commentId, createCommentRequest, cancellationToken);
-        }
     }
 }

@@ -1,0 +1,24 @@
+- name: Introduction
+  href: intro.md
+- name: Getting Started
+  href: getting-started.md
+- name: Migration Guide
+  href: migration-guide.md
+- name: Best Practices
+  href: best-practices.md
+- name: Authentication
+  href: authentication.md
+- name: Error Handling
+  href: error-handling.md
+- name: Pagination
+  href: pagination.md
+- name: Rate Limiting
+  href: rate-limiting.md
+- name: Webhooks
+  href: webhooks.md
+- name: Semantic Kernel Integration
+  href: semantic-kernel-integration.md
+- name: Documentation Workflow
+  href: workflow.md
+- name: DocFX Setup
+  href: docfx-setup.md
