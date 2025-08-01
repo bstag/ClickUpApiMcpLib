@@ -236,15 +236,9 @@ public class FluentValidationPipeline
 
     private static bool IsValidEmail(string email)
     {
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(email);
-            return addr.Address == email;
-        }
-        catch
-        {
-            return false;
-        }
+        // Use TryCreate to avoid exception-based flow control for validation.
+        // This is more performant and cleaner than using the MailAddress constructor in a try-catch block.
+        return !string.IsNullOrWhiteSpace(email) && System.Net.Mail.MailAddress.TryCreate(email, out _);
     }
 }
 
