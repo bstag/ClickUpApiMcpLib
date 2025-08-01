@@ -15,7 +15,7 @@ namespace ClickUp.Api.Client.Abstractions.Plugins
         /// <summary>
         /// Gets the error message if the execution failed.
         /// </summary>
-        string ErrorMessage { get; }
+        string? ErrorMessage { get; }
 
         /// <summary>
         /// Gets the result data from the plugin execution.

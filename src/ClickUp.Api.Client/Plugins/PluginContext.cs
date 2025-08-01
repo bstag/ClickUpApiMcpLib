@@ -27,9 +27,9 @@ namespace ClickUp.Api.Client.Plugins
             IApiConnection apiConnection,
             string operationType,
             string serviceName,
-            IDictionary<string, object> requestData = null,
-            IDictionary<string, object> responseData = null,
-            IDictionary<string, object> additionalData = null)
+            IDictionary<string, object>? requestData = null,
+            IDictionary<string, object>? responseData = null,
+            IDictionary<string, object>? additionalData = null)
         {
             ApiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
             OperationType = operationType ?? throw new ArgumentNullException(nameof(operationType));
@@ -62,7 +62,7 @@ namespace ClickUp.Api.Client.Plugins
         public T GetValue<T>(string key)
         {
             if (string.IsNullOrWhiteSpace(key))
-                return default(T);
+                return default(T)!;
 
             // Try request data first
             if (_requestData.TryGetValue(key, out var requestValue))
@@ -76,7 +76,7 @@ namespace ClickUp.Api.Client.Plugins
             if (_additionalData.TryGetValue(key, out var additionalValue))
                 return ConvertValue<T>(additionalValue);
 
-            return default(T);
+            return default(T)!;
         }
 
         /// <inheritdoc />
@@ -144,7 +144,7 @@ namespace ClickUp.Api.Client.Plugins
             }
             catch
             {
-                return default(T);
+                return default(T)!;
             }
         }
 

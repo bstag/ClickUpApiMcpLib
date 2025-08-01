@@ -47,7 +47,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
         /// <param name="innerException">The exception that is the cause of the current exception.</param>
-        public ClickUpValidationException(string message, Exception innerException) : base(message, innerException)
+        public ClickUpValidationException(string message, Exception? innerException) : base(message, innerException!)
         {
             ValidationErrors = new List<ValidationError>();
         }
@@ -92,7 +92,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
             IEnumerable<ValidationError>? validationErrors = null,
             string? propertyName = null,
             object? invalidValue = null,
-            Exception? innerException = null) : base(message, innerException)
+            Exception? innerException = null) : base(message, innerException!)
         {
             ValidationErrors = validationErrors?.ToList() ?? new List<ValidationError>();
             PropertyName = propertyName;
@@ -104,18 +104,22 @@ namespace ClickUp.Api.Client.Models.Exceptions
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
         protected ClickUpValidationException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             ValidationErrors = (IReadOnlyList<ValidationError>?)info.GetValue(nameof(ValidationErrors), typeof(IReadOnlyList<ValidationError>)) ?? new List<ValidationError>();
             PropertyName = info.GetString(nameof(PropertyName));
             InvalidValue = info.GetValue(nameof(InvalidValue), typeof(object));
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Sets the serialization data for the exception.
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.", DiagnosticId = "SYSLIB0051")]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
@@ -123,6 +127,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
             info.AddValue(nameof(PropertyName), PropertyName);
             info.AddValue(nameof(InvalidValue), InvalidValue);
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Gets a value indicating whether the exception has validation errors.

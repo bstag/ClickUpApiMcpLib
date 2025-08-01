@@ -125,7 +125,7 @@ namespace ClickUp.Api.Client.Services
         public IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
             GetTasksRequestParameters parameters,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             _logger.LogDebug("Delegating GetTasksAsyncEnumerableAsync to TaskQueryService");
             return _queryService.GetTasksAsyncEnumerableAsync(listId, parameters, cancellationToken);
@@ -145,7 +145,7 @@ namespace ClickUp.Api.Client.Services
         public IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(
             string workspaceId,
             GetTasksRequestParameters parameters,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             _logger.LogDebug("Delegating GetFilteredTeamTasksAsyncEnumerableAsync to TaskQueryService");
             return _queryService.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, parameters, cancellationToken);

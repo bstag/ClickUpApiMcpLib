@@ -117,7 +117,7 @@ namespace ClickUp.Api.Client.Services.Caching
                 await SetAsync(key, value, options, cancellationToken).ConfigureAwait(false);
             }
 
-            return value;
+            return value!;
         }
 
         /// <inheritdoc />

@@ -24,7 +24,7 @@ namespace ClickUp.Api.Client.Plugins.Samples
         /// Initializes a new instance of the <see cref="CachingPlugin"/> class.
         /// </summary>
         /// <param name="logger">The logger instance.</param>
-        public CachingPlugin(ILogger<CachingPlugin> logger = null)
+        public CachingPlugin(ILogger<CachingPlugin>? logger = null)
             : base(
                 id: "clickup.caching",
                 name: "Response Caching Plugin",
@@ -199,7 +199,7 @@ namespace ClickUp.Api.Client.Plugins.Samples
             return string.Join("|", keyParts);
         }
 
-        private void CleanupExpiredEntries(object state)
+        private void CleanupExpiredEntries(object? state)
         {
             var currentTime = DateTime.UtcNow;
             var expiredKeys = new List<string>();

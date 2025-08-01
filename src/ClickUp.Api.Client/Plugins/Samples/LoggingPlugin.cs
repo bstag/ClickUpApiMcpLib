@@ -21,7 +21,7 @@ namespace ClickUp.Api.Client.Plugins.Samples
         /// Initializes a new instance of the <see cref="LoggingPlugin"/> class.
         /// </summary>
         /// <param name="logger">The logger instance.</param>
-        public LoggingPlugin(ILogger<LoggingPlugin> logger = null)
+        public LoggingPlugin(ILogger<LoggingPlugin>? logger = null)
             : base(
                 id: "clickup.logging",
                 name: "API Logging Plugin",

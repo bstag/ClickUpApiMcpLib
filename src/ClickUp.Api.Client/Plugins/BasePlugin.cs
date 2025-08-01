@@ -61,7 +61,7 @@ namespace ClickUp.Api.Client.Plugins
         /// <summary>
         /// Gets the plugin configuration.
         /// </summary>
-        protected IPluginConfiguration Configuration { get; private set; }
+        protected IPluginConfiguration? Configuration { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the plugin has been initialized.

@@ -42,7 +42,7 @@ namespace ClickUp.Api.Client.Abstractions.Plugins
         /// </summary>
         /// <param name="pluginId">The plugin ID.</param>
         /// <returns>The plugin if found, null otherwise.</returns>
-        IPlugin GetPlugin(string pluginId);
+        IPlugin? GetPlugin(string pluginId);
 
         /// <summary>
         /// Executes all enabled plugins for a specific operation.

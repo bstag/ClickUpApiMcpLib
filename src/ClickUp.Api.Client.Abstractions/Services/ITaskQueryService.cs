@@ -37,7 +37,7 @@ namespace ClickUp.Api.Client.Abstractions.Services
         IAsyncEnumerable<CuTask> GetTasksAsyncEnumerableAsync(
             string listId,
             GetTasksRequestParameters parameters,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets filtered tasks from a team/workspace with optional filtering and pagination.
@@ -61,6 +61,6 @@ namespace ClickUp.Api.Client.Abstractions.Services
         IAsyncEnumerable<CuTask> GetFilteredTeamTasksAsyncEnumerableAsync(
             string workspaceId,
             GetTasksRequestParameters parameters,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default);
     }
 }

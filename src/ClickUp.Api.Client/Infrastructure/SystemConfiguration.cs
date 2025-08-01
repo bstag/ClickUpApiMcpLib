@@ -74,7 +74,7 @@ public class SystemConfiguration : IConfiguration
     /// <inheritdoc />
     public T GetValue<T>(string key, T defaultValue)
     {
-        return _configuration.GetValue(key, defaultValue);
+        return _configuration.GetValue(key, defaultValue) ?? defaultValue;
     }
 
     /// <inheritdoc />

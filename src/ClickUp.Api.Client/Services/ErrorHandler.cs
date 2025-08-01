@@ -225,7 +225,7 @@ namespace ClickUp.Api.Client.Services
             var message = ExtractErrorMessage(responseContent) ?? "Authentication failed. Please check your API token.";
             return new ClickUpApiAuthenticationException(message, HttpStatusCode.Unauthorized, "AUTHENTICATION_FAILED", responseContent)
                 .WithContext("CorrelationId", context.CorrelationId)
-                .WithContext("ResponseBody", responseContent);
+                .WithContext("ResponseBody", responseContent ?? string.Empty);
         }
 
         private ClickUpApiException CreateForbiddenException(string? responseContent, ErrorContext context)
@@ -233,7 +233,7 @@ namespace ClickUp.Api.Client.Services
             var message = ExtractErrorMessage(responseContent) ?? "Access to the requested resource is forbidden.";
             return new ClickUpForbiddenException(message)
                 .WithContext("CorrelationId", context.CorrelationId)
-                .WithContext("ResponseBody", responseContent);
+                .WithContext("ResponseBody", responseContent ?? string.Empty);
         }
 
         private ClickUpApiException CreateNotFoundException(string? responseContent, ErrorContext context)
@@ -241,7 +241,7 @@ namespace ClickUp.Api.Client.Services
             var message = ExtractErrorMessage(responseContent) ?? "The requested resource was not found.";
             return new ClickUpNotFoundException(message)
                 .WithContext("CorrelationId", context.CorrelationId)
-                .WithContext("ResponseBody", responseContent);
+                .WithContext("ResponseBody", responseContent ?? string.Empty);
         }
 
         private ClickUpApiException CreateRateLimitException(HttpResponseMessage response, string? responseContent, ErrorContext context)
@@ -266,7 +266,7 @@ namespace ClickUp.Api.Client.Services
                 retryAfter,
                 resetTime)
                 .WithContext("CorrelationId", context.CorrelationId)
-                .WithContext("ResponseBody", responseContent);
+                .WithContext("ResponseBody", responseContent ?? string.Empty);
         }
 
         private ClickUpApiException CreateValidationException(string? responseContent, ErrorContext context)
@@ -276,7 +276,7 @@ namespace ClickUp.Api.Client.Services
             
             return new ClickUpValidationException(message, validationErrors)
                 .WithContext("CorrelationId", context.CorrelationId)
-                .WithContext("ResponseBody", responseContent);
+                .WithContext("ResponseBody", responseContent ?? string.Empty);
         }
 
         private ClickUpApiException CreateServerException(HttpStatusCode statusCode, string? responseContent, ErrorContext context)

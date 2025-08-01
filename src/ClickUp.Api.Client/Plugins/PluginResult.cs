@@ -19,11 +19,11 @@ namespace ClickUp.Api.Client.Plugins
         /// <param name="metadata">Additional metadata.</param>
         public PluginResult(
             bool isSuccess = true,
-            string errorMessage = null,
-            IDictionary<string, object> data = null,
-            IDictionary<string, object> modifications = null,
+            string? errorMessage = null,
+            IDictionary<string, object>? data = null,
+            IDictionary<string, object>? modifications = null,
             bool continueExecution = true,
-            IDictionary<string, object> metadata = null)
+            IDictionary<string, object>? metadata = null)
         {
             IsSuccess = isSuccess;
             ErrorMessage = errorMessage;
@@ -37,7 +37,7 @@ namespace ClickUp.Api.Client.Plugins
         public bool IsSuccess { get; }
 
         /// <inheritdoc />
-        public string ErrorMessage { get; }
+        public string? ErrorMessage { get; }
 
         /// <inheritdoc />
         public IReadOnlyDictionary<string, object> Data { get; }
@@ -60,10 +60,10 @@ namespace ClickUp.Api.Client.Plugins
         /// <param name="metadata">Additional metadata.</param>
         /// <returns>A successful plugin result.</returns>
         public static PluginResult Success(
-            IDictionary<string, object> data = null,
-            IDictionary<string, object> modifications = null,
+            IDictionary<string, object>? data = null,
+            IDictionary<string, object>? modifications = null,
             bool continueExecution = true,
-            IDictionary<string, object> metadata = null)
+            IDictionary<string, object>? metadata = null)
         {
             return new PluginResult(
                 isSuccess: true,
@@ -83,7 +83,7 @@ namespace ClickUp.Api.Client.Plugins
         public static PluginResult Failure(
             string errorMessage,
             bool continueExecution = true,
-            IDictionary<string, object> metadata = null)
+            IDictionary<string, object>? metadata = null)
         {
             return new PluginResult(
                 isSuccess: false,

@@ -322,7 +322,7 @@ namespace ClickUp.Api.Client.Patterns.Repository
         /// <returns>The complete endpoint URL.</returns>
         protected virtual string BuildEntityEndpoint(TId id)
         {
-            return UrlBuilderHelper.CombinePath(BaseEndpoint, id.ToString());
+            return UrlBuilderHelper.CombinePath(BaseEndpoint, id?.ToString() ?? string.Empty);
         }
 
         /// <summary>

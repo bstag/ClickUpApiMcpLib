@@ -47,21 +47,26 @@ namespace ClickUp.Api.Client.Models.Exceptions
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
         protected ClickUpAuthenticationException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             AuthenticationMethod = info.GetString(nameof(AuthenticationMethod));
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Sets the serialization data for the exception.
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.", DiagnosticId = "SYSLIB0051")]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue(nameof(AuthenticationMethod), AuthenticationMethod);
         }
+#pragma warning restore SYSLIB0051
     }
 
     /// <summary>
@@ -126,6 +131,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
         protected ClickUpRateLimitException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             ResetTime = (DateTimeOffset?)info.GetValue(nameof(ResetTime), typeof(DateTimeOffset?));
@@ -133,12 +139,15 @@ namespace ClickUp.Api.Client.Models.Exceptions
             RateLimit = (int?)info.GetValue(nameof(RateLimit), typeof(int?));
             RemainingRequests = (int?)info.GetValue(nameof(RemainingRequests), typeof(int?));
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Sets the serialization data for the exception.
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.", DiagnosticId = "SYSLIB0051")]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
@@ -147,6 +156,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
             info.AddValue(nameof(RateLimit), RateLimit);
             info.AddValue(nameof(RemainingRequests), RemainingRequests);
         }
+#pragma warning restore SYSLIB0051
     }
 
     /// <summary>
@@ -203,23 +213,28 @@ namespace ClickUp.Api.Client.Models.Exceptions
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
         protected ClickUpNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             ResourceType = info.GetString(nameof(ResourceType));
             ResourceId = info.GetString(nameof(ResourceId));
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Sets the serialization data for the exception.
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.", DiagnosticId = "SYSLIB0051")]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue(nameof(ResourceType), ResourceType);
             info.AddValue(nameof(ResourceId), ResourceId);
         }
+#pragma warning restore SYSLIB0051
     }
 
     /// <summary>
@@ -276,23 +291,28 @@ namespace ClickUp.Api.Client.Models.Exceptions
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
         protected ClickUpForbiddenException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             RequiredPermission = info.GetString(nameof(RequiredPermission));
             Resource = info.GetString(nameof(Resource));
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Sets the serialization data for the exception.
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.", DiagnosticId = "SYSLIB0051")]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue(nameof(RequiredPermission), RequiredPermission);
             info.AddValue(nameof(Resource), Resource);
         }
+#pragma warning restore SYSLIB0051
     }
 
     /// <summary>
@@ -342,22 +362,27 @@ namespace ClickUp.Api.Client.Models.Exceptions
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
         protected ClickUpNetworkException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             IsTransient = info.GetBoolean(nameof(IsTransient));
             Timeout = (TimeSpan?)info.GetValue(nameof(Timeout), typeof(TimeSpan?));
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Sets the serialization data for the exception.
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.", DiagnosticId = "SYSLIB0051")]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue(nameof(IsTransient), IsTransient);
             info.AddValue(nameof(Timeout), Timeout);
         }
+#pragma warning restore SYSLIB0051
     }
 }

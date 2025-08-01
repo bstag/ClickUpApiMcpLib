@@ -131,14 +131,10 @@ namespace ClickUp.Api.Client.Helpers
         /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is outside the specified range.</exception>
         public static void ValidateRange(TimeSpan value, string paramName, TimeSpan min, TimeSpan max)
         {
-            var key = new TimeSpanRangeKey(min, max);
-            var attribute = TimeSpanRangeAttributeCache.GetOrAdd(key, k => new RangeAttribute(typeof(TimeSpan), k.Min.ToString(), k.Max.ToString()));
-            var result = attribute.Validate(value, paramName);
-            
-            if (!result.IsValid)
+            if (value < min || value > max)
             {
-                var error = result.Errors[0];
-                throw new ArgumentOutOfRangeException(paramName, value, error.ErrorMessage);
+                throw new ArgumentOutOfRangeException(paramName, value, 
+                    $"Value must be between {min} and {max}.");
             }
         }
 

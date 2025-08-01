@@ -15,7 +15,7 @@ namespace ClickUp.Api.Client.Plugins
         /// Initializes a new instance of the <see cref="PluginConfiguration"/> class.
         /// </summary>
         /// <param name="settings">The configuration settings.</param>
-        public PluginConfiguration(IDictionary<string, object> settings = null)
+        public PluginConfiguration(IDictionary<string, object>? settings = null)
         {
             _settings = new Dictionary<string, object>(settings ?? new Dictionary<string, object>());
         }
@@ -44,7 +44,7 @@ namespace ClickUp.Api.Client.Plugins
                 }
             }
 
-            return default(T);
+            return default(T)!;
         }
 
         /// <inheritdoc />

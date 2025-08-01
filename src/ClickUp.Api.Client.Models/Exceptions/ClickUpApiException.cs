@@ -107,6 +107,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
         protected ClickUpApiException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             StatusCode = (HttpStatusCode?)info.GetValue(nameof(StatusCode), typeof(HttpStatusCode?));
@@ -117,12 +118,15 @@ namespace ClickUp.Api.Client.Models.Exceptions
             HttpMethod = info.GetString(nameof(HttpMethod));
             Context = (Dictionary<string, object>?)info.GetValue(nameof(Context), typeof(Dictionary<string, object>)) ?? new Dictionary<string, object>();
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Sets the serialization data for the exception.
         /// </summary>
         /// <param name="info">The serialization info.</param>
         /// <param name="context">The streaming context.</param>
+#pragma warning disable SYSLIB0051
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.", DiagnosticId = "SYSLIB0051")]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
@@ -134,6 +138,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
             info.AddValue(nameof(HttpMethod), HttpMethod);
             info.AddValue(nameof(Context), Context);
         }
+#pragma warning restore SYSLIB0051
 
         /// <summary>
         /// Adds context information to the exception.

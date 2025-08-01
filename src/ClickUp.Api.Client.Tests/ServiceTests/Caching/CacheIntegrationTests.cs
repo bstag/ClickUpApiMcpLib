@@ -180,7 +180,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Caching
         }
 
         [Fact]
-        public void CacheMetrics_TrackOperationsCorrectly()
+        public async Task CacheMetrics_TrackOperationsCorrectly()
         {
             // Arrange
             var metrics = _memoryCacheService.Metrics;
@@ -193,13 +193,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests.Caching
             var value = new TestData { Id = 1, Name = "Metrics" };
             
             // This will be a miss since key doesn't exist
-            _ = _memoryCacheService.GetAsync<TestData>(key).Result;
+            _ = await _memoryCacheService.GetAsync<TestData>(key);
             
             // This will be a set
-            _memoryCacheService.SetAsync(key, value).Wait();
+            await _memoryCacheService.SetAsync(key, value);
             
             // This will be a hit
-            _ = _memoryCacheService.GetAsync<TestData>(key).Result;
+            _ = await _memoryCacheService.GetAsync<TestData>(key);
 
             // Assert
             Assert.True(metrics.MissCount > initialMissCount);

@@ -17,7 +17,7 @@ namespace ClickUp.Api.Client.Plugins
         private readonly ConcurrentDictionary<string, IPlugin> _plugins;
         private readonly ConcurrentDictionary<string, IPluginConfiguration> _configurations;
         private readonly ConcurrentDictionary<string, bool> _enabledStates;
-        private readonly ILogger<PluginManager> _logger;
+        private readonly ILogger<PluginManager>? _logger;
         private readonly SemaphoreSlim _semaphore;
         private bool _disposed;
 
@@ -25,7 +25,7 @@ namespace ClickUp.Api.Client.Plugins
         /// Initializes a new instance of the <see cref="PluginManager"/> class.
         /// </summary>
         /// <param name="logger">The logger instance.</param>
-        public PluginManager(ILogger<PluginManager> logger = null)
+        public PluginManager(ILogger<PluginManager>? logger = null)
         {
             _plugins = new ConcurrentDictionary<string, IPlugin>();
             _configurations = new ConcurrentDictionary<string, IPluginConfiguration>();
@@ -122,7 +122,7 @@ namespace ClickUp.Api.Client.Plugins
         }
 
         /// <inheritdoc />
-        public IPlugin GetPlugin(string pluginId)
+        public IPlugin? GetPlugin(string pluginId)
         {
             if (string.IsNullOrWhiteSpace(pluginId))
                 return null;

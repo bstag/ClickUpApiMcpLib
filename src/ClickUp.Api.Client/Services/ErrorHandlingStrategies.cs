@@ -35,8 +35,8 @@ namespace ClickUp.Api.Client.Services
                     null,
                     httpEx)
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("RequestUrl", context.RequestUrl)
-                    .WithContext("HttpMethod", context.HttpMethod),
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown")
+                    .WithContext("HttpMethod", context.HttpMethod ?? "unknown"),
 
                 TaskCanceledException cancelEx when cancelEx.InnerException is TimeoutException =>
                     new ClickUpNetworkException(
@@ -44,9 +44,9 @@ namespace ClickUp.Api.Client.Services
                         true,
                         null,
                         cancelEx)
-                        .WithContext("CorrelationId", context.CorrelationId)
-                        .WithContext("RequestUrl", context.RequestUrl)
-                        .WithContext("HttpMethod", context.HttpMethod),
+                        .WithContext("CorrelationId", context.CorrelationId ?? "unknown")
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown")
+                    .WithContext("HttpMethod", context.HttpMethod ?? "unknown"),
 
                 TaskCanceledException cancelEx => new ClickUpNetworkException(
                     "Request was cancelled",
@@ -54,8 +54,8 @@ namespace ClickUp.Api.Client.Services
                     null,
                     cancelEx)
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("RequestUrl", context.RequestUrl)
-                    .WithContext("HttpMethod", context.HttpMethod),
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown")
+                    .WithContext("HttpMethod", context.HttpMethod ?? "unknown"),
 
                 TimeoutException timeoutEx => new ClickUpNetworkException(
                     "Request timeout occurred",
@@ -63,8 +63,8 @@ namespace ClickUp.Api.Client.Services
                     null,
                     timeoutEx)
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("RequestUrl", context.RequestUrl)
-                    .WithContext("HttpMethod", context.HttpMethod),
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown")
+                    .WithContext("HttpMethod", context.HttpMethod ?? "unknown"),
 
                 _ => new ClickUpNetworkException(
                     $"Network error: {exception.Message}",
@@ -72,8 +72,8 @@ namespace ClickUp.Api.Client.Services
                     null,
                     exception)
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("RequestUrl", context.RequestUrl)
-                    .WithContext("HttpMethod", context.HttpMethod)
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown")
+                    .WithContext("HttpMethod", context.HttpMethod ?? "unknown")
             };
         }
     }
@@ -105,21 +105,21 @@ namespace ClickUp.Api.Client.Services
                     argNullEx.ParamName ?? "unknown",
                     $"Parameter cannot be null: {argNullEx.ParamName}")
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("ParameterName", argNullEx.ParamName),
+                    .WithContext("ParameterName", argNullEx.ParamName ?? "unknown"),
 
                 ArgumentOutOfRangeException argRangeEx => new ClickUpValidationException(
                     argRangeEx.ParamName ?? "unknown",
                     $"Parameter value is out of range: {argRangeEx.ParamName}",
                     argRangeEx.ActualValue)
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("ParameterName", argRangeEx.ParamName)
-                    .WithContext("ActualValue", argRangeEx.ActualValue),
+                    .WithContext("ParameterName", argRangeEx.ParamName ?? "unknown")
+                    .WithContext("ActualValue", argRangeEx.ActualValue ?? "null"),
 
                 ArgumentException argEx => new ClickUpValidationException(
                     argEx.ParamName ?? "unknown",
                     argEx.Message)
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("ParameterName", argEx.ParamName),
+                    .WithContext("ParameterName", argEx.ParamName ?? "unknown"),
 
                 FormatException formatEx => new ClickUpValidationException(
                     "format",
@@ -199,22 +199,22 @@ namespace ClickUp.Api.Client.Services
                 UnauthorizedAccessException unauthorizedEx => new ClickUpAuthenticationException(
                     $"Unauthorized access: {unauthorizedEx.Message}")
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("RequestUrl", context.RequestUrl),
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown"),
 
                 System.Security.SecurityException securityEx => new ClickUpAuthenticationException(
                     $"Security error: {securityEx.Message}")
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("RequestUrl", context.RequestUrl),
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown"),
 
                 System.Security.Authentication.AuthenticationException authEx => new ClickUpAuthenticationException(
                     $"Authentication error: {authEx.Message}")
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("RequestUrl", context.RequestUrl),
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown"),
 
                 _ => new ClickUpAuthenticationException(
                     $"Security error: {exception.Message}")
                     .WithContext("CorrelationId", context.CorrelationId)
-                    .WithContext("RequestUrl", context.RequestUrl)
+                    .WithContext("RequestUrl", context.RequestUrl ?? "unknown")
             };
         }
     }
@@ -245,8 +245,8 @@ namespace ClickUp.Api.Client.Services
                 context.HttpMethod,
                 exception)
                 .WithContext("CorrelationId", context.CorrelationId)
-                .WithContext("OriginalExceptionType", exception.GetType().FullName)
-                .WithContext("StackTrace", exception.StackTrace);
+                .WithContext("OriginalExceptionType", exception.GetType().FullName ?? "Unknown")
+                .WithContext("StackTrace", exception.StackTrace ?? "No stack trace available");
         }
     }
 }

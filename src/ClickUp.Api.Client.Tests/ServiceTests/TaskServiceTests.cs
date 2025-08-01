@@ -825,11 +825,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         // Helper methods for async enumerable support
         private static async IAsyncEnumerable<T> GetEmptyAsyncEnumerable<T>()
         {
+            await Task.Yield();
             yield break;
         }
 
         private static async IAsyncEnumerable<T> ConvertToAsyncEnumerable<T>(IEnumerable<T> items)
         {
+            await Task.Yield();
             foreach (var item in items)
             {
                 yield return item;

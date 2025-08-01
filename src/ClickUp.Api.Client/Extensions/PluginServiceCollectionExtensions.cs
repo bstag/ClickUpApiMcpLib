@@ -22,7 +22,7 @@ namespace ClickUp.Api.Client.Extensions
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddClickUpPlugin<TPlugin>(
             this IServiceCollection services,
-            Action<IPluginConfiguration> configurePlugin = null)
+            Action<IPluginConfiguration>? configurePlugin = null)
             where TPlugin : class, IPlugin
         {
             services.AddTransient<TPlugin>();
@@ -134,7 +134,7 @@ namespace ClickUp.Api.Client.Extensions
         /// <typeparam name="TPlugin">The plugin type.</typeparam>
         /// <param name="configurePlugin">Optional plugin configuration.</param>
         /// <returns>The builder for chaining.</returns>
-        IPluginManagerBuilder AddPlugin<TPlugin>(Action<IPluginConfiguration> configurePlugin = null)
+        IPluginManagerBuilder AddPlugin<TPlugin>(Action<IPluginConfiguration>? configurePlugin = null)
             where TPlugin : class, IPlugin;
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace ClickUp.Api.Client.Extensions
             _services = services ?? throw new ArgumentNullException(nameof(services));
         }
 
-        public IPluginManagerBuilder AddPlugin<TPlugin>(Action<IPluginConfiguration> configurePlugin = null)
+        public IPluginManagerBuilder AddPlugin<TPlugin>(Action<IPluginConfiguration>? configurePlugin = null)
             where TPlugin : class, IPlugin
         {
             _services.AddClickUpPlugin<TPlugin>(configurePlugin);
