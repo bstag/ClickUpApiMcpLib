@@ -217,22 +217,23 @@ public class SpaceFluentCreateRequestEnhanced : FluentBuilderBase<SpaceFluentCre
 
         var features = GetOrSetState<SpaceFeatureConfiguration>(FeaturesKey) ?? new SpaceFeatureConfiguration();
         
-        var spaceFeatures = new Features(
-            DueDates: new DueDatesFeature(Enabled: features.DueDatesEnabled, StartDateEnabled: null, RemapDueDatesEnabled: null, DueDatesForSubtasksRollUpEnabled: null),
-            TimeTracking: new TimeTrackingFeature(Enabled: features.TimeTrackingEnabled, HarvestEnabled: null, RollUpEnabled: null),
-            Tags: new TagsFeature(Enabled: features.TagsEnabled),
-            TimeEstimates: new TimeEstimatesFeature(Enabled: features.TimeEstimatesEnabled, RollUpEnabled: null, PerAssigneeEnabled: null),
-            Checklists: new ChecklistsFeature(Enabled: features.ChecklistsEnabled),
-            CustomFields: new CustomFieldsFeature(Enabled: features.CustomFieldsEnabled),
-            RemapDependencies: new RemapDependenciesFeature(Enabled: features.RemapDependenciesEnabled),
-            DependencyWarning: new DependencyWarningFeature(Enabled: features.DependencyWarningEnabled),
-            Portfolios: new PortfoliosFeature(Enabled: features.PortfoliosEnabled),
-            Sprints: new SprintsFeature(Enabled: features.SprintsEnabled, LegacySprintsEnabled: null),
-            Points: new PointsFeature(Enabled: features.PointsEnabled),
-            CustomTaskIds: new CustomTaskIdsFeature(Enabled: features.CustomTaskIdsEnabled),
-            MultipleAssignees: new MultipleAssigneesFeature(Enabled: features.MultipleAssignees),
-            Emails: new EmailsFeature(Enabled: features.Integrations.EmailEnabled)
-        );
+        var spaceFeatures = new Features
+        {
+            DueDates = new DueDatesFeature { Enabled = features.DueDatesEnabled },
+            TimeTracking = new TimeTrackingFeature { Enabled = features.TimeTrackingEnabled },
+            Tags = new TagsFeature { Enabled = features.TagsEnabled },
+            TimeEstimates = new TimeEstimatesFeature { Enabled = features.TimeEstimatesEnabled },
+            Checklists = new ChecklistsFeature { Enabled = features.ChecklistsEnabled },
+            CustomFields = new CustomFieldsFeature { Enabled = features.CustomFieldsEnabled },
+            RemapDependencies = new RemapDependenciesFeature { Enabled = features.RemapDependenciesEnabled },
+            DependencyWarning = new DependencyWarningFeature { Enabled = features.DependencyWarningEnabled },
+            Portfolios = new PortfoliosFeature { Enabled = features.PortfoliosEnabled },
+            Sprints = new SprintsFeature { Enabled = features.SprintsEnabled },
+            Points = new PointsFeature { Enabled = features.PointsEnabled },
+            CustomTaskIds = new CustomTaskIdsFeature { Enabled = features.CustomTaskIdsEnabled },
+            MultipleAssignees = new MultipleAssigneesFeature { Enabled = features.MultipleAssignees },
+            Emails = new EmailsFeature { Enabled = features.Integrations.EmailEnabled }
+        };
 
         var createSpaceRequest = new CreateSpaceRequest(
             Name: GetOrSetState<string>(NameKey) ?? string.Empty,
