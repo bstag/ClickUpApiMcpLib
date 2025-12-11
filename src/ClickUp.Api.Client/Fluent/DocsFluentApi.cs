@@ -133,15 +133,14 @@ public class DocsFluentApi
     {
         var searchRequest = new SearchDocsRequest
         {
-            Query = query,
-            SpaceIds = spaceIds?.ToList(),
-            FolderIds = folderIds?.ToList(),
-            ListIds = listIds?.ToList(),
-            TaskIds = taskIds?.ToList(),
+            Query = query ?? string.Empty,
+            SpaceIds = spaceIds?.ToList() ?? new List<string>(),
+            FolderIds = folderIds?.ToList() ?? new List<string>(),
+            ListIds = listIds?.ToList() ?? new List<string>(),
+            TaskIds = taskIds?.ToList() ?? new List<string>(),
             IncludeArchived = includeArchived,
             ParentId = parentId,
-            ParentType = parentType ?? null,
-
+            ParentType = parentType ?? 0,
             IncludeDeleted = includeDeleted,
             CreatorId = creatorId
         };

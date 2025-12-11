@@ -1,4 +1,5 @@
 using ClickUp.Api.Client.Abstractions.Http;
+using ClickUp.Api.Client.Abstractions.Services;
 using ClickUp.Api.Client.Models.Common;
 using ClickUp.Api.Client.Models.Entities.Checklists; // For Checklist
 using ClickUp.Api.Client.Models.Entities.CustomFields;
@@ -7,13 +8,16 @@ using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.Entities.UserGroups; // Added for UserGroup
 using ClickUp.Api.Client.Models.Entities.Users;
 using ClickUp.Api.Client.Models.RequestModels.Tasks;
-using ClickUp.Api.Client.Models.ResponseModels.Tasks; // Added for GetTasksResponse
+using ClickUp.Api.Client.Models.ResponseModels.Tasks; // Added for GetBulkTasksTimeInStatusResponse and other response models
+using ClickUp.Api.Client.Models.Common.Pagination; // Added for PagedResult
 using ClickUp.Api.Client.Services;
+using ClickUp.Api.Client.Services.Tasks;
 
 using Moq;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +26,7 @@ using Xunit;
 using ClickUp.Api.Client.Models.Parameters; // Ensures CustomFieldFilter is available
 using ClickUp.Api.Client.Models.Common.ValueObjects; // For TimeRange, SortOption
 
+
 namespace ClickUp.Api.Client.Tests.ServiceTests
 {
     public class TaskServiceTests
@@ -29,12 +34,20 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         private readonly Mock<IApiConnection> _mockApiConnection;
         private readonly TaskService _taskService;
         private readonly Mock<Microsoft.Extensions.Logging.ILogger<TaskService>> _mockLogger;
+        private readonly Mock<ITaskCrudService> _mockTaskCrudService;
+        private readonly Mock<ITaskQueryService> _mockTaskQueryService;
+        private readonly Mock<ITaskRelationshipService> _mockTaskRelationshipService;
+        private readonly Mock<ITaskTimeTrackingService> _mockTaskTimeTrackingService;
 
         public TaskServiceTests()
         {
             _mockApiConnection = new Mock<IApiConnection>();
             _mockLogger = new Mock<Microsoft.Extensions.Logging.ILogger<TaskService>>();
-            _taskService = new TaskService(_mockApiConnection.Object, _mockLogger.Object);
+            _mockTaskCrudService = new Mock<ITaskCrudService>();
+            _mockTaskQueryService = new Mock<ITaskQueryService>();
+            _mockTaskRelationshipService = new Mock<ITaskRelationshipService>();
+            _mockTaskTimeTrackingService = new Mock<ITaskTimeTrackingService>();
+            _taskService = new TaskService(_mockTaskCrudService.Object, _mockTaskQueryService.Object, _mockTaskRelationshipService.Object, _mockTaskTimeTrackingService.Object, _mockLogger.Object);
         }
 
         private CuTask CreateSampleTask(string taskId = "sample-task-id")
@@ -86,23 +99,24 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var taskId = "test-task-123";
             var expectedTask = CreateSampleTask(taskId);
+            var requestModel = new GetTaskRequest();
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<CuTask>(It.Is<string>(s => s.StartsWith($"task/{taskId}")), It.IsAny<CancellationToken>()))
+            _mockTaskCrudService
+                .Setup(x => x.GetTaskAsync(taskId, requestModel, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedTask);
 
             // Act
-            var result = await _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None);
+            var result = await _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(taskId, result.Id);
             Assert.Equal(expectedTask.Name, result.Name);
-            _mockApiConnection.Verify(x => x.GetAsync<CuTask>($"task/{taskId}", CancellationToken.None), Times.Once);
+            _mockTaskCrudService.Verify(x => x.GetTaskAsync(taskId, requestModel, CancellationToken.None), Times.Once);
         }
 
         [Fact]
-        public async Task GetTaskAsync_WithAllQueryParameters_BuildsCorrectEndpoint()
+        public async Task GetTaskAsync_WithAllQueryParameters_CallsTaskCrudService()
         {
             // Arrange
             var taskId = "test-task-456";
@@ -112,11 +126,6 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var includeMarkdownDescription = true;
             var expectedTask = CreateSampleTask(taskId);
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expectedTask);
-
-            var expectedEndpoint = $"task/{taskId}?custom_task_ids=true&team_id={teamId}&include_subtasks=true&include_markdown_description=true";
             var requestModel = new GetTaskRequest
             {
                 CustomTaskIds = customTaskIds,
@@ -125,15 +134,19 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 IncludeMarkdownDescription = includeMarkdownDescription
             };
 
+            _mockTaskCrudService
+                .Setup(x => x.GetTaskAsync(taskId, requestModel, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedTask);
+
             // Act
             await _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<CuTask>(expectedEndpoint, CancellationToken.None), Times.Once);
+            _mockTaskCrudService.Verify(x => x.GetTaskAsync(taskId, requestModel, CancellationToken.None), Times.Once);
         }
 
         [Fact]
-        public async Task GetTaskAsync_WithSomeQueryParameters_BuildsCorrectEndpoint()
+        public async Task GetTaskAsync_WithSomeQueryParameters_CallsTaskCrudService()
         {
             // Arrange
             var taskId = "test-task-789";
@@ -143,11 +156,6 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             bool? includeMarkdownDescription = null; // Not provided
             var expectedTask = CreateSampleTask(taskId);
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expectedTask);
-
-            var expectedEndpoint = $"task/{taskId}?team_id={teamId}&include_subtasks=true";
             var requestModel = new GetTaskRequest
             {
                 CustomTaskIds = customTaskIds, // Will be null, so not added to query
@@ -156,46 +164,56 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 IncludeMarkdownDescription = includeMarkdownDescription // Will be null
             };
 
+            _mockTaskCrudService
+                .Setup(x => x.GetTaskAsync(taskId, requestModel, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedTask);
+
             // Act
             await _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<CuTask>(expectedEndpoint, CancellationToken.None), Times.Once);
+            _mockTaskCrudService.Verify(x => x.GetTaskAsync(taskId, requestModel, CancellationToken.None), Times.Once);
         }
 
         [Fact]
-        public async Task GetTaskAsync_ApiConnectionReturnsNull_ThrowsInvalidOperationException()
+        public async Task GetTaskAsync_TaskCrudServiceThrowsException_PropagatesException()
         {
             // Arrange
             var taskId = "non-existent-task";
-            _mockApiConnection
-                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CuTask?)null); // Added ? for nullable return
+            var requestModel = new GetTaskRequest();
+            var expectedException = new InvalidOperationException("Task not found");
+            
+            _mockTaskCrudService
+                .Setup(x => x.GetTaskAsync(taskId, requestModel, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None)
+            var actualException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None)
             );
+            Assert.Equal(expectedException.Message, actualException.Message);
         }
 
         [Fact]
-        public async Task GetTaskAsync_ApiConnectionThrowsException_PropagatesException()
+        public async Task GetTaskAsync_TaskCrudServiceThrowsHttpException_PropagatesException()
         {
             // Arrange
             var taskId = "error-task";
+            var requestModel = new GetTaskRequest();
             var apiException = new HttpRequestException("API error");
-            _mockApiConnection
-                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            
+            _mockTaskCrudService
+                .Setup(x => x.GetTaskAsync(taskId, requestModel, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(apiException);
 
             // Act & Assert
             var actualException = await Assert.ThrowsAsync<HttpRequestException>(() =>
-                _taskService.GetTaskAsync(taskId, new GetTaskRequest(), CancellationToken.None)
+                _taskService.GetTaskAsync(taskId, requestModel, CancellationToken.None)
             );
             Assert.Equal(apiException.Message, actualException.Message);
         }
         [Fact]
-        public async Task GetFilteredTeamTasksAsync_WithNewParameters_BuildsCorrectEndpoint()
+        public async Task GetFilteredTeamTasksAsync_WithNewParameters_CallsTaskQueryService()
         {
             // Arrange
             var workspaceId = "ws-123";
@@ -204,35 +222,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var customFieldId = "cust_field_guid";
             var customFieldValue = "value123";
 
-            var expectedResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse(
+            var expectedResponse = new PagedResult<CuTask>(
                 new List<CuTask> { CreateSampleTask() },
-                false
+                0, 1, false
             );
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _mockTaskQueryService
+                .Setup(x => x.GetFilteredTeamTasksAsync(workspaceId, It.IsAny<Action<GetTasksRequestParameters>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
-
-            // Construct expected query string parts from TimeRange and CustomFieldParameter
-            var expectedStartDateUnixMs = new DateTimeOffset(startDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
-            var expectedEndDateUnixMs = new DateTimeOffset(endDate.UtcDateTime).ToUnixTimeMilliseconds().ToString();
-            // CustomFields are serialized to JSON, then the whole JSON string is URL encoded.
-            var customFieldObject = new List<CustomFieldFilter> { new CustomFieldFilter { FieldId = customFieldId, Operator = "=", Value = customFieldValue } };
-            var expectedCustomFieldJsonString = System.Text.Json.JsonSerializer.Serialize(customFieldObject);
-            var encodedCustomFieldJson = Uri.EscapeDataString(expectedCustomFieldJsonString);
-
-            // Parameters are: due_date_gt, due_date_lt, page, custom_fields. Order might vary from ToQueryParametersList but QueryHelpers will stabilize it.
-            // Let's construct it based on typical QueryHelpers output order or verify parts.
-            // For simplicity, we'll check if all key-value pairs are present.
-            // However, the mock setup requires an exact string match.
-            // The BuildQueryString in service now URI encodes keys and appends values as-is (values are prepped by ToQueryParametersList).
-            // CustomFields value is a raw JSON string.
-            // The order from ToQueryParametersList for these specific params: DueDateRange, Page, CustomFields.
-            var expectedEndpoint = $"team/{workspaceId}/task" +
-                                   $"?due_date_gt={expectedStartDateUnixMs}" +
-                                   $"&due_date_lt={expectedEndDateUnixMs}" +
-                                   $"&page=0" +
-                                   $"&custom_fields={expectedCustomFieldJsonString}"; // Use raw JSON string, not encoded one
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
@@ -241,13 +238,13 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 {
                     parameters.DueDateRange = new TimeRange(startDate, endDate);
                     parameters.CustomFields = new List<CustomFieldFilter> { new CustomFieldFilter { FieldId = customFieldId, Operator = "=", Value = customFieldValue } };
-                    // parameters.Page = 0; // Page is defaulted to 0 if not set in GetTasksRequestParameters
                 },
                 cancellationToken: CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(
-                It.Is<string>(s => s == expectedEndpoint), // Exact match now possible due to controlled param order
+            _mockTaskQueryService.Verify(x => x.GetFilteredTeamTasksAsync(
+                workspaceId,
+                It.IsAny<Action<GetTasksRequestParameters>>(),
                 CancellationToken.None), Times.Once);
         }
 
@@ -257,45 +254,18 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws-456";
             var orderBy = "due_date";
-            // long dateDoneLessThan = 1678889900000; // This parameter is not used by GetTasksRequestParameters
             var includeMarkdownDescription = false;
             var statuses = new List<string> { "open", "in progress" };
-            var assignees = new List<string> { "123", "456" }; // Use numeric strings for AssigneeIds
+            var assignees = new List<string> { "123", "456" };
 
-            var expectedResponse = new ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse(
+            var expectedResponse = new PagedResult<CuTask>(
                 new List<CuTask> { CreateSampleTask() },
-                false
+                0, 1, false
             );
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _mockTaskQueryService
+                .Setup(x => x.GetFilteredTeamTasksAsync(workspaceId, It.IsAny<Action<GetTasksRequestParameters>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
-
-            // Parameters will be: statuses (repeated), order_by, reverse, page, include_markdown_description, assignees (repeated)
-            // Example: team/ws-456/task?statuses=open&statuses=in%20progress&order_by=due_date&reverse=false&page=0&include_markdown_description=false&assignees=1&assignees=2
-            var expectedQueryParts = new List<string>
-            {
-                $"statuses={Uri.EscapeDataString(statuses[0])}",
-                $"statuses={Uri.EscapeDataString(statuses[1])}",
-                $"order_by={orderBy}",
-                "reverse=false", // SortDirection.Ascending results in reverse=false
-                "page=0",
-                $"include_markdown_description={includeMarkdownDescription.ToString().ToLowerInvariant()}",
-                $"assignees={assignees[0]}", // Assuming assignees are string representations of IDs now
-                $"assignees={assignees[1]}"
-            };
-            // The order of query parameters can be unstable from dictionary to query string.
-            // It's better to check that the URL contains all parts rather than an exact string match if order is not guaranteed.
-            // Based on the order in ToQueryParametersList: AssigneeIds, Statuses, SortBy, Page, IncludeMarkdownDescription
-            var expectedEndpoint = $"team/{workspaceId}/task?" +
-                                   $"assignees={assignees[0]}" + // assignees is List<string> in test, parsed to int for AssigneeIds
-                                   $"&assignees={assignees[1]}" +
-                                   $"&statuses={Uri.EscapeDataString(statuses[0])}" +
-                                   $"&statuses={Uri.EscapeDataString(statuses[1])}" +
-                                   $"&order_by={orderBy}" +
-                                   $"&reverse=false" + // From SortOption with Ascending direction
-                                   $"&page=0" + // Default page
-                                   $"&include_markdown_description={includeMarkdownDescription.ToString().ToLowerInvariant()}";
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(
@@ -304,20 +274,25 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                     parameters.SortBy = new SortOption(orderBy, SortDirection.Ascending);
                     parameters.IncludeMarkdownDescription = includeMarkdownDescription;
                     parameters.Statuses = statuses;
-                    parameters.AssigneeIds = assignees.Select(int.Parse).ToList(); // Assignees are int IDs
-                    // parameters.Page = 0; // Page is set by default or by the service method to 0 if not specified
+                    parameters.AssigneeIds = assignees.Select(int.Parse).ToList();
                 },
                 cancellationToken: CancellationToken.None);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(
-                expectedEndpoint, // Direct string match assuming deterministic order
+            _mockTaskQueryService.Verify(x => x.GetFilteredTeamTasksAsync(
+                workspaceId,
+                It.IsAny<Action<GetTasksRequestParameters>>(),
                 CancellationToken.None), Times.Once);
         }
 
         [Fact]
         public async Task GetFilteredTeamTasksAsync_NullWorkspaceId_ThrowsArgumentNullException()
         {
+            // Arrange
+            _mockTaskQueryService
+                .Setup(x => x.GetFilteredTeamTasksAsync(null!, It.IsAny<Action<GetTasksRequestParameters>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ArgumentNullException("workspaceId"));
+
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
                 _taskService.GetFilteredTeamTasksAsync(
@@ -330,6 +305,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         [Fact]
         public async Task GetFilteredTeamTasksAsync_EmptyWorkspaceId_ThrowsArgumentNullException()
         {
+            // Arrange
+            _mockTaskQueryService
+                .Setup(x => x.GetFilteredTeamTasksAsync("", It.IsAny<Action<GetTasksRequestParameters>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ArgumentNullException("workspaceId"));
+
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
                 _taskService.GetFilteredTeamTasksAsync(
@@ -342,6 +322,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         [Fact]
         public async Task GetFilteredTeamTasksAsync_WhitespaceWorkspaceId_ThrowsArgumentNullException()
         {
+            // Arrange
+            _mockTaskQueryService
+                .Setup(x => x.GetFilteredTeamTasksAsync("   ", It.IsAny<Action<GetTasksRequestParameters>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ArgumentNullException("workspaceId"));
+
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>("workspaceId", () =>
                 _taskService.GetFilteredTeamTasksAsync(
@@ -352,13 +337,14 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
-        public async Task GetFilteredTeamTasksAsync_ApiReturnsNull_ReturnsEmptyPagedResult() // Method name updated to reflect behavior
+        public async Task GetFilteredTeamTasksAsync_TaskQueryServiceReturnsNull_ReturnsEmptyPagedResult() // Method name updated to reflect behavior
         {
             // Arrange
             var workspaceId = "ws-789";
-            _mockApiConnection
-                .Setup(x => x.GetAsync<ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ClickUp.Api.Client.Models.ResponseModels.Tasks.GetTasksResponse?)null);
+            var emptyResult = new PagedResult<CuTask>(new List<CuTask>(), 0, 0, false);
+            _mockTaskQueryService
+                .Setup(x => x.GetFilteredTeamTasksAsync(workspaceId, It.IsAny<Action<GetTasksRequestParameters>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(emptyResult);
 
             // Act
             var result = await _taskService.GetFilteredTeamTasksAsync(
@@ -370,9 +356,10 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             Assert.NotNull(result);
             Assert.Empty(result.Items);
             Assert.False(result.HasNextPage);
-            // Verify the mock was called with page=0
-            _mockApiConnection.Verify(x => x.GetAsync<GetTasksResponse>(
-                $"team/{workspaceId}/task?page=0", // Ensure this matches the URL built by the service
+            // Verify the mock was called
+            _mockTaskQueryService.Verify(x => x.GetFilteredTeamTasksAsync(
+                workspaceId,
+                It.IsAny<Action<GetTasksRequestParameters>>(),
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -405,8 +392,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var workspaceId = "ws_empty";
             var parameters = new GetTasksRequestParameters();
-            _mockApiConnection.Setup(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetTasksResponse(new List<CuTask>(), true)); // Empty list, is last page
+            _mockTaskQueryService.Setup(api => api.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, parameters, It.IsAny<CancellationToken>()))
+                .Returns(GetEmptyAsyncEnumerable<CuTask>()); // Empty enumerable
 
             var count = 0;
 
@@ -418,8 +405,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.Equal(0, count);
-            _mockApiConnection.Verify(api => api.GetAsync<GetTasksResponse>(
-                It.Is<string>(s => s.Contains($"team/{workspaceId}/task") && s.Contains("page=0")),
+            _mockTaskQueryService.Verify(api => api.GetFilteredTeamTasksAsyncEnumerableAsync(
+                workspaceId,
+                parameters,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -431,8 +419,8 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var parameters = new GetTasksRequestParameters();
             var tasks = CreateSimpleTasks(2, 0);
 
-            _mockApiConnection.Setup(api => api.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetTasksResponse(tasks, true)); // Tasks, is last page
+            _mockTaskQueryService.Setup(api => api.GetFilteredTeamTasksAsyncEnumerableAsync(workspaceId, parameters, It.IsAny<CancellationToken>()))
+                .Returns(ConvertToAsyncEnumerable(tasks)); // Return tasks as async enumerable
 
             var allTasks = new List<CuTask>();
 
@@ -444,8 +432,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Assert
             Assert.Equal(2, allTasks.Count);
-            _mockApiConnection.Verify(api => api.GetAsync<GetTasksResponse>(
-                It.Is<string>(s => s.Contains($"team/{workspaceId}/task") && s.Contains("page=0")),
+            _mockTaskQueryService.Verify(api => api.GetFilteredTeamTasksAsyncEnumerableAsync(
+                workspaceId,
+                parameters,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -458,11 +447,11 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             // Arrange
             var listId = "list_op_cancel";
             var cancellationTokenSource = new CancellationTokenSource();
-            var dummyResponse = new GetTasksResponse(new List<CuTask>(), true);
+            var dummyResponse = new PagedResult<CuTask>(new List<CuTask>(), 0, 1, true);
 
-            _mockApiConnection.Setup(c => c.GetAsync<GetTasksResponse>(
-                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Callback<string, CancellationToken>((url, token) =>
+            _mockTaskQueryService.Setup(c => c.GetTasksAsync(
+                    listId, It.IsAny<Action<GetTasksRequestParameters>>(), It.IsAny<CancellationToken>()))
+                .Callback<string, Action<GetTasksRequestParameters>, CancellationToken>((id, config, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -488,9 +477,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cancellationTokenSource = new CancellationTokenSource();
             var dummyResponse = CreateSampleTask(taskId);
 
-            _mockApiConnection.Setup(x => x.GetAsync<CuTask>(
-                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Callback<string, CancellationToken>((url, token) =>
+            _mockTaskCrudService.Setup(x => x.GetTaskAsync(
+                    taskId, requestModel, It.IsAny<CancellationToken>()))
+                .Callback<string, GetTaskRequest, CancellationToken>((id, req, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -507,15 +496,15 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
-        public async Task GetTaskAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        public async Task GetTaskAsync_TaskCrudServiceThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
             var taskId = "error-task-cancel";
             var cts = new CancellationTokenSource();
             cts.Cancel(); // Simulate timeout
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<CuTask>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _mockTaskCrudService
+                .Setup(x => x.GetTaskAsync(taskId, It.IsAny<GetTaskRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("Simulated API timeout"));
 
             // Act & Assert
@@ -525,24 +514,26 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
-        public async Task GetTaskAsync_PassesCancellationTokenToApiConnection()
+        public async Task GetTaskAsync_PassesCancellationTokenToTaskCrudService()
         {
             // Arrange
             var taskId = "test-task-ct";
             var expectedTask = CreateSampleTask(taskId);
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
+            var request = new GetTaskRequest();
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<CuTask>(It.Is<string>(s => s.StartsWith($"task/{taskId}")), expectedToken))
+            _mockTaskCrudService
+                .Setup(x => x.GetTaskAsync(taskId, request, expectedToken))
                 .ReturnsAsync(expectedTask);
 
             // Act
-            await _taskService.GetTaskAsync(taskId, new GetTaskRequest(), expectedToken);
+            await _taskService.GetTaskAsync(taskId, request, expectedToken);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<CuTask>(
-                $"task/{taskId}",
+            _mockTaskCrudService.Verify(x => x.GetTaskAsync(
+                taskId,
+                request,
                 expectedToken), Times.Once);
         }
 
@@ -575,9 +566,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cancellationTokenSource = new CancellationTokenSource();
             var dummyResponse = CreateSampleTask();
 
-            _mockApiConnection.Setup(x => x.PostAsync<CreateTaskRequest, CuTask>(
-                    It.IsAny<string>(), It.IsAny<CreateTaskRequest>(), It.IsAny<CancellationToken>()))
-                .Callback<string, CreateTaskRequest, CancellationToken>((url, req, token) =>
+            _mockTaskCrudService.Setup(x => x.CreateTaskAsync(
+                    listId, request, It.IsAny<bool?>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, CreateTaskRequest, bool?, string, CancellationToken>((id, req, customIds, teamId, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -590,20 +581,20 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                _taskService.CreateTaskAsync(listId, request, cancellationToken: cancellationTokenSource.Token));
+                _taskService.CreateTaskAsync(listId, request, customTaskIds: null, teamId: null, cancellationToken: cancellationTokenSource.Token));
         }
 
         // --- Tests for TaskCanceledException and CancellationToken pass-through for GetFilteredTeamTasksAsync ---
         [Fact]
-        public async Task GetFilteredTeamTasksAsync_ApiConnectionThrowsTaskCanceledException_PropagatesException()
+        public async Task GetFilteredTeamTasksAsync_TaskQueryServiceThrowsTaskCanceledException_PropagatesException()
         {
             // Arrange
             var workspaceId = "ws-cancel-ex";
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<GetTasksResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _mockTaskQueryService
+                .Setup(x => x.GetFilteredTeamTasksAsync(workspaceId, It.IsAny<Action<GetTasksRequestParameters>>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new TaskCanceledException("Simulated API timeout"));
 
             // Act & Assert
@@ -613,24 +604,26 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
         }
 
         [Fact]
-        public async Task GetFilteredTeamTasksAsync_PassesCancellationTokenToApiConnection()
+        public async Task GetFilteredTeamTasksAsync_PassesCancellationTokenToTaskQueryService()
         {
             // Arrange
             var workspaceId = "ws-ct-pass";
             var cts = new CancellationTokenSource();
             var expectedToken = cts.Token;
-            var expectedResponse = new GetTasksResponse(new List<CuTask> { CreateSampleTask() }, false);
+            var expectedTasks = new List<CuTask> { CreateSampleTask() };
+            var expectedResponse = new PagedResult<CuTask>(expectedTasks, 0, 1, false);
 
-            _mockApiConnection
-                .Setup(x => x.GetAsync<GetTasksResponse>(It.IsAny<string>(), expectedToken))
+            _mockTaskQueryService
+                .Setup(x => x.GetFilteredTeamTasksAsync(workspaceId, It.IsAny<Action<GetTasksRequestParameters>>(), expectedToken))
                 .ReturnsAsync(expectedResponse);
 
             // Act
             await _taskService.GetFilteredTeamTasksAsync(workspaceId, configureParameters: null, cancellationToken: expectedToken);
 
             // Assert
-            _mockApiConnection.Verify(x => x.GetAsync<GetTasksResponse>(
-                $"team/{workspaceId}/task?page=0", // Base endpoint now includes page=0
+            _mockTaskQueryService.Verify(x => x.GetFilteredTeamTasksAsync(
+                workspaceId,
+                It.IsAny<Action<GetTasksRequestParameters>>(),
                 expectedToken), Times.Once);
         }
 
@@ -658,9 +651,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cancellationTokenSource = new CancellationTokenSource();
             var dummyResponse = CreateSampleTask(taskId);
 
-            _mockApiConnection.Setup(x => x.PutAsync<UpdateTaskRequest, CuTask>(
-                    It.IsAny<string>(), It.IsAny<UpdateTaskRequest>(), It.IsAny<CancellationToken>()))
-                .Callback<string, UpdateTaskRequest, CancellationToken>((url, req, token) =>
+            _mockTaskCrudService.Setup(x => x.UpdateTaskAsync(
+                    taskId, request, It.IsAny<bool?>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<string, UpdateTaskRequest, bool?, string, CancellationToken>((id, req, customIds, teamId, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -673,7 +666,7 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                _taskService.UpdateTaskAsync(taskId, request, cancellationToken: cancellationTokenSource.Token));
+                _taskService.UpdateTaskAsync(taskId, request, null, null, cancellationTokenSource.Token));
         }
         // NOTE: Existing TaskCanceledException and PassesCancellationTokenToApiConnection tests for UpdateTaskAsync are missing, should be added if not present elsewhere.
 
@@ -686,9 +679,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var requestModel = new DeleteTaskRequest();
             var cancellationTokenSource = new CancellationTokenSource();
 
-            _mockApiConnection.Setup(x => x.DeleteAsync(
-                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Callback<string, CancellationToken>((url, token) =>
+            _mockTaskCrudService.Setup(x => x.DeleteTaskAsync(
+                    taskId, requestModel, It.IsAny<CancellationToken>()))
+                .Callback<string, DeleteTaskRequest, CancellationToken>((id, req, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -716,9 +709,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cancellationTokenSource = new CancellationTokenSource();
             var dummyResponse = CreateSampleTask(targetTaskId);
 
-            _mockApiConnection.Setup(x => x.PostAsync<object, CuTask>( // Assuming payload is object for merge
-                    It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
-                .Callback<string, object, CancellationToken>((url, body, token) =>
+            _mockTaskRelationshipService.Setup(x => x.MergeTasksAsync(
+                    targetTaskId, request, It.IsAny<CancellationToken>()))
+                .Callback<string, MergeTasksRequest, CancellationToken>((id, req, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -752,9 +745,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 CurrentStatus = dummyStatusHistoryItem
             };
 
-            _mockApiConnection.Setup(x => x.GetAsync<TaskTimeInStatusResponse>(
-                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Callback<string, CancellationToken>((url, token) =>
+            _mockTaskTimeTrackingService.Setup(x => x.GetTaskTimeInStatusAsync(
+                    taskId, requestModel, It.IsAny<CancellationToken>()))
+                .Callback<string, GetTaskTimeInStatusRequest, CancellationToken>((id, req, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -780,9 +773,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cancellationTokenSource = new CancellationTokenSource();
             var dummyResponse = new GetBulkTasksTimeInStatusResponse(); // Initialize empty
 
-            _mockApiConnection.Setup(x => x.GetAsync<GetBulkTasksTimeInStatusResponse>(
-                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Callback<string, CancellationToken>((url, token) =>
+            _mockTaskTimeTrackingService.Setup(x => x.GetBulkTasksTimeInStatusAsync(
+                    requestModel, It.IsAny<CancellationToken>()))
+                .Callback<GetBulkTasksTimeInStatusRequest, CancellationToken>((req, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -810,9 +803,9 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
             var cancellationTokenSource = new CancellationTokenSource();
             var dummyResponse = CreateSampleTask();
 
-            _mockApiConnection.Setup(x => x.PostAsync<CreateTaskFromTemplateRequest, CuTask>(
-                    It.IsAny<string>(), It.IsAny<CreateTaskFromTemplateRequest>(), It.IsAny<CancellationToken>()))
-                .Callback<string, CreateTaskFromTemplateRequest, CancellationToken>((url, req, token) =>
+            _mockTaskCrudService.Setup(x => x.CreateTaskFromTemplateAsync(
+                    listId, templateId, request, It.IsAny<CancellationToken>()))
+                .Callback<string, string, CreateTaskFromTemplateRequest, CancellationToken>((id, tplId, req, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -828,5 +821,21 @@ namespace ClickUp.Api.Client.Tests.ServiceTests
                 _taskService.CreateTaskFromTemplateAsync(listId, templateId, request, cancellationTokenSource.Token));
         }
         // NOTE: Existing TaskCanceledException and PassesCancellationTokenToApiConnection tests for CreateTaskFromTemplateAsync are missing.
+
+        // Helper methods for async enumerable support
+        private static async IAsyncEnumerable<T> GetEmptyAsyncEnumerable<T>()
+        {
+            await Task.Yield();
+            yield break;
+        }
+
+        private static async IAsyncEnumerable<T> ConvertToAsyncEnumerable<T>(IEnumerable<T> items)
+        {
+            await Task.Yield();
+            foreach (var item in items)
+            {
+                yield return item;
+            }
+        }
     }
 }

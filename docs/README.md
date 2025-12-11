@@ -10,7 +10,19 @@ This directory contains the documentation for the ClickUp .NET SDK.
   - **`images/`** - Images and assets
   - **`docfx.json`** - DocFX configuration
   - **`index.md`** - Documentation homepage
+- **`doc-proposed/`** - Enhanced architectural documentation
+  - **`services.md`** - Decomposed service architecture and Single Responsibility Principle implementation
+  - **`fluent-api.md`** - Enhanced fluent API with URL builders, templates, and validation pipelines
+  - **`plugin-system.md`** - Extensible plugin system with sample implementations
+  - **`infrastructure.md`** - Infrastructure abstraction layer for testability
+  - **`abstractions.md`** - Core abstractions and interfaces
+  - **`models.md`** - Data models and DTOs
+  - **`examples.md`** - Usage examples and code samples
+  - **`testing.md`** - Testing strategies and best practices
+  - **`deployment.md`** - Deployment and configuration guides
+  - **`future-plans.md`** - Roadmap and future enhancements
 - **`plans/`** - Development plans and design documents (not published)
+- **`testing/`** - Testing documentation and strategies
 
 ## Building Documentation Locally
 

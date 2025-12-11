@@ -1,11 +1,22 @@
 using ClickUp.Api.Client.Fluent;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.IO; // For Stream
-using ClickUp.Api.Client.Models.RequestModels.Docs; // For ParentDocIdentifier
-using ClickUp.Api.Client.Models.RequestModels.UserGroups; // For UserGroupMembersUpdate
+using System.IO;
+using ClickUp.Api.Client.Models.RequestModels.Docs;
+using ClickUp.Api.Client.Models.RequestModels.UserGroups;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using ClickUp.Api.Client.Fluent.Console;
+// Enhanced SDK imports for latest patterns
+using ClickUp.Api.Client.Abstractions;
+using ClickUp.Api.Client.Abstractions.Services;
+using ClickUp.Api.Client.Abstractions.Strategies;
+using ClickUp.Api.Client.Strategies.Authentication;
+using ClickUp.Api.Client.Strategies.Caching;
+using ClickUp.Api.Client.Services.Caching;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 Console.WriteLine("Hello, ClickUp Fluent API!");
 
@@ -22,22 +33,65 @@ if (settings is null)
     return;
 }
 
-// You'll need a logger factory. For simple cases, you can use NullLoggerFactory.Instance.
-var loggerFactory = NullLoggerFactory.Instance;
-
-// Create a client with your API token
 if (string.IsNullOrWhiteSpace(settings.ApiToken) || settings.ApiToken == "YOUR_API_TOKEN")
 {
     Console.WriteLine("Please set your API token in appsettings.json under ClickUpSettings:ApiToken.");
     return;
 }
-var client = ClickUpClient.Create(settings.ApiToken, loggerFactory);
 
-// Example: Get all workspaces
+// Create enhanced host with dependency injection and latest patterns
+var host = Host.CreateDefaultBuilder()
+    .ConfigureServices((context, services) =>
+    {
+        // Configure enhanced logging
+        services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+        
+        // Configure caching strategies
+        services.AddMemoryCache();
+        services.AddSingleton<ICachingStrategy, MemoryCachingStrategy>();
+        services.AddSingleton<ICacheService, MemoryCacheService>();
+        
+        // Configure authentication strategies
+        services.AddSingleton<IAuthenticationStrategy>(provider =>
+        {
+            var logger = provider.GetService<ILogger<ApiKeyAuthenticationStrategy>>();
+            var strategy = new ApiKeyAuthenticationStrategy(logger);
+            strategy.SetApiKey(settings.ApiToken);
+            return strategy;
+        });
+        
+        // Register ClickUp client with enhanced configuration
+        services.AddSingleton<ClickUpClient>(provider =>
+        {
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            return ClickUpClient.Create(settings.ApiToken, loggerFactory);
+        });
+    })
+    .Build();
+
+using var scope = host.Services.CreateScope();
+var serviceProvider = scope.ServiceProvider;
+
+// Get the enhanced client and services
+var client = serviceProvider.GetRequiredService<ClickUpClient>();
+var cacheService = serviceProvider.GetRequiredService<ICacheService>();
+var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+logger.LogInformation("[ENHANCED FLUENT API] Starting demonstration with latest patterns...");
+
+// Example 1: Enhanced workspace retrieval with caching
 try
 {
+    logger.LogInformation("[DEMO] Retrieving workspaces with enhanced caching...");
     Console.WriteLine("\nFetching workspaces...");
-    var workspaces = await client.Authorization.GetAuthorizedWorkspacesAsync();
+    var cacheKey = "workspaces_all";
+    var workspaces = await cacheService.GetOrCreateAsync(cacheKey, async () =>
+    {
+        logger.LogInformation("Cache miss - fetching from API");
+        return await client.Authorization.GetAuthorizedWorkspacesAsync();
+    }, TimeSpan.FromMinutes(5));
+    
+    Console.WriteLine($"Found {workspaces.Count()} workspaces (cached for 5 minutes):");
     foreach (var workspace in workspaces)
     {
         Console.WriteLine($"- Workspace: {workspace.Name} (ID: {workspace.Id})");
@@ -618,10 +672,22 @@ try
             Console.WriteLine($"    Skipping Get Webhooks example: Placeholder Workspace ID '{workspaceIdForWebhooks}' not replaced.");
         }
     } // This closes the foreach (var workspace in workspaces)
+    
+    // Example 2: Enhanced Fluent API Composition
+    logger.LogInformation("[DEMO] Demonstrating enhanced fluent API composition...");
+    await DemonstrateEnhancedFluentComposition(client, logger, settings);
+    
+    // Example 3: Advanced Caching Strategies
+    logger.LogInformation("[DEMO] Demonstrating advanced caching strategies...");
+    await DemonstrateAdvancedCaching(client, cacheService, logger, settings);
+    
+    // Example 4: Fluent Builder Patterns
+    logger.LogInformation("[DEMO] Demonstrating enhanced fluent builders...");
+    await DemonstrateFluentBuilders(client, logger, settings);
 } // This closes the try block
 catch (ClickUp.Api.Client.Models.Exceptions.ClickUpApiException cuEx)
 {
-    Console.WriteLine($"\nA ClickUp API error occurred: {cuEx.Message} (Status: {cuEx.HttpStatus}, ErrorCode: {cuEx.ApiErrorCode})");
+    Console.WriteLine($"\nA ClickUp API error occurred: {cuEx.Message} (Status: {cuEx.StatusCode}, ErrorCode: {cuEx.ErrorCode})");
     if (cuEx is ClickUp.Api.Client.Models.Exceptions.ClickUpApiValidationException valEx)
     {
         Console.WriteLine("Validation Errors:");
@@ -637,6 +703,186 @@ catch (ClickUp.Api.Client.Models.Exceptions.ClickUpApiException cuEx)
 }
 catch (Exception ex) // General exception handler
 {
+    logger.LogError(ex, "Error occurred during demonstration");
     Console.WriteLine($"\nAn error occurred: {ex.Message}");
     Console.WriteLine("Please ensure you have set your API token and other IDs in appsettings.json.");
+}
+
+Console.WriteLine("\nPress any key to exit...");
+Console.ReadKey();
+
+// Enhanced demonstration methods
+static async Task DemonstrateEnhancedFluentComposition(ClickUpClient client, ILogger logger, ClickUpSettings settings)
+{
+    try
+    {
+        logger.LogInformation("=== Enhanced Fluent API Composition ===");
+        
+        if (string.IsNullOrWhiteSpace(settings.ListId) || settings.ListId == "YOUR_LIST_ID")
+        {
+            Console.WriteLine("Skipping fluent composition demo - ListId not configured");
+            return;
+        }
+        
+        // Demonstrate fluent composition with enhanced builders
+        var complexTaskQuery = client.Tasks
+            .Get(settings.ListId)
+            .WithArchived(false)
+            .WithSubtasks(true)
+            .WithPage(0)
+            .WithIncludeMarkdownDescription(true)
+            .OrderBy("created")
+            .WithCustomItems(new List<int>())
+            .WithAssignees(new List<int>());
+            
+        logger.LogInformation("Executing complex fluent query with enhanced composition...");
+        var tasks = await complexTaskQuery.GetAsync();
+        
+        Console.WriteLine($"Retrieved {tasks.Items?.Count ?? 0} tasks using enhanced fluent composition");
+        
+        // Demonstrate fluent task creation with validation
+        if (tasks.Items?.Any() == true)
+        {
+            var firstTask = tasks.Items.First();
+            logger.LogInformation($"Sample task: {firstTask.Name} (Status: {firstTask.Status?.StatusValue})");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error in fluent composition demonstration");
+    }
+}
+
+static async Task DemonstrateAdvancedCaching(ClickUpClient client, ICacheService cacheService, ILogger logger, ClickUpSettings settings)
+{
+    try
+    {
+        logger.LogInformation("=== Advanced Caching Strategies ===");
+        
+        // Demonstrate cache warming
+        var warmupTasks = new[]
+        {
+            "spaces_all",
+            "teams_all",
+            "user_profile"
+        };
+        
+        foreach (var cacheKey in warmupTasks)
+        {
+            logger.LogInformation($"Warming cache for key: {cacheKey}");
+            
+            switch (cacheKey)
+            {
+                case "spaces_all":
+                     await cacheService.GetOrCreateAsync(cacheKey, async () =>
+                     {
+                         if (!string.IsNullOrWhiteSpace(settings.WorkspaceId) && settings.WorkspaceId != "YOUR_WORKSPACE_ID")
+                         {
+                             var spaces = await client.Spaces.GetSpacesAsync(settings.WorkspaceId);
+                             return spaces ?? new List<ClickUp.Api.Client.Models.Entities.Spaces.Space>();
+                         }
+                         return new List<ClickUp.Api.Client.Models.Entities.Spaces.Space>();
+                     }, TimeSpan.FromMinutes(10));
+                     break;
+                     
+                 case "teams_all":
+                     await cacheService.GetOrCreateAsync(cacheKey, async () =>
+                     {
+                         var workspaces = new List<ClickUp.Api.Client.Models.Entities.WorkSpaces.ClickUpWorkspace>();
+                         await foreach (var workspace in client.Workspaces.GetAuthorizedWorkspacesAsyncEnumerableAsync())
+                         {
+                             workspaces.Add(workspace);
+                         }
+                         return workspaces;
+                     }, TimeSpan.FromMinutes(15));
+                     break;
+                     
+                 case "user_profile":
+                     await cacheService.GetOrCreateAsync(cacheKey, async () =>
+                     {
+                         return await client.Authorization.GetAuthorizedUserAsync();
+                     }, TimeSpan.FromHours(1));
+                     break;
+            }
+        }
+        
+        // Demonstrate cache metrics
+        logger.LogInformation("Cache warming completed - demonstrating cache hits");
+        
+        // Second call should hit cache
+         var cachedUser = await cacheService.GetOrCreateAsync("user_profile", async () =>
+         {
+             logger.LogInformation("This should not execute - cache hit expected");
+             return await client.Authorization.GetAuthorizedUserAsync();
+         }, TimeSpan.FromHours(1));
+        
+        Console.WriteLine($"User profile retrieved from cache: {cachedUser?.Username}");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error in advanced caching demonstration");
+    }
+}
+
+static async Task DemonstrateFluentBuilders(ClickUpClient client, ILogger logger, ClickUpSettings settings)
+{
+    try
+    {
+        logger.LogInformation("=== Enhanced Fluent Builders ===");
+        
+        if (string.IsNullOrWhiteSpace(settings.ListId) || settings.ListId == "YOUR_LIST_ID")
+        {
+            Console.WriteLine("Skipping fluent builders demo - ListId not configured");
+            return;
+        }
+        
+        // Demonstrate enhanced task builder with validation
+        logger.LogInformation("Creating task with enhanced fluent builder...");
+        
+        var taskBuilder = client.Tasks
+            .CreateTask(settings.ListId)
+            .WithName($"Enhanced Fluent Task - {DateTime.Now:yyyy-MM-dd HH:mm:ss}")
+            .WithDescription("Created using enhanced fluent builder patterns with validation")
+            .WithPriority(3)
+            .WithDueDate(((DateTimeOffset)DateTime.Now.AddDays(7)).ToUnixTimeMilliseconds())
+            .WithTimeEstimate((long)TimeSpan.FromHours(2).TotalMilliseconds);
+            
+        // Add conditional properties
+        if (!string.IsNullOrWhiteSpace(settings.AssigneeId) && settings.AssigneeId != "YOUR_ASSIGNEE_ID")
+        {
+            if (int.TryParse(settings.AssigneeId, out int assigneeId))
+            {
+                taskBuilder = taskBuilder.WithAssignees(new List<int> { assigneeId });
+            }
+        }
+        
+        // Execute with enhanced error handling
+        try
+        {
+            var createdTask = await taskBuilder.CreateAsync();
+            logger.LogInformation($"Task created successfully: {createdTask.Name} (ID: {createdTask.Id})");
+            Console.WriteLine($"Enhanced fluent builder created task: {createdTask.Name}");
+            
+            // Demonstrate fluent update builder
+            logger.LogInformation("Updating task with enhanced fluent builder...");
+            
+            var updateBuilder = client.Tasks
+                .UpdateTask(createdTask.Id)
+                .WithName($"{createdTask.Name} - Updated")
+                .WithDescription("Updated using enhanced fluent builder");
+                
+            var updatedTask = await updateBuilder.UpdateAsync();
+            logger.LogInformation($"Task updated successfully: {updatedTask.Name}");
+            Console.WriteLine($"Enhanced fluent builder updated task: {updatedTask.Name}");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Task creation/update failed - this is expected in demo environment");
+            Console.WriteLine($"Task operation failed (expected in demo): {ex.Message}");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error in fluent builders demonstration");
+    }
 }

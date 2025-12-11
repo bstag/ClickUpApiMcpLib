@@ -1,10 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <PackageId>Stagware.ClickUp.Api.Client.Models</PackageId>
     <Title>ClickUp .NET SDK - Models</Title>
     <Description>Strongly-typed models and DTOs for the ClickUp .NET SDK, including request/response models, entities, and exceptions.</Description>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
 </Project>

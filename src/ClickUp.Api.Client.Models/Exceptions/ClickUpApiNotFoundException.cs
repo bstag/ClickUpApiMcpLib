@@ -22,7 +22,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
             string? apiErrorCode = null,
             string? rawErrorContent = null,
             Exception? innerException = null)
-            : base(message, httpStatus, apiErrorCode, rawErrorContent, innerException)
+            : base(message, httpStatus, apiErrorCode, rawErrorContent, null, null, innerException)
         {
         }
     }

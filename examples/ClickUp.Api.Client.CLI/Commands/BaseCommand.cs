@@ -64,7 +64,7 @@ public abstract class BaseCommand
     /// <returns>Formatted error message</returns>
     protected virtual string FormatApiException(ClickUpApiException apiEx)
     {
-        return apiEx.HttpStatus switch
+        return apiEx.StatusCode switch
         {
             System.Net.HttpStatusCode.Unauthorized => "Authentication failed. Please check your API token.",
             System.Net.HttpStatusCode.Forbidden => "Access denied. You don't have permission to perform this operation.",
@@ -72,7 +72,7 @@ public abstract class BaseCommand
             System.Net.HttpStatusCode.TooManyRequests => "Rate limit exceeded. Please try again later.",
             System.Net.HttpStatusCode.BadRequest => $"Bad request: {apiEx.Message}",
             System.Net.HttpStatusCode.InternalServerError => "ClickUp API internal error. Please try again later.",
-            _ => $"API error ({apiEx.HttpStatus}): {apiEx.Message}"
+            _ => $"API error ({apiEx.StatusCode}): {apiEx.Message}"
         };
     }
 
@@ -213,7 +213,9 @@ public abstract class BaseCommand
     {
         try
         {
-            var output = OutputFormatter.Format(data, format, properties);
+            // Normalize format to lowercase for case-insensitive comparison
+            var normalizedFormat = format?.ToLowerInvariant() ?? "table";
+            var output = OutputFormatter.Format(data, normalizedFormat, properties);
             Console.WriteLine(output);
         }
         catch (Exception ex)

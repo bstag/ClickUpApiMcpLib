@@ -26,7 +26,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
         private readonly ITestOutputHelper _output;
         private readonly ITagsService _tagsService;
         private readonly ISpacesService _spaceService;
-        private readonly ITasksService _tasksService; // For task tag tests
+        private readonly ITaskCrudService _taskCrudService; // Updated to ITaskCrudService for task tag tests
         private readonly IListsService _listsService;   // For task tag tests
         private readonly IFoldersService _foldersService; // For task tag tests
 
@@ -51,7 +51,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output = output;
             _tagsService = ServiceProvider.GetRequiredService<ITagsService>();
             _spaceService = ServiceProvider.GetRequiredService<ISpacesService>();
-            _tasksService = ServiceProvider.GetRequiredService<ITasksService>();
+            _taskCrudService = ServiceProvider.GetRequiredService<ITaskCrudService>();
             _listsService = ServiceProvider.GetRequiredService<IListsService>();
             _foldersService = ServiceProvider.GetRequiredService<IFoldersService>();
 
@@ -98,7 +98,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
                 {
                     // CreateFullTestHierarchyAsync creates Space, Folder, List, Task
                     _hierarchyContext = await TestHierarchyHelper.CreateFullTestHierarchyAsync(
-                        _spaceService, _foldersService, _listsService, _tasksService,
+                        _spaceService, _foldersService, _listsService, _taskCrudService,
                         _testWorkspaceId, "TagsIntTest", _output);
                     _testSpaceId = _hierarchyContext.SpaceId;
                     _testListId = _hierarchyContext.ListId; // Get list from hierarchy for task creation
@@ -371,7 +371,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output.LogInformation($"Attempted to add tag '{tagName}' to task '{_testTaskId}'.");
 
             // Verify by getting the task and checking its tags
-            var task = await _tasksService.GetTaskAsync(_testTaskId, new GetTaskRequest());
+            var task = await _taskCrudService.GetTaskAsync(_testTaskId, new GetTaskRequest());
             Assert.NotNull(task);
             Assert.NotNull(task.Tags);
             Assert.Contains(task.Tags, t => t.Name == tagName);
@@ -431,7 +431,7 @@ namespace ClickUp.Api.Client.IntegrationTests.Integration
             _output.LogInformation($"Attempted to remove tag '{tagName}' from task '{_testTaskId}'.");
 
             // Verify by getting the task and checking its tags
-            var task = await _tasksService.GetTaskAsync(_testTaskId, new GetTaskRequest());
+            var task = await _taskCrudService.GetTaskAsync(_testTaskId, new GetTaskRequest());
             Assert.NotNull(task);
             if (task.Tags != null) // Tags list can be null if no tags remain
             {

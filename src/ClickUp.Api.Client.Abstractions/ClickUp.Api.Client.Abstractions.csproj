@@ -1,10 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <PackageId>Stagware.ClickUp.Api.Client.Abstractions</PackageId>
     <Title>ClickUp .NET SDK - Abstractions</Title>
     <Description>Abstractions and interfaces for the ClickUp .NET SDK, providing contracts for dependency injection and extensibility.</Description>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

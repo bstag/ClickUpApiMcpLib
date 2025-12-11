@@ -82,10 +82,10 @@ namespace ClickUp.Api.Client.Tests.Http
             Assert.NotNull(exception);
             if (exception is ClickUpApiException apiException)
             {
-                Assert.Equal(statusCode, apiException.HttpStatus);
-                Assert.Equal(ecode, apiException.ApiErrorCode);
+                Assert.Equal(statusCode, apiException.StatusCode);
+                Assert.Equal(ecode, apiException.ErrorCode);
                 Assert.Contains(errMessage, apiException.Message);
-                Assert.Equal(responseJson, apiException.RawErrorContent);
+                Assert.Equal(responseJson, apiException.RawResponse);
 
                 if (expectedExceptionType == typeof(ClickUpApiValidationException))
                 {
@@ -111,9 +111,9 @@ namespace ClickUp.Api.Client.Tests.Http
             var exception = await Assert.ThrowsAsync<ClickUpApiRateLimitException>(
                 () => _apiConnection.GetAsync<object>("test-endpoint"));
 
-            Assert.Equal(HttpStatusCode.TooManyRequests, exception.HttpStatus);
+            Assert.Equal(HttpStatusCode.TooManyRequests, exception.StatusCode);
             Assert.Contains("Rate limit reached", exception.Message); // The "err" field should be in the message
-            Assert.Contains("GLOBAL_001", exception.ApiErrorCode);
+            Assert.Contains("GLOBAL_001", exception.ErrorCode);
             Assert.Equal(TimeSpan.FromSeconds(60), exception.RetryAfterDelta);
         }
 
@@ -130,9 +130,9 @@ namespace ClickUp.Api.Client.Tests.Http
             var exception = await Assert.ThrowsAsync<ClickUpApiRateLimitException>(
                  () => _apiConnection.GetAsync<object>("test-endpoint"));
 
-            Assert.Equal(HttpStatusCode.TooManyRequests, exception.HttpStatus);
+            Assert.Equal(HttpStatusCode.TooManyRequests, exception.StatusCode);
             Assert.Contains("Rate limit reached", exception.Message);
-            Assert.Contains("GLOBAL_001", exception.ApiErrorCode);
+            Assert.Contains("GLOBAL_001", exception.ErrorCode);
             Assert.Null(exception.RetryAfterDelta);
         }
 
@@ -161,9 +161,9 @@ namespace ClickUp.Api.Client.Tests.Http
             var exception = await Assert.ThrowsAsync<ClickUpApiValidationException>(
                 () => _apiConnection.GetAsync<object>("test-endpoint"));
 
-            Assert.Equal(HttpStatusCode.UnprocessableEntity, exception.HttpStatus);
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, exception.StatusCode);
             Assert.Contains("Validation failed", exception.Message);
-            Assert.Contains("VALIDATE_001", exception.ApiErrorCode);
+            Assert.Contains("VALIDATE_001", exception.ErrorCode);
             Assert.NotNull(exception.Errors);
             Assert.Equal(2, exception.Errors.Count);
             Assert.True(exception.Errors.ContainsKey("field1"));
@@ -189,9 +189,9 @@ namespace ClickUp.Api.Client.Tests.Http
             var exception = await Assert.ThrowsAsync<ClickUp.Api.Client.Models.Exceptions.ClickUpApiRequestException>(
                  () => _apiConnection.GetAsync<object>("test-endpoint"));
 
-            Assert.Equal(HttpStatusCode.UnprocessableEntity, exception.HttpStatus);
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, exception.StatusCode);
             Assert.Contains("Invalid input", exception.Message);
-            Assert.Contains("INPUT_ERR_002", exception.ApiErrorCode);
+            Assert.Contains("INPUT_ERR_002", exception.ErrorCode);
             // For this non-standard structure, the Errors dictionary might be null or empty
             // if the ApiConnection's HandleErrorResponseAsync doesn't find a field named "errors".
             // This is acceptable as the primary check is the exception type and basic message/code.
@@ -211,9 +211,9 @@ namespace ClickUp.Api.Client.Tests.Http
             var exception = await Assert.ThrowsAsync<ClickUpApiRequestException>( // Changed from ClickUpApiValidationException
                  () => _apiConnection.GetAsync<object>("test-endpoint"));
 
-            Assert.Equal(HttpStatusCode.BadRequest, exception.HttpStatus);
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
             Assert.Contains($"API request failed with status code {(int)HttpStatusCode.BadRequest}", exception.Message); // More precise message check
-            Assert.Null(exception.ApiErrorCode);
+            Assert.Null(exception.ErrorCode);
         }
 
         [Fact]
@@ -228,10 +228,10 @@ namespace ClickUp.Api.Client.Tests.Http
             var exception = await Assert.ThrowsAsync<ClickUpApiServerException>( // Or generic ClickUpApiException
                  () => _apiConnection.GetAsync<object>("test-endpoint"));
 
-            Assert.Equal(HttpStatusCode.InternalServerError, exception.HttpStatus);
+            Assert.Equal(HttpStatusCode.InternalServerError, exception.StatusCode);
             Assert.Contains($"API request failed with status code {(int)HttpStatusCode.InternalServerError}", exception.Message); // Check for status code number
-            Assert.Contains("This is not JSON", exception.RawErrorContent); // Raw content should be preserved
-            Assert.Null(exception.ApiErrorCode);
+            Assert.Contains("This is not JSON", exception.RawResponse); // Raw content should be preserved
+            Assert.Null(exception.ErrorCode);
         }
 
         [Fact]
@@ -246,9 +246,9 @@ namespace ClickUp.Api.Client.Tests.Http
             var exception = await Assert.ThrowsAsync<ClickUpApiAuthenticationException>(
                  () => _apiConnection.GetAsync<object>("test-endpoint"));
 
-            Assert.Equal(HttpStatusCode.Forbidden, exception.HttpStatus);
+            Assert.Equal(HttpStatusCode.Forbidden, exception.StatusCode);
             Assert.Contains("Minimal error", exception.Message);
-            Assert.Null(exception.ApiErrorCode);
+            Assert.Null(exception.ErrorCode);
         }
 
         // POST / PUT / DELETE Tests
@@ -267,7 +267,7 @@ namespace ClickUp.Api.Client.Tests.Http
             var exception = await Assert.ThrowsAsync<TException>(async () => await operation(_apiConnection));
 
             Assert.NotNull(exception);
-            Assert.Equal(expectedStatusCode, exception.HttpStatus);
+            Assert.Equal(expectedStatusCode, exception.StatusCode);
 
             if (expectedErrMessageContains != null)
             {
@@ -275,12 +275,12 @@ namespace ClickUp.Api.Client.Tests.Http
             }
             if (expectedEcode != null)
             {
-                Assert.Equal(expectedEcode, exception.ApiErrorCode);
+                Assert.Equal(expectedEcode, exception.ErrorCode);
             }
             if (checkRawContent && responseMessage.Content != null)
             {
                 var expectedRawContent = await responseMessage.Content.ReadAsStringAsync();
-                Assert.Equal(expectedRawContent, exception.RawErrorContent);
+                Assert.Equal(expectedRawContent, exception.RawResponse);
             }
         }
 
@@ -308,10 +308,10 @@ namespace ClickUp.Api.Client.Tests.Http
             Assert.NotNull(actualException);
             if (actualException is ClickUpApiException apiException)
             {
-                Assert.Equal(statusCode, apiException.HttpStatus);
-                Assert.Equal(ecode, apiException.ApiErrorCode);
+                Assert.Equal(statusCode, apiException.StatusCode);
+                Assert.Equal(ecode, apiException.ErrorCode);
                 Assert.Contains(errMessage, apiException.Message);
-                Assert.Equal(responseJson, apiException.RawErrorContent);
+                Assert.Equal(responseJson, apiException.RawResponse);
             }
             else
             {
@@ -337,10 +337,10 @@ namespace ClickUp.Api.Client.Tests.Http
             var actualException = await Assert.ThrowsAsync<ClickUpApiAuthenticationException>(async () => await apiOperation(_apiConnection));
 
             Assert.NotNull(actualException);
-            Assert.Equal(statusCode, actualException.HttpStatus);
-            Assert.Equal(ecode, actualException.ApiErrorCode);
+            Assert.Equal(statusCode, actualException.StatusCode);
+            Assert.Equal(ecode, actualException.ErrorCode);
             Assert.Contains(errMessage, actualException.Message);
-            Assert.Equal(responseJson, actualException.RawErrorContent);
+            Assert.Equal(responseJson, actualException.RawResponse);
         }
 
 

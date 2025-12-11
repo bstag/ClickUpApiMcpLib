@@ -15,5 +15,6 @@ namespace ClickUp.Api.Client.Fluent.Console
         public string? TaskIdForDependency1 { get; set; }
         public string? TaskIdForDependency2 { get; set; }
         public string? UserId { get; set; }
+        public string? AssigneeId { get; set; }
     }
 }

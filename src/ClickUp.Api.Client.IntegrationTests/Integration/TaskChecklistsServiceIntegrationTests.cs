@@ -21,7 +21,7 @@ public class TaskChecklistsServiceIntegrationTests : IntegrationTestBase, IAsync
     private readonly ISpacesService _spacesService; // For hierarchy teardown
     private readonly IFoldersService _foldersService; // For hierarchy setup
     private readonly IListsService _listsService;     // For hierarchy setup
-    private readonly ITasksService _tasksService;     // For hierarchy setup
+    private readonly ITaskCrudService _taskCrudService;     // For hierarchy setup
     private readonly ITestOutputHelper _outputHelper;
     private TestHierarchyContext? _testContext; // To store IDs from TestHierarchyHelper
 
@@ -39,7 +39,7 @@ public class TaskChecklistsServiceIntegrationTests : IntegrationTestBase, IAsync
         _spacesService = ServiceProvider.GetRequiredService<ISpacesService>();
         _foldersService = ServiceProvider.GetRequiredService<IFoldersService>();
         _listsService = ServiceProvider.GetRequiredService<IListsService>();
-        _tasksService = ServiceProvider.GetRequiredService<ITasksService>();
+        _taskCrudService = ServiceProvider.GetRequiredService<ITaskCrudService>();
         // _hierarchyHelper = new TestHierarchyHelper(ServiceProvider, nameof(TaskChecklistsServiceIntegrationTests)); // Removed instance helper
     }
 
@@ -72,7 +72,7 @@ public class TaskChecklistsServiceIntegrationTests : IntegrationTestBase, IAsync
                 _spacesService,
                 _foldersService,
                 _listsService,
-                _tasksService,
+                _taskCrudService,
                 workspaceId,
                 "TaskChecklistTest",
                 _outputHelper);

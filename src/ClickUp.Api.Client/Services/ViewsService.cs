@@ -1,42 +1,45 @@
 using System;
 using System.Collections.Generic;
-using System.Linq; // For Linq Any
-using System.Net.Http;
-using System.Text; // For StringBuilder
 using System.Threading;
 using System.Threading.Tasks;
-using ClickUp.Api.Client.Abstractions.Http; // IApiConnection
 using ClickUp.Api.Client.Abstractions.Services;
-using ClickUp.Api.Client.Models.Entities;
-using ClickUp.Api.Client.Models.Entities.Views; // View, CuTask DTOs
+using ClickUp.Api.Client.Models.Common.Pagination;
+using ClickUp.Api.Client.Models.Entities.Tasks;
 using ClickUp.Api.Client.Models.RequestModels.Views;
 using ClickUp.Api.Client.Models.ResponseModels.Views;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using ClickUp.Api.Client.Models.Common.Pagination; // For IPagedResult
-using ClickUp.Api.Client.Models.Entities.Tasks; // For CuTask
-using ClickUp.Api.Client.Helpers;
 
 namespace ClickUp.Api.Client.Services
 {
     /// <summary>
-    /// Implements <see cref="IViewsService"/> for ClickUp View operations.
+    /// Implements <see cref="IViewsService"/> for ClickUp View operations using the composite pattern.
+    /// Delegates to specialized services following the Single Responsibility Principle.
     /// </summary>
     public class ViewsService : IViewsService
     {
-        private readonly IApiConnection _apiConnection;
+        private readonly IViewCrudService _viewCrudService;
+        private readonly IViewQueryService _viewQueryService;
+        private readonly IViewTaskService _viewTaskService;
         private readonly ILogger<ViewsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ViewsService"/> class.
         /// </summary>
-        /// <param name="apiConnection">The API connection to use for making requests.</param>
+        /// <param name="viewCrudService">The service for view CRUD operations.</param>
+        /// <param name="viewQueryService">The service for view querying and context-specific creation operations.</param>
+        /// <param name="viewTaskService">The service for view task operations.</param>
         /// <param name="logger">The logger for this service.</param>
-        /// <exception cref="ArgumentNullException">Thrown if apiConnection or logger is null.</exception>
-        public ViewsService(IApiConnection apiConnection, ILogger<ViewsService> logger)
+        /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
+        public ViewsService(
+            IViewCrudService viewCrudService,
+            IViewQueryService viewQueryService,
+            IViewTaskService viewTaskService,
+            ILogger<ViewsService> logger)
         {
-            _apiConnection = apiConnection ?? throw new ArgumentNullException(nameof(apiConnection));
-            _logger = logger ?? NullLogger<ViewsService>.Instance;
+            _viewCrudService = viewCrudService ?? throw new ArgumentNullException(nameof(viewCrudService));
+            _viewQueryService = viewQueryService ?? throw new ArgumentNullException(nameof(viewQueryService));
+            _viewTaskService = viewTaskService ?? throw new ArgumentNullException(nameof(viewTaskService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
 
@@ -45,20 +48,8 @@ namespace ClickUp.Api.Client.Services
             string workspaceId,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting workspace views for workspace ID: {WorkspaceId}", workspaceId);
-            var endpoint = $"team/{workspaceId}/view"; // team_id is workspaceId
-            var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            if (response == null)
-            {
-                _logger.LogWarning("API call to get views for workspace {WorkspaceId} returned null.", workspaceId);
-                throw new InvalidOperationException($"API call to get views for workspace {workspaceId} returned null.");
-            }
-            if (response.Views == null)
-            {
-                _logger.LogWarning("API call to get views for workspace {WorkspaceId} returned a response with null Views list. Normalizing to empty list.", workspaceId);
-                return response with { Views = new List<View>() };
-            }
-            return response;
+            _logger.LogDebug("Delegating GetWorkspaceViewsAsync to ViewQueryService for workspace ID: {WorkspaceId}", workspaceId);
+            return await _viewQueryService.GetWorkspaceViewsAsync(workspaceId, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -67,10 +58,8 @@ namespace ClickUp.Api.Client.Services
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Creating workspace view in workspace ID: {WorkspaceId}, Name: {ViewName}", workspaceId, createViewRequest.Name);
-            var endpoint = $"team/{workspaceId}/view";
-            var response = await _apiConnection.PostAsync<CreateViewRequest, CreateTeamViewResponse>(endpoint, createViewRequest, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for CreateWorkspaceViewAsync (Workspace ID: {workspaceId}).");
+            _logger.LogDebug("Delegating CreateWorkspaceViewAsync to ViewQueryService for workspace ID: {WorkspaceId}", workspaceId);
+            return await _viewQueryService.CreateWorkspaceViewAsync(workspaceId, createViewRequest, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -78,20 +67,8 @@ namespace ClickUp.Api.Client.Services
             string spaceId,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting space views for space ID: {SpaceId}", spaceId);
-            var endpoint = $"space/{spaceId}/view";
-            var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            if (response == null)
-            {
-                _logger.LogWarning("API call to get views for space {SpaceId} returned null.", spaceId);
-                throw new InvalidOperationException($"API call to get views for space {spaceId} returned null.");
-            }
-            if (response.Views == null)
-            {
-                _logger.LogWarning("API call to get views for space {SpaceId} returned a response with null Views list. Normalizing to empty list.", spaceId);
-                return response with { Views = new List<View>() };
-            }
-            return response;
+            _logger.LogDebug("Delegating GetSpaceViewsAsync to ViewQueryService for space ID: {SpaceId}", spaceId);
+            return await _viewQueryService.GetSpaceViewsAsync(spaceId, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -100,10 +77,8 @@ namespace ClickUp.Api.Client.Services
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Creating space view in space ID: {SpaceId}, Name: {ViewName}", spaceId, createViewRequest.Name);
-            var endpoint = $"space/{spaceId}/view";
-            var response = await _apiConnection.PostAsync<CreateViewRequest, CreateSpaceViewResponse>(endpoint, createViewRequest, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for CreateSpaceViewAsync (Space ID: {spaceId}).");
+            _logger.LogDebug("Delegating CreateSpaceViewAsync to ViewQueryService for space ID: {SpaceId}", spaceId);
+            return await _viewQueryService.CreateSpaceViewAsync(spaceId, createViewRequest, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -111,20 +86,8 @@ namespace ClickUp.Api.Client.Services
             string folderId,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting folder views for folder ID: {FolderId}", folderId);
-            var endpoint = $"folder/{folderId}/view";
-            var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            if (response == null)
-            {
-                _logger.LogWarning("API call to get views for folder {FolderId} returned null.", folderId);
-                throw new InvalidOperationException($"API call to get views for folder {folderId} returned null.");
-            }
-            if (response.Views == null)
-            {
-                _logger.LogWarning("API call to get views for folder {FolderId} returned a response with null Views list. Normalizing to empty list.", folderId);
-                return response with { Views = new List<View>() };
-            }
-            return response;
+            _logger.LogDebug("Delegating GetFolderViewsAsync to ViewQueryService for folder ID: {FolderId}", folderId);
+            return await _viewQueryService.GetFolderViewsAsync(folderId, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -133,10 +96,8 @@ namespace ClickUp.Api.Client.Services
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Creating folder view in folder ID: {FolderId}, Name: {ViewName}", folderId, createViewRequest.Name);
-            var endpoint = $"folder/{folderId}/view";
-            var response = await _apiConnection.PostAsync<CreateViewRequest, CreateFolderViewResponse>(endpoint, createViewRequest, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for CreateFolderViewAsync (Folder ID: {folderId}).");
+            _logger.LogDebug("Delegating CreateFolderViewAsync to ViewQueryService for folder ID: {FolderId}", folderId);
+            return await _viewQueryService.CreateFolderViewAsync(folderId, createViewRequest, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -144,20 +105,8 @@ namespace ClickUp.Api.Client.Services
             string listId,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting list views for list ID: {ListId}", listId);
-            var endpoint = $"list/{listId}/view";
-            var response = await _apiConnection.GetAsync<GetViewsResponse>(endpoint, cancellationToken);
-            if (response == null)
-            {
-                _logger.LogWarning("API call to get views for list {ListId} returned null.", listId);
-                throw new InvalidOperationException($"API call to get views for list {listId} returned null.");
-            }
-            if (response.Views == null)
-            {
-                _logger.LogWarning("API call to get views for list {ListId} returned a response with null Views list. Normalizing to empty list.", listId);
-                return response with { Views = new List<View>() };
-            }
-            return response;
+            _logger.LogDebug("Delegating GetListViewsAsync to ViewQueryService for list ID: {ListId}", listId);
+            return await _viewQueryService.GetListViewsAsync(listId, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -166,10 +115,8 @@ namespace ClickUp.Api.Client.Services
             CreateViewRequest createViewRequest,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Creating list view in list ID: {ListId}, Name: {ViewName}", listId, createViewRequest.Name);
-            var endpoint = $"list/{listId}/view";
-            var response = await _apiConnection.PostAsync<CreateViewRequest, CreateListViewResponse>(endpoint, createViewRequest, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for CreateListViewAsync (List ID: {listId}).");
+            _logger.LogDebug("Delegating CreateListViewAsync to ViewQueryService for list ID: {ListId}", listId);
+            return await _viewQueryService.CreateListViewAsync(listId, createViewRequest, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -177,10 +124,8 @@ namespace ClickUp.Api.Client.Services
             string viewId,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Getting view ID: {ViewId}", viewId);
-            var endpoint = $"view/{viewId}";
-            var response = await _apiConnection.GetAsync<GetViewResponse>(endpoint, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for GetViewAsync (View ID: {viewId}).");
+            _logger.LogDebug("Delegating GetViewAsync to ViewCrudService for view ID: {ViewId}", viewId);
+            return await _viewCrudService.GetViewAsync(viewId, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -189,10 +134,8 @@ namespace ClickUp.Api.Client.Services
             UpdateViewRequest updateViewRequest,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Updating view ID: {ViewId}, Name: {ViewName}", viewId, updateViewRequest.Name);
-            var endpoint = $"view/{viewId}";
-            var response = await _apiConnection.PutAsync<UpdateViewRequest, UpdateViewResponse>(endpoint, updateViewRequest, cancellationToken);
-            return response ?? throw new InvalidOperationException($"API response was null for UpdateViewAsync (View ID: {viewId}).");
+            _logger.LogDebug("Delegating UpdateViewAsync to ViewCrudService for view ID: {ViewId}", viewId);
+            return await _viewCrudService.UpdateViewAsync(viewId, updateViewRequest, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -200,89 +143,30 @@ namespace ClickUp.Api.Client.Services
             string viewId,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Deleting view ID: {ViewId}", viewId);
-            var endpoint = $"view/{viewId}";
-            await _apiConnection.DeleteAsync(endpoint, cancellationToken);
+            _logger.LogDebug("Delegating DeleteViewAsync to ViewCrudService for view ID: {ViewId}", viewId);
+            await _viewCrudService.DeleteViewAsync(viewId, cancellationToken);
         }
 
         /// <inheritdoc />
         public async Task<IPagedResult<CuTask>> GetViewTasksAsync(
             string viewId,
-            GetViewTasksRequest request, // Changed from int page
+            GetViewTasksRequest request,
             CancellationToken cancellationToken = default)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
-            _logger.LogInformation("Getting view tasks for view ID: {ViewId}, Page: {Page}", viewId, request.Page);
-            var endpoint = $"view/{viewId}/task";
-            var queryParams = new Dictionary<string, string?>
-            {
-                { "page", request.Page.ToString() }
-            };
-            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
-
-            var response = await _apiConnection.GetAsync<GetViewTasksResponse>(endpoint, cancellationToken);
-
-            if (response == null)
-            {
-                _logger.LogWarning("API connection returned null response for GetViewTasksAsync, View ID: {ViewId}, Page: {Page}. Returning empty paged result.", viewId, request.Page);
-                return PagedResult<CuTask>.Empty(request.Page);
-            }
-
-            var items = response.Tasks ?? Enumerable.Empty<CuTask>();
-            return new PagedResult<CuTask>(
-                items,
-                request.Page,
-                items.Count(), // PageSize for this specific page
-                response.LastPage == false // HasNextPage
-            );
+            _logger.LogDebug("Delegating GetViewTasksAsync to ViewTaskService for view ID: {ViewId}", viewId);
+            return await _viewTaskService.GetViewTasksAsync(viewId, request, cancellationToken);
         }
 
-        /// <summary>
-        /// Retrieves all tasks that are visible within a specific View, automatically handling pagination.
-        /// </summary>
-        /// <param name="viewId">The ID of the View.</param>
-        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
-        /// <returns>An asynchronous enumerable of <see cref="CuTask"/> objects.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="viewId"/> is null or empty.</exception>
-        /// <exception cref="ClickUp.Api.Client.Models.Exceptions.ClickUpApiException">Thrown for API-side errors.</exception>
+        /// <inheritdoc />
         public async IAsyncEnumerable<CuTask> GetViewTasksAsyncEnumerableAsync(
             string viewId,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(viewId)) throw new ArgumentNullException(nameof(viewId));
-
-            _logger.LogInformation("Streaming all tasks for view ID: {ViewId}", viewId);
-            int currentPage = 0;
-            bool lastPageReached;
-
-            do
+            _logger.LogDebug("Delegating GetViewTasksAsyncEnumerableAsync to ViewTaskService for view ID: {ViewId}", viewId);
+            await foreach (var task in _viewTaskService.GetViewTasksAsyncEnumerableAsync(viewId, cancellationToken))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var requestDto = new GetViewTasksRequest { Page = currentPage };
-                _logger.LogDebug("Fetching page {PageNumber} for tasks in view ID {ViewId} via async enumerable.", currentPage, viewId);
-
-                IPagedResult<CuTask> pagedResult = await GetViewTasksAsync(viewId, requestDto, cancellationToken).ConfigureAwait(false);
-
-                if (pagedResult?.Items != null && pagedResult.Items.Any())
-                {
-                    foreach (var task in pagedResult.Items)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        yield return task;
-                    }
-                    lastPageReached = !pagedResult.HasNextPage;
-                }
-                else
-                {
-                    lastPageReached = true; // No items implies last page or error
-                }
-
-                if (!lastPageReached)
-                {
-                    currentPage++;
-                }
-            } while (!lastPageReached);
-            _logger.LogInformation("Finished streaming tasks for view ID: {ViewId}", viewId);
+                yield return task;
+            }
         }
     }
 }

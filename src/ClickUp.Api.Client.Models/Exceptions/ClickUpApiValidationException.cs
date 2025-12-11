@@ -31,7 +31,7 @@ namespace ClickUp.Api.Client.Models.Exceptions
             string? rawErrorContent = null,
             IReadOnlyDictionary<string, IReadOnlyList<string>>? errors = null,
             Exception? innerException = null)
-            : base(message, httpStatus, apiErrorCode, rawErrorContent, innerException)
+            : base(message, httpStatus, apiErrorCode, rawErrorContent, null, null, innerException)
         {
             Errors = errors;
         }
