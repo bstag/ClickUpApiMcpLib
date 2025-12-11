@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers; // For MediaTypeWithQualityHeaderValue
+using JsonContent = System.Net.Http.Json.JsonContent;
 using System.Text; // For StringContent
 using System.Text.Json;
 using System.Threading;
@@ -62,8 +63,7 @@ namespace ClickUp.Api.Client.Http
         {
             try
             {
-                var jsonPayload = JsonSerializer.Serialize(payload, JsonSerializerOptionsHelper.Options);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                var content = JsonContent.Create(payload, options: JsonSerializerOptionsHelper.Options);
 
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint) { Content = content };
                 var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -91,8 +91,7 @@ namespace ClickUp.Api.Client.Http
         {
             try
             {
-                var jsonPayload = JsonSerializer.Serialize(payload, JsonSerializerOptionsHelper.Options);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                var content = JsonContent.Create(payload, options: JsonSerializerOptionsHelper.Options);
 
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint) { Content = content };
                 var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -114,8 +113,7 @@ namespace ClickUp.Api.Client.Http
         {
             try
             {
-                var jsonPayload = JsonSerializer.Serialize(payload, JsonSerializerOptionsHelper.Options);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                var content = JsonContent.Create(payload, options: JsonSerializerOptionsHelper.Options);
 
                 var request = new HttpRequestMessage(HttpMethod.Put, endpoint) { Content = content };
                 var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -143,8 +141,7 @@ namespace ClickUp.Api.Client.Http
         {
             try
             {
-                var jsonPayload = JsonSerializer.Serialize(payload, JsonSerializerOptionsHelper.Options);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                var content = JsonContent.Create(payload, options: JsonSerializerOptionsHelper.Options);
 
                 var request = new HttpRequestMessage(HttpMethod.Put, endpoint) { Content = content };
                 var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -260,8 +257,7 @@ namespace ClickUp.Api.Client.Http
         {
             try
             {
-                var jsonPayload = JsonSerializer.Serialize(payload, JsonSerializerOptionsHelper.Options);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                var content = JsonContent.Create(payload, options: JsonSerializerOptionsHelper.Options);
 
                 var request = new HttpRequestMessage(HttpMethod.Delete, endpoint)
                 {
