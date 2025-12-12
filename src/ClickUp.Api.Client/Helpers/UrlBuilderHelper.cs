@@ -191,11 +191,11 @@ namespace ClickUp.Api.Client.Helpers
 
             foreach (var pair in pairs)
             {
-                var keyValue = pair.Split('=', 2);
-                if (keyValue.Length == 2)
+                var idx = pair.IndexOf('=');
+                if (idx >= 0)
                 {
-                    var key = Uri.UnescapeDataString(keyValue[0]);
-                    var value = Uri.UnescapeDataString(keyValue[1]);
+                    var key = Uri.UnescapeDataString(pair.Substring(0, idx));
+                    var value = Uri.UnescapeDataString(pair.Substring(idx + 1));
                     result[key] = value;
                 }
             }

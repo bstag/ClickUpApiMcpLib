@@ -186,5 +186,72 @@ namespace ClickUp.Api.Client.Tests.Helpers
             var result = UrlBuilderHelper.BuildQueryStringFromArray("key", values);
             Assert.Equal("key[]=value1&key[]=&key[]=value2", result);
         }
+
+        [Fact]
+        public void ExtractQueryParameters_ValidUrl_ReturnsDictionary()
+        {
+            var url = "https://api.clickup.com/v2/task?key1=value1&key2=value2";
+            var result = UrlBuilderHelper.ExtractQueryParameters(url);
+
+            Assert.Equal(2, result.Count);
+            Assert.Equal("value1", result["key1"]);
+            Assert.Equal("value2", result["key2"]);
+        }
+
+        [Fact]
+        public void ExtractQueryParameters_UrlEncodedValues_ReturnsDecodedValues()
+        {
+            var url = "https://example.com?key%201=value%201";
+            var result = UrlBuilderHelper.ExtractQueryParameters(url);
+
+            Assert.Single(result);
+            Assert.Equal("value 1", result["key 1"]);
+        }
+
+        [Fact]
+        public void ExtractQueryParameters_DuplicateKeys_LastOneWins()
+        {
+            var url = "https://example.com?key=value1&key=value2";
+            var result = UrlBuilderHelper.ExtractQueryParameters(url);
+
+            Assert.Single(result);
+            Assert.Equal("value2", result["key"]);
+        }
+
+        [Fact]
+        public void ExtractQueryParameters_KeyWithoutValue_ReturnsEmptyString()
+        {
+            var url = "https://example.com?key=";
+            var result = UrlBuilderHelper.ExtractQueryParameters(url);
+
+            Assert.Single(result);
+            Assert.Equal("", result["key"]);
+        }
+
+        [Fact]
+        public void ExtractQueryParameters_NoQueryString_ReturnsEmpty()
+        {
+            var url = "https://example.com";
+            var result = UrlBuilderHelper.ExtractQueryParameters(url);
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void ExtractQueryParameters_EmptyUrl_ReturnsEmpty()
+        {
+            var result = UrlBuilderHelper.ExtractQueryParameters("");
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void ExtractQueryParameters_ValueWithEquals_ReturnsFullValue()
+        {
+            var url = "https://example.com?key=value=with=equals";
+            var result = UrlBuilderHelper.ExtractQueryParameters(url);
+
+            Assert.Single(result);
+            Assert.Equal("value=with=equals", result["key"]);
+        }
     }
 }
