@@ -219,9 +219,7 @@ namespace ClickUp.Api.Client.Helpers
             // Add query parameters
             if (_queryParameters.Any())
             {
-                urlBuilder.Append('?');
-                var queryString = UrlBuilderHelper.BuildQueryString(_queryParameters);
-                urlBuilder.Append(queryString);
+                UrlBuilderHelper.AppendQueryString(urlBuilder, _queryParameters);
             }
 
             return urlBuilder.ToString();
