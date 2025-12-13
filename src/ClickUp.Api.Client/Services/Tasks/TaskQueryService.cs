@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ClickUp.Api.Client.Abstractions.Http;
@@ -53,9 +54,9 @@ namespace ClickUp.Api.Client.Services.Tasks
 
             _logger.LogInformation("Getting tasks for list ID: {ListId}, Parameters: {@Parameters}", listId, parameters);
             
-            var endpoint = $"list/{listId}/task";
-            var queryParams = parameters.ToQueryParametersList().ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
-            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
+            var sb = new StringBuilder($"list/{listId}/task");
+            UrlBuilderHelper.AppendQueryString(sb, parameters.ToQueryParametersList());
+            var endpoint = sb.ToString();
 
             var response = await _apiConnection.GetAsync<GetTasksResponse>(endpoint, cancellationToken);
 
@@ -103,9 +104,9 @@ namespace ClickUp.Api.Client.Services.Tasks
                 
                 try
                 {
-                    var endpoint = $"list/{listId}/task";
-                    var queryParams = parameters.ToQueryParametersList().ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
-                    endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
+                    var sb = new StringBuilder($"list/{listId}/task");
+                    UrlBuilderHelper.AppendQueryString(sb, parameters.ToQueryParametersList());
+                    var endpoint = sb.ToString();
                         
                     var response = await _apiConnection.GetAsync<GetTasksResponse>(endpoint, cancellationToken).ConfigureAwait(false);
 
@@ -155,9 +156,9 @@ namespace ClickUp.Api.Client.Services.Tasks
 
             _logger.LogInformation("Getting filtered team tasks for workspace ID: {WorkspaceId}, Parameters: {@Parameters}", workspaceId, parameters);
             
-            var endpoint = $"team/{workspaceId}/task";
-            var queryParams = parameters.ToQueryParametersList().ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
-            endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
+            var sb = new StringBuilder($"team/{workspaceId}/task");
+            UrlBuilderHelper.AppendQueryString(sb, parameters.ToQueryParametersList());
+            var endpoint = sb.ToString();
 
             var response = await _apiConnection.GetAsync<GetTasksResponse>(endpoint, cancellationToken);
 
@@ -205,9 +206,9 @@ namespace ClickUp.Api.Client.Services.Tasks
 
                 try
                 {
-                    var endpoint = $"team/{workspaceId}/task";
-                    var queryParams = parameters.ToQueryParametersList().ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
-                    endpoint += UrlBuilderHelper.BuildQueryString(queryParams);
+                    var sb = new StringBuilder($"team/{workspaceId}/task");
+                    UrlBuilderHelper.AppendQueryString(sb, parameters.ToQueryParametersList());
+                    var endpoint = sb.ToString();
                         
                     var response = await _apiConnection.GetAsync<GetTasksResponse>(endpoint, cancellationToken).ConfigureAwait(false);
 

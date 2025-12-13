@@ -43,7 +43,7 @@ public class GetTasksRequestParameters
 
         SpaceIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("space_ids", id.ToString())));
         ProjectIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("project_ids", id.ToString())));
-        ListIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("list_ids", id)));
+        ListIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("list_ids", Uri.EscapeDataString(id))));
         AssigneeIds?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("assignees", id.ToString())));
         Statuses?.ToList().ForEach(s => parameters.Add(new KeyValuePair<string, string>("statuses", Uri.EscapeDataString(s))));
         Tags?.ToList().ForEach(t => parameters.Add(new KeyValuePair<string, string>("tags", Uri.EscapeDataString(t))));
@@ -73,7 +73,7 @@ public class GetTasksRequestParameters
             var sortParams = SortBy.ToOrderByReverseParameters("order_by", "reverse");
             foreach (var entry in sortParams)
             {
-                parameters.Add(new KeyValuePair<string, string>(entry.Key, entry.Value));
+                parameters.Add(new KeyValuePair<string, string>(entry.Key, Uri.EscapeDataString(entry.Value)));
             }
         }
 
@@ -84,7 +84,7 @@ public class GetTasksRequestParameters
         if (CustomFields?.Any() ?? false)
         {
             // Custom fields are expected as a single JSON string parameter by ClickUp API
-            parameters.Add(new KeyValuePair<string, string>("custom_fields", JsonSerializer.Serialize(CustomFields)));
+            parameters.Add(new KeyValuePair<string, string>("custom_fields", Uri.EscapeDataString(JsonSerializer.Serialize(CustomFields))));
         }
 
         CustomItems?.ToList().ForEach(id => parameters.Add(new KeyValuePair<string, string>("custom_items", id.ToString())));
